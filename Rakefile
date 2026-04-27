@@ -17,6 +17,37 @@ task :daemon do
   sh "bundle exec ruby bin/redwright daemon run --dev"
 end
 
+desc "Run traced dev cycle with banner output for runtime/sqlite and LLM placeholders"
+task "run-trace" do
+  project_alias = "rw-trace"
+  message = ENV.fetch("MSG", "trace run")
+  project_path = Dir.pwd
+
+  sh "REDWRIGHT_TRACE=1 bundle exec ruby bin/redwright bootstrap --dev"
+  sh "REDWRIGHT_TRACE=1 bundle exec ruby bin/redwright project register --dev --path #{Shellwords.escape(project_path)} --alias #{Shellwords.escape(project_alias)}"
+
+  line = "=" * 52
+  puts line
+  puts "LLM REQUEST"
+  puts "trace_id: none"
+  puts "model_role: none"
+  puts "provider: none"
+  puts "model: none"
+  puts "action: none"
+  puts "payload_bytes: 0"
+  puts line
+  puts line
+  puts "LLM RESPONSE"
+  puts "trace_id: none"
+  puts "status: skipped"
+  puts "latency_ms: 0"
+  puts "output_bytes: 0"
+  puts "finish_reason: llm_not_integrated"
+  puts line
+
+  sh "REDWRIGHT_TRACE=1 bundle exec ruby bin/redwright flow process --dev --project #{Shellwords.escape(project_alias)} --message #{Shellwords.escape(message)} --confirm-new-workstream"
+end
+
 desc "Run redwright CLI. Usage: bundle exec rake run CMD='flow process --dev --message \"hi\"'"
 task :run do
   cmd = ENV.fetch("CMD", "").strip

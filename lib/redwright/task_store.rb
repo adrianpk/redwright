@@ -3,6 +3,7 @@
 require "sqlite3"
 require "digest"
 require "time"
+require_relative "trace"
 
 module Redwright
   TaskRecord = Struct.new(:id, :workstream_id, :description, :status, :created_at, :updated_at, keyword_init: true)
@@ -24,6 +25,7 @@ module Redwright
           SQL
           [id, workstream_id, description, status, now, now]
         )
+        Trace.sqlite(op: "insert", table: "tasks", detail: "id=#{id}")
       end
 
       get(id)

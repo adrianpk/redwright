@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require_relative "trace"
+
 module Redwright
   FlowResult = Struct.new(:project, :workstream, :task, :alignment, :functional_spec_path, :technical_spec_path, keyword_init: true)
 
@@ -13,24 +15,26 @@ module Redwright
     end
 
     def process(project_ref:, intent:, message:, workstream_id: nil, confirm_new_workstream: false, blocked_retry_attempts: 1)
-      retries = [blocked_retry_attempts.to_i, 1].max
-      attempts = 0
+      Trace.with_trace_id do
+        retries = [blocked_retry_attempts.to_i, 1].max
+        attempts = 0
 
-      begin
-        attempts += 1
-        return process_once(
-          project_ref: project_ref,
-          intent: intent,
-          message: message,
-          workstream_id: workstream_id,
-          confirm_new_workstream: confirm_new_workstream
-        )
-      rescue ArgumentError
-        raise
-      rescue StandardError => e
-        retry if attempts < retries
+        begin
+          attempts += 1
+          return process_once(
+            project_ref: project_ref,
+            intent: intent,
+            message: message,
+            workstream_id: workstream_id,
+            confirm_new_workstream: confirm_new_workstream
+          )
+        rescue ArgumentError
+          raise
+        rescue StandardError => e
+          retry if attempts < retries
 
-        raise RuntimeError, "blocked after #{retries} attempt(s): #{e.message}"
+          raise RuntimeError, "blocked after #{retries} attempt(s): #{e.message}"
+        end
       end
     end
 
@@ -55,6 +59,13 @@ module Redwright
 
       task = @task_store.create(workstream_id: workstream.id, description: message, status: "pending")
       workstream = @workstream_store.update_state(workstream.id, "executing")
+      Trace.banner("RUNTIME TRACE", {
+        trace_id: Trace.current_trace_id || "none",
+        project_id: project.id,
+        workstream_id: workstream.id,
+        task_id: task.id,
+        state: workstream.state
+      })
       FlowResult.new(project: project, workstream: workstream, task: task, alignment: nil, functional_spec_path: nil, technical_spec_path: nil)
     end
 

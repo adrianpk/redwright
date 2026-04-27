@@ -3,6 +3,7 @@
 require "sqlite3"
 require "digest"
 require "time"
+require_relative "trace"
 
 module Redwright
   ProjectRecord = Struct.new(:id, :name, :path, :aliases, :last_active_at, keyword_init: true)
@@ -28,11 +29,13 @@ module Redwright
             "UPDATE projects SET name = ?, updated_at = ?, last_active_at = ? WHERE id = ?",
             [name, now, now, project_id]
           )
+          Trace.sqlite(op: "update", table: "projects", detail: "id=#{project_id}")
         else
           db.execute(
             "INSERT INTO projects (id, name, path, created_at, updated_at, last_active_at) VALUES (?, ?, ?, ?, ?, ?)",
             [project_id, name, normalized_path, now, now, now]
           )
+          Trace.sqlite(op: "insert", table: "projects", detail: "id=#{project_id}")
         end
 
         aliases.each do |a|
@@ -40,6 +43,7 @@ module Redwright
             "INSERT INTO project_aliases (alias, project_id, created_at) VALUES (?, ?, ?) ON CONFLICT(alias) DO UPDATE SET project_id = excluded.project_id",
             [a, project_id, now]
           )
+          Trace.sqlite(op: "upsert", table: "project_aliases", detail: "alias=#{a}")
         end
 
         db.commit
@@ -89,6 +93,7 @@ module Redwright
       now = utc_now
       with_db do |db|
         db.execute("UPDATE projects SET last_active_at = ?, updated_at = ? WHERE id = ?", [now, now, project_id])
+        Trace.sqlite(op: "update", table: "projects", detail: "mark_active id=#{project_id}")
       end
     end
 

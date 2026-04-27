@@ -3,6 +3,7 @@
 require "sqlite3"
 require "digest"
 require "time"
+require_relative "trace"
 
 module Redwright
   WorkstreamRecord = Struct.new(
@@ -34,6 +35,7 @@ module Redwright
           SQL
           [id, project_id, intent, state, branch, worktree_path, now, now]
         )
+        Trace.sqlite(op: "insert", table: "workstreams", detail: "id=#{id}")
       end
 
       get(id)
@@ -104,6 +106,7 @@ module Redwright
       now = utc_now
       with_db do |db|
         db.execute("UPDATE workstreams SET state = ?, updated_at = ? WHERE id = ?", [state, now, id])
+        Trace.sqlite(op: "update", table: "workstreams", detail: "state=#{state} id=#{id}")
       end
       get(id)
     end
@@ -115,6 +118,7 @@ module Redwright
           "UPDATE workstreams SET branch = ?, worktree_path = ?, updated_at = ? WHERE id = ?",
           [branch, worktree_path, now, id]
         )
+        Trace.sqlite(op: "update", table: "workstreams", detail: "worktree id=#{id}")
       end
       get(id)
     end
@@ -123,6 +127,7 @@ module Redwright
       now = utc_now
       with_db do |db|
         db.execute("UPDATE workstreams SET branch = NULL, worktree_path = NULL, updated_at = ? WHERE id = ?", [now, id])
+        Trace.sqlite(op: "update", table: "workstreams", detail: "clear_worktree id=#{id}")
       end
       get(id)
     end
