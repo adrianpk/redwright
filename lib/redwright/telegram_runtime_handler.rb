@@ -16,7 +16,9 @@ module Redwright
       model_role: "non_coding",
       model_provider: "none",
       model_name: "none",
-      intent_interpreter: nil
+      intent_interpreter: nil,
+      typing_interval_seconds: 4.0,
+      typing_sleeper: ->(seconds) { sleep(seconds) }
     )
       @flow = flow
       @telegram_client = telegram_client
@@ -28,10 +30,13 @@ module Redwright
       @model_provider = model_provider
       @model_name = model_name
       @intent_interpreter = intent_interpreter
+      @typing_interval_seconds = typing_interval_seconds
+      @typing_sleeper = typing_sleeper
     end
 
     def handle(event)
       Trace.with_trace_id do
+        stop_typing = nil
         begin
           Trace.banner("INGRESS TRACE", {
             trace_id: Trace.current_trace_id || "none",
@@ -39,11 +44,7 @@ module Redwright
             chat_id: event.chat_id,
             text: event.text
           })
-          begin
-            @telegram_client.send_chat_action(chat_id: event.chat_id, action: "typing")
-          rescue StandardError => e
-            @err.puts("telegram typing hint failed chat=#{event.chat_id}: #{e.message}")
-          end
+          stop_typing = start_typing_keepalive(event.chat_id)
           Trace.llm_request(
             role: @model_role,
             provider: @model_provider,
@@ -92,6 +93,8 @@ module Redwright
           )
           @telegram_client.send_message(chat_id: event.chat_id, text: error_envelope.to_json_string)
           @err.puts("telegram processing error chat=#{event.chat_id}: #{e.message}")
+        ensure
+          stop_typing.call if stop_typing
         end
       end
     end
@@ -100,6 +103,37 @@ module Redwright
 
     def interpreter
       @intent_interpreter ||= LlmIntentInterpreter.new(llm_client: nil)
+    end
+
+    def start_typing_keepalive(chat_id)
+      stop = false
+      mutex = Mutex.new
+
+      begin
+        @telegram_client.send_chat_action(chat_id: chat_id, action: "typing")
+      rescue StandardError => e
+        @err.puts("telegram typing hint failed chat=#{chat_id}: #{e.message}")
+      end
+
+      worker = Thread.new do
+        loop do
+          break if mutex.synchronize { stop }
+
+          begin
+            @telegram_client.send_chat_action(chat_id: chat_id, action: "typing")
+          rescue StandardError => e
+            @err.puts("telegram typing hint failed chat=#{chat_id}: #{e.message}")
+          end
+
+          break if mutex.synchronize { stop }
+          @typing_sleeper.call(@typing_interval_seconds)
+        end
+      end
+
+      lambda do
+        mutex.synchronize { stop = true }
+        worker.join(0.5)
+      end
     end
   end
 end

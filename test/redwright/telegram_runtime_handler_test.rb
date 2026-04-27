@@ -137,6 +137,53 @@ class TelegramRuntimeHandlerTest < Minitest::Test
     assert_match("telegram processed chat=9 task=task-1", out.string)
   end
 
+  def test_handle_keeps_typing_while_processing_longer_than_interval
+    fake_flow = Object.new
+    fake_flow.define_singleton_method(:process) do |**_kwargs|
+      sleep(0.06)
+      FakeResult.new(
+        project: FakeProject.new(id: "project-2"),
+        workstream: FakeWorkstream.new(id: "ws-2", state: "executing"),
+        task: FakeTask.new(id: "task-2"),
+        alignment: nil
+      )
+    end
+
+    fake_interpreter = Object.new
+    fake_interpreter.define_singleton_method(:interpret) do |text:, model:|
+      raise "unexpected text" unless text == "hola"
+      raise "unexpected model" unless model == "gpt-5-mini"
+
+      TelegramRuntimeHandlerTest::FakeDecision.new(
+        intent: "change",
+        message: "do thing",
+        source: "llm",
+        finish_reason: "stop",
+        raw_output: "{\"intent\":\"change\",\"message\":\"do thing\"}"
+      )
+    end
+
+    client = FakeTelegramClient.new([], [])
+    out = StringIO.new
+    err = StringIO.new
+    handler = Redwright::TelegramRuntimeHandler.new(
+      flow: fake_flow,
+      telegram_client: client,
+      out: out,
+      err: err,
+      blocked_retry_attempts: 1,
+      model_name: "gpt-5-mini",
+      intent_interpreter: fake_interpreter,
+      typing_interval_seconds: 0.02
+    )
+
+    handler.handle(Redwright::TelegramEvent.new(update_id: 4, chat_id: 55, user_id: nil, username: nil, text: "hola"))
+
+    assert_operator(client.chat_actions.length, :>=, 2)
+    assert_equal("", err.string)
+    assert_match("telegram processed chat=55 task=task-2", out.string)
+  end
+
   def test_handle_sends_error_message_when_flow_fails
     fake_flow = Object.new
     def fake_flow.process(**_kwargs)
