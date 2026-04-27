@@ -13,6 +13,9 @@ require_relative "redwright/runtime_flow"
 require_relative "redwright/primitive_executor"
 require_relative "redwright/action_execution_store"
 require_relative "redwright/worktree_manager"
+require_relative "redwright/skill_dispatcher"
+require_relative "redwright/skill_loader"
+require_relative "redwright/skill_registry"
 require_relative "redwright/spec_promotion"
 require_relative "redwright/runtime_config_store"
 require_relative "redwright/app_config"
@@ -440,7 +443,8 @@ module Redwright
           alignment_store: AlignmentStore.new(bootstrap.db_path),
           plan_spec_store: PlanSpecStore.new,
           primitive_executor: PrimitiveExecutor.new,
-          action_execution_store: ActionExecutionStore.new(bootstrap.db_path)
+          action_execution_store: ActionExecutionStore.new(bootstrap.db_path),
+          skill_dispatcher: SkillDispatcher.new
         )
         telegram_client = TelegramClient.new(bot_token: config.telegram.bot_token)
         telegram_ingress = TelegramIngress.new(
@@ -463,7 +467,8 @@ module Redwright
           model_provider: non_coding_model.provider,
           model_name: non_coding_model.name,
           intent_interpreter: LlmIntentInterpreter.new(
-            llm_client: llm_client_for(non_coding_model.provider)
+            llm_client: llm_client_for(non_coding_model.provider),
+            skill_dispatcher: SkillDispatcher.new
           )
         )
         offset = nil

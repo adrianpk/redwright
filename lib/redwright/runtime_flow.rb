@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative "trace"
+require_relative "skill_dispatcher"
 
 module Redwright
   FlowResult = Struct.new(
@@ -16,7 +17,8 @@ module Redwright
       alignment_store:,
       plan_spec_store: nil,
       primitive_executor: nil,
-      action_execution_store: nil
+      action_execution_store: nil,
+      skill_dispatcher: SkillDispatcher.new
     )
       @project_store = project_store
       @workstream_store = workstream_store
@@ -25,6 +27,7 @@ module Redwright
       @plan_spec_store = plan_spec_store
       @primitive_executor = primitive_executor
       @action_execution_store = action_execution_store
+      @skill_dispatcher = skill_dispatcher
     end
 
     def process(
@@ -178,7 +181,14 @@ module Redwright
 
       results = []
       actions.each do |action|
-        result = @primitive_executor.execute(project_root: project.path, action: action)
+        action_context = {
+          project_id: project.id,
+          project_path: project.path,
+          task_id: task.id
+        }
+        routed_action = @skill_dispatcher.before_action(action: action, context: action_context)
+        result = @primitive_executor.execute(project_root: project.path, action: routed_action)
+        result = @skill_dispatcher.after_action(action: routed_action, result: result, context: action_context)
         @action_execution_store&.create(
           task_id: task.id,
           action_id: result.action_id,

@@ -2,6 +2,7 @@
 
 require_relative "planner_contract"
 require_relative "planner_payload_validator"
+require_relative "skill_dispatcher"
 
 module Redwright
   class LlmIntentInterpreter
@@ -9,14 +10,18 @@ module Redwright
 
     SYSTEM_PROMPT = PlannerContract::SYSTEM_PROMPT
 
-    def initialize(llm_client:, validator: PlannerPayloadValidator.new, max_validation_attempts: 2)
+    def initialize(llm_client:, validator: PlannerPayloadValidator.new, max_validation_attempts: 2, skill_dispatcher: SkillDispatcher.new)
       @llm_client = llm_client
       @validator = validator
       @max_validation_attempts = max_validation_attempts
+      @skill_dispatcher = skill_dispatcher
     end
 
     def interpret(text:, model:)
-      return fallback(text, "llm_not_configured") unless @llm_client&.configured?
+      context = { model: model, stage: "planner" }
+      plan_text = @skill_dispatcher.before_plan(text: text, context: context)
+
+      return fallback(plan_text, "llm_not_configured") unless @llm_client&.configured?
 
       last_raw_output = nil
       last_error = "invalid_payload"
@@ -25,7 +30,7 @@ module Redwright
         completion = @llm_client.complete_json(
           model: model,
           system_prompt: SYSTEM_PROMPT,
-          user_text: text
+          user_text: plan_text
         )
         last_raw_output = completion.content
         validation = @validator.validate(completion.content)
@@ -34,7 +39,7 @@ module Redwright
           next
         end
 
-        return Decision.new(
+        decision = Decision.new(
           intent: validation.intent,
           message: validation.message,
           actions: validation.actions,
@@ -42,11 +47,12 @@ module Redwright
           finish_reason: completion.finish_reason || "stop",
           raw_output: completion.content
         )
+        return @skill_dispatcher.after_plan(decision: decision, context: context)
       end
 
-      fallback(text, last_error, raw_output: last_raw_output)
+      fallback(plan_text, last_error, raw_output: last_raw_output)
     rescue StandardError => e
-      fallback(text, "llm_error:#{e.class}")
+      fallback(plan_text || text, "llm_error:#{e.class}")
     end
 
     private
