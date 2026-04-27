@@ -21,6 +21,7 @@ module Redwright
       model_name: "none",
       intent_interpreter: nil,
       prompt_context_loader: nil,
+      planner_rejection_store: nil,
       send_json_envelope: false,
       typing_interval_seconds: 4.0,
       typing_sleeper: ->(seconds) { sleep(seconds) }
@@ -38,6 +39,7 @@ module Redwright
       @model_name = model_name
       @intent_interpreter = intent_interpreter
       @prompt_context_loader = prompt_context_loader
+      @planner_rejection_store = planner_rejection_store
       @send_json_envelope = send_json_envelope
       @typing_interval_seconds = typing_interval_seconds
       @typing_sleeper = typing_sleeper
@@ -101,6 +103,26 @@ module Redwright
             parsed_message: decision.message,
             raw_output: decision.raw_output
           )
+
+          if decision.source == "fallback" && planner_decision_invalid?(decision)
+            rejection = persist_planner_rejection(
+              resolution: resolution,
+              reason: decision.finish_reason,
+              raw_output: decision.raw_output,
+              user_text: event.text
+            )
+            Trace.runtime({
+              trace_id: Trace.current_trace_id || "none",
+              planner_rejection_id: rejection&.id || "none",
+              planner_rejection_reason: decision.finish_reason
+            })
+            @telegram_client.send_message(
+              chat_id: event.chat_id,
+              text: human_planner_rejection_message(reason: decision.finish_reason, trace_id: Trace.current_trace_id || "none")
+            )
+            @out.puts("telegram planner_reject chat=#{event.chat_id}")
+            return
+          end
 
           result = @flow.process(
             project_ref: resolution.project_ref,
@@ -197,6 +219,26 @@ module Redwright
       interpreter.interpret(text: text, model: model)
     end
 
+    def planner_decision_invalid?(decision)
+      reason = decision.finish_reason.to_s
+      reason.start_with?("invalid_payload") || reason.start_with?("llm_error")
+    end
+
+    def persist_planner_rejection(resolution:, reason:, raw_output:, user_text:)
+      return nil unless @planner_rejection_store
+
+      @planner_rejection_store.create(
+        project_id: resolution.project_ref,
+        project_ref: resolution.project_ref,
+        reason: reason,
+        raw_output: raw_output,
+        user_text: user_text
+      )
+    rescue StandardError => e
+      @err.puts("planner rejection persist failed: #{e.message}")
+      nil
+    end
+
     def build_execution_summary(result)
       action_results = if result.respond_to?(:action_results)
                          result.action_results || []
@@ -235,6 +277,15 @@ module Redwright
 
     def human_clarify_message(question:, trace_id:)
       "#{question}\nTrace: #{trace_id}"
+    end
+
+    def human_planner_rejection_message(reason:, trace_id:)
+      [
+        "Planner output was rejected before execution.",
+        "Reason: #{reason}",
+        "No actions were executed for this turn.",
+        "Trace: #{trace_id}"
+      ].join("\n")
     end
 
     def send_json_envelope_if_enabled(chat_id:, envelope:)

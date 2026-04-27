@@ -135,8 +135,19 @@ module Redwright
           FOREIGN KEY(task_id) REFERENCES tasks(id) ON DELETE CASCADE
         );
 
+        CREATE TABLE IF NOT EXISTS planner_rejections (
+          id TEXT PRIMARY KEY,
+          trace_id TEXT,
+          project_id TEXT,
+          project_ref TEXT,
+          reason TEXT NOT NULL,
+          raw_output TEXT,
+          user_text TEXT,
+          created_at TEXT NOT NULL
+        );
+
         INSERT INTO runtime_metadata (key, value, updated_at)
-        VALUES ('schema_version', '6', datetime('now'))
+        VALUES ('schema_version', '7', datetime('now'))
         ON CONFLICT(key) DO UPDATE SET
           value = excluded.value,
           updated_at = excluded.updated_at;

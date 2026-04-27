@@ -3,6 +3,7 @@
 require_relative "trace"
 require_relative "skill_dispatcher"
 require_relative "action_normalizer"
+require_relative "planner_contract"
 
 module Redwright
   FlowResult = Struct.new(
@@ -183,6 +184,19 @@ module Redwright
       raise ArgumentError, "primitive executor is not configured" unless @primitive_executor
 
       normalized_actions = @action_normalizer.normalize(actions)
+      input_count = actions.size
+      expanded_count = normalized_actions.size
+      macro_types = actions
+                    .map { |a| a["type"] }
+                    .compact
+                    .select { |t| PlannerContract::ACTION_MACRO_TYPES.include?(t) }
+                    .uniq
+      Trace.runtime({
+        trace_id: Trace.current_trace_id || "none",
+        input_actions: input_count,
+        expanded_actions: expanded_count,
+        macro_types: macro_types.join(",")
+      })
       results = []
       normalized_actions.each do |action|
         action_context = {
