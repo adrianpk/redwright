@@ -18,6 +18,8 @@ require_relative "redwright/daemon_runner"
 require_relative "redwright/telegram_client"
 require_relative "redwright/telegram_ingress"
 require_relative "redwright/telegram_runtime_handler"
+require_relative "redwright/chat_context_store"
+require_relative "redwright/telegram_context_resolver"
 require_relative "redwright/model_resolver"
 require_relative "redwright/openai_client"
 require_relative "redwright/llm_intent_interpreter"
@@ -439,11 +441,17 @@ module Redwright
           client: telegram_client,
           allowed_chat_ids: config.telegram.allowed_chat_ids
         )
+        chat_context_store = ChatContextStore.new(bootstrap.db_path)
         runtime_handler = TelegramRuntimeHandler.new(
           flow: flow,
           telegram_client: telegram_client,
           out: @out,
           err: @err,
+          context_resolver: TelegramContextResolver.new(
+            project_store: ProjectStore.new(bootstrap.db_path),
+            chat_context_store: chat_context_store
+          ),
+          chat_context_store: chat_context_store,
           blocked_retry_attempts: config.runtime.blocked_retry_attempts,
           model_role: "non_coding",
           model_provider: non_coding_model.provider,

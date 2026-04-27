@@ -112,8 +112,16 @@ module Redwright
           FOREIGN KEY(workstream_id) REFERENCES workstreams(id) ON DELETE CASCADE
         );
 
+        CREATE TABLE IF NOT EXISTS chat_contexts (
+          chat_id INTEGER PRIMARY KEY,
+          project_id TEXT NOT NULL,
+          workstream_id TEXT,
+          updated_at TEXT NOT NULL,
+          FOREIGN KEY(project_id) REFERENCES projects(id) ON DELETE CASCADE
+        );
+
         INSERT INTO runtime_metadata (key, value, updated_at)
-        VALUES ('schema_version', '3', datetime('now'))
+        VALUES ('schema_version', '4', datetime('now'))
         ON CONFLICT(key) DO UPDATE SET
           value = excluded.value,
           updated_at = excluded.updated_at;

@@ -3,6 +3,7 @@
 require_relative "trace"
 require_relative "runtime_result_envelope"
 require_relative "llm_intent_interpreter"
+require_relative "telegram_context_resolver"
 
 module Redwright
   class TelegramRuntimeHandler
@@ -11,6 +12,8 @@ module Redwright
       telegram_client:,
       out:,
       err:,
+      context_resolver: nil,
+      chat_context_store: nil,
       blocked_retry_attempts:,
       default_intent: "change",
       model_role: "non_coding",
@@ -24,6 +27,8 @@ module Redwright
       @telegram_client = telegram_client
       @out = out
       @err = err
+      @context_resolver = context_resolver
+      @chat_context_store = chat_context_store
       @blocked_retry_attempts = blocked_retry_attempts
       @default_intent = default_intent
       @model_role = model_role
@@ -68,12 +73,29 @@ module Redwright
             raw_output: decision.raw_output
           )
 
+          resolution = resolve_context(event: event)
+          unless resolution.resolved
+            clarify = RuntimeResultEnvelope.clarify(
+              trace_id: Trace.current_trace_id || "none",
+              message: resolution.question
+            )
+            @telegram_client.send_message(chat_id: event.chat_id, text: clarify.to_json_string)
+            @out.puts("telegram clarify chat=#{event.chat_id}")
+            return
+          end
+
           result = @flow.process(
-            project_ref: nil,
+            project_ref: resolution.project_ref,
             intent: decision.intent,
             message: decision.message,
+            workstream_id: resolution.workstream_id,
             confirm_new_workstream: true,
             blocked_retry_attempts: @blocked_retry_attempts
+          )
+          @chat_context_store&.upsert(
+            chat_id: event.chat_id,
+            project_id: result.project.id,
+            workstream_id: result.workstream.id
           )
 
           envelope = RuntimeResultEnvelope.success(
@@ -103,6 +125,12 @@ module Redwright
 
     def interpreter
       @intent_interpreter ||= LlmIntentInterpreter.new(llm_client: nil)
+    end
+
+    def resolve_context(event:)
+      return TelegramContextResolver::Resolution.new(resolved: true, project_ref: nil, workstream_id: nil, question: nil) unless @context_resolver
+
+      @context_resolver.resolve(chat_id: event.chat_id, text: event.text)
     end
 
     def start_typing_keepalive(chat_id)

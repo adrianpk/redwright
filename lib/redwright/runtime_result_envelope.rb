@@ -28,11 +28,22 @@ module Redwright
       )
     end
 
-    def initialize(status:, trace_id:, runtime: nil, error: nil)
+    def self.clarify(trace_id:, message:)
+      new(
+        status: "clarify",
+        trace_id: trace_id,
+        clarify: {
+          question: message
+        }
+      )
+    end
+
+    def initialize(status:, trace_id:, runtime: nil, error: nil, clarify: nil)
       @status = status
       @trace_id = trace_id
       @runtime = runtime
       @error = error
+      @clarify = clarify
     end
 
     def to_h
@@ -40,7 +51,8 @@ module Redwright
         status: @status,
         trace_id: @trace_id,
         runtime: @runtime,
-        error: @error
+        error: @error,
+        clarify: @clarify
       }
       hash.delete_if { |_k, v| v.nil? }
       hash
