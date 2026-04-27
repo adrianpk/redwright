@@ -6,6 +6,7 @@ require_relative "redwright/paths"
 require_relative "redwright/project_store"
 require_relative "redwright/workstream_store"
 require_relative "redwright/task_store"
+require_relative "redwright/task_commit_store"
 require_relative "redwright/alignment_store"
 require_relative "redwright/runtime_flow"
 require_relative "redwright/worktree_manager"
@@ -181,6 +182,7 @@ module Redwright
       parser.parse!(@argv)
       bootstrap = Bootstrap.new(mode: mode).call
       task_store = TaskStore.new(bootstrap.db_path)
+      commit_store = TaskCommitStore.new(bootstrap.db_path)
 
       case sub
       when "create"
@@ -194,8 +196,24 @@ module Redwright
         rows = task_store.list(workstream_id: workstream_id)
         rows.each { |row| print_task_record(row) }
         0
+      when "commit-add"
+        task_id = @argv.shift
+        commit_sha = @argv.shift
+        raise OptionParser::MissingArgument, "<task_id>" if task_id.nil? || task_id.empty?
+        raise OptionParser::MissingArgument, "<commit_sha>" if commit_sha.nil? || commit_sha.empty?
+
+        rows = commit_store.add(task_id: task_id, commit_sha: commit_sha)
+        rows.each { |row| print_task_commit(row) }
+        0
+      when "commit-list"
+        task_id = @argv.shift
+        raise OptionParser::MissingArgument, "<task_id>" if task_id.nil? || task_id.empty?
+
+        rows = commit_store.list(task_id: task_id)
+        rows.each { |row| print_task_commit(row) }
+        0
       else
-        @err.puts("usage: redwright task <create|list> [--dev|--real] ...")
+        @err.puts("usage: redwright task <create|list|commit-add|commit-list> [--dev|--real] ...")
         1
       end
     rescue OptionParser::ParseError => e
@@ -321,6 +339,12 @@ module Redwright
       @out.puts("description: #{record.description}")
       @out.puts("status: #{record.status}")
       @out.puts("updated_at: #{record.updated_at}")
+    end
+
+    def print_task_commit(row)
+      @out.puts("task_id: #{row[:task_id]}")
+      @out.puts("commit_sha: #{row[:commit_sha]}")
+      @out.puts("created_at: #{row[:created_at]}")
     end
 
     def print_alignment_record(record)
