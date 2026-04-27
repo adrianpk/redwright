@@ -2,7 +2,7 @@
 
 module Redwright
   class TelegramContextResolver
-    Resolution = Struct.new(:resolved, :project_ref, :workstream_id, :question, keyword_init: true)
+    Resolution = Struct.new(:resolved, :project_ref, :project_path, :workstream_id, :question, keyword_init: true)
 
     def initialize(project_store:, chat_context_store:)
       @project_store = project_store
@@ -15,6 +15,7 @@ module Redwright
         return Resolution.new(
           resolved: false,
           project_ref: nil,
+          project_path: nil,
           workstream_id: nil,
           question: "I found multiple project matches. Please specify one project id/alias explicitly."
         )
@@ -26,6 +27,7 @@ module Redwright
         return Resolution.new(
           resolved: true,
           project_ref: project.id,
+          project_path: project.path,
           workstream_id: context&.project_id == project.id ? context.workstream_id : nil,
           question: nil
         )
@@ -38,6 +40,7 @@ module Redwright
           return Resolution.new(
             resolved: true,
             project_ref: project.id,
+            project_path: project.path,
             workstream_id: context.workstream_id,
             question: nil
           )
@@ -45,11 +48,12 @@ module Redwright
       end
 
       single = only_project
-      return Resolution.new(resolved: true, project_ref: single.id, workstream_id: nil, question: nil) if single
+      return Resolution.new(resolved: true, project_ref: single.id, project_path: single.path, workstream_id: nil, question: nil) if single
 
       Resolution.new(
         resolved: false,
         project_ref: nil,
+        project_path: nil,
         workstream_id: nil,
         question: "No active project context found. Please specify a project id or alias."
       )

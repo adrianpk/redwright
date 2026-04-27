@@ -28,6 +28,7 @@ require_relative "redwright/telegram_context_resolver"
 require_relative "redwright/model_resolver"
 require_relative "redwright/openai_client"
 require_relative "redwright/llm_intent_interpreter"
+require_relative "redwright/prompt_context_loader"
 
 module Redwright
   class CLI
@@ -466,6 +467,7 @@ module Redwright
           model_role: "non_coding",
           model_provider: non_coding_model.provider,
           model_name: non_coding_model.name,
+          prompt_context_loader: PromptContextLoader.new(repo_root: Dir.pwd),
           send_json_envelope: config.telegram.send_json_envelope,
           intent_interpreter: LlmIntentInterpreter.new(
             llm_client: llm_client_for(non_coding_model.provider),

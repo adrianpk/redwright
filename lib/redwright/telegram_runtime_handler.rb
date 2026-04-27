@@ -20,6 +20,7 @@ module Redwright
       model_provider: "none",
       model_name: "none",
       intent_interpreter: nil,
+      prompt_context_loader: nil,
       send_json_envelope: false,
       typing_interval_seconds: 4.0,
       typing_sleeper: ->(seconds) { sleep(seconds) }
@@ -36,6 +37,7 @@ module Redwright
       @model_provider = model_provider
       @model_name = model_name
       @intent_interpreter = intent_interpreter
+      @prompt_context_loader = prompt_context_loader
       @send_json_envelope = send_json_envelope
       @typing_interval_seconds = typing_interval_seconds
       @typing_sleeper = typing_sleeper
@@ -51,29 +53,6 @@ module Redwright
             chat_id: event.chat_id,
             text: event.text
           })
-          stop_typing = start_typing_keepalive(event.chat_id)
-          Trace.llm_request(
-            role: @model_role,
-            provider: @model_provider,
-            model: @model_name,
-            action: "intent_interpret",
-            payload_bytes: event.text.to_s.bytesize,
-            system_prompt: trace_system_prompt_for_interpreter,
-            user_text: event.text
-          )
-          started_at = Process.clock_gettime(Process::CLOCK_MONOTONIC)
-          decision = interpreter.interpret(text: event.text, model: @model_name)
-          elapsed_ms = ((Process.clock_gettime(Process::CLOCK_MONOTONIC) - started_at) * 1000).to_i
-          Trace.llm_response(
-            status: decision.source == "llm" ? "ok" : "fallback",
-            latency_ms: elapsed_ms,
-            output_bytes: decision.raw_output.to_s.bytesize,
-            finish_reason: decision.finish_reason,
-            decision_source: decision.source,
-            parsed_intent: decision.intent,
-            parsed_message: decision.message,
-            raw_output: decision.raw_output
-          )
 
           resolution = resolve_context(event: event)
           unless resolution.resolved
@@ -89,6 +68,39 @@ module Redwright
             @out.puts("telegram clarify chat=#{event.chat_id}")
             return
           end
+
+          prompt_context = load_prompt_context(project_path: resolution.project_path)
+          stop_typing = start_typing_keepalive(event.chat_id)
+          Trace.llm_request(
+            role: @model_role,
+            provider: @model_provider,
+            model: @model_name,
+            action: "intent_interpret",
+            payload_bytes: event.text.to_s.bytesize,
+            system_prompt: trace_system_prompt_for_interpreter(
+              project_context: prompt_context[:project_context],
+              architecture_context: prompt_context[:architecture_context]
+            ),
+            user_text: event.text
+          )
+          started_at = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+          decision = interpret_with_context(
+            text: event.text,
+            model: @model_name,
+            project_context: prompt_context[:project_context],
+            architecture_context: prompt_context[:architecture_context]
+          )
+          elapsed_ms = ((Process.clock_gettime(Process::CLOCK_MONOTONIC) - started_at) * 1000).to_i
+          Trace.llm_response(
+            status: decision.source == "llm" ? "ok" : "fallback",
+            latency_ms: elapsed_ms,
+            output_bytes: decision.raw_output.to_s.bytesize,
+            finish_reason: decision.finish_reason,
+            decision_source: decision.source,
+            parsed_intent: decision.intent,
+            parsed_message: decision.message,
+            raw_output: decision.raw_output
+          )
 
           result = @flow.process(
             project_ref: resolution.project_ref,
@@ -142,16 +154,47 @@ module Redwright
       @intent_interpreter ||= LlmIntentInterpreter.new(llm_client: nil)
     end
 
-    def trace_system_prompt_for_interpreter
-      return interpreter.system_prompt if interpreter.respond_to?(:system_prompt)
+    def trace_system_prompt_for_interpreter(project_context:, architecture_context:)
+      unless interpreter.respond_to?(:system_prompt)
+        return LlmIntentInterpreter::SYSTEM_PROMPT.strip
+      end
 
-      LlmIntentInterpreter::SYSTEM_PROMPT.strip
+      params = interpreter.method(:system_prompt).parameters
+      if params.any? { |type, name| [:key, :keyreq].include?(type) && name == :project_context }
+        return interpreter.system_prompt(
+          project_context: project_context,
+          architecture_context: architecture_context
+        )
+      end
+      interpreter.system_prompt
     end
 
     def resolve_context(event:)
-      return TelegramContextResolver::Resolution.new(resolved: true, project_ref: nil, workstream_id: nil, question: nil) unless @context_resolver
+      return TelegramContextResolver::Resolution.new(resolved: true, project_ref: nil, project_path: nil, workstream_id: nil, question: nil) unless @context_resolver
 
       @context_resolver.resolve(chat_id: event.chat_id, text: event.text)
+    end
+
+    def load_prompt_context(project_path:)
+      return { project_context: nil, architecture_context: nil } unless @prompt_context_loader
+
+      @prompt_context_loader.build(project_path: project_path)
+    rescue StandardError
+      { project_context: nil, architecture_context: nil }
+    end
+
+    def interpret_with_context(text:, model:, project_context:, architecture_context:)
+      params = interpreter.method(:interpret).parameters
+      if params.any? { |type, name| [:key, :keyreq].include?(type) && name == :project_context }
+        return interpreter.interpret(
+          text: text,
+          model: model,
+          project_context: project_context,
+          architecture_context: architecture_context
+        )
+      end
+
+      interpreter.interpret(text: text, model: model)
     end
 
     def build_execution_summary(result)
