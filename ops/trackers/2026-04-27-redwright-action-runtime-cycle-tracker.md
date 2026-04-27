@@ -6,7 +6,7 @@
 - status: `in_progress`
 - state: `implementation`
 - updated: `2026-04-27`
-- active_slice: `slice-3`
+- active_slice: `slice-4`
 - active_task: `none`
 
 ## Slice Progress
@@ -85,27 +85,27 @@ Validation:
 
 ### Slice 4: Git Primitive Layer
 
-- status: `pending`
+- status: `completed`
 - branch: `feat/slice-4-git-primitives`
 - PR: `tbd`
 - merge_target: `dev`
-- last_sync_commit: `tbd`
+- last_sync_commit: `26ff825`
 
 Tasks:
 
-- [ ] `T4.1 implement git_status and git_branch primitives`
-- [ ] `T4.2 implement git_commit and git_push primitives with confirmation policy`
-- [ ] `T4.3 add tests for branch scope and error mapping`
+- [x] `T4.1 implement git_status and git_branch primitives`
+- [x] `T4.2 implement git_commit and git_push primitives with confirmation policy`
+- [x] `T4.3 add tests for branch scope and error mapping`
 
 Commits:
 
-- [ ] `<sha> feat(git): add guarded git primitives to executor`
-- [ ] `<sha> test(git): validate worktree scoping and command outcomes`
+- [x] `0f614c3 feat(git): add guarded git primitives to executor`
+- [x] `26ff825 test(git): validate worktree scoping and command outcomes`
 
 Validation:
 
-- [ ] `git primitives operate only in resolved worktree`
-- [ ] `unsafe operations require explicit confirmation policy`
+- [x] `git primitives operate only in resolved worktree`
+- [x] `unsafe operations require explicit confirmation policy`
 
 ### Slice 5: Planner-Executor Integration in Daemon Turn Loop
 
@@ -190,3 +190,5 @@ Validation:
 - `2026-04-27 19:39` validation=`bundle exec ruby -Itest -e 'Dir["test/redwright/*_test.rb"].sort.each { |f| require File.expand_path(f) }'`
 - `2026-04-27 19:54` state=`implementation` slice=`slice-3` note=`added primitive executor core, boundary/timeout guardrails, and sqlite action result persistence`
 - `2026-04-27 19:54` validation=`bundle exec ruby -Itest -e 'Dir["test/redwright/*_test.rb"].sort.each { |f| require File.expand_path(f) }'`
+- `2026-04-27 19:59` state=`implementation` slice=`slice-4` note=`added guarded git primitives (status/branch/commit/push) with explicit confirmation policy for unsafe operations`
+- `2026-04-27 19:59` validation=`bundle exec ruby -Itest -e 'Dir["test/redwright/*_test.rb"].sort.each { |f| require File.expand_path(f) }'`
