@@ -38,6 +38,7 @@ class AppConfigTest < Minitest::Test
         assert_equal("token-123", config.telegram.bot_token)
         assert_equal(1, config.telegram.poll_interval_seconds)
         assert_equal([111, 222], config.telegram.allowed_chat_ids)
+        assert_equal(false, config.telegram.send_json_envelope)
         assert_equal(File.join(dir, "_workspace", "Projects"), config.paths.default_projects_root)
         assert_equal("openai", config.models.coding.candidates.first.provider)
         assert_equal("gpt-5-mini", config.models.non_coding.candidates.first.name)
@@ -129,6 +130,7 @@ class AppConfigTest < Minitest::Test
       assert_equal(100, config.runtime.loop_interval_ms)
       assert_equal("real-token", config.telegram.bot_token)
       assert_equal([1], config.telegram.allowed_chat_ids)
+      assert_equal(false, config.telegram.send_json_envelope)
       assert_equal(File.join(home, "redwright"), config.paths.default_projects_root)
       assert_equal("gpt-5.2", config.models.coding.candidates.first.name)
     end
@@ -159,6 +161,35 @@ class AppConfigTest < Minitest::Test
 
       err = assert_raises(ArgumentError) { Redwright::AppConfigLoader.new(mode: :real, home: home).load }
       assert_equal("invalid config key: default_projects_root must be absolute in real mode", err.message)
+    end
+  end
+
+  def test_loads_send_json_envelope_when_enabled
+    Dir.mktmpdir("redwright-app-config-json-flag-") do |home|
+      config_dir = File.join(home, ".config", "redwright")
+      FileUtils.mkdir_p(config_dir)
+      File.write(File.join(config_dir, "config.yml"), <<~YAML)
+        runtime:
+          loop_interval_ms: 100
+          blocked_retry_attempts: 1
+        telegram:
+          bot_token: "real-token"
+          poll_interval_seconds: 2
+          allowed_chat_ids: [1]
+          send_json_envelope: true
+        paths:
+          default_projects_root: "#{home}/redwright"
+        models:
+          coding:
+            - provider: "openai"
+              name: "gpt-5.2"
+          non_coding:
+            - provider: "openai"
+              name: "gpt-5-mini"
+      YAML
+
+      config = Redwright::AppConfigLoader.new(mode: :real, home: home).load
+      assert_equal(true, config.telegram.send_json_envelope)
     end
   end
 

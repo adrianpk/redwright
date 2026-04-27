@@ -6,7 +6,7 @@ require_relative "paths"
 module Redwright
   AppConfig = Struct.new(:runtime, :telegram, :paths, :models, keyword_init: true)
   RuntimeConfig = Struct.new(:loop_interval_ms, :blocked_retry_attempts, keyword_init: true)
-  TelegramConfig = Struct.new(:bot_token, :poll_interval_seconds, :allowed_chat_ids, keyword_init: true)
+  TelegramConfig = Struct.new(:bot_token, :poll_interval_seconds, :allowed_chat_ids, :send_json_envelope, keyword_init: true)
   PathsConfig = Struct.new(:default_projects_root, keyword_init: true)
   ModelCandidate = Struct.new(:provider, :name, keyword_init: true)
   ModelRoleConfig = Struct.new(:candidates, keyword_init: true)
@@ -39,7 +39,8 @@ module Redwright
         telegram: TelegramConfig.new(
           bot_token: required_string(telegram, "bot_token"),
           poll_interval_seconds: positive_integer(telegram, "poll_interval_seconds"),
-          allowed_chat_ids: required_array(telegram, "allowed_chat_ids").map { |id| integer_value(id, "allowed_chat_ids[]") }
+          allowed_chat_ids: required_array(telegram, "allowed_chat_ids").map { |id| integer_value(id, "allowed_chat_ids[]") },
+          send_json_envelope: optional_boolean(telegram, "send_json_envelope", default: false)
         ),
         paths: PathsConfig.new(
           default_projects_root: normalize_path_root(required_string(paths, "default_projects_root"))
@@ -87,6 +88,15 @@ module Redwright
       raise ArgumentError, "invalid config key: #{key} must be >= 1" if int < 1
 
       int
+    end
+
+    def optional_boolean(map, key, default:)
+      return default unless map.key?(key)
+
+      value = map[key]
+      return value if value == true || value == false
+
+      raise ArgumentError, "invalid config key: #{key} must be a boolean"
     end
 
     def parse_model_role(models, key)

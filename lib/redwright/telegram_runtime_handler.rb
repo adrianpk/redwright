@@ -20,6 +20,7 @@ module Redwright
       model_provider: "none",
       model_name: "none",
       intent_interpreter: nil,
+      send_json_envelope: false,
       typing_interval_seconds: 4.0,
       typing_sleeper: ->(seconds) { sleep(seconds) }
     )
@@ -35,6 +36,7 @@ module Redwright
       @model_provider = model_provider
       @model_name = model_name
       @intent_interpreter = intent_interpreter
+      @send_json_envelope = send_json_envelope
       @typing_interval_seconds = typing_interval_seconds
       @typing_sleeper = typing_sleeper
     end
@@ -79,7 +81,11 @@ module Redwright
               trace_id: Trace.current_trace_id || "none",
               message: resolution.question
             )
-            @telegram_client.send_message(chat_id: event.chat_id, text: clarify.to_json_string)
+            @telegram_client.send_message(
+              chat_id: event.chat_id,
+              text: human_clarify_message(question: resolution.question, trace_id: Trace.current_trace_id || "none")
+            )
+            send_json_envelope_if_enabled(chat_id: event.chat_id, envelope: clarify)
             @out.puts("telegram clarify chat=#{event.chat_id}")
             return
           end
@@ -107,15 +113,22 @@ module Redwright
             state: result.workstream.state,
             execution: build_execution_summary(result)
           )
-          text = envelope.to_json_string
-          @telegram_client.send_message(chat_id: event.chat_id, text: text)
+          @telegram_client.send_message(
+            chat_id: event.chat_id,
+            text: human_success_message(result: result, trace_id: Trace.current_trace_id || "none")
+          )
+          send_json_envelope_if_enabled(chat_id: event.chat_id, envelope: envelope)
           @out.puts("telegram processed chat=#{event.chat_id} task=#{result.task.id}")
         rescue StandardError => e
           error_envelope = RuntimeResultEnvelope.error(
             trace_id: Trace.current_trace_id || "none",
             message: e.message
           )
-          @telegram_client.send_message(chat_id: event.chat_id, text: error_envelope.to_json_string)
+          @telegram_client.send_message(
+            chat_id: event.chat_id,
+            text: human_error_message(message: e.message, trace_id: Trace.current_trace_id || "none")
+          )
+          send_json_envelope_if_enabled(chat_id: event.chat_id, envelope: error_envelope)
           @err.puts("telegram processing error chat=#{event.chat_id}: #{e.message}")
         ensure
           stop_typing.call if stop_typing
@@ -153,6 +166,32 @@ module Redwright
         failed_actions: failed,
         failed_action_ids: failed_action_ids
       }
+    end
+
+    def human_success_message(result:, trace_id:)
+      parts = []
+      parts << "Started task #{result.task.id} in project #{result.project.id}."
+      parts << "Workstream: #{result.workstream.id} (state: #{result.workstream.state})."
+      execution = build_execution_summary(result)
+      if execution
+        parts << "Actions: #{execution[:succeeded_actions]}/#{execution[:total_actions]} succeeded, #{execution[:failed_actions]} failed."
+      end
+      parts << "Trace: #{trace_id}"
+      parts.join("\n")
+    end
+
+    def human_error_message(message:, trace_id:)
+      "Error: #{message}\nTrace: #{trace_id}"
+    end
+
+    def human_clarify_message(question:, trace_id:)
+      "#{question}\nTrace: #{trace_id}"
+    end
+
+    def send_json_envelope_if_enabled(chat_id:, envelope:)
+      return unless @send_json_envelope
+
+      @telegram_client.send_message(chat_id: chat_id, text: "```json\n#{envelope.to_json_string}\n```")
     end
 
     def start_typing_keepalive(chat_id)

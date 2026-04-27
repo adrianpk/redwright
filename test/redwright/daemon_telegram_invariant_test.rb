@@ -56,12 +56,11 @@ class DaemonTelegramInvariantTest < Minitest::Test
         handler.handle(event)
 
         assert_equal(1, client.messages.size)
-        payload = JSON.parse(client.messages.first[:text])
-        assert_equal("ok", payload["status"])
-        assert_equal(project.id, payload.dig("runtime", "project_id"))
-        assert(payload.dig("runtime", "workstream_id"))
-        assert(payload.dig("runtime", "task_id"))
-        assert_equal("executing", payload.dig("runtime", "state"))
+        text = client.messages.first[:text]
+        assert_match("Started task", text)
+        assert_match("project #{project.id}", text)
+        assert_match("state: executing", text)
+        assert_match("Trace: trc-", text)
         tasks = task_store.list
         assert_equal(1, tasks.size)
         assert_equal("implement smoke", tasks.first.description)

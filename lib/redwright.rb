@@ -466,6 +466,7 @@ module Redwright
           model_role: "non_coding",
           model_provider: non_coding_model.provider,
           model_name: non_coding_model.name,
+          send_json_envelope: config.telegram.send_json_envelope,
           intent_interpreter: LlmIntentInterpreter.new(
             llm_client: llm_client_for(non_coding_model.provider),
             skill_dispatcher: SkillDispatcher.new

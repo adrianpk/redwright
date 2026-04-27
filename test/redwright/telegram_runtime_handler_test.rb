@@ -78,13 +78,10 @@ class TelegramRuntimeHandlerTest < Minitest::Test
 
         sent = client.messages.last
         assert_equal(42, sent[:chat_id])
-        payload = JSON.parse(sent[:text])
-        assert_equal("ok", payload["status"])
-        assert(payload["trace_id"])
-        assert_equal(project.id, payload.dig("runtime", "project_id"))
-        assert(payload.dig("runtime", "workstream_id"))
-        assert(payload.dig("runtime", "task_id"))
-        assert_equal("executing", payload.dig("runtime", "state"))
+        assert_match("Started task", sent[:text])
+        assert_match("project #{project.id}", sent[:text])
+        assert_match("state: executing", sent[:text])
+        assert_match("Trace: trc-", sent[:text])
         assert_equal([{ chat_id: 42, action: "typing" }], client.chat_actions)
       end
     end
@@ -210,11 +207,8 @@ class TelegramRuntimeHandlerTest < Minitest::Test
     assert_match("project not found", err.string)
     assert_equal(1, client.messages.size)
     assert_equal(7, client.messages.first[:chat_id])
-    payload = JSON.parse(client.messages.first[:text])
-    assert_equal("error", payload["status"])
-    assert(payload["trace_id"])
-    assert_equal("runtime_error", payload.dig("error", "code"))
-    assert_equal("project not found", payload.dig("error", "message"))
+    assert_match("Error: project not found", client.messages.first[:text])
+    assert_match("Trace: trc-", client.messages.first[:text])
   end
 
   def test_handle_sends_clarify_and_skips_flow_when_context_is_ambiguous
@@ -253,9 +247,8 @@ class TelegramRuntimeHandlerTest < Minitest::Test
     assert_equal("", err.string)
     assert_match("telegram clarify chat=88", out.string)
     assert_equal(1, client.messages.size)
-    payload = JSON.parse(client.messages.first[:text])
-    assert_equal("clarify", payload["status"])
-    assert_equal("Please specify project.", payload.dig("clarify", "question"))
+    assert_match("Please specify project.", client.messages.first[:text])
+    assert_match("Trace: trc-", client.messages.first[:text])
   end
 
   def test_handle_includes_execution_summary_and_passes_actions_to_flow
@@ -318,13 +311,47 @@ class TelegramRuntimeHandlerTest < Minitest::Test
     assert_equal("do stuff normalized", captured[:message])
     assert_equal(1, captured[:actions].size)
 
-    payload = JSON.parse(client.messages.last[:text])
-    assert_equal("ok", payload["status"])
-    assert_equal(2, payload.dig("runtime", "execution", "total_actions"))
-    assert_equal(1, payload.dig("runtime", "execution", "succeeded_actions"))
-    assert_equal(1, payload.dig("runtime", "execution", "failed_actions"))
-    assert_equal(["a2"], payload.dig("runtime", "execution", "failed_action_ids"))
+    assert_match("Started task task-x in project project-x.", client.messages.last[:text])
+    assert_match("Actions: 1/2 succeeded, 1 failed.", client.messages.last[:text])
     assert_match("telegram processed chat=9 task=task-x", out.string)
     assert_equal("", err.string)
+  end
+
+  def test_handle_sends_json_envelope_in_code_block_when_enabled
+    fake_flow = Object.new
+    fake_flow.define_singleton_method(:process) do |**_kwargs|
+      FakeResult.new(
+        project: FakeProject.new(id: "project-z"),
+        workstream: FakeWorkstream.new(id: "ws-z", state: "executing"),
+        task: FakeTask.new(id: "task-z"),
+        alignment: nil,
+        action_results: nil
+      )
+    end
+
+    client = FakeTelegramClient.new([])
+    out = StringIO.new
+    err = StringIO.new
+    handler = Redwright::TelegramRuntimeHandler.new(
+      flow: fake_flow,
+      telegram_client: client,
+      out: out,
+      err: err,
+      blocked_retry_attempts: 1,
+      send_json_envelope: true
+    )
+
+    handler.handle(Redwright::TelegramEvent.new(update_id: 10, chat_id: 11, user_id: nil, username: nil, text: "do stuff"))
+
+    assert_equal(2, client.messages.size)
+    assert_match("Started task task-z in project project-z.", client.messages.first[:text])
+    assert_match("```json", client.messages.last[:text])
+    assert_match("```", client.messages.last[:text])
+    json_text = client.messages.last[:text].sub(/\A```json\n/, "").sub(/\n```\z/, "")
+    payload = JSON.parse(json_text)
+    assert_equal("ok", payload["status"])
+    assert_equal("project-z", payload.dig("runtime", "project_id"))
+    assert_equal("ws-z", payload.dig("runtime", "workstream_id"))
+    assert_equal("task-z", payload.dig("runtime", "task_id"))
   end
 end
