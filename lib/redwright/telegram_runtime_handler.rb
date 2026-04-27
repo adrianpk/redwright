@@ -39,6 +39,11 @@ module Redwright
             chat_id: event.chat_id,
             text: event.text
           })
+          begin
+            @telegram_client.send_chat_action(chat_id: event.chat_id, action: "typing")
+          rescue StandardError => e
+            @err.puts("telegram typing hint failed chat=#{event.chat_id}: #{e.message}")
+          end
           Trace.llm_request(
             role: @model_role,
             provider: @model_provider,

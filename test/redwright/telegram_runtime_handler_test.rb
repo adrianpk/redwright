@@ -17,10 +17,16 @@ require "redwright/telegram_ingress"
 require "redwright/telegram_runtime_handler"
 
 class TelegramRuntimeHandlerTest < Minitest::Test
-  FakeTelegramClient = Struct.new(:messages) do
+  FakeTelegramClient = Struct.new(:messages, :chat_actions) do
     def send_message(chat_id:, text:)
       self.messages ||= []
       self.messages << { chat_id: chat_id, text: text }
+      { "ok" => true }
+    end
+
+    def send_chat_action(chat_id:, action: "typing")
+      self.chat_actions ||= []
+      self.chat_actions << { chat_id: chat_id, action: action }
       { "ok" => true }
     end
   end
@@ -78,6 +84,7 @@ class TelegramRuntimeHandlerTest < Minitest::Test
         assert(payload.dig("runtime", "workstream_id"))
         assert(payload.dig("runtime", "task_id"))
         assert_equal("executing", payload.dig("runtime", "state"))
+        assert_equal([{ chat_id: 42, action: "typing" }], client.chat_actions)
       end
     end
   end

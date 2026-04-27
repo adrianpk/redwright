@@ -60,4 +60,16 @@ class TelegramClientTest < Minitest::Test
     assert_match("/botabc/sendMessage", http.captured_post_uri.path)
     assert_equal({ chat_id: "123", text: "hello" }, http.captured_post_form)
   end
+
+  def test_send_chat_action_posts_payload
+    response = FakeResponse.new("200", JSON.dump({ ok: true, result: true }))
+    http = FakeHttp.new(response)
+    client = Redwright::TelegramClient.new(bot_token: "abc", http: http)
+
+    payload = client.send_chat_action(chat_id: 123, action: "typing")
+
+    assert_equal(true, payload["ok"])
+    assert_match("/botabc/sendChatAction", http.captured_post_uri.path)
+    assert_equal({ chat_id: "123", action: "typing" }, http.captured_post_form)
+  end
 end

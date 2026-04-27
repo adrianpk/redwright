@@ -42,5 +42,19 @@ module Redwright
     rescue JSON::ParserError => e
       raise RuntimeError, "telegram sendMessage failed: invalid json (#{e.message})"
     end
+
+    def send_chat_action(chat_id:, action: "typing")
+      uri = URI("https://api.telegram.org/bot#{@bot_token}/sendChatAction")
+      response = @http.post_form(uri, { chat_id: chat_id.to_s, action: action.to_s })
+      code = response.code.to_i
+      raise RuntimeError, "telegram sendChatAction failed: http #{response.code}" unless code >= 200 && code < 300
+
+      payload = JSON.parse(response.body)
+      raise RuntimeError, "telegram sendChatAction failed: invalid payload" unless payload.is_a?(Hash) && payload["ok"] == true
+
+      payload
+    rescue JSON::ParserError => e
+      raise RuntimeError, "telegram sendChatAction failed: invalid json (#{e.message})"
+    end
   end
 end
