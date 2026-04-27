@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "yaml"
+require "pathname"
 require_relative "paths"
 
 module Redwright
@@ -42,7 +43,7 @@ module Redwright
           allowed_chat_ids: required_array(telegram, "allowed_chat_ids").map { |id| integer_value(id, "allowed_chat_ids[]") }
         ),
         paths: PathsConfig.new(
-          default_projects_root: required_string(paths, "default_projects_root")
+          default_projects_root: normalize_path_root(required_string(paths, "default_projects_root"))
         ),
         models: ModelsConfig.new(
           coding: parse_model_role(models, "coding"),
@@ -116,6 +117,19 @@ module Redwright
         provider: required_string(candidate, "provider", label: "#{prefix}.provider"),
         name: required_string(candidate, "name", label: "#{prefix}.name")
       )
+    end
+
+    def normalize_path_root(value)
+      base = Paths.new(mode: @mode, pwd: @pwd, home: @home).root
+      raw = value.strip
+
+      if raw.start_with?("~/")
+        return File.expand_path(raw.sub("~/", ""), base)
+      end
+
+      return File.expand_path(raw) if Pathname.new(raw).absolute?
+
+      File.expand_path(raw, base)
     end
 
     def integer_value(value, key)

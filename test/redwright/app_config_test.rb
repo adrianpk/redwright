@@ -45,6 +45,63 @@ class AppConfigTest < Minitest::Test
     end
   end
 
+  def test_dev_mode_resolves_relative_paths_against_workspace_root
+    Dir.mktmpdir("redwright-app-config-dev-relative-") do |dir|
+      Dir.chdir(dir) do
+        bootstrap = Redwright::Bootstrap.new(mode: :dev).call
+        File.write(File.join(bootstrap.config_dir, "config.yml"), <<~YAML)
+          runtime:
+            loop_interval_ms: 300
+            blocked_retry_attempts: 2
+          telegram:
+            bot_token: "token-123"
+            poll_interval_seconds: 1
+            allowed_chat_ids: [111]
+          paths:
+            default_projects_root: "redwright"
+          models:
+            coding:
+              - provider: "openai"
+                name: "gpt-5.2"
+            non_coding:
+              - provider: "openai"
+                name: "gpt-5-mini"
+        YAML
+
+        config = Redwright::AppConfigLoader.new(mode: :dev).load
+        assert_equal(File.join(dir, "_workspace", "redwright"), config.paths.default_projects_root)
+      end
+    end
+  end
+
+  def test_real_mode_resolves_tilde_paths_against_home
+    Dir.mktmpdir("redwright-app-config-real-tilde-") do |home|
+      config_dir = File.join(home, ".config", "redwright")
+      FileUtils.mkdir_p(config_dir)
+      File.write(File.join(config_dir, "config.yml"), <<~YAML)
+        runtime:
+          loop_interval_ms: 100
+          blocked_retry_attempts: 1
+        telegram:
+          bot_token: "real-token"
+          poll_interval_seconds: 2
+          allowed_chat_ids: [1]
+        paths:
+          default_projects_root: "~/redwright"
+        models:
+          coding:
+            - provider: "openai"
+              name: "gpt-5.2"
+          non_coding:
+            - provider: "openai"
+              name: "gpt-5-mini"
+      YAML
+
+      config = Redwright::AppConfigLoader.new(mode: :real, home: home).load
+      assert_equal(File.join(home, "redwright"), config.paths.default_projects_root)
+    end
+  end
+
   def test_loads_valid_config_from_real_mode_path
     Dir.mktmpdir("redwright-app-config-real-") do |home|
       config_dir = File.join(home, ".config", "redwright")

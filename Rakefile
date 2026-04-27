@@ -34,7 +34,7 @@ task "run-trace" do
       poll_interval_seconds: 1
       allowed_chat_ids: []
     paths:
-      default_projects_root: "#{Dir.pwd}/_workspace/redwright"
+      default_projects_root: "~/redwright"
     models:
       coding:
         - provider: "openai"
@@ -84,7 +84,7 @@ namespace :smoke do
         poll_interval_seconds: 1
         allowed_chat_ids: []
       paths:
-        default_projects_root: "#{Dir.pwd}/_workspace/redwright"
+        default_projects_root: "~/redwright"
       models:
         coding:
           - provider: "openai"
