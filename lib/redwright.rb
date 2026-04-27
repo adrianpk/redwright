@@ -403,15 +403,23 @@ module Redwright
     def run_daemon
       mode = :dev
       sub = @argv.shift
+      run_once = false
+      ingress = "telegram"
 
       parser = OptionParser.new do |opts|
         opts.on("--dev", "Use ./_workspace") { mode = :dev }
         opts.on("--real", "Use $HOME paths") { mode = :real }
+        opts.on("--once", "Run only one loop iteration and exit") { run_once = true }
+        opts.on("--ingress VALUE", "Ingress mode: telegram|none") { |v| ingress = v }
       end
       parser.parse!(@argv)
 
       case sub
       when "run"
+        unless %w[telegram none].include?(ingress)
+          raise ArgumentError, "invalid ingress mode: #{ingress} (expected telegram|none)"
+        end
+
         bootstrap = Bootstrap.new(mode: mode).call
         config = AppConfigLoader.new(mode: mode).load
         flow = RuntimeFlow.new(
@@ -436,6 +444,8 @@ module Redwright
         offset = nil
         runner = DaemonRunner.new(
           ingress_poller: lambda {
+            next [] if ingress == "none"
+
             poll = telegram_ingress.poll(
               offset: offset,
               timeout_seconds: config.telegram.poll_interval_seconds
@@ -448,13 +458,18 @@ module Redwright
 
         @out.puts("daemon starting")
         @out.puts("mode: #{mode}")
+        @out.puts("ingress: #{ingress}")
+        @out.puts("once: #{run_once}")
         @out.puts("loop_interval_ms: #{config.runtime.loop_interval_ms}")
 
-        runner.run(loop_interval_seconds: config.runtime.loop_interval_ms / 1000.0)
+        runner.run(
+          loop_interval_seconds: config.runtime.loop_interval_ms / 1000.0,
+          max_iterations: run_once ? 1 : nil
+        )
         @out.puts("daemon stopped")
         0
       else
-        @err.puts("usage: redwright daemon run [--dev|--real]")
+        @err.puts("usage: redwright daemon run [--dev|--real] [--once] [--ingress telegram|none]")
         1
       end
     rescue OptionParser::ParseError, ArgumentError => e

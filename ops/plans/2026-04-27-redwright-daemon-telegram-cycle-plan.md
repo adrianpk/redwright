@@ -3,7 +3,7 @@
 ## Metadata
 
 - cycle_id: `runtime-cycle-2026-04-27-redwright-daemon-telegram`
-- status: `in_progress`
+- status: `completed`
 - owner: `adrianpk`
 - created: `2026-04-27`
 - updated: `2026-04-27`
@@ -87,13 +87,13 @@
 
 ### Slice 5: Dev Smoke and Operational Gate
 
-- status: `pending`
+- status: `completed`
 - branch: `feat/slice-5-daemon-telegram-smoke-gate`
 - objective: `add repeatable validation entrypoints for daemon + telegram end-to-end flow`
 - tasks:
-- [ ] `T5.1 add dev smoke command path for daemon startup validation`
-- [ ] `T5.2 add invariant test gate for daemon+telegram critical contract`
-- [ ] `T5.3 update tracker with slice commit and validation correlation`
+- [x] `T5.1 add dev smoke command path for daemon startup validation`
+- [x] `T5.2 add invariant test gate for daemon+telegram critical contract`
+- [x] `T5.3 update tracker with slice commit and validation correlation`
 - acceptance:
 - `team can execute one command sequence to validate daemon+telegram flow in dev mode`
 - `CI/local gate fails when daemon or ingress core invariants regress`
@@ -102,7 +102,7 @@
 - `test(invariants): enforce daemon telegram runtime contract`
 - `chore(ops): close daemon telegram cycle tracker status`
 - PR:
-- `tbd`
+- `tbd (to be opened from feat/slice-5-daemon-telegram-smoke-gate)`
 
 ## Global Exit Criteria
 

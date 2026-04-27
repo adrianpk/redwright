@@ -31,4 +31,35 @@ task :smoke do
   sh "bundle exec ruby bin/redwright flow process --dev --project #{Shellwords.escape(alias_name)} --message #{Shellwords.escape(message)} --confirm-new-workstream"
 end
 
+namespace :smoke do
+  desc "Daemon startup smoke in dev mode (single iteration, no external ingress)"
+  task :daemon do
+    sh "bundle exec ruby bin/redwright bootstrap --dev"
+
+    config_path = File.join(Dir.pwd, "_workspace", ".config", "redwright", "config.yml")
+    File.write(config_path, <<~YAML)
+      runtime:
+        loop_interval_ms: 1
+        blocked_retry_attempts: 1
+      telegram:
+        bot_token: "dummy-token"
+        poll_interval_seconds: 1
+        allowed_chat_ids: []
+      paths:
+        default_projects_root: "#{Dir.pwd}/_workspace/redwright"
+    YAML
+
+    sh "bundle exec ruby bin/redwright daemon run --dev --once --ingress none"
+  end
+end
+
+namespace :test do
+  desc "Run daemon+telegram invariant gate"
+  task :invariants do
+    sh "bundle exec ruby -Itest test/redwright/daemon_telegram_invariant_test.rb"
+  end
+end
+
+task "test-invariants": "test:invariants"
+
 task default: :test

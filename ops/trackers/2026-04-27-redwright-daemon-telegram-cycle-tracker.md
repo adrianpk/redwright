@@ -3,11 +3,11 @@
 ## Metadata
 
 - cycle_id: `runtime-cycle-2026-04-27-redwright-daemon-telegram`
-- status: `in_progress`
-- state: `awaiting_review`
+- status: `completed`
+- state: `done`
 - updated: `2026-04-27`
-- active_slice: `slice-4`
-- active_task: `T4.3`
+- active_slice: `none`
+- active_task: `none`
 
 ## Slice Progress
 
@@ -97,7 +97,7 @@ Tasks:
 
 Commits:
 
-- [x] `1776862 feat(runtime): materialize telegram events via flow and send acknowledgments`
+- [x] `0523728 feat(runtime): materialize telegram events via flow and send acknowledgments`
 
 Validation:
 
@@ -106,7 +106,7 @@ Validation:
 
 ### Slice 5: Dev Smoke and Operational Gate
 
-- status: `pending`
+- status: `completed`
 - branch: `feat/slice-5-daemon-telegram-smoke-gate`
 - PR: `tbd`
 - merge_target: `dev`
@@ -114,20 +114,18 @@ Validation:
 
 Tasks:
 
-- [ ] `T5.1 add dev smoke command path for daemon startup validation`
-- [ ] `T5.2 add invariant test gate for daemon+telegram critical contract`
-- [ ] `T5.3 update tracker with slice commit and validation correlation`
+- [x] `T5.1 add dev smoke command path for daemon startup validation`
+- [x] `T5.2 add invariant test gate for daemon+telegram critical contract`
+- [x] `T5.3 update tracker with slice commit and validation correlation`
 
 Commits:
 
-- [ ] `<sha> chore(tooling): add daemon telegram smoke execution path`
-- [ ] `<sha> test(invariants): enforce daemon telegram runtime contract`
-- [ ] `<sha> chore(ops): close daemon telegram cycle tracker status`
+- [x] `e60f503 chore(tooling): add daemon smoke command path and invariant gate`
 
 Validation:
 
-- [ ] `dev-mode smoke demonstrates daemon + Telegram E2E materialization`
-- [ ] `invariant gate protects daemon ingress and persistence contract`
+- [x] `dev-mode smoke demonstrates daemon startup validation in dev mode`
+- [x] `invariant gate protects daemon ingress and runtime materialization contract`
 
 ## Event Log
 
@@ -140,3 +138,5 @@ Validation:
 - `2026-04-27 15:22` state=`awaiting_review` note=`slice 3 completed with telegram polling client, canonical ingress mapping, and allow-list filtering`
 - `2026-04-27 15:32` state=`executing_slice` note=`slice 4 implementation started on feat/slice-4-runtime-materialization-and-telegram-response`
 - `2026-04-27 15:41` state=`awaiting_review` note=`slice 4 completed with runtime flow dispatch, sqlite materialization, and telegram acknowledgment output`
+- `2026-04-27 15:52` state=`executing_slice` note=`slice 5 implementation started on feat/slice-5-daemon-telegram-smoke-gate`
+- `2026-04-27 15:58` state=`done` note=`slice 5 completed with daemon startup smoke command path and invariant gate; cycle marked completed`

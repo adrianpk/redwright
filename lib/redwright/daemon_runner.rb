@@ -10,13 +10,16 @@ module Redwright
       @stop_requested = false
     end
 
-    def run(loop_interval_seconds:)
+    def run(loop_interval_seconds:, max_iterations: nil)
       install_signal_handlers
+      iterations = 0
 
       until @stop_requested
+        iterations += 1
         events = @ingress_poller.call
         events.each { |event| @event_handler.call(event) }
         break if @stop_requested
+        break if !max_iterations.nil? && iterations >= max_iterations
 
         @sleeper.call(loop_interval_seconds)
       end

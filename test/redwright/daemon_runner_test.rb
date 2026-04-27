@@ -52,4 +52,21 @@ class DaemonRunnerTest < Minitest::Test
     assert(handlers.key?("INT"))
     assert(handlers.key?("TERM"))
   end
+
+  def test_run_stops_after_max_iterations
+    polled = 0
+    runner = Redwright::DaemonRunner.new(
+      ingress_poller: lambda {
+        polled += 1
+        []
+      },
+      event_handler: ->(_event) {},
+      sleeper: ->(_seconds) {},
+      trap_handler: ->(_signal, &_block) {}
+    )
+
+    runner.run(loop_interval_seconds: 0.001, max_iterations: 1)
+
+    assert_equal(1, polled)
+  end
 end
