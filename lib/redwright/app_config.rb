@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "yaml"
-require "pathname"
 require_relative "paths"
 
 module Redwright
@@ -120,16 +119,7 @@ module Redwright
     end
 
     def normalize_path_root(value)
-      base = Paths.new(mode: @mode, pwd: @pwd, home: @home).root
-      raw = value.strip
-
-      if raw.start_with?("~/")
-        return File.expand_path(raw.sub("~/", ""), base)
-      end
-
-      return File.expand_path(raw) if Pathname.new(raw).absolute?
-
-      File.expand_path(raw, base)
+      Paths.new(mode: @mode, pwd: @pwd, home: @home).resolve_projects_root(value)
     end
 
     def integer_value(value, key)

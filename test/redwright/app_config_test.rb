@@ -9,7 +9,7 @@ require "redwright/bootstrap"
 require "redwright/app_config"
 
 class AppConfigTest < Minitest::Test
-  def test_loads_valid_config_from_dev_workspace
+  def test_loads_valid_config_from_dev_workspace_and_forces_workspace_projects_root
     Dir.mktmpdir("redwright-app-config-dev-") do |dir|
       Dir.chdir(dir) do
         bootstrap = Redwright::Bootstrap.new(mode: :dev).call
@@ -38,14 +38,14 @@ class AppConfigTest < Minitest::Test
         assert_equal("token-123", config.telegram.bot_token)
         assert_equal(1, config.telegram.poll_interval_seconds)
         assert_equal([111, 222], config.telegram.allowed_chat_ids)
-        assert_equal("#{dir}/projects", config.paths.default_projects_root)
+        assert_equal(File.join(dir, "_workspace", "Projects"), config.paths.default_projects_root)
         assert_equal("openai", config.models.coding.candidates.first.provider)
         assert_equal("gpt-5-mini", config.models.non_coding.candidates.first.name)
       end
     end
   end
 
-  def test_dev_mode_resolves_relative_paths_against_workspace_root
+  def test_dev_mode_ignores_yaml_projects_root
     Dir.mktmpdir("redwright-app-config-dev-relative-") do |dir|
       Dir.chdir(dir) do
         bootstrap = Redwright::Bootstrap.new(mode: :dev).call
@@ -58,7 +58,7 @@ class AppConfigTest < Minitest::Test
             poll_interval_seconds: 1
             allowed_chat_ids: [111]
           paths:
-            default_projects_root: "redwright"
+            default_projects_root: "/tmp/ignored-by-dev-mode"
           models:
             coding:
               - provider: "openai"
@@ -69,7 +69,7 @@ class AppConfigTest < Minitest::Test
         YAML
 
         config = Redwright::AppConfigLoader.new(mode: :dev).load
-        assert_equal(File.join(dir, "_workspace", "redwright"), config.paths.default_projects_root)
+        assert_equal(File.join(dir, "_workspace", "Projects"), config.paths.default_projects_root)
       end
     end
   end
@@ -129,7 +129,36 @@ class AppConfigTest < Minitest::Test
       assert_equal(100, config.runtime.loop_interval_ms)
       assert_equal("real-token", config.telegram.bot_token)
       assert_equal([1], config.telegram.allowed_chat_ids)
+      assert_equal(File.join(home, "redwright"), config.paths.default_projects_root)
       assert_equal("gpt-5.2", config.models.coding.candidates.first.name)
+    end
+  end
+
+  def test_real_mode_rejects_relative_projects_root
+    Dir.mktmpdir("redwright-app-config-real-relative-") do |home|
+      config_dir = File.join(home, ".config", "redwright")
+      FileUtils.mkdir_p(config_dir)
+      File.write(File.join(config_dir, "config.yml"), <<~YAML)
+        runtime:
+          loop_interval_ms: 100
+          blocked_retry_attempts: 1
+        telegram:
+          bot_token: "real-token"
+          poll_interval_seconds: 2
+          allowed_chat_ids: [1]
+        paths:
+          default_projects_root: "relative/projects"
+        models:
+          coding:
+            - provider: "openai"
+              name: "gpt-5.2"
+          non_coding:
+            - provider: "openai"
+              name: "gpt-5-mini"
+      YAML
+
+      err = assert_raises(ArgumentError) { Redwright::AppConfigLoader.new(mode: :real, home: home).load }
+      assert_equal("invalid config key: default_projects_root must be absolute in real mode", err.message)
     end
   end
 

@@ -1,10 +1,12 @@
 # frozen_string_literal: true
+require "pathname"
 
 module Redwright
   class Paths
     attr_reader :root, :state_dir, :config_dir, :projects_root, :worktrees_root, :db_path
 
     def initialize(mode: :dev, pwd: Dir.pwd, home: Dir.home)
+      @mode = mode
       @root = case mode
               when :dev
                 File.join(pwd, "_workspace")
@@ -16,9 +18,29 @@ module Redwright
 
       @state_dir = File.join(@root, ".redwright")
       @config_dir = File.join(@root, ".config", "redwright")
-      @projects_root = File.join(@root, "redwright")
+      @projects_root = File.join(@root, "Projects")
       @worktrees_root = File.join(@projects_root, ".worktrees")
       @db_path = File.join(@state_dir, "runtime.db")
+    end
+
+    def resolve_projects_root(config_value)
+      return @projects_root if dev_mode?
+
+      raw = config_value.to_s.strip
+      if raw.start_with?("~/")
+        return File.expand_path(raw.sub("~/", ""), @root)
+      end
+      unless Pathname.new(raw).absolute?
+        raise ArgumentError, "invalid config key: default_projects_root must be absolute in real mode"
+      end
+
+      File.expand_path(raw, @root)
+    end
+
+    private
+
+    def dev_mode?
+      @mode == :dev
     end
   end
 end
