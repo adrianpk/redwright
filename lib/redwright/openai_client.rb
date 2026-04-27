@@ -11,7 +11,7 @@ module Redwright
     def initialize(
       api_key: ENV.fetch("OPENAI_API_KEY", "").strip,
       base_url: ENV.fetch("OPENAI_BASE_URL", "https://api.openai.com/v1"),
-      timeout_seconds: 30,
+      timeout_seconds: 120,
       http_post: nil
     )
       @api_key = api_key
