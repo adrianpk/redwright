@@ -6,7 +6,7 @@
 - status: `in_progress`
 - state: `implementation`
 - updated: `2026-04-27`
-- active_slice: `slice-1`
+- active_slice: `slice-2`
 - active_task: `none`
 
 ## Slice Progress
@@ -37,27 +37,27 @@ Validation:
 
 ### Slice 2: Context Resolver for Multi-Project Telegram Turns
 
-- status: `pending`
+- status: `completed`
 - branch: `feat/slice-2-context-resolver-multiproject`
 - PR: `tbd`
 - merge_target: `dev`
-- last_sync_commit: `tbd`
+- last_sync_commit: `21cf56f`
 
 Tasks:
 
-- [ ] `T2.1 persist per-chat active project/workstream context state`
-- [ ] `T2.2 implement explicit reference matching and active-context fallback`
-- [ ] `T2.3 emit clarify mode when ambiguity remains`
+- [x] `T2.1 persist per-chat active project/workstream context state`
+- [x] `T2.2 implement explicit reference matching and active-context fallback`
+- [x] `T2.3 emit clarify mode when ambiguity remains`
 
 Commits:
 
-- [ ] `<sha> feat(context): add multi-project context resolver for telegram turns`
-- [ ] `<sha> test(context): validate explicit match, fallback, and ambiguity paths`
+- [x] `2ed30f2 feat(context): add multi-project resolver with per-chat runtime context`
+- [x] `21cf56f test(context): validate explicit match, fallback, and clarify paths`
 
 Validation:
 
-- [ ] `unambiguous turns resolve without extra prompt`
-- [ ] `ambiguous turns produce clarification and no execution`
+- [x] `unambiguous turns resolve without extra prompt`
+- [x] `ambiguous turns produce clarification and no execution`
 
 ### Slice 3: Primitive Executor Core (Filesystem + Command)
 
@@ -186,3 +186,5 @@ Validation:
 - `2026-04-27 19:21` validation=`bundle exec ruby -Itest test/redwright/planner_payload_validator_test.rb`
 - `2026-04-27 19:21` validation=`bundle exec ruby -Itest test/redwright/llm_intent_interpreter_test.rb`
 - `2026-04-27 19:21` validation=`bundle exec ruby -Itest test/redwright/telegram_runtime_handler_test.rb`
+- `2026-04-27 19:39` state=`implementation` slice=`slice-2` note=`added chat-context persistence + explicit context resolver + clarify path before execution`
+- `2026-04-27 19:39` validation=`bundle exec ruby -Itest -e 'Dir["test/redwright/*_test.rb"].sort.each { |f| require File.expand_path(f) }'`
