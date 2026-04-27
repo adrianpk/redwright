@@ -3,7 +3,7 @@
 ## Metadata
 
 - cycle_id: `runtime-cycle-2026-04-27-redwright-daemon-telegram`
-- status: `approved`
+- status: `in_progress`
 - owner: `adrianpk`
 - created: `2026-04-27`
 - updated: `2026-04-27`
@@ -14,13 +14,13 @@
 
 ### Slice 1: YAML Runtime Configuration Foundation
 
-- status: `pending`
+- status: `completed`
 - branch: `feat/slice-1-yaml-runtime-config-foundation`
 - objective: `introduce authoritative YAML config loading and validation for daemon execution`
 - tasks:
-- [ ] `T1.1 add config loader for ~/.config/redwright/config.yml and _workspace mirror`
-- [ ] `T1.2 define strict schema validation for runtime/telegram/paths keys`
-- [ ] `T1.3 add deterministic tests for valid and invalid config scenarios`
+- [x] `T1.1 add config loader for ~/.config/redwright/config.yml and _workspace mirror`
+- [x] `T1.2 define strict schema validation for runtime/telegram/paths keys`
+- [x] `T1.3 add deterministic tests for valid and invalid config scenarios`
 - acceptance:
 - `daemon prerequisites can load validated config from one authoritative file path`
 - `invalid config fails fast with explicit error`
@@ -28,7 +28,7 @@
 - `feat(config): add yaml runtime configuration loader and schema validation`
 - `test(config): cover yaml parsing and required key validation`
 - PR:
-- `tbd`
+- `tbd (to be opened from feat/slice-1-yaml-runtime-config-foundation)`
 
 ### Slice 2: Persistent Daemon Loop Surface
 
