@@ -18,6 +18,7 @@ require_relative "redwright/daemon_runner"
 require_relative "redwright/telegram_client"
 require_relative "redwright/telegram_ingress"
 require_relative "redwright/telegram_runtime_handler"
+require_relative "redwright/model_resolver"
 
 module Redwright
   class CLI
@@ -422,6 +423,8 @@ module Redwright
 
         bootstrap = Bootstrap.new(mode: mode).call
         config = AppConfigLoader.new(mode: mode).load
+        model_resolver = ModelResolver.new(config.models)
+        non_coding_model = model_resolver.resolve("non_coding")
         flow = RuntimeFlow.new(
           project_store: ProjectStore.new(bootstrap.db_path),
           workstream_store: WorkstreamStore.new(bootstrap.db_path),
@@ -439,7 +442,10 @@ module Redwright
           telegram_client: telegram_client,
           out: @out,
           err: @err,
-          blocked_retry_attempts: config.runtime.blocked_retry_attempts
+          blocked_retry_attempts: config.runtime.blocked_retry_attempts,
+          model_role: "non_coding",
+          model_provider: non_coding_model.provider,
+          model_name: non_coding_model.name
         )
         offset = nil
         runner = DaemonRunner.new(

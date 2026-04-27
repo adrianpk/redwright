@@ -23,6 +23,13 @@ class DaemonCliTest < Minitest::Test
             allowed_chat_ids: []
           paths:
             default_projects_root: "#{dir}/projects"
+          models:
+            coding:
+              - provider: "openai"
+                name: "gpt-5.2"
+            non_coding:
+              - provider: "openai"
+                name: "gpt-5-mini"
         YAML
 
         out = StringIO.new

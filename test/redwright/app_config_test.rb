@@ -23,6 +23,13 @@ class AppConfigTest < Minitest::Test
             allowed_chat_ids: [111, 222]
           paths:
             default_projects_root: "#{dir}/projects"
+          models:
+            coding:
+              - provider: "openai"
+                name: "gpt-5.2"
+            non_coding:
+              - provider: "openai"
+                name: "gpt-5-mini"
         YAML
 
         config = Redwright::AppConfigLoader.new(mode: :dev).load
@@ -32,6 +39,8 @@ class AppConfigTest < Minitest::Test
         assert_equal(1, config.telegram.poll_interval_seconds)
         assert_equal([111, 222], config.telegram.allowed_chat_ids)
         assert_equal("#{dir}/projects", config.paths.default_projects_root)
+        assert_equal("openai", config.models.coding.candidates.first.provider)
+        assert_equal("gpt-5-mini", config.models.non_coding.candidates.first.name)
       end
     end
   end
@@ -50,12 +59,20 @@ class AppConfigTest < Minitest::Test
           allowed_chat_ids: [1]
         paths:
           default_projects_root: "#{home}/redwright"
+        models:
+          coding:
+            - provider: "openai"
+              name: "gpt-5.2"
+          non_coding:
+            - provider: "openai"
+              name: "gpt-5-mini"
       YAML
 
       config = Redwright::AppConfigLoader.new(mode: :real, home: home).load
       assert_equal(100, config.runtime.loop_interval_ms)
       assert_equal("real-token", config.telegram.bot_token)
       assert_equal([1], config.telegram.allowed_chat_ids)
+      assert_equal("gpt-5.2", config.models.coding.candidates.first.name)
     end
   end
 
@@ -95,10 +112,38 @@ class AppConfigTest < Minitest::Test
           allowed_chat_ids: [1]
         paths:
           default_projects_root: "#{dir}/redwright"
+        models:
+          coding:
+            - provider: "openai"
+              name: "gpt-5.2"
+          non_coding:
+            - provider: "openai"
+              name: "gpt-5-mini"
       YAML
 
       err = assert_raises(ArgumentError) { Redwright::AppConfigLoader.new(mode: :real, home: dir).load }
       assert_equal("invalid config key: loop_interval_ms must be an integer", err.message)
+    end
+  end
+
+  def test_missing_models_section_is_rejected
+    Dir.mktmpdir("redwright-app-config-models-missing-") do |dir|
+      config_dir = File.join(dir, ".config", "redwright")
+      FileUtils.mkdir_p(config_dir)
+      File.write(File.join(config_dir, "config.yml"), <<~YAML)
+        runtime:
+          loop_interval_ms: 100
+          blocked_retry_attempts: 1
+        telegram:
+          bot_token: "x"
+          poll_interval_seconds: 1
+          allowed_chat_ids: [1]
+        paths:
+          default_projects_root: "#{dir}/redwright"
+      YAML
+
+      err = assert_raises(ArgumentError) { Redwright::AppConfigLoader.new(mode: :real, home: dir).load }
+      assert_equal("missing config key: models", err.message)
     end
   end
 end

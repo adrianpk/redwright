@@ -4,10 +4,13 @@ require "yaml"
 require_relative "paths"
 
 module Redwright
-  AppConfig = Struct.new(:runtime, :telegram, :paths, keyword_init: true)
+  AppConfig = Struct.new(:runtime, :telegram, :paths, :models, keyword_init: true)
   RuntimeConfig = Struct.new(:loop_interval_ms, :blocked_retry_attempts, keyword_init: true)
   TelegramConfig = Struct.new(:bot_token, :poll_interval_seconds, :allowed_chat_ids, keyword_init: true)
   PathsConfig = Struct.new(:default_projects_root, keyword_init: true)
+  ModelCandidate = Struct.new(:provider, :name, keyword_init: true)
+  ModelRoleConfig = Struct.new(:candidates, keyword_init: true)
+  ModelsConfig = Struct.new(:coding, :non_coding, keyword_init: true)
 
   class AppConfigLoader
     def initialize(mode: :dev, pwd: Dir.pwd, home: Dir.home)
@@ -26,6 +29,7 @@ module Redwright
       runtime = fetch_hash(raw, "runtime")
       telegram = fetch_hash(raw, "telegram")
       paths = fetch_hash(raw, "paths")
+      models = fetch_hash(raw, "models")
 
       AppConfig.new(
         runtime: RuntimeConfig.new(
@@ -39,6 +43,10 @@ module Redwright
         ),
         paths: PathsConfig.new(
           default_projects_root: required_string(paths, "default_projects_root")
+        ),
+        models: ModelsConfig.new(
+          coding: parse_model_role(models, "coding"),
+          non_coding: parse_model_role(models, "non_coding")
         )
       )
     rescue Psych::SyntaxError => e
@@ -55,10 +63,10 @@ module Redwright
       value
     end
 
-    def required_string(map, key)
+    def required_string(map, key, label: key)
       value = map[key]
-      raise ArgumentError, "missing config key: #{key}" if value.nil?
-      raise ArgumentError, "invalid config key: #{key} must be a non-empty string" unless value.is_a?(String) && !value.strip.empty?
+      raise ArgumentError, "missing config key: #{label}" if value.nil?
+      raise ArgumentError, "invalid config key: #{label} must be a non-empty string" unless value.is_a?(String) && !value.strip.empty?
 
       value
     end
@@ -79,6 +87,35 @@ module Redwright
       raise ArgumentError, "invalid config key: #{key} must be >= 1" if int < 1
 
       int
+    end
+
+    def parse_model_role(models, key)
+      raw = models[key]
+      raise ArgumentError, "missing config key: models.#{key}" if raw.nil?
+
+      candidates = case raw
+                   when Hash
+                     [parse_model_candidate(raw, "models.#{key}")]
+                   when Array
+                     raise ArgumentError, "invalid config key: models.#{key} must contain at least one candidate" if raw.empty?
+
+                     raw.each_with_index.map do |value, index|
+                       raise ArgumentError, "invalid config key: models.#{key}[#{index}] must be a mapping" unless value.is_a?(Hash)
+
+                       parse_model_candidate(value, "models.#{key}[#{index}]")
+                     end
+                   else
+                     raise ArgumentError, "invalid config key: models.#{key} must be a mapping or an array"
+                   end
+
+      ModelRoleConfig.new(candidates: candidates)
+    end
+
+    def parse_model_candidate(candidate, prefix)
+      ModelCandidate.new(
+        provider: required_string(candidate, "provider", label: "#{prefix}.provider"),
+        name: required_string(candidate, "name", label: "#{prefix}.name")
+      )
     end
 
     def integer_value(value, key)

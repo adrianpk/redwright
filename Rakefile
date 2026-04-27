@@ -24,26 +24,28 @@ task "run-trace" do
   project_path = Dir.pwd
 
   sh "REDWRIGHT_TRACE=1 bundle exec ruby bin/redwright bootstrap --dev"
+  config_path = File.join(Dir.pwd, "_workspace", ".config", "redwright", "config.yml")
+  File.write(config_path, <<~YAML)
+    runtime:
+      loop_interval_ms: 1000
+      blocked_retry_attempts: 1
+    telegram:
+      bot_token: "trace-dummy-token"
+      poll_interval_seconds: 1
+      allowed_chat_ids: []
+    paths:
+      default_projects_root: "#{Dir.pwd}/_workspace/redwright"
+    models:
+      coding:
+        - provider: "openai"
+          name: "gpt-5.2"
+      non_coding:
+        - provider: "openai"
+          name: "gpt-5-mini"
+  YAML
   sh "REDWRIGHT_TRACE=1 bundle exec ruby bin/redwright project register --dev --path #{Shellwords.escape(project_path)} --alias #{Shellwords.escape(project_alias)}"
 
-  line = "=" * 52
-  puts line
-  puts "LLM REQUEST"
-  puts "trace_id: none"
-  puts "model_role: none"
-  puts "provider: none"
-  puts "model: none"
-  puts "action: none"
-  puts "payload_bytes: 0"
-  puts line
-  puts line
-  puts "LLM RESPONSE"
-  puts "trace_id: none"
-  puts "status: skipped"
-  puts "latency_ms: 0"
-  puts "output_bytes: 0"
-  puts "finish_reason: llm_not_integrated"
-  puts line
+  sh "REDWRIGHT_TRACE=1 bundle exec ruby -e 'require_relative \"lib/redwright/app_config\"; require_relative \"lib/redwright/model_resolver\"; require_relative \"lib/redwright/trace\"; cfg = Redwright::AppConfigLoader.new(mode: :dev).load; resolver = Redwright::ModelResolver.new(cfg.models); model = resolver.resolve(\"non_coding\"); Redwright::Trace.llm_request(role: \"non_coding\", provider: model.provider, model: model.name, action: \"none\", payload_bytes: 0); Redwright::Trace.llm_response(status: \"skipped\", latency_ms: 0, output_bytes: 0, finish_reason: \"llm_not_integrated\")'"
 
   sh "REDWRIGHT_TRACE=1 bundle exec ruby bin/redwright flow process --dev --project #{Shellwords.escape(project_alias)} --message #{Shellwords.escape(message)} --confirm-new-workstream"
 end
@@ -83,6 +85,13 @@ namespace :smoke do
         allowed_chat_ids: []
       paths:
         default_projects_root: "#{Dir.pwd}/_workspace/redwright"
+      models:
+        coding:
+          - provider: "openai"
+            name: "gpt-5.2"
+        non_coding:
+          - provider: "openai"
+            name: "gpt-5-mini"
     YAML
 
     sh "bundle exec ruby bin/redwright daemon run --dev --once --ingress none"

@@ -4,13 +4,26 @@ require_relative "trace"
 
 module Redwright
   class TelegramRuntimeHandler
-    def initialize(flow:, telegram_client:, out:, err:, blocked_retry_attempts:, default_intent: "change")
+    def initialize(
+      flow:,
+      telegram_client:,
+      out:,
+      err:,
+      blocked_retry_attempts:,
+      default_intent: "change",
+      model_role: "non_coding",
+      model_provider: "none",
+      model_name: "none"
+    )
       @flow = flow
       @telegram_client = telegram_client
       @out = out
       @err = err
       @blocked_retry_attempts = blocked_retry_attempts
       @default_intent = default_intent
+      @model_role = model_role
+      @model_provider = model_provider
+      @model_name = model_name
     end
 
     def handle(event)
@@ -21,9 +34,9 @@ module Redwright
         text: event.text
       })
       Trace.llm_request(
-        role: "non_coding",
-        provider: "none",
-        model: "none",
+        role: @model_role,
+        provider: @model_provider,
+        model: @model_name,
         action: "none",
         payload_bytes: 0
       )
