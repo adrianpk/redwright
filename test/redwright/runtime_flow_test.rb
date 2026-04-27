@@ -8,9 +8,11 @@ require "redwright/bootstrap"
 require "redwright/project_store"
 require "redwright/workstream_store"
 require "redwright/task_store"
+require "redwright/action_execution_store"
 require "redwright/alignment_store"
 require "redwright/plan_spec_store"
 require "redwright/runtime_flow"
+require "redwright/primitive_executor"
 
 class RuntimeFlowTest < Minitest::Test
   FlakyTaskStore = Struct.new(:real_store, :failures_left) do
@@ -278,6 +280,63 @@ class RuntimeFlowTest < Minitest::Test
           )
         end
         assert_match("blocked after 2 attempt", err.message)
+      end
+    end
+  end
+
+  def test_process_executes_actions_and_persists_action_results
+    Dir.mktmpdir("redwright-flow-actions-test-") do |dir|
+      Dir.chdir(dir) do
+        bootstrap = Redwright::Bootstrap.new(mode: :dev).call
+        project_store = Redwright::ProjectStore.new(bootstrap.db_path)
+        ws_store = Redwright::WorkstreamStore.new(bootstrap.db_path)
+        task_store = Redwright::TaskStore.new(bootstrap.db_path)
+        action_store = Redwright::ActionExecutionStore.new(bootstrap.db_path)
+        alignment_store = Redwright::AlignmentStore.new(bootstrap.db_path)
+
+        project_store.register(path: "#{dir}/apps/core", aliases: ["rw"])
+        flow = Redwright::RuntimeFlow.new(
+          project_store: project_store,
+          workstream_store: ws_store,
+          task_store: task_store,
+          alignment_store: alignment_store,
+          primitive_executor: Redwright::PrimitiveExecutor.new,
+          action_execution_store: action_store
+        )
+
+        result = flow.process(
+          project_ref: "rw",
+          intent: "change",
+          message: "create smoke file",
+          confirm_new_workstream: true,
+          actions: [
+            {
+              "id" => "a1",
+              "type" => "write_file",
+              "args" => { "path" => "README.slice3.txt", "content" => "slice-3" },
+              "requires_confirmation" => false,
+              "timeout_ms" => 2_000,
+              "on_failure" => "abort"
+            },
+            {
+              "id" => "a2",
+              "type" => "read_file",
+              "args" => { "path" => "README.slice3.txt" },
+              "requires_confirmation" => false,
+              "timeout_ms" => 2_000,
+              "on_failure" => "abort"
+            }
+          ]
+        )
+
+        assert_equal(2, result.action_results.size)
+        assert_equal("ok", result.action_results[0].status)
+        assert_equal("ok", result.action_results[1].status)
+        assert_equal("slice-3", result.action_results[1].stdout)
+        rows = action_store.list(task_id: result.task.id)
+        assert_equal(2, rows.size)
+        assert_equal("a1", rows[0].action_id)
+        assert_equal("a2", rows[1].action_id)
       end
     end
   end
