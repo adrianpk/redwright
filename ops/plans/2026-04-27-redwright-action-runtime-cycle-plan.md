@@ -10,6 +10,21 @@
 - goal: `deliver structured planning and guarded action execution for Telegram-driven software engineering turns`
 - scope: `feature`
 
+## Modularity Constraints (Ruby)
+
+- architecture rule: `separate runtime responsibilities into small focused modules/classes; avoid a single monolithic module for planner + context + execution + ingress`
+- required boundaries:
+- `ingress`: `telegram update fetch/decode + canonical event emission only`
+- `context`: `project/workstream resolution and ambiguity handling only`
+- `planner`: `llm contract prompting + parse/validate/retry only`
+- `executor`: `primitive dispatch + policy checks + action execution only`
+- `persistence`: `sqlite repositories and record mapping only`
+- `trace`: `llm/sql/runtime trace formatting + emission toggles only`
+- interface rule: `cross-boundary calls go through explicit Ruby contracts (small public APIs); no implicit shared mutable state`
+- acceptance gate:
+- `each slice must keep or improve boundary isolation`
+- `no new feature may be added by expanding one catch-all runtime class`
+
 ## Slice List
 
 ### Slice 1: Planning Contract and Validation Layer
