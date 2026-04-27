@@ -6,7 +6,7 @@
 - status: `in_progress`
 - state: `implementation`
 - updated: `2026-04-27`
-- active_slice: `slice-2`
+- active_slice: `slice-3`
 - active_task: `none`
 
 ## Slice Progress
@@ -61,27 +61,27 @@ Validation:
 
 ### Slice 3: Primitive Executor Core (Filesystem + Command)
 
-- status: `pending`
+- status: `completed`
 - branch: `feat/slice-3-primitive-executor-core`
 - PR: `tbd`
 - merge_target: `dev`
-- last_sync_commit: `tbd`
+- last_sync_commit: `c40983d`
 
 Tasks:
 
-- [ ] `T3.1 implement primitive dispatcher for list/read/search/run/write/apply_patch`
-- [ ] `T3.2 enforce worktree boundaries and timeout policy`
-- [ ] `T3.3 persist per-action result artifacts (status/stdout/stderr/error)`
+- [x] `T3.1 implement primitive dispatcher for list/read/search/run/write/apply_patch`
+- [x] `T3.2 enforce worktree boundaries and timeout policy`
+- [x] `T3.3 persist per-action result artifacts (status/stdout/stderr/error)`
 
 Commits:
 
-- [ ] `<sha> feat(executor): add primitive action dispatcher and result persistence`
-- [ ] `<sha> test(executor): cover success/failure and boundary enforcement`
+- [x] `97812a3 feat(executor): add primitive dispatcher with action result persistence`
+- [x] `c40983d test(executor): cover primitive success, failures, and boundary guardrails`
 
 Validation:
 
-- [ ] `at least one non-trivial primitive action mutates expected target files`
-- [ ] `failed actions persist diagnostics without crashing daemon`
+- [x] `at least one non-trivial primitive action mutates expected target files`
+- [x] `failed actions persist diagnostics without crashing daemon`
 
 ### Slice 4: Git Primitive Layer
 
@@ -188,3 +188,5 @@ Validation:
 - `2026-04-27 19:21` validation=`bundle exec ruby -Itest test/redwright/telegram_runtime_handler_test.rb`
 - `2026-04-27 19:39` state=`implementation` slice=`slice-2` note=`added chat-context persistence + explicit context resolver + clarify path before execution`
 - `2026-04-27 19:39` validation=`bundle exec ruby -Itest -e 'Dir["test/redwright/*_test.rb"].sort.each { |f| require File.expand_path(f) }'`
+- `2026-04-27 19:54` state=`implementation` slice=`slice-3` note=`added primitive executor core, boundary/timeout guardrails, and sqlite action result persistence`
+- `2026-04-27 19:54` validation=`bundle exec ruby -Itest -e 'Dir["test/redwright/*_test.rb"].sort.each { |f| require File.expand_path(f) }'`
