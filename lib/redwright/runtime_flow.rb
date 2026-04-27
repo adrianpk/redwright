@@ -12,13 +12,18 @@ module Redwright
       @plan_spec_store = plan_spec_store
     end
 
-    def process(project_ref:, intent:, message:, workstream_id: nil)
+    def process(project_ref:, intent:, message:, workstream_id: nil, confirm_new_workstream: false)
       project = @project_store.resolve(project_ref)
       raise ArgumentError, "project not found" unless project
 
       @project_store.mark_active(project.id)
 
-      workstream = resolve_or_create_workstream(project: project, intent: intent, workstream_id: workstream_id)
+      workstream = resolve_or_create_workstream(
+        project: project,
+        intent: intent,
+        workstream_id: workstream_id,
+        confirm_new_workstream: confirm_new_workstream
+      )
 
       if intent == "plan"
         return process_plan(workstream: workstream, message: message, project: project)
@@ -31,7 +36,7 @@ module Redwright
 
     private
 
-    def resolve_or_create_workstream(project:, intent:, workstream_id:)
+    def resolve_or_create_workstream(project:, intent:, workstream_id:, confirm_new_workstream:)
       if workstream_id && !workstream_id.empty?
         existing = @workstream_store.get(workstream_id)
         raise ArgumentError, "workstream not found" unless existing
@@ -59,7 +64,19 @@ module Redwright
         return latest
       end
 
+      if intent != "plan"
+        latest = @workstream_store.find_latest_for_project(
+          project_id: project.id,
+          states: ["collecting_context", "waiting_user", "executing", "ready"]
+        )
+        return latest if latest
+      end
+
       initial_state = intent == "plan" ? "collecting_context" : "executing"
+      if !confirm_new_workstream && intent != "plan"
+        raise ArgumentError, "new workstream requires confirmation (--confirm-new-workstream)"
+      end
+
       @workstream_store.create(project_id: project.id, intent: intent, state: initial_state)
     end
 

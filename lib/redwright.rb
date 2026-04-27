@@ -229,6 +229,7 @@ module Redwright
       intent = "change"
       message = nil
       workstream_id = nil
+      confirm_new_workstream = false
 
       parser = OptionParser.new do |opts|
         opts.on("--dev", "Use ./_workspace") { mode = :dev }
@@ -237,6 +238,7 @@ module Redwright
         opts.on("--intent VALUE", "Intent for new workstream") { |v| intent = v }
         opts.on("--message VALUE", "Incoming message text") { |v| message = v }
         opts.on("--workstream VALUE", "Existing workstream id") { |v| workstream_id = v }
+        opts.on("--confirm-new-workstream", "Confirm creation of a new workstream when needed") { confirm_new_workstream = true }
       end
 
       parser.parse!(@argv)
@@ -253,7 +255,13 @@ module Redwright
       when "process"
         raise OptionParser::MissingArgument, "--message" if message.nil? || message.empty?
 
-        result = flow.process(project_ref: project, intent: intent, message: message, workstream_id: workstream_id)
+        result = flow.process(
+          project_ref: project,
+          intent: intent,
+          message: message,
+          workstream_id: workstream_id,
+          confirm_new_workstream: confirm_new_workstream
+        )
         print_project_record(result.project)
         print_workstream_record(result.workstream)
         print_task_record(result.task)

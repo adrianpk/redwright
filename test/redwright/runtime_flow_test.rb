@@ -13,7 +13,7 @@ require "redwright/plan_spec_store"
 require "redwright/runtime_flow"
 
 class RuntimeFlowTest < Minitest::Test
-  def test_process_creates_workstream_and_task_for_non_plan_intent
+  def test_process_creates_workstream_and_task_for_non_plan_intent_with_confirmation
     Dir.mktmpdir("redwright-flow-test-") do |dir|
       Dir.chdir(dir) do
         bootstrap = Redwright::Bootstrap.new(mode: :dev).call
@@ -30,7 +30,12 @@ class RuntimeFlowTest < Minitest::Test
           alignment_store: alignment_store
         )
 
-        result = flow.process(project_ref: "rw", intent: "change", message: "implement init")
+        result = flow.process(
+          project_ref: "rw",
+          intent: "change",
+          message: "implement init",
+          confirm_new_workstream: true
+        )
 
         assert_equal(project.id, result.project.id)
         assert_equal(project.id, result.workstream.project_id)
@@ -65,6 +70,33 @@ class RuntimeFlowTest < Minitest::Test
         assert_equal(ws.id, result.workstream.id)
         assert_equal("continue analysis", result.task.description)
         assert_equal(1, ws_store.list(project_id: project.id).size)
+      end
+    end
+  end
+
+  def test_non_plan_without_confirmation_fails_when_no_workstream_exists
+    Dir.mktmpdir("redwright-flow-confirmation-test-") do |dir|
+      Dir.chdir(dir) do
+        bootstrap = Redwright::Bootstrap.new(mode: :dev).call
+        project_store = Redwright::ProjectStore.new(bootstrap.db_path)
+        ws_store = Redwright::WorkstreamStore.new(bootstrap.db_path)
+        task_store = Redwright::TaskStore.new(bootstrap.db_path)
+        alignment_store = Redwright::AlignmentStore.new(bootstrap.db_path)
+        spec_store = Redwright::PlanSpecStore.new(base_dir: dir)
+
+        project_store.register(path: "#{dir}/apps/core", aliases: ["rw"])
+        flow = Redwright::RuntimeFlow.new(
+          project_store: project_store,
+          workstream_store: ws_store,
+          task_store: task_store,
+          alignment_store: alignment_store,
+          plan_spec_store: spec_store
+        )
+
+        err = assert_raises(ArgumentError) do
+          flow.process(project_ref: "rw", intent: "change", message: "do something")
+        end
+        assert_match("requires confirmation", err.message)
       end
     end
   end
