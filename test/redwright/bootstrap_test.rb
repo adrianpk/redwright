@@ -13,11 +13,11 @@ class BootstrapTest < Minitest::Test
       Dir.chdir(dir) do
         result = Redwright::Bootstrap.new(mode: :dev).call
 
-        assert_path(File.join(dir, "_workspace", ".redwright"), result.state_dir)
-        assert_path(File.join(dir, "_workspace", ".config", "redwright"), result.config_dir)
+        assert_path(File.join(dir, "_workspace", "redwright"), result.state_dir)
+        assert_path(File.join(dir, "_workspace", "config", "redwright"), result.config_dir)
         assert_path(File.join(dir, "_workspace", "Projects"), result.projects_root)
         assert_path(File.join(dir, "_workspace", "Projects", ".worktrees"), result.worktrees_root)
-        assert_path(File.join(dir, "_workspace", ".redwright", "runtime.db"), result.db_path)
+        assert_path(File.join(dir, "_workspace", "redwright", "runtime.db"), result.db_path)
 
         assert(File.directory?(result.state_dir))
         assert(File.directory?(result.config_dir))
