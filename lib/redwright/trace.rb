@@ -11,6 +11,13 @@ module Redwright
       value == "1" || value == "true" || value == "yes" || value == "on"
     end
 
+    def runtime_enabled?
+      return false unless enabled?
+
+      value = ENV.fetch("REDWRIGHT_TRACE_RUNTIME", "").strip.downcase
+      value == "1" || value == "true" || value == "yes" || value == "on"
+    end
+
     def current_trace_id
       Thread.current[:redwright_trace_id]
     end
@@ -76,6 +83,12 @@ module Redwright
         parsed_message: parsed_message,
         raw_output: raw_output
       }.compact)
+    end
+
+    def runtime(fields = {})
+      return unless runtime_enabled?
+
+      banner("RUNTIME TRACE", fields)
     end
 
     def generate_trace_id

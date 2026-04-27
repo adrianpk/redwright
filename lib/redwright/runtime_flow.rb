@@ -59,7 +59,7 @@ module Redwright
 
       task = @task_store.create(workstream_id: workstream.id, description: message, status: "pending")
       workstream = @workstream_store.update_state(workstream.id, "executing")
-      Trace.banner("RUNTIME TRACE", {
+      Trace.runtime({
         trace_id: Trace.current_trace_id || "none",
         project_id: project.id,
         workstream_id: workstream.id,
