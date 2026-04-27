@@ -75,6 +75,16 @@ module Redwright
       end
     end
 
+    def get(id)
+      with_db do |db|
+        row = db.get_first_row("SELECT id, name, path, last_active_at FROM projects WHERE id = ?", [id])
+        return nil unless row
+
+        aliases = db.execute("SELECT alias FROM project_aliases WHERE project_id = ? ORDER BY alias", [row[0]]).map(&:first)
+        ProjectRecord.new(id: row[0], name: row[1], path: row[2], aliases: aliases, last_active_at: row[3])
+      end
+    end
+
     def mark_active(project_id)
       now = utc_now
       with_db do |db|

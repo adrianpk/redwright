@@ -8,6 +8,7 @@ require_relative "redwright/workstream_store"
 require_relative "redwright/task_store"
 require_relative "redwright/alignment_store"
 require_relative "redwright/runtime_flow"
+require_relative "redwright/worktree_manager"
 
 module Redwright
   class CLI
@@ -31,8 +32,10 @@ module Redwright
         run_task
       when "flow"
         run_flow
+      when "worktree"
+        run_worktree
       else
-        @err.puts("usage: redwright <bootstrap|project|workstream|task|flow>")
+        @err.puts("usage: redwright <bootstrap|project|workstream|task|flow|worktree>")
         1
       end
     end
@@ -238,6 +241,55 @@ module Redwright
         0
       else
         @err.puts("usage: redwright flow process [--dev|--real] ...")
+        1
+      end
+    rescue OptionParser::ParseError, ArgumentError => e
+      @err.puts(e.message)
+      1
+    end
+
+    def run_worktree
+      mode = :dev
+      sub = @argv.shift
+      workstream_id = nil
+      branch = nil
+
+      parser = OptionParser.new do |opts|
+        opts.on("--dev", "Use ./_workspace") { mode = :dev }
+        opts.on("--real", "Use $HOME paths") { mode = :real }
+        opts.on("--workstream VALUE", "Workstream id") { |v| workstream_id = v }
+        opts.on("--branch VALUE", "Branch name for create") { |v| branch = v }
+      end
+
+      parser.parse!(@argv)
+      bootstrap = Bootstrap.new(mode: mode).call
+      manager = WorktreeManager.new(
+        project_store: ProjectStore.new(bootstrap.db_path),
+        workstream_store: WorkstreamStore.new(bootstrap.db_path),
+        worktrees_root: bootstrap.worktrees_root
+      )
+
+      raise OptionParser::MissingArgument, "--workstream" if workstream_id.nil? || workstream_id.empty?
+
+      case sub
+      when "create"
+        raise OptionParser::MissingArgument, "--branch" if branch.nil? || branch.empty?
+
+        ws = manager.create(workstream_id: workstream_id, branch: branch)
+        print_workstream_record(ws)
+        0
+      when "remove"
+        ws = manager.remove(workstream_id: workstream_id)
+        print_workstream_record(ws)
+        0
+      when "status"
+        status = manager.status(workstream_id: workstream_id)
+        @out.puts("exists: #{status.exists}")
+        @out.puts("path: #{status.path}")
+        @out.puts("branch: #{status.branch}")
+        0
+      else
+        @err.puts("usage: redwright worktree <create|remove|status> [--dev|--real] ...")
         1
       end
     rescue OptionParser::ParseError, ArgumentError => e

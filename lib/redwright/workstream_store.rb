@@ -91,6 +91,25 @@ module Redwright
       get(id)
     end
 
+    def attach_checkout(id, branch:, worktree_path:)
+      now = utc_now
+      with_db do |db|
+        db.execute(
+          "UPDATE workstreams SET branch = ?, worktree_path = ?, updated_at = ? WHERE id = ?",
+          [branch, worktree_path, now, id]
+        )
+      end
+      get(id)
+    end
+
+    def detach_checkout(id)
+      now = utc_now
+      with_db do |db|
+        db.execute("UPDATE workstreams SET branch = NULL, worktree_path = NULL, updated_at = ? WHERE id = ?", [now, id])
+      end
+      get(id)
+    end
+
     private
 
     def with_db
