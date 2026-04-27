@@ -4,36 +4,36 @@
 
 - cycle_id: `runtime-cycle-2026-04-27-redwright-structured-action-runtime`
 - status: `in_progress`
-- state: `planning`
+- state: `implementation`
 - updated: `2026-04-27`
-- active_slice: `none`
+- active_slice: `slice-1`
 - active_task: `none`
 
 ## Slice Progress
 
 ### Slice 1: Planning Contract and Validation Layer
 
-- status: `pending`
+- status: `completed`
 - branch: `feat/slice-1-planning-contract-and-validation`
 - PR: `tbd`
 - merge_target: `dev`
-- last_sync_commit: `tbd`
+- last_sync_commit: `01270df`
 
 Tasks:
 
-- [ ] `T1.1 define planner output schema and action item schema contracts`
-- [ ] `T1.2 implement parser/validator with bounded retries on invalid output`
-- [ ] `T1.3 add tests for valid, invalid, and partial planner payloads`
+- [x] `T1.1 define planner output schema and action item schema contracts`
+- [x] `T1.2 implement parser/validator with bounded retries on invalid output`
+- [x] `T1.3 add tests for valid, invalid, and partial planner payloads`
 
 Commits:
 
-- [ ] `<sha> feat(planner): add structured planning schema and validator`
-- [ ] `<sha> test(planner): cover schema validation and retry behavior`
+- [x] `bdb8e2a feat(planner): add strict planning contract and validator retries`
+- [x] `01270df test(planner): cover contract validation and bounded retry behavior`
 
 Validation:
 
-- [ ] `runtime rejects malformed planner output and never executes invalid actions`
-- [ ] `validator emits explicit reasons for rejection`
+- [x] `runtime rejects malformed planner output and never executes invalid actions`
+- [x] `validator emits explicit reasons for rejection`
 
 ### Slice 2: Context Resolver for Multi-Project Telegram Turns
 
@@ -182,3 +182,7 @@ Validation:
 ## Event Log
 
 - `2026-04-27 17:45` state=`planning` note=`initialized structured-action-runtime cycle with approved slice map and tracker baseline`
+- `2026-04-27 19:21` state=`implementation` slice=`slice-1` note=`completed strict planner contract + validator + bounded retry behavior with unit validation`
+- `2026-04-27 19:21` validation=`bundle exec ruby -Itest test/redwright/planner_payload_validator_test.rb`
+- `2026-04-27 19:21` validation=`bundle exec ruby -Itest test/redwright/llm_intent_interpreter_test.rb`
+- `2026-04-27 19:21` validation=`bundle exec ruby -Itest test/redwright/telegram_runtime_handler_test.rb`
