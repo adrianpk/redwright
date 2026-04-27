@@ -104,7 +104,8 @@ module Redwright
             project_id: result.project.id,
             workstream_id: result.workstream.id,
             task_id: result.task.id,
-            state: result.workstream.state
+            state: result.workstream.state,
+            execution: build_execution_summary(result)
           )
           text = envelope.to_json_string
           @telegram_client.send_message(chat_id: event.chat_id, text: text)
@@ -132,6 +133,26 @@ module Redwright
       return TelegramContextResolver::Resolution.new(resolved: true, project_ref: nil, workstream_id: nil, question: nil) unless @context_resolver
 
       @context_resolver.resolve(chat_id: event.chat_id, text: event.text)
+    end
+
+    def build_execution_summary(result)
+      action_results = if result.respond_to?(:action_results)
+                         result.action_results || []
+                       else
+                         []
+                       end
+      return nil if action_results.empty?
+
+      total = action_results.size
+      failed = action_results.count { |r| r.status != "ok" }
+      succeeded = total - failed
+      failed_action_ids = action_results.select { |r| r.status != "ok" }.map(&:action_id)
+      {
+        total_actions: total,
+        succeeded_actions: succeeded,
+        failed_actions: failed,
+        failed_action_ids: failed_action_ids
+      }
     end
 
     def start_typing_keepalive(chat_id)
