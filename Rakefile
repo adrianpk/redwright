@@ -17,6 +17,11 @@ task :daemon do
   sh "bundle exec ruby bin/redwright daemon run --dev"
 end
 
+desc "Run daemon in foreground (dev mode) with trace banners enabled"
+task "daemon:trace" do
+  sh "REDWRIGHT_TRACE=1 bundle exec ruby bin/redwright daemon run --dev"
+end
+
 desc "Run traced dev cycle with banner output for runtime/sqlite and LLM placeholders"
 task "run-trace" do
   project_alias = "rw-trace"

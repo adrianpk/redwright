@@ -42,24 +42,39 @@ module Redwright
       }.compact)
     end
 
-    def llm_request(role:, provider:, model:, action:, payload_bytes:)
+    def llm_request(role:, provider:, model:, action:, payload_bytes:, system_prompt: nil, user_text: nil)
       banner("LLM REQUEST", {
         trace_id: current_trace_id || "none",
         model_role: role,
         provider: provider,
         model: model,
         action: action,
-        payload_bytes: payload_bytes
-      })
+        payload_bytes: payload_bytes,
+        system_prompt: system_prompt,
+        user_text: user_text
+      }.compact)
     end
 
-    def llm_response(status:, latency_ms:, output_bytes:, finish_reason: nil)
+    def llm_response(
+      status:,
+      latency_ms:,
+      output_bytes:,
+      finish_reason: nil,
+      raw_output: nil,
+      parsed_intent: nil,
+      parsed_message: nil,
+      decision_source: nil
+    )
       banner("LLM RESPONSE", {
         trace_id: current_trace_id || "none",
         status: status,
         latency_ms: latency_ms,
         output_bytes: output_bytes,
-        finish_reason: finish_reason
+        finish_reason: finish_reason,
+        decision_source: decision_source,
+        parsed_intent: parsed_intent,
+        parsed_message: parsed_message,
+        raw_output: raw_output
       }.compact)
     end
 
