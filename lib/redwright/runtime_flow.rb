@@ -49,6 +49,16 @@ module Redwright
         return open_plan if open_plan
       end
 
+      if intent == "resume"
+        latest = @workstream_store.find_latest_for_project(
+          project_id: project.id,
+          states: ["collecting_context", "waiting_user", "executing", "ready", "blocked", "suspended"]
+        )
+        raise ArgumentError, "no resumable workstream found" unless latest
+
+        return latest
+      end
+
       initial_state = intent == "plan" ? "collecting_context" : "executing"
       @workstream_store.create(project_id: project.id, intent: intent, state: initial_state)
     end

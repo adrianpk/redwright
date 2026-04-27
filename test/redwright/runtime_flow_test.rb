@@ -117,4 +117,59 @@ class RuntimeFlowTest < Minitest::Test
       end
     end
   end
+
+  def test_resume_intent_defaults_to_latest_workstream_for_project
+    Dir.mktmpdir("redwright-flow-resume-test-") do |dir|
+      Dir.chdir(dir) do
+        bootstrap = Redwright::Bootstrap.new(mode: :dev).call
+        project_store = Redwright::ProjectStore.new(bootstrap.db_path)
+        ws_store = Redwright::WorkstreamStore.new(bootstrap.db_path)
+        task_store = Redwright::TaskStore.new(bootstrap.db_path)
+        alignment_store = Redwright::AlignmentStore.new(bootstrap.db_path)
+        spec_store = Redwright::PlanSpecStore.new(base_dir: dir)
+
+        project = project_store.register(path: "#{dir}/apps/core", aliases: ["rw"])
+        older = ws_store.create(project_id: project.id, intent: "change", state: "executing")
+        _newer = ws_store.create(project_id: project.id, intent: "investigate", state: "ready")
+
+        flow = Redwright::RuntimeFlow.new(
+          project_store: project_store,
+          workstream_store: ws_store,
+          task_store: task_store,
+          alignment_store: alignment_store,
+          plan_spec_store: spec_store
+        )
+
+        result = flow.process(project_ref: "rw", intent: "resume", message: "continue from latest")
+        assert_equal("investigate", result.workstream.intent)
+        refute_equal(older.id, result.workstream.id)
+        assert_equal(result.workstream.id, result.task.workstream_id)
+      end
+    end
+  end
+
+  def test_resume_intent_without_existing_workstream_raises
+    Dir.mktmpdir("redwright-flow-resume-empty-test-") do |dir|
+      Dir.chdir(dir) do
+        bootstrap = Redwright::Bootstrap.new(mode: :dev).call
+        project_store = Redwright::ProjectStore.new(bootstrap.db_path)
+        ws_store = Redwright::WorkstreamStore.new(bootstrap.db_path)
+        task_store = Redwright::TaskStore.new(bootstrap.db_path)
+        alignment_store = Redwright::AlignmentStore.new(bootstrap.db_path)
+        spec_store = Redwright::PlanSpecStore.new(base_dir: dir)
+
+        project_store.register(path: "#{dir}/apps/core", aliases: ["rw"])
+        flow = Redwright::RuntimeFlow.new(
+          project_store: project_store,
+          workstream_store: ws_store,
+          task_store: task_store,
+          alignment_store: alignment_store,
+          plan_spec_store: spec_store
+        )
+
+        err = assert_raises(ArgumentError) { flow.process(project_ref: "rw", intent: "resume", message: "resume now") }
+        assert_match("no resumable workstream found", err.message)
+      end
+    end
+  end
 end
