@@ -58,7 +58,7 @@ module Redwright
             model: @model_name,
             action: "intent_interpret",
             payload_bytes: event.text.to_s.bytesize,
-            system_prompt: LlmIntentInterpreter::SYSTEM_PROMPT.strip,
+            system_prompt: trace_system_prompt_for_interpreter,
             user_text: event.text
           )
           started_at = Process.clock_gettime(Process::CLOCK_MONOTONIC)
@@ -140,6 +140,12 @@ module Redwright
 
     def interpreter
       @intent_interpreter ||= LlmIntentInterpreter.new(llm_client: nil)
+    end
+
+    def trace_system_prompt_for_interpreter
+      return interpreter.system_prompt if interpreter.respond_to?(:system_prompt)
+
+      LlmIntentInterpreter::SYSTEM_PROMPT.strip
     end
 
     def resolve_context(event:)
