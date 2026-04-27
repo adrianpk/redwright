@@ -12,7 +12,8 @@ module Redwright
       manifest = load_manifest(project_path)
       {
         project_context: project_context_from_manifest(manifest, project_path) || project_context_from_fallback(project_path),
-        architecture_context: architecture_context_from_manifest(manifest) || architecture_context_from_fallback
+        architecture_context: architecture_context_from_manifest(manifest) || architecture_context_from_fallback,
+        quality: quality_from_manifest(manifest)
       }
     end
 
@@ -117,6 +118,23 @@ module Redwright
 
     def non_empty_string?(value)
       value.is_a?(String) && !value.strip.empty?
+    end
+
+    def quality_from_manifest(manifest)
+      quality = manifest["quality"]
+      return { auto_validate: false, lint_command: nil, test_command: nil } unless quality.is_a?(Hash)
+
+      {
+        auto_validate: quality["auto_validate"] == true,
+        lint_command: string_or_nil(quality["lint_command"]),
+        test_command: string_or_nil(quality["test_command"])
+      }
+    end
+
+    def string_or_nil(value)
+      return nil unless non_empty_string?(value)
+
+      value.strip
     end
   end
 end

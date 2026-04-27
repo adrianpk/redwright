@@ -30,6 +30,7 @@ require_relative "redwright/openai_client"
 require_relative "redwright/llm_intent_interpreter"
 require_relative "redwright/prompt_context_loader"
 require_relative "redwright/planner_rejection_store"
+require_relative "redwright/quality_gate_runner"
 
 module Redwright
   class CLI
@@ -470,6 +471,7 @@ module Redwright
           model_name: non_coding_model.name,
           prompt_context_loader: PromptContextLoader.new(repo_root: Dir.pwd),
           planner_rejection_store: PlannerRejectionStore.new(bootstrap.db_path),
+          quality_gate_runner: QualityGateRunner.new,
           send_json_envelope: config.telegram.send_json_envelope,
           intent_interpreter: LlmIntentInterpreter.new(
             llm_client: llm_client_for(non_coding_model.provider),

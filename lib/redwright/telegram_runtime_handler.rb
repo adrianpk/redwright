@@ -22,6 +22,7 @@ module Redwright
       intent_interpreter: nil,
       prompt_context_loader: nil,
       planner_rejection_store: nil,
+      quality_gate_runner: nil,
       send_json_envelope: false,
       typing_interval_seconds: 4.0,
       typing_sleeper: ->(seconds) { sleep(seconds) }
@@ -40,6 +41,7 @@ module Redwright
       @intent_interpreter = intent_interpreter
       @prompt_context_loader = prompt_context_loader
       @planner_rejection_store = planner_rejection_store
+      @quality_gate_runner = quality_gate_runner
       @send_json_envelope = send_json_envelope
       @typing_interval_seconds = typing_interval_seconds
       @typing_sleeper = typing_sleeper
@@ -133,6 +135,10 @@ module Redwright
             confirm_new_workstream: true,
             blocked_retry_attempts: @blocked_retry_attempts
           )
+          quality_summary = run_quality_gate(
+            project_path: resolution.project_path,
+            quality_config: prompt_context[:quality]
+          )
           @chat_context_store&.upsert(
             chat_id: event.chat_id,
             project_id: result.project.id,
@@ -145,11 +151,11 @@ module Redwright
             workstream_id: result.workstream.id,
             task_id: result.task.id,
             state: result.workstream.state,
-            execution: build_execution_summary(result)
+            execution: build_execution_summary(result, quality_summary: quality_summary)
           )
           @telegram_client.send_message(
             chat_id: event.chat_id,
-            text: human_success_message(result: result, trace_id: Trace.current_trace_id || "none")
+            text: human_success_message(result: result, trace_id: Trace.current_trace_id || "none", quality_summary: quality_summary)
           )
           send_json_envelope_if_enabled(chat_id: event.chat_id, envelope: envelope)
           @out.puts("telegram processed chat=#{event.chat_id} task=#{result.task.id}")
@@ -198,11 +204,11 @@ module Redwright
     end
 
     def load_prompt_context(project_path:)
-      return { project_context: nil, architecture_context: nil } unless @prompt_context_loader
+      return { project_context: nil, architecture_context: nil, quality: { auto_validate: false } } unless @prompt_context_loader
 
       @prompt_context_loader.build(project_path: project_path)
     rescue StandardError
-      { project_context: nil, architecture_context: nil }
+      { project_context: nil, architecture_context: nil, quality: { auto_validate: false } }
     end
 
     def interpret_with_context(text:, model:, project_context:, architecture_context:)
@@ -239,33 +245,67 @@ module Redwright
       nil
     end
 
-    def build_execution_summary(result)
+    def run_quality_gate(project_path:, quality_config:)
+      return nil unless @quality_gate_runner
+      return nil unless quality_config.is_a?(Hash) && quality_config[:auto_validate] == true
+
+      checks = @quality_gate_runner.run(
+        project_path: project_path,
+        lint_command: quality_config[:lint_command],
+        test_command: quality_config[:test_command]
+      )
+      return nil if checks.empty?
+
+      failed = checks.select { |c| c.status != "ok" }
+      Trace.runtime(
+        trace_id: Trace.current_trace_id || "none",
+        quality_total_checks: checks.size,
+        quality_failed_checks: failed.size,
+        quality_failed_names: failed.map(&:name).join(",")
+      )
+      {
+        total_checks: checks.size,
+        passed_checks: checks.size - failed.size,
+        failed_checks: failed.size,
+        failed_check_names: failed.map(&:name)
+      }
+    rescue StandardError => e
+      @err.puts("quality gate failed: #{e.message}")
+      nil
+    end
+
+    def build_execution_summary(result, quality_summary: nil)
       action_results = if result.respond_to?(:action_results)
                          result.action_results || []
                        else
                          []
                        end
-      return nil if action_results.empty?
+      return nil if action_results.empty? && quality_summary.nil?
 
       total = action_results.size
       failed = action_results.count { |r| r.status != "ok" }
       succeeded = total - failed
       failed_action_ids = action_results.select { |r| r.status != "ok" }.map(&:action_id)
-      {
+      summary = {
         total_actions: total,
         succeeded_actions: succeeded,
         failed_actions: failed,
         failed_action_ids: failed_action_ids
       }
+      summary[:quality] = quality_summary if quality_summary
+      summary
     end
 
-    def human_success_message(result:, trace_id:)
+    def human_success_message(result:, trace_id:, quality_summary:)
       parts = []
       parts << "Started task #{result.task.id} in project #{result.project.id}."
       parts << "Workstream: #{result.workstream.id} (state: #{result.workstream.state})."
-      execution = build_execution_summary(result)
+      execution = build_execution_summary(result, quality_summary: nil)
       if execution
         parts << "Actions: #{execution[:succeeded_actions]}/#{execution[:total_actions]} succeeded, #{execution[:failed_actions]} failed."
+      end
+      if quality_summary
+        parts << "Quality checks: #{quality_summary[:passed_checks]}/#{quality_summary[:total_checks]} passed, #{quality_summary[:failed_checks]} failed."
       end
       parts << "Trace: #{trace_id}"
       parts.join("\n")
