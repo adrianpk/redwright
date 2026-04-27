@@ -64,4 +64,34 @@ class TelegramIngressTest < Minitest::Test
     assert_equal([], result.events)
     assert_equal(22, result.next_offset)
   end
+
+  def test_ignores_telegram_system_commands_like_start
+    client = FakeClient.new(
+      [
+        {
+          "update_id" => 30,
+          "message" => {
+            "chat" => { "id" => 101 },
+            "from" => { "id" => 9001, "username" => "adrian" },
+            "text" => "/start"
+          }
+        },
+        {
+          "update_id" => 31,
+          "message" => {
+            "chat" => { "id" => 101 },
+            "from" => { "id" => 9001, "username" => "adrian" },
+            "text" => "real task message"
+          }
+        }
+      ]
+    )
+    ingress = Redwright::TelegramIngress.new(client: client, allowed_chat_ids: [101])
+
+    result = ingress.poll(offset: nil, timeout_seconds: 2)
+
+    assert_equal(32, result.next_offset)
+    assert_equal(1, result.events.size)
+    assert_equal("real task message", result.events.first.text)
+  end
 end
