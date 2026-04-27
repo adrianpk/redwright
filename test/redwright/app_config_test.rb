@@ -203,4 +203,67 @@ class AppConfigTest < Minitest::Test
       assert_equal("missing config key: models", err.message)
     end
   end
+
+  def test_loads_env_reference_in_yaml_string_values
+    Dir.mktmpdir("redwright-app-config-env-ref-") do |dir|
+      config_dir = File.join(dir, ".config", "redwright")
+      FileUtils.mkdir_p(config_dir)
+      File.write(File.join(config_dir, "config.yml"), <<~YAML)
+        runtime:
+          loop_interval_ms: 100
+          blocked_retry_attempts: 1
+        telegram:
+          bot_token: "${TEST_TELEGRAM_TOKEN}"
+          poll_interval_seconds: 1
+          allowed_chat_ids: [1]
+        paths:
+          default_projects_root: "#{dir}/redwright"
+        models:
+          coding:
+            - provider: "openai"
+              name: "gpt-5.2"
+          non_coding:
+            - provider: "openai"
+              name: "gpt-5-mini"
+      YAML
+
+      previous = ENV["TEST_TELEGRAM_TOKEN"]
+      ENV["TEST_TELEGRAM_TOKEN"] = "token-from-env"
+      config = Redwright::AppConfigLoader.new(mode: :real, home: dir).load
+      assert_equal("token-from-env", config.telegram.bot_token)
+    ensure
+      ENV["TEST_TELEGRAM_TOKEN"] = previous
+    end
+  end
+
+  def test_env_reference_fails_when_missing
+    Dir.mktmpdir("redwright-app-config-env-missing-") do |dir|
+      config_dir = File.join(dir, ".config", "redwright")
+      FileUtils.mkdir_p(config_dir)
+      File.write(File.join(config_dir, "config.yml"), <<~YAML)
+        runtime:
+          loop_interval_ms: 100
+          blocked_retry_attempts: 1
+        telegram:
+          bot_token: "${MISSING_REDWRIGHT_TOKEN}"
+          poll_interval_seconds: 1
+          allowed_chat_ids: [1]
+        paths:
+          default_projects_root: "#{dir}/redwright"
+        models:
+          coding:
+            - provider: "openai"
+              name: "gpt-5.2"
+          non_coding:
+            - provider: "openai"
+              name: "gpt-5-mini"
+      YAML
+
+      previous = ENV.delete("MISSING_REDWRIGHT_TOKEN")
+      err = assert_raises(ArgumentError) { Redwright::AppConfigLoader.new(mode: :real, home: dir).load }
+      assert_equal("missing env var: MISSING_REDWRIGHT_TOKEN (referenced by bot_token)", err.message)
+    ensure
+      ENV["MISSING_REDWRIGHT_TOKEN"] = previous if previous
+    end
+  end
 end

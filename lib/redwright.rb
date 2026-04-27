@@ -19,6 +19,8 @@ require_relative "redwright/telegram_client"
 require_relative "redwright/telegram_ingress"
 require_relative "redwright/telegram_runtime_handler"
 require_relative "redwright/model_resolver"
+require_relative "redwright/openai_client"
+require_relative "redwright/llm_intent_interpreter"
 
 module Redwright
   class CLI
@@ -445,7 +447,10 @@ module Redwright
           blocked_retry_attempts: config.runtime.blocked_retry_attempts,
           model_role: "non_coding",
           model_provider: non_coding_model.provider,
-          model_name: non_coding_model.name
+          model_name: non_coding_model.name,
+          intent_interpreter: LlmIntentInterpreter.new(
+            llm_client: llm_client_for(non_coding_model.provider)
+          )
         )
         offset = nil
         runner = DaemonRunner.new(
@@ -526,6 +531,15 @@ module Redwright
     def not_found(msg)
       @err.puts(msg)
       2
+    end
+
+    def llm_client_for(provider)
+      case provider.to_s
+      when "openai"
+        OpenAIClient.new
+      else
+        nil
+      end
     end
   end
 end

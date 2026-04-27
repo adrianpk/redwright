@@ -25,6 +25,12 @@ class TelegramRuntimeHandlerTest < Minitest::Test
     end
   end
 
+  FakeDecision = Struct.new(:intent, :message, :source, :finish_reason, :raw_output, keyword_init: true)
+  FakeProject = Struct.new(:id, keyword_init: true)
+  FakeWorkstream = Struct.new(:id, :state, keyword_init: true)
+  FakeTask = Struct.new(:id, keyword_init: true)
+  FakeResult = Struct.new(:project, :workstream, :task, :alignment, keyword_init: true)
+
   def test_handle_materializes_runtime_action_and_sends_ack
     Dir.mktmpdir("redwright-telegram-handler-ok-") do |dir|
       Dir.chdir(dir) do
@@ -74,6 +80,54 @@ class TelegramRuntimeHandlerTest < Minitest::Test
         assert_equal("executing", payload.dig("runtime", "state"))
       end
     end
+  end
+
+  def test_handle_uses_interpreter_message_and_intent
+    fake_flow = Object.new
+    captured = {}
+    fake_flow.define_singleton_method(:process) do |**kwargs|
+      captured.merge!(kwargs)
+      FakeResult.new(
+        project: FakeProject.new(id: "project-1"),
+        workstream: FakeWorkstream.new(id: "ws-1", state: "executing"),
+        task: FakeTask.new(id: "task-1"),
+        alignment: nil
+      )
+    end
+
+    fake_interpreter = Object.new
+    def fake_interpreter.interpret(text:, model:)
+      raise "unexpected text" unless text == "hola"
+      raise "unexpected model" unless model == "gpt-5-mini"
+
+      TelegramRuntimeHandlerTest::FakeDecision.new(
+        intent: "meta",
+        message: "show runtime status",
+        source: "llm",
+        finish_reason: "stop",
+        raw_output: "{\"intent\":\"meta\",\"message\":\"show runtime status\"}"
+      )
+    end
+
+    client = FakeTelegramClient.new([])
+    out = StringIO.new
+    err = StringIO.new
+    handler = Redwright::TelegramRuntimeHandler.new(
+      flow: fake_flow,
+      telegram_client: client,
+      out: out,
+      err: err,
+      blocked_retry_attempts: 1,
+      model_name: "gpt-5-mini",
+      intent_interpreter: fake_interpreter
+    )
+
+    handler.handle(Redwright::TelegramEvent.new(update_id: 3, chat_id: 9, user_id: nil, username: nil, text: "hola"))
+
+    assert_equal("meta", captured[:intent])
+    assert_equal("show runtime status", captured[:message])
+    assert_equal("", err.string)
+    assert_match("telegram processed chat=9 task=task-1", out.string)
   end
 
   def test_handle_sends_error_message_when_flow_fails

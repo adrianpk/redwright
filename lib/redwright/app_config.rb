@@ -69,7 +69,7 @@ module Redwright
       raise ArgumentError, "missing config key: #{label}" if value.nil?
       raise ArgumentError, "invalid config key: #{label} must be a non-empty string" unless value.is_a?(String) && !value.strip.empty?
 
-      value
+      resolve_env_reference(value, label)
     end
 
     def required_array(map, key)
@@ -136,6 +136,18 @@ module Redwright
       Integer(value)
     rescue ArgumentError, TypeError
       raise ArgumentError, "invalid config key: #{key} must be an integer"
+    end
+
+    def resolve_env_reference(value, label)
+      raw = value.strip
+      match = raw.match(/\A\$\{([A-Z0-9_]+)\}\z/)
+      return raw unless match
+
+      env_key = match[1]
+      env_value = ENV.fetch(env_key, "").strip
+      raise ArgumentError, "missing env var: #{env_key} (referenced by #{label})" if env_value.empty?
+
+      env_value
     end
   end
 end
