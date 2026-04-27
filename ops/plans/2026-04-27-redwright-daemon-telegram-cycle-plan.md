@@ -68,13 +68,13 @@
 
 ### Slice 4: Runtime Action Materialization + Telegram Response
 
-- status: `pending`
+- status: `completed`
 - branch: `feat/slice-4-runtime-materialization-and-telegram-response`
 - objective: `wire daemon ingress to runtime flow so each accepted message creates persisted actions and sends acknowledgment`
 - tasks:
-- [ ] `T4.1 dispatch accepted canonical messages into runtime flow`
-- [ ] `T4.2 persist workstream/task outcomes for each accepted message`
-- [ ] `T4.3 send Telegram acknowledgment including runtime identifiers and state`
+- [x] `T4.1 dispatch accepted canonical messages into runtime flow`
+- [x] `T4.2 persist workstream/task outcomes for each accepted message`
+- [x] `T4.3 send Telegram acknowledgment including runtime identifiers and state`
 - acceptance:
 - `Telegram natural-language message leads to persisted task/workstream material effect`
 - `Telegram response includes project/workstream/task identifiers`
@@ -83,7 +83,7 @@
 - `feat(telegram): emit action acknowledgment responses`
 - `test(runtime): cover end-to-end materialization path`
 - PR:
-- `tbd`
+- `tbd (to be opened from feat/slice-4-runtime-materialization-and-telegram-response)`
 
 ### Slice 5: Dev Smoke and Operational Gate
 

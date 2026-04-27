@@ -8,7 +8,7 @@ require "redwright/telegram_client"
 
 class TelegramClientTest < Minitest::Test
   class FakeHttp
-    attr_reader :captured_uri
+    attr_reader :captured_uri, :captured_post_uri, :captured_post_form
 
     def initialize(response)
       @response = response
@@ -16,6 +16,12 @@ class TelegramClientTest < Minitest::Test
 
     def get_response(uri)
       @captured_uri = uri
+      @response
+    end
+
+    def post_form(uri, form)
+      @captured_post_uri = uri
+      @captured_post_form = form
       @response
     end
   end
@@ -41,5 +47,17 @@ class TelegramClientTest < Minitest::Test
 
     err = assert_raises(RuntimeError) { client.get_updates(timeout_seconds: 1) }
     assert_match("http 500", err.message)
+  end
+
+  def test_send_message_posts_payload
+    response = FakeResponse.new("200", JSON.dump({ ok: true, result: { message_id: 1 } }))
+    http = FakeHttp.new(response)
+    client = Redwright::TelegramClient.new(bot_token: "abc", http: http)
+
+    payload = client.send_message(chat_id: 123, text: "hello")
+
+    assert_equal(true, payload["ok"])
+    assert_match("/botabc/sendMessage", http.captured_post_uri.path)
+    assert_equal({ chat_id: "123", text: "hello" }, http.captured_post_form)
   end
 end

@@ -6,8 +6,8 @@
 - status: `in_progress`
 - state: `awaiting_review`
 - updated: `2026-04-27`
-- active_slice: `slice-3`
-- active_task: `T3.3`
+- active_slice: `slice-4`
+- active_task: `T4.3`
 
 ## Slice Progress
 
@@ -74,7 +74,7 @@ Tasks:
 
 Commits:
 
-- [x] `abb021b feat(telegram): add polling ingress adapter and allow-list mapping`
+- [x] `37fcc79 feat(telegram): add polling ingress adapter and allow-list mapping`
 
 Validation:
 
@@ -83,7 +83,7 @@ Validation:
 
 ### Slice 4: Runtime Action Materialization + Telegram Response
 
-- status: `pending`
+- status: `completed`
 - branch: `feat/slice-4-runtime-materialization-and-telegram-response`
 - PR: `tbd`
 - merge_target: `dev`
@@ -91,20 +91,18 @@ Validation:
 
 Tasks:
 
-- [ ] `T4.1 dispatch accepted canonical messages into runtime flow`
-- [ ] `T4.2 persist workstream/task outcomes for each accepted message`
-- [ ] `T4.3 send Telegram acknowledgment including runtime identifiers and state`
+- [x] `T4.1 dispatch accepted canonical messages into runtime flow`
+- [x] `T4.2 persist workstream/task outcomes for each accepted message`
+- [x] `T4.3 send Telegram acknowledgment including runtime identifiers and state`
 
 Commits:
 
-- [ ] `<sha> feat(runtime): connect daemon ingress to flow processing and persistence`
-- [ ] `<sha> feat(telegram): emit action acknowledgment responses`
-- [ ] `<sha> test(runtime): cover end-to-end materialization path`
+- [x] `1776862 feat(runtime): materialize telegram events via flow and send acknowledgments`
 
 Validation:
 
-- [ ] `natural-language Telegram message creates persisted runtime artifacts`
-- [ ] `daemon returns confirmation with project/workstream/task identifiers`
+- [x] `natural-language Telegram message creates persisted runtime artifacts`
+- [x] `daemon returns confirmation with project/workstream/task identifiers`
 
 ### Slice 5: Dev Smoke and Operational Gate
 
@@ -140,3 +138,5 @@ Validation:
 - `2026-04-27 15:09` state=`awaiting_review` note=`slice 2 completed with daemon run command, loop lifecycle, and signal-stop tests`
 - `2026-04-27 15:15` state=`executing_slice` note=`slice 3 implementation started on feat/slice-3-telegram-polling-ingress-adapter`
 - `2026-04-27 15:22` state=`awaiting_review` note=`slice 3 completed with telegram polling client, canonical ingress mapping, and allow-list filtering`
+- `2026-04-27 15:32` state=`executing_slice` note=`slice 4 implementation started on feat/slice-4-runtime-materialization-and-telegram-response`
+- `2026-04-27 15:41` state=`awaiting_review` note=`slice 4 completed with runtime flow dispatch, sqlite materialization, and telegram acknowledgment output`

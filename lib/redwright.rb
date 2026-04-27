@@ -17,6 +17,7 @@ require_relative "redwright/app_config"
 require_relative "redwright/daemon_runner"
 require_relative "redwright/telegram_client"
 require_relative "redwright/telegram_ingress"
+require_relative "redwright/telegram_runtime_handler"
 
 module Redwright
   class CLI
@@ -411,12 +412,26 @@ module Redwright
 
       case sub
       when "run"
-        Bootstrap.new(mode: mode).call
+        bootstrap = Bootstrap.new(mode: mode).call
         config = AppConfigLoader.new(mode: mode).load
+        flow = RuntimeFlow.new(
+          project_store: ProjectStore.new(bootstrap.db_path),
+          workstream_store: WorkstreamStore.new(bootstrap.db_path),
+          task_store: TaskStore.new(bootstrap.db_path),
+          alignment_store: AlignmentStore.new(bootstrap.db_path),
+          plan_spec_store: PlanSpecStore.new
+        )
         telegram_client = TelegramClient.new(bot_token: config.telegram.bot_token)
         telegram_ingress = TelegramIngress.new(
           client: telegram_client,
           allowed_chat_ids: config.telegram.allowed_chat_ids
+        )
+        runtime_handler = TelegramRuntimeHandler.new(
+          flow: flow,
+          telegram_client: telegram_client,
+          out: @out,
+          err: @err,
+          blocked_retry_attempts: config.runtime.blocked_retry_attempts
         )
         offset = nil
         runner = DaemonRunner.new(
@@ -428,7 +443,7 @@ module Redwright
             offset = poll.next_offset
             poll.events
           },
-          event_handler: ->(event) { @out.puts("telegram event chat=#{event.chat_id} text=#{event.text.inspect}") }
+          event_handler: ->(event) { runtime_handler.handle(event) }
         )
 
         @out.puts("daemon starting")
