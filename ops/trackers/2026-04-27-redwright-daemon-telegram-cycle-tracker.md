@@ -6,8 +6,8 @@
 - status: `in_progress`
 - state: `awaiting_review`
 - updated: `2026-04-27`
-- active_slice: `slice-1`
-- active_task: `T1.3`
+- active_slice: `slice-2`
+- active_task: `T2.3`
 
 ## Slice Progress
 
@@ -37,7 +37,7 @@ Validation:
 
 ### Slice 2: Persistent Daemon Loop Surface
 
-- status: `pending`
+- status: `completed`
 - branch: `feat/slice-2-persistent-daemon-loop-surface`
 - PR: `tbd`
 - merge_target: `dev`
@@ -45,9 +45,9 @@ Validation:
 
 Tasks:
 
-- [ ] `T2.1 add CLI surface redwright daemon run [--dev|--real]`
-- [ ] `T2.2 implement loop lifecycle with SIGINT/SIGTERM handling`
-- [ ] `T2.3 add loop lifecycle tests`
+- [x] `T2.1 add CLI surface redwright daemon run [--dev|--real]`
+- [x] `T2.2 implement loop lifecycle with SIGINT/SIGTERM handling`
+- [x] `T2.3 add loop lifecycle tests`
 
 Commits:
 
@@ -56,8 +56,8 @@ Commits:
 
 Validation:
 
-- [ ] `daemon remains active until stop signal`
-- [ ] `graceful shutdown finalizes current loop iteration`
+- [x] `daemon remains active until stop signal`
+- [x] `graceful shutdown finalizes current loop iteration`
 
 ### Slice 3: Telegram Polling Ingress Adapter
 
@@ -138,3 +138,5 @@ Validation:
 - `2026-04-27 14:15` state=`planning` note=`new daemon+telegram cycle initialized with approved slice plan before implementation`
 - `2026-04-27 14:45` state=`executing_slice` note=`slice 1 implementation started on feat/slice-1-yaml-runtime-config-foundation`
 - `2026-04-27 14:52` state=`awaiting_review` note=`slice 1 completed with yaml config loader + validation tests; awaiting PR review`
+- `2026-04-27 15:02` state=`executing_slice` note=`slice 2 implementation started on feat/slice-2-persistent-daemon-loop-surface`
+- `2026-04-27 15:09` state=`awaiting_review` note=`slice 2 completed with daemon run command, loop lifecycle, and signal-stop tests`

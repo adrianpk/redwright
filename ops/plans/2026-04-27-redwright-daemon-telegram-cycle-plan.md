@@ -32,13 +32,13 @@
 
 ### Slice 2: Persistent Daemon Loop Surface
 
-- status: `pending`
+- status: `completed`
 - branch: `feat/slice-2-persistent-daemon-loop-surface`
 - objective: `add daemon command and continuous runtime loop with graceful shutdown`
 - tasks:
-- [ ] `T2.1 add CLI surface redwright daemon run [--dev|--real]`
-- [ ] `T2.2 implement loop lifecycle with SIGINT/SIGTERM handling`
-- [ ] `T2.3 add loop lifecycle tests`
+- [x] `T2.1 add CLI surface redwright daemon run [--dev|--real]`
+- [x] `T2.2 implement loop lifecycle with SIGINT/SIGTERM handling`
+- [x] `T2.3 add loop lifecycle tests`
 - acceptance:
 - `daemon stays running until explicit termination signal`
 - `graceful shutdown guarantees in-flight iteration completion`
@@ -46,7 +46,7 @@
 - `feat(runtime): add daemon run loop command`
 - `test(runtime): validate daemon loop lifecycle and shutdown semantics`
 - PR:
-- `tbd`
+- `tbd (to be opened from feat/slice-2-persistent-daemon-loop-surface)`
 
 ### Slice 3: Telegram Polling Ingress Adapter
 

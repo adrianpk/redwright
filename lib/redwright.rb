@@ -13,6 +13,8 @@ require_relative "redwright/runtime_flow"
 require_relative "redwright/worktree_manager"
 require_relative "redwright/spec_promotion"
 require_relative "redwright/runtime_config_store"
+require_relative "redwright/app_config"
+require_relative "redwright/daemon_runner"
 
 module Redwright
   class CLI
@@ -42,8 +44,10 @@ module Redwright
         run_spec
       when "config"
         run_config
+      when "daemon"
+        run_daemon
       else
-        @err.puts("usage: redwright <bootstrap|project|workstream|task|flow|worktree|spec|config>")
+        @err.puts("usage: redwright <bootstrap|project|workstream|task|flow|worktree|spec|config|daemon>")
         1
       end
     end
@@ -388,6 +392,41 @@ module Redwright
 
       @err.puts("usage: redwright config <get|set> blocked_retry_attempts [value]")
       1
+    rescue OptionParser::ParseError, ArgumentError => e
+      @err.puts(e.message)
+      1
+    end
+
+    def run_daemon
+      mode = :dev
+      sub = @argv.shift
+
+      parser = OptionParser.new do |opts|
+        opts.on("--dev", "Use ./_workspace") { mode = :dev }
+        opts.on("--real", "Use $HOME paths") { mode = :real }
+      end
+      parser.parse!(@argv)
+
+      case sub
+      when "run"
+        Bootstrap.new(mode: mode).call
+        config = AppConfigLoader.new(mode: mode).load
+        runner = DaemonRunner.new(
+          ingress_poller: -> { [] },
+          event_handler: ->(_event) {}
+        )
+
+        @out.puts("daemon starting")
+        @out.puts("mode: #{mode}")
+        @out.puts("loop_interval_ms: #{config.runtime.loop_interval_ms}")
+
+        runner.run(loop_interval_seconds: config.runtime.loop_interval_ms / 1000.0)
+        @out.puts("daemon stopped")
+        0
+      else
+        @err.puts("usage: redwright daemon run [--dev|--real]")
+        1
+      end
     rescue OptionParser::ParseError, ArgumentError => e
       @err.puts(e.message)
       1
