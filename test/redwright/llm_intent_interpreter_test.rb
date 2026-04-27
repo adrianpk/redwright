@@ -42,6 +42,25 @@ class LlmIntentInterpreterTest < Minitest::Test
     end
   end
 
+  class FakeSkillDispatcher
+    attr_reader :before_plan_calls, :after_plan_calls
+
+    def initialize
+      @before_plan_calls = 0
+      @after_plan_calls = 0
+    end
+
+    def before_plan(text:, context:)
+      @before_plan_calls += 1
+      "#{text} [prefixed]"
+    end
+
+    def after_plan(decision:, context:)
+      @after_plan_calls += 1
+      decision
+    end
+  end
+
   def test_returns_fallback_when_client_not_configured
     interpreter = Redwright::LlmIntentInterpreter.new(
       llm_client: FakeLlmClient.new(configured: false)
@@ -115,5 +134,23 @@ class LlmIntentInterpreterTest < Minitest::Test
     assert_equal("foo", decision.message)
     assert_match(/^invalid_payload:/, decision.finish_reason)
     assert_equal(2, client.call_count)
+  end
+
+  def test_invokes_skill_dispatcher_hooks_around_planning
+    dispatcher = FakeSkillDispatcher.new
+    interpreter = Redwright::LlmIntentInterpreter.new(
+      llm_client: FakeLlmClient.new(
+        completion: Completion.new(
+          content: "{\"intent\":\"meta\",\"message\":\"show runtime status\",\"actions\":[]}",
+          finish_reason: "stop"
+        )
+      ),
+      skill_dispatcher: dispatcher
+    )
+
+    decision = interpreter.interpret(text: "estado", model: "gpt-5-mini")
+    assert_equal("llm", decision.source)
+    assert_equal(1, dispatcher.before_plan_calls)
+    assert_equal(1, dispatcher.after_plan_calls)
   end
 end

@@ -1,0 +1,7 @@
+id: "noop"
+name: "No-op Skill"
+description: "Reference no-op skill fixture for runtime scaffold tests."
+entrypoint: "skills/noop.rb"
+actions:
+  - "noop.action"
+enabled_by_default: true

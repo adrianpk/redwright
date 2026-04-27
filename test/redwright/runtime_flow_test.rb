@@ -26,6 +26,25 @@ class RuntimeFlowTest < Minitest::Test
     end
   end
 
+  class RecordingSkillDispatcher
+    attr_reader :before_action_calls, :after_action_calls
+
+    def initialize
+      @before_action_calls = 0
+      @after_action_calls = 0
+    end
+
+    def before_action(action:, context:)
+      @before_action_calls += 1
+      action
+    end
+
+    def after_action(action:, result:, context:)
+      @after_action_calls += 1
+      result
+    end
+  end
+
   def test_process_creates_workstream_and_task_for_non_plan_intent_with_confirmation
     Dir.mktmpdir("redwright-flow-test-") do |dir|
       Dir.chdir(dir) do
@@ -337,6 +356,51 @@ class RuntimeFlowTest < Minitest::Test
         assert_equal(2, rows.size)
         assert_equal("a1", rows[0].action_id)
         assert_equal("a2", rows[1].action_id)
+      end
+    end
+  end
+
+  def test_process_invokes_skill_dispatcher_action_hooks
+    Dir.mktmpdir("redwright-flow-skill-hooks-test-") do |dir|
+      Dir.chdir(dir) do
+        bootstrap = Redwright::Bootstrap.new(mode: :dev).call
+        project_store = Redwright::ProjectStore.new(bootstrap.db_path)
+        ws_store = Redwright::WorkstreamStore.new(bootstrap.db_path)
+        task_store = Redwright::TaskStore.new(bootstrap.db_path)
+        action_store = Redwright::ActionExecutionStore.new(bootstrap.db_path)
+        alignment_store = Redwright::AlignmentStore.new(bootstrap.db_path)
+        dispatcher = RecordingSkillDispatcher.new
+
+        project_store.register(path: "#{dir}/apps/core", aliases: ["rw"])
+        flow = Redwright::RuntimeFlow.new(
+          project_store: project_store,
+          workstream_store: ws_store,
+          task_store: task_store,
+          alignment_store: alignment_store,
+          primitive_executor: Redwright::PrimitiveExecutor.new,
+          action_execution_store: action_store,
+          skill_dispatcher: dispatcher
+        )
+
+        flow.process(
+          project_ref: "rw",
+          intent: "change",
+          message: "hook test",
+          confirm_new_workstream: true,
+          actions: [
+            {
+              "id" => "a1",
+              "type" => "list_files",
+              "args" => {},
+              "requires_confirmation" => false,
+              "timeout_ms" => 2_000,
+              "on_failure" => "abort"
+            }
+          ]
+        )
+
+        assert_equal(1, dispatcher.before_action_calls)
+        assert_equal(1, dispatcher.after_action_calls)
       end
     end
   end
