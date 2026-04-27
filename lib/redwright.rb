@@ -6,6 +6,7 @@ require_relative "redwright/paths"
 require_relative "redwright/project_store"
 require_relative "redwright/workstream_store"
 require_relative "redwright/task_store"
+require_relative "redwright/alignment_store"
 require_relative "redwright/runtime_flow"
 
 module Redwright
@@ -221,7 +222,8 @@ module Redwright
       flow = RuntimeFlow.new(
         project_store: ProjectStore.new(bootstrap.db_path),
         workstream_store: WorkstreamStore.new(bootstrap.db_path),
-        task_store: TaskStore.new(bootstrap.db_path)
+        task_store: TaskStore.new(bootstrap.db_path),
+        alignment_store: AlignmentStore.new(bootstrap.db_path)
       )
 
       case sub
@@ -232,6 +234,7 @@ module Redwright
         print_project_record(result.project)
         print_workstream_record(result.workstream)
         print_task_record(result.task)
+        print_alignment_record(result.alignment) if result.alignment
         0
       else
         @err.puts("usage: redwright flow process [--dev|--real] ...")
@@ -266,6 +269,14 @@ module Redwright
       @out.puts("description: #{record.description}")
       @out.puts("status: #{record.status}")
       @out.puts("updated_at: #{record.updated_at}")
+    end
+
+    def print_alignment_record(record)
+      @out.puts("alignment_status: #{record.status}")
+      @out.puts("alignment_step_index: #{record.step_index}")
+      @out.puts("alignment_pending_question: #{record.pending_question}")
+      @out.puts("alignment_unresolved_count: #{record.unresolved_count}")
+      @out.puts("alignment_decisions_stable: #{record.decisions_stable}")
     end
 
     def not_found(msg)

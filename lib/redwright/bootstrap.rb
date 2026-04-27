@@ -91,8 +91,29 @@ module Redwright
           FOREIGN KEY(task_id) REFERENCES tasks(id) ON DELETE CASCADE
         );
 
+        CREATE TABLE IF NOT EXISTS alignments (
+          workstream_id TEXT PRIMARY KEY,
+          status TEXT NOT NULL,
+          step_index INTEGER NOT NULL,
+          pending_question TEXT,
+          unresolved_count INTEGER NOT NULL,
+          decisions_stable INTEGER NOT NULL,
+          updated_at TEXT NOT NULL,
+          FOREIGN KEY(workstream_id) REFERENCES workstreams(id) ON DELETE CASCADE
+        );
+
+        CREATE TABLE IF NOT EXISTS alignment_turns (
+          id TEXT PRIMARY KEY,
+          workstream_id TEXT NOT NULL,
+          step_index INTEGER NOT NULL,
+          question TEXT NOT NULL,
+          answer TEXT NOT NULL,
+          created_at TEXT NOT NULL,
+          FOREIGN KEY(workstream_id) REFERENCES workstreams(id) ON DELETE CASCADE
+        );
+
         INSERT INTO runtime_metadata (key, value, updated_at)
-        VALUES ('schema_version', '2', datetime('now'))
+        VALUES ('schema_version', '3', datetime('now'))
         ON CONFLICT(key) DO UPDATE SET
           value = excluded.value,
           updated_at = excluded.updated_at;

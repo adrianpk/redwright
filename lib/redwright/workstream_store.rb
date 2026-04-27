@@ -66,6 +66,31 @@ module Redwright
       end
     end
 
+    def find_latest(project_id:, intent:, states: nil)
+      with_db do |db|
+        query = +"SELECT id, project_id, intent, state, branch, worktree_path, created_at, updated_at FROM workstreams WHERE project_id = ? AND intent = ?"
+        args = [project_id, intent]
+
+        if states && !states.empty?
+          placeholders = (["?"] * states.size).join(",")
+          query << " AND state IN (#{placeholders})"
+          args.concat(states)
+        end
+
+        query << " ORDER BY updated_at DESC, rowid DESC LIMIT 1"
+        row = db.get_first_row(query, args)
+        row ? row_to_record(row) : nil
+      end
+    end
+
+    def update_state(id, state)
+      now = utc_now
+      with_db do |db|
+        db.execute("UPDATE workstreams SET state = ?, updated_at = ? WHERE id = ?", [state, now, id])
+      end
+      get(id)
+    end
+
     private
 
     def with_db
