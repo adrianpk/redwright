@@ -15,6 +15,8 @@ require_relative "redwright/spec_promotion"
 require_relative "redwright/runtime_config_store"
 require_relative "redwright/app_config"
 require_relative "redwright/daemon_runner"
+require_relative "redwright/telegram_client"
+require_relative "redwright/telegram_ingress"
 
 module Redwright
   class CLI
@@ -411,9 +413,22 @@ module Redwright
       when "run"
         Bootstrap.new(mode: mode).call
         config = AppConfigLoader.new(mode: mode).load
+        telegram_client = TelegramClient.new(bot_token: config.telegram.bot_token)
+        telegram_ingress = TelegramIngress.new(
+          client: telegram_client,
+          allowed_chat_ids: config.telegram.allowed_chat_ids
+        )
+        offset = nil
         runner = DaemonRunner.new(
-          ingress_poller: -> { [] },
-          event_handler: ->(_event) {}
+          ingress_poller: lambda {
+            poll = telegram_ingress.poll(
+              offset: offset,
+              timeout_seconds: config.telegram.poll_interval_seconds
+            )
+            offset = poll.next_offset
+            poll.events
+          },
+          event_handler: ->(event) { @out.puts("telegram event chat=#{event.chat_id} text=#{event.text.inspect}") }
         )
 
         @out.puts("daemon starting")

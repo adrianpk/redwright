@@ -50,13 +50,13 @@
 
 ### Slice 3: Telegram Polling Ingress Adapter
 
-- status: `pending`
+- status: `completed`
 - branch: `feat/slice-3-telegram-polling-ingress-adapter`
 - objective: `receive Telegram updates and map natural-language messages to canonical runtime events`
 - tasks:
-- [ ] `T3.1 implement polling client for Telegram getUpdates`
-- [ ] `T3.2 map update payloads into canonical runtime message inputs`
-- [ ] `T3.3 enforce allowed_chat_ids filter from config`
+- [x] `T3.1 implement polling client for Telegram getUpdates`
+- [x] `T3.2 map update payloads into canonical runtime message inputs`
+- [x] `T3.3 enforce allowed_chat_ids filter from config`
 - acceptance:
 - `accepted Telegram text messages are transformed into canonical flow inputs`
 - `messages from disallowed chats are rejected before runtime action`
@@ -64,7 +64,7 @@
 - `feat(telegram): add polling ingress adapter and canonical event mapping`
 - `test(telegram): verify update mapping and chat allow-list enforcement`
 - PR:
-- `tbd`
+- `tbd (to be opened from feat/slice-3-telegram-polling-ingress-adapter)`
 
 ### Slice 4: Runtime Action Materialization + Telegram Response
 

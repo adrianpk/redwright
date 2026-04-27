@@ -6,8 +6,8 @@
 - status: `in_progress`
 - state: `awaiting_review`
 - updated: `2026-04-27`
-- active_slice: `slice-2`
-- active_task: `T2.3`
+- active_slice: `slice-3`
+- active_task: `T3.3`
 
 ## Slice Progress
 
@@ -60,7 +60,7 @@ Validation:
 
 ### Slice 3: Telegram Polling Ingress Adapter
 
-- status: `pending`
+- status: `completed`
 - branch: `feat/slice-3-telegram-polling-ingress-adapter`
 - PR: `tbd`
 - merge_target: `dev`
@@ -68,19 +68,18 @@ Validation:
 
 Tasks:
 
-- [ ] `T3.1 implement polling client for Telegram getUpdates`
-- [ ] `T3.2 map update payloads into canonical runtime message inputs`
-- [ ] `T3.3 enforce allowed_chat_ids filter from config`
+- [x] `T3.1 implement polling client for Telegram getUpdates`
+- [x] `T3.2 map update payloads into canonical runtime message inputs`
+- [x] `T3.3 enforce allowed_chat_ids filter from config`
 
 Commits:
 
-- [ ] `<sha> feat(telegram): add polling ingress adapter and canonical event mapping`
-- [ ] `<sha> test(telegram): verify update mapping and chat allow-list enforcement`
+- [x] `abb021b feat(telegram): add polling ingress adapter and allow-list mapping`
 
 Validation:
 
-- [ ] `allowed Telegram updates become canonical runtime messages`
-- [ ] `disallowed chat IDs are rejected before runtime processing`
+- [x] `allowed Telegram updates become canonical runtime messages`
+- [x] `disallowed chat IDs are rejected before runtime processing`
 
 ### Slice 4: Runtime Action Materialization + Telegram Response
 
@@ -139,3 +138,5 @@ Validation:
 - `2026-04-27 14:52` state=`awaiting_review` note=`slice 1 completed with yaml config loader + validation tests; awaiting PR review`
 - `2026-04-27 15:02` state=`executing_slice` note=`slice 2 implementation started on feat/slice-2-persistent-daemon-loop-surface`
 - `2026-04-27 15:09` state=`awaiting_review` note=`slice 2 completed with daemon run command, loop lifecycle, and signal-stop tests`
+- `2026-04-27 15:15` state=`executing_slice` note=`slice 3 implementation started on feat/slice-3-telegram-polling-ingress-adapter`
+- `2026-04-27 15:22` state=`awaiting_review` note=`slice 3 completed with telegram polling client, canonical ingress mapping, and allow-list filtering`
