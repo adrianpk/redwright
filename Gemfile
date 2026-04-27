@@ -4,3 +4,4 @@ source "https://rubygems.org"
 
 gem "sqlite3", "~> 2.6"
 gem "minitest", "~> 5.25"
+gem "rake", "~> 13.2"
