@@ -3,11 +3,11 @@
 ## Metadata
 
 - cycle_id: `spec-cycle-2026-04-27-redwright-runtime`
-- status: `in_progress`
-- state: `next_slice`
+- status: `completed`
+- state: `done`
 - updated: `2026-04-27`
-- active_slice: `slice-3`
-- active_task: `T3.1`
+- active_slice: `none`
+- active_task: `none`
 
 ## Slice Progress
 
@@ -57,7 +57,7 @@ Validation:
 
 ### Slice 3: Stable Formal Spec
 
-- status: `pending`
+- status: `completed`
 - branch: `feat/slice-3-stable-runtime-spec`
 - PR: `tbd`
 - merge_target: `dev`
@@ -65,9 +65,9 @@ Validation:
 
 Tasks:
 
-- [ ] `T3.1 draft ops/specs/2026-04-27-redwright-runtime-spec.md`
-- [ ] `T3.2 add explicit in-scope/out-of-scope contracts`
-- [ ] `T3.3 freeze acceptance criteria for implementation phase`
+- [x] `T3.1 draft ops/specs/specs/2026-04-27-redwright-runtime-spec.md`
+- [x] `T3.2 add explicit in-scope/out-of-scope contracts`
+- [x] `T3.3 freeze acceptance criteria for implementation phase`
 
 Commits:
 
@@ -75,7 +75,7 @@ Commits:
 
 Validation:
 
-- [ ] `formal spec approved for implementation planning`
+- [x] `formal spec approved for implementation planning`
 
 ## Event Log
 
@@ -83,3 +83,4 @@ Validation:
 - `2026-04-27 11:20` state=`planning` note=`alignment battery completed; refined proto-spec draft created in ops/specs/drafts`
 - `2026-04-27 11:35` state=`planning` note=`blocked/suspended and retry policy decisions integrated; proposed v1 done checklist added`
 - `2026-04-27 12:05` state=`next_slice` note=`slice 2 completed; proto-spec formalized in ops/specs/specs and ready to advance to slice 3`
+- `2026-04-27 12:40` state=`done` note=`slice 3 completed; stable runtime spec published in ops/specs/specs and cycle closed`
