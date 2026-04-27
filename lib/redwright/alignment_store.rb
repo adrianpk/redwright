@@ -103,6 +103,17 @@ module Redwright
       get(workstream_id)
     end
 
+    def turns(workstream_id)
+      with_db do |db|
+        db.execute(
+          "SELECT step_index, question, answer, created_at FROM alignment_turns WHERE workstream_id = ? ORDER BY step_index ASC, created_at ASC",
+          [workstream_id]
+        ).map do |row|
+          { step_index: row[0], question: row[1], answer: row[2], created_at: row[3] }
+        end
+      end
+    end
+
     private
 
     def with_db

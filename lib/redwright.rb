@@ -8,6 +8,7 @@ require_relative "redwright/workstream_store"
 require_relative "redwright/task_store"
 require_relative "redwright/task_commit_store"
 require_relative "redwright/alignment_store"
+require_relative "redwright/plan_spec_store"
 require_relative "redwright/runtime_flow"
 require_relative "redwright/worktree_manager"
 
@@ -244,7 +245,8 @@ module Redwright
         project_store: ProjectStore.new(bootstrap.db_path),
         workstream_store: WorkstreamStore.new(bootstrap.db_path),
         task_store: TaskStore.new(bootstrap.db_path),
-        alignment_store: AlignmentStore.new(bootstrap.db_path)
+        alignment_store: AlignmentStore.new(bootstrap.db_path),
+        plan_spec_store: PlanSpecStore.new
       )
 
       case sub
@@ -256,6 +258,8 @@ module Redwright
         print_workstream_record(result.workstream)
         print_task_record(result.task)
         print_alignment_record(result.alignment) if result.alignment
+        @out.puts("functional_spec_path: #{result.functional_spec_path}") if result.functional_spec_path
+        @out.puts("technical_spec_path: #{result.technical_spec_path}") if result.technical_spec_path
         0
       else
         @err.puts("usage: redwright flow process [--dev|--real] ...")

@@ -1,14 +1,15 @@
 # frozen_string_literal: true
 
 module Redwright
-  FlowResult = Struct.new(:project, :workstream, :task, :alignment, keyword_init: true)
+  FlowResult = Struct.new(:project, :workstream, :task, :alignment, :functional_spec_path, :technical_spec_path, keyword_init: true)
 
   class RuntimeFlow
-    def initialize(project_store:, workstream_store:, task_store:, alignment_store:)
+    def initialize(project_store:, workstream_store:, task_store:, alignment_store:, plan_spec_store: nil)
       @project_store = project_store
       @workstream_store = workstream_store
       @task_store = task_store
       @alignment_store = alignment_store
+      @plan_spec_store = plan_spec_store
     end
 
     def process(project_ref:, intent:, message:, workstream_id: nil)
@@ -25,7 +26,7 @@ module Redwright
 
       task = @task_store.create(workstream_id: workstream.id, description: message, status: "pending")
       workstream = @workstream_store.update_state(workstream.id, "executing")
-      FlowResult.new(project: project, workstream: workstream, task: task, alignment: nil)
+      FlowResult.new(project: project, workstream: workstream, task: task, alignment: nil, functional_spec_path: nil, technical_spec_path: nil)
     end
 
     private
@@ -62,13 +63,22 @@ module Redwright
       if session.decisions_stable
         workstream = @workstream_store.update_state(workstream.id, "ready")
         task = @task_store.create(workstream_id: workstream.id, description: "alignment complete", status: "done")
-        return FlowResult.new(project: project, workstream: workstream, task: task, alignment: session)
+        turns = @alignment_store.turns(workstream.id)
+        artifacts = @plan_spec_store&.generate(project: project, workstream: workstream, turns: turns)
+        return FlowResult.new(
+          project: project,
+          workstream: workstream,
+          task: task,
+          alignment: session,
+          functional_spec_path: artifacts&.functional_spec_path,
+          technical_spec_path: artifacts&.technical_spec_path
+        )
       end
 
       session = @alignment_store.ask_next(workstream.id)
       workstream = @workstream_store.update_state(workstream.id, "waiting_user")
       task = @task_store.create(workstream_id: workstream.id, description: "alignment question: #{session.pending_question}", status: "waiting_user")
-      FlowResult.new(project: project, workstream: workstream, task: task, alignment: session)
+      FlowResult.new(project: project, workstream: workstream, task: task, alignment: session, functional_spec_path: nil, technical_spec_path: nil)
     end
   end
 end

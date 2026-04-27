@@ -9,6 +9,7 @@ require "redwright/project_store"
 require "redwright/workstream_store"
 require "redwright/task_store"
 require "redwright/alignment_store"
+require "redwright/plan_spec_store"
 require "redwright/runtime_flow"
 
 class RuntimeFlowTest < Minitest::Test
@@ -76,13 +77,15 @@ class RuntimeFlowTest < Minitest::Test
         ws_store = Redwright::WorkstreamStore.new(bootstrap.db_path)
         task_store = Redwright::TaskStore.new(bootstrap.db_path)
         alignment_store = Redwright::AlignmentStore.new(bootstrap.db_path)
+        spec_store = Redwright::PlanSpecStore.new(base_dir: dir)
 
         project_store.register(path: "#{dir}/apps/core", aliases: ["rw"])
         flow = Redwright::RuntimeFlow.new(
           project_store: project_store,
           workstream_store: ws_store,
           task_store: task_store,
-          alignment_store: alignment_store
+          alignment_store: alignment_store,
+          plan_spec_store: spec_store
         )
 
         first = flow.process(project_ref: "rw", intent: "plan", message: "need planning")
@@ -107,6 +110,10 @@ class RuntimeFlowTest < Minitest::Test
         assert_nil(fourth.alignment.pending_question)
         assert_equal(0, fourth.alignment.unresolved_count)
         assert(fourth.alignment.decisions_stable)
+        refute_nil(fourth.functional_spec_path)
+        refute_nil(fourth.technical_spec_path)
+        assert(File.file?(fourth.functional_spec_path))
+        assert(File.file?(fourth.technical_spec_path))
       end
     end
   end
