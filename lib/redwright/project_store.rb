@@ -75,6 +75,13 @@ module Redwright
       end
     end
 
+    def mark_active(project_id)
+      now = utc_now
+      with_db do |db|
+        db.execute("UPDATE projects SET last_active_at = ?, updated_at = ? WHERE id = ?", [now, now, project_id])
+      end
+    end
+
     private
 
     def with_db

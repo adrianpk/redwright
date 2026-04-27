@@ -6,6 +6,7 @@ require_relative "redwright/paths"
 require_relative "redwright/project_store"
 require_relative "redwright/workstream_store"
 require_relative "redwright/task_store"
+require_relative "redwright/runtime_flow"
 
 module Redwright
   class CLI
@@ -27,8 +28,10 @@ module Redwright
         run_workstream
       when "task"
         run_task
+      when "flow"
+        run_flow
       else
-        @err.puts("usage: redwright <bootstrap|project|workstream|task>")
+        @err.puts("usage: redwright <bootstrap|project|workstream|task|flow>")
         1
       end
     end
@@ -192,6 +195,49 @@ module Redwright
         1
       end
     rescue OptionParser::ParseError => e
+      @err.puts(e.message)
+      1
+    end
+
+    def run_flow
+      mode = :dev
+      sub = @argv.shift
+      project = nil
+      intent = "change"
+      message = nil
+      workstream_id = nil
+
+      parser = OptionParser.new do |opts|
+        opts.on("--dev", "Use ./_workspace") { mode = :dev }
+        opts.on("--real", "Use $HOME paths") { mode = :real }
+        opts.on("--project VALUE", "Project id/path/alias (optional, defaults to last active)") { |v| project = v }
+        opts.on("--intent VALUE", "Intent for new workstream") { |v| intent = v }
+        opts.on("--message VALUE", "Incoming message text") { |v| message = v }
+        opts.on("--workstream VALUE", "Existing workstream id") { |v| workstream_id = v }
+      end
+
+      parser.parse!(@argv)
+      bootstrap = Bootstrap.new(mode: mode).call
+      flow = RuntimeFlow.new(
+        project_store: ProjectStore.new(bootstrap.db_path),
+        workstream_store: WorkstreamStore.new(bootstrap.db_path),
+        task_store: TaskStore.new(bootstrap.db_path)
+      )
+
+      case sub
+      when "process"
+        raise OptionParser::MissingArgument, "--message" if message.nil? || message.empty?
+
+        result = flow.process(project_ref: project, intent: intent, message: message, workstream_id: workstream_id)
+        print_project_record(result.project)
+        print_workstream_record(result.workstream)
+        print_task_record(result.task)
+        0
+      else
+        @err.puts("usage: redwright flow process [--dev|--real] ...")
+        1
+      end
+    rescue OptionParser::ParseError, ArgumentError => e
       @err.puts(e.message)
       1
     end
