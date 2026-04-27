@@ -6,7 +6,7 @@
 - status: `in_progress`
 - state: `implementation`
 - updated: `2026-04-27`
-- active_slice: `slice-4`
+- active_slice: `slice-5`
 - active_task: `none`
 
 ## Slice Progress
@@ -109,27 +109,27 @@ Validation:
 
 ### Slice 5: Planner-Executor Integration in Daemon Turn Loop
 
-- status: `pending`
+- status: `completed`
 - branch: `feat/slice-5-turn-orchestration`
 - PR: `tbd`
 - merge_target: `dev`
-- last_sync_commit: `tbd`
+- last_sync_commit: `4300db8`
 
 Tasks:
 
-- [ ] `T5.1 wire end-to-end turn orchestration`
-- [ ] `T5.2 ensure clarification path bypasses execution`
-- [ ] `T5.3 compose Telegram response from execution summary`
+- [x] `T5.1 wire end-to-end turn orchestration`
+- [x] `T5.2 ensure clarification path bypasses execution`
+- [x] `T5.3 compose Telegram response from execution summary`
 
 Commits:
 
-- [ ] `<sha> feat(runtime): orchestrate context-plan-execute turn pipeline`
-- [ ] `<sha> test(runtime): add end-to-end orchestration coverage`
+- [x] `ecffd65 feat(runtime): add execution summary to telegram turn responses`
+- [x] `4300db8 test(runtime): add orchestration coverage for execution summary and clarify flow`
 
 Validation:
 
-- [ ] `single Telegram turn can result in concrete action execution and concise response`
-- [ ] `clarify turns return questions and perform no action execution`
+- [x] `single Telegram turn can result in concrete action execution and concise response`
+- [x] `clarify turns return questions and perform no action execution`
 
 ### Slice 6: Observability and Evidence Correlation
 
@@ -192,3 +192,5 @@ Validation:
 - `2026-04-27 19:54` validation=`bundle exec ruby -Itest -e 'Dir["test/redwright/*_test.rb"].sort.each { |f| require File.expand_path(f) }'`
 - `2026-04-27 19:59` state=`implementation` slice=`slice-4` note=`added guarded git primitives (status/branch/commit/push) with explicit confirmation policy for unsafe operations`
 - `2026-04-27 19:59` validation=`bundle exec ruby -Itest -e 'Dir["test/redwright/*_test.rb"].sort.each { |f| require File.expand_path(f) }'`
+- `2026-04-27 20:38` state=`implementation` slice=`slice-5` note=`wired execution-summary response composition in telegram orchestration while preserving clarify no-execution path`
+- `2026-04-27 20:38` validation=`bundle exec ruby -Itest -e 'Dir["test/redwright/*_test.rb"].sort.each { |f| require File.expand_path(f) }'`
