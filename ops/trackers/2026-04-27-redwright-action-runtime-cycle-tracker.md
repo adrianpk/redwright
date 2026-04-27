@@ -6,7 +6,7 @@
 - status: `in_progress`
 - state: `implementation`
 - updated: `2026-04-27`
-- active_slice: `slice-5`
+- active_slice: `slice-6`
 - active_task: `none`
 
 ## Slice Progress
@@ -133,27 +133,27 @@ Validation:
 
 ### Slice 6: Observability and Evidence Correlation
 
-- status: `pending`
+- status: `completed`
 - branch: `feat/slice-6-execution-observability`
 - PR: `tbd`
 - merge_target: `dev`
-- last_sync_commit: `tbd`
+- last_sync_commit: `cfe5915`
 
 Tasks:
 
-- [ ] `T6.1 add turn/action trace correlation ids to persistence`
-- [ ] `T6.2 emit planner and executor traces with class-specific toggles`
-- [ ] `T6.3 provide query surface for recent turn/action evidence`
+- [x] `T6.1 add turn/action trace correlation ids to persistence`
+- [x] `T6.2 emit planner and executor traces with class-specific toggles`
+- [x] `T6.3 provide query surface for recent turn/action evidence`
 
 Commits:
 
-- [ ] `<sha> feat(trace): add turn-action correlation and class toggles`
-- [ ] `<sha> test(trace): validate evidence persistence and retrieval`
+- [x] `674252a feat(trace): add trace correlation persistence and trace query surface`
+- [x] `cfe5915 test(trace): validate trace toggles and evidence retrieval`
 
 Validation:
 
-- [ ] `operator can inspect one turn and all associated action outcomes`
-- [ ] `trace classes can be enabled/disabled independently`
+- [x] `operator can inspect one turn and all associated action outcomes`
+- [x] `trace classes can be enabled/disabled independently`
 
 ### Slice 7: Skill System Scaffold Interfaces
 
@@ -194,3 +194,5 @@ Validation:
 - `2026-04-27 19:59` validation=`bundle exec ruby -Itest -e 'Dir["test/redwright/*_test.rb"].sort.each { |f| require File.expand_path(f) }'`
 - `2026-04-27 20:38` state=`implementation` slice=`slice-5` note=`wired execution-summary response composition in telegram orchestration while preserving clarify no-execution path`
 - `2026-04-27 20:38` validation=`bundle exec ruby -Itest -e 'Dir["test/redwright/*_test.rb"].sort.each { |f| require File.expand_path(f) }'`
+- `2026-04-27 20:56` state=`implementation` slice=`slice-6` note=`persisted trace correlation ids for tasks/actions, added per-class trace toggles, and exposed trace evidence query surface via CLI`
+- `2026-04-27 20:56` validation=`bundle exec ruby -Itest -e 'Dir["test/redwright/*_test.rb"].sort.each { |f| require File.expand_path(f) }'`
