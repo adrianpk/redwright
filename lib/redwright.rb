@@ -12,6 +12,7 @@ require_relative "redwright/plan_spec_store"
 require_relative "redwright/runtime_flow"
 require_relative "redwright/worktree_manager"
 require_relative "redwright/spec_promotion"
+require_relative "redwright/runtime_config_store"
 
 module Redwright
   class CLI
@@ -39,8 +40,10 @@ module Redwright
         run_worktree
       when "spec"
         run_spec
+      when "config"
+        run_config
       else
-        @err.puts("usage: redwright <bootstrap|project|workstream|task|flow|worktree|spec>")
+        @err.puts("usage: redwright <bootstrap|project|workstream|task|flow|worktree|spec|config>")
         1
       end
     end
@@ -233,6 +236,7 @@ module Redwright
       message = nil
       workstream_id = nil
       confirm_new_workstream = false
+      blocked_retries = nil
 
       parser = OptionParser.new do |opts|
         opts.on("--dev", "Use ./_workspace") { mode = :dev }
@@ -242,10 +246,12 @@ module Redwright
         opts.on("--message VALUE", "Incoming message text") { |v| message = v }
         opts.on("--workstream VALUE", "Existing workstream id") { |v| workstream_id = v }
         opts.on("--confirm-new-workstream", "Confirm creation of a new workstream when needed") { confirm_new_workstream = true }
+        opts.on("--blocked-retries VALUE", Integer, "Override blocked retry attempts") { |v| blocked_retries = v }
       end
 
       parser.parse!(@argv)
       bootstrap = Bootstrap.new(mode: mode).call
+      config = RuntimeConfigStore.new(bootstrap.db_path)
       flow = RuntimeFlow.new(
         project_store: ProjectStore.new(bootstrap.db_path),
         workstream_store: WorkstreamStore.new(bootstrap.db_path),
@@ -263,7 +269,8 @@ module Redwright
           intent: intent,
           message: message,
           workstream_id: workstream_id,
-          confirm_new_workstream: confirm_new_workstream
+          confirm_new_workstream: confirm_new_workstream,
+          blocked_retry_attempts: blocked_retries || config.blocked_retry_attempts
         )
         print_project_record(result.project)
         print_workstream_record(result.workstream)
@@ -345,6 +352,43 @@ module Redwright
         1
       end
     rescue ArgumentError => e
+      @err.puts(e.message)
+      1
+    end
+
+    def run_config
+      mode = :dev
+      sub = @argv.shift
+
+      parser = OptionParser.new do |opts|
+        opts.on("--dev", "Use ./_workspace") { mode = :dev }
+        opts.on("--real", "Use $HOME paths") { mode = :real }
+      end
+      parser.parse!(@argv)
+
+      bootstrap = Bootstrap.new(mode: mode).call
+      store = RuntimeConfigStore.new(bootstrap.db_path)
+
+      case sub
+      when "get"
+        key = @argv.shift
+        if key == "blocked_retry_attempts"
+          @out.puts("blocked_retry_attempts: #{store.blocked_retry_attempts}")
+          return 0
+        end
+      when "set"
+        key = @argv.shift
+        value = @argv.shift
+        if key == "blocked_retry_attempts"
+          updated = store.set_blocked_retry_attempts(value)
+          @out.puts("blocked_retry_attempts: #{updated}")
+          return 0
+        end
+      end
+
+      @err.puts("usage: redwright config <get|set> blocked_retry_attempts [value]")
+      1
+    rescue OptionParser::ParseError, ArgumentError => e
       @err.puts(e.message)
       1
     end

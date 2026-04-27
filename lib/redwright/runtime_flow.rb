@@ -12,7 +12,31 @@ module Redwright
       @plan_spec_store = plan_spec_store
     end
 
-    def process(project_ref:, intent:, message:, workstream_id: nil, confirm_new_workstream: false)
+    def process(project_ref:, intent:, message:, workstream_id: nil, confirm_new_workstream: false, blocked_retry_attempts: 1)
+      retries = [blocked_retry_attempts.to_i, 1].max
+      attempts = 0
+
+      begin
+        attempts += 1
+        return process_once(
+          project_ref: project_ref,
+          intent: intent,
+          message: message,
+          workstream_id: workstream_id,
+          confirm_new_workstream: confirm_new_workstream
+        )
+      rescue ArgumentError
+        raise
+      rescue StandardError => e
+        retry if attempts < retries
+
+        raise RuntimeError, "blocked after #{retries} attempt(s): #{e.message}"
+      end
+    end
+
+    private
+
+    def process_once(project_ref:, intent:, message:, workstream_id:, confirm_new_workstream:)
       project = @project_store.resolve(project_ref)
       raise ArgumentError, "project not found" unless project
 
@@ -33,8 +57,6 @@ module Redwright
       workstream = @workstream_store.update_state(workstream.id, "executing")
       FlowResult.new(project: project, workstream: workstream, task: task, alignment: nil, functional_spec_path: nil, technical_spec_path: nil)
     end
-
-    private
 
     def resolve_or_create_workstream(project:, intent:, workstream_id:, confirm_new_workstream:)
       if workstream_id && !workstream_id.empty?

@@ -13,6 +13,17 @@ require "redwright/plan_spec_store"
 require "redwright/runtime_flow"
 
 class RuntimeFlowTest < Minitest::Test
+  FlakyTaskStore = Struct.new(:real_store, :failures_left) do
+    def create(**kwargs)
+      if failures_left.positive?
+        self.failures_left -= 1
+        raise StandardError, "transient task store failure"
+      end
+
+      real_store.create(**kwargs)
+    end
+  end
+
   def test_process_creates_workstream_and_task_for_non_plan_intent_with_confirmation
     Dir.mktmpdir("redwright-flow-test-") do |dir|
       Dir.chdir(dir) do
@@ -201,6 +212,72 @@ class RuntimeFlowTest < Minitest::Test
 
         err = assert_raises(ArgumentError) { flow.process(project_ref: "rw", intent: "resume", message: "resume now") }
         assert_match("no resumable workstream found", err.message)
+      end
+    end
+  end
+
+  def test_blocked_retry_attempts_retries_then_succeeds
+    Dir.mktmpdir("redwright-flow-retry-success-test-") do |dir|
+      Dir.chdir(dir) do
+        bootstrap = Redwright::Bootstrap.new(mode: :dev).call
+        project_store = Redwright::ProjectStore.new(bootstrap.db_path)
+        ws_store = Redwright::WorkstreamStore.new(bootstrap.db_path)
+        real_task_store = Redwright::TaskStore.new(bootstrap.db_path)
+        flaky_task_store = FlakyTaskStore.new(real_task_store, 1)
+        alignment_store = Redwright::AlignmentStore.new(bootstrap.db_path)
+        spec_store = Redwright::PlanSpecStore.new(base_dir: dir)
+
+        project_store.register(path: "#{dir}/apps/core", aliases: ["rw"])
+        flow = Redwright::RuntimeFlow.new(
+          project_store: project_store,
+          workstream_store: ws_store,
+          task_store: flaky_task_store,
+          alignment_store: alignment_store,
+          plan_spec_store: spec_store
+        )
+
+        result = flow.process(
+          project_ref: "rw",
+          intent: "change",
+          message: "retry once",
+          confirm_new_workstream: true,
+          blocked_retry_attempts: 2
+        )
+        assert_equal("retry once", result.task.description)
+      end
+    end
+  end
+
+  def test_blocked_retry_attempts_exhaustion_raises_runtime_error
+    Dir.mktmpdir("redwright-flow-retry-fail-test-") do |dir|
+      Dir.chdir(dir) do
+        bootstrap = Redwright::Bootstrap.new(mode: :dev).call
+        project_store = Redwright::ProjectStore.new(bootstrap.db_path)
+        ws_store = Redwright::WorkstreamStore.new(bootstrap.db_path)
+        real_task_store = Redwright::TaskStore.new(bootstrap.db_path)
+        flaky_task_store = FlakyTaskStore.new(real_task_store, 3)
+        alignment_store = Redwright::AlignmentStore.new(bootstrap.db_path)
+        spec_store = Redwright::PlanSpecStore.new(base_dir: dir)
+
+        project_store.register(path: "#{dir}/apps/core", aliases: ["rw"])
+        flow = Redwright::RuntimeFlow.new(
+          project_store: project_store,
+          workstream_store: ws_store,
+          task_store: flaky_task_store,
+          alignment_store: alignment_store,
+          plan_spec_store: spec_store
+        )
+
+        err = assert_raises(RuntimeError) do
+          flow.process(
+            project_ref: "rw",
+            intent: "change",
+            message: "retry fail",
+            confirm_new_workstream: true,
+            blocked_retry_attempts: 2
+          )
+        end
+        assert_match("blocked after 2 attempt", err.message)
       end
     end
   end
