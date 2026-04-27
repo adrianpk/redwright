@@ -17,7 +17,7 @@ module Redwright
     def execute(project_root:, action:)
       action_id = fetch(action, "id")
       action_type = fetch(action, "type")
-      args = fetch(action, "args")
+      args = fetch(action, "args", allow_empty: true)
       timeout_ms = (action["timeout_ms"] || DEFAULT_TIMEOUT_MS).to_i
       timeout_ms = DEFAULT_TIMEOUT_MS if timeout_ms <= 0
 
@@ -48,6 +48,24 @@ module Redwright
           stdout = execute_write_file(project_root: project_root, args: args)
         when "apply_patch"
           result = execute_apply_patch(project_root: project_root, args: args)
+          stdout = result[:stdout]
+          stderr = result[:stderr]
+        when "git_status"
+          result = execute_git_status(project_root: project_root, timeout_ms: timeout_ms)
+          stdout = result[:stdout]
+          stderr = result[:stderr]
+        when "git_branch"
+          result = execute_git_branch(project_root: project_root, args: args, timeout_ms: timeout_ms)
+          stdout = result[:stdout]
+          stderr = result[:stderr]
+        when "git_commit"
+          enforce_confirmation!(action: action, args: args)
+          result = execute_git_commit(project_root: project_root, args: args, timeout_ms: timeout_ms)
+          stdout = result[:stdout]
+          stderr = result[:stderr]
+        when "git_push"
+          enforce_confirmation!(action: action, args: args)
+          result = execute_git_push(project_root: project_root, args: args, timeout_ms: timeout_ms)
           stdout = result[:stdout]
           stderr = result[:stderr]
         else
@@ -144,9 +162,74 @@ module Redwright
       { stdout: stdout, stderr: stderr }
     end
 
-    def fetch(hash, key)
+    def execute_git_status(project_root:, timeout_ms:)
+      ensure_git_repo!(project_root)
+      run_git_with_timeout(project_root: project_root, timeout_ms: timeout_ms, args: %w[status --short --branch])
+    end
+
+    def execute_git_branch(project_root:, args:, timeout_ms:)
+      ensure_git_repo!(project_root)
+      operation = (args["operation"] || "list").to_s
+      case operation
+      when "list"
+        run_git_with_timeout(project_root: project_root, timeout_ms: timeout_ms, args: %w[branch --list])
+      when "current"
+        run_git_with_timeout(project_root: project_root, timeout_ms: timeout_ms, args: %w[branch --show-current])
+      when "switch"
+        name = fetch(args, "name")
+        run_git_with_timeout(project_root: project_root, timeout_ms: timeout_ms, args: ["switch", name])
+      else
+        raise ArgumentError, "unsupported_git_branch_operation"
+      end
+    end
+
+    def execute_git_commit(project_root:, args:, timeout_ms:)
+      ensure_git_repo!(project_root)
+      message = fetch(args, "message")
+      if args["add_all"] == true
+        add = run_git_with_timeout(project_root: project_root, timeout_ms: timeout_ms, args: %w[add -A])
+        commit = run_git_with_timeout(project_root: project_root, timeout_ms: timeout_ms, args: ["commit", "-m", message])
+        return { stdout: "#{add[:stdout]}#{commit[:stdout]}", stderr: "#{add[:stderr]}#{commit[:stderr]}" }
+      end
+      run_git_with_timeout(project_root: project_root, timeout_ms: timeout_ms, args: ["commit", "-m", message])
+    end
+
+    def execute_git_push(project_root:, args:, timeout_ms:)
+      ensure_git_repo!(project_root)
+      remote = args["remote"].to_s.strip
+      branch = args["branch"].to_s.strip
+      command = ["push"]
+      command << remote unless remote.empty?
+      command << branch unless branch.empty?
+      run_git_with_timeout(project_root: project_root, timeout_ms: timeout_ms, args: command)
+    end
+
+    def run_git_with_timeout(project_root:, timeout_ms:, args:)
+      seconds = [(timeout_ms.to_f / 1000.0), 0.1].max.to_s
+      stdout, stderr, status = Open3.capture3("timeout", "--preserve-status", seconds, "git", *args, chdir: project_root)
+      raise RuntimeError, "git_action_timeout" if [124, 137, 143].include?(status.exitstatus)
+      raise RuntimeError, "git_command_failed:#{args.first} exit=#{status.exitstatus}" unless status.success?
+
+      { stdout: stdout, stderr: stderr }
+    end
+
+    def ensure_git_repo!(project_root)
+      _stdout, _stderr, status = Open3.capture3("git", "rev-parse", "--is-inside-work-tree", chdir: project_root)
+      raise RuntimeError, "not_a_git_repository" unless status.success?
+    end
+
+    def enforce_confirmation!(action:, args:)
+      requires_confirmation = action["requires_confirmation"] == true
+      confirmed = args["confirmed"] == true
+      return if requires_confirmation && confirmed
+
+      raise ArgumentError, "confirmation_required"
+    end
+
+    def fetch(hash, key, allow_empty: false)
       value = hash[key]
-      raise ArgumentError, "missing_#{key}" if value.nil? || (value.respond_to?(:empty?) && value.empty?)
+      raise ArgumentError, "missing_#{key}" if value.nil?
+      raise ArgumentError, "missing_#{key}" if !allow_empty && value.respond_to?(:empty?) && value.empty?
 
       value
     end
