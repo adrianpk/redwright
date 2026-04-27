@@ -404,4 +404,66 @@ class RuntimeFlowTest < Minitest::Test
       end
     end
   end
+
+  def test_process_normalizes_macro_actions_before_execution
+    Dir.mktmpdir("redwright-flow-macro-actions-test-") do |dir|
+      Dir.chdir(dir) do
+        bootstrap = Redwright::Bootstrap.new(mode: :dev).call
+        project_store = Redwright::ProjectStore.new(bootstrap.db_path)
+        ws_store = Redwright::WorkstreamStore.new(bootstrap.db_path)
+        task_store = Redwright::TaskStore.new(bootstrap.db_path)
+        action_store = Redwright::ActionExecutionStore.new(bootstrap.db_path)
+        alignment_store = Redwright::AlignmentStore.new(bootstrap.db_path)
+
+        project_store.register(path: "#{dir}/apps/core", aliases: ["rw"])
+        flow = Redwright::RuntimeFlow.new(
+          project_store: project_store,
+          workstream_store: ws_store,
+          task_store: task_store,
+          alignment_store: alignment_store,
+          primitive_executor: Redwright::PrimitiveExecutor.new,
+          action_execution_store: action_store
+        )
+
+        result = flow.process(
+          project_ref: "rw",
+          intent: "change",
+          message: "macro action smoke",
+          confirm_new_workstream: true,
+          actions: [
+            {
+              "id" => "files",
+              "type" => "write_files",
+              "args" => {
+                "files" => {
+                  "demo/a.txt" => "A",
+                  "demo/b.txt" => "B"
+                }
+              },
+              "requires_confirmation" => false,
+              "timeout_ms" => 2_000,
+              "on_failure" => "abort"
+            },
+            {
+              "id" => "verify",
+              "type" => "run_command",
+              "args" => { "cmd" => "test -f demo/a.txt && test -f demo/b.txt && echo ok" },
+              "requires_confirmation" => false,
+              "timeout_ms" => 2_000,
+              "on_failure" => "abort"
+            }
+          ]
+        )
+
+        assert_equal(3, result.action_results.size)
+        assert_equal("files.1", result.action_results[0].action_id)
+        assert_equal("write_file", result.action_results[0].action_type)
+        assert_equal("files.2", result.action_results[1].action_id)
+        assert_equal("write_file", result.action_results[1].action_type)
+        assert_equal("verify", result.action_results[2].action_id)
+        assert_equal("run", result.action_results[2].action_type)
+        assert_equal("ok\n", result.action_results[2].stdout)
+      end
+    end
+  end
 end

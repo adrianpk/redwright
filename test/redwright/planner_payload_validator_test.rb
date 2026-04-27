@@ -76,7 +76,7 @@ class PlannerPayloadValidatorTest < Minitest::Test
     assert_includes(result.errors.join("|"), "top_level_missing_keys:message")
   end
 
-  def test_validate_rejects_unsupported_action_type
+  def test_validate_accepts_macro_action_type
     validator = Redwright::PlannerPayloadValidator.new
     payload = JSON.generate(
       {
@@ -96,7 +96,31 @@ class PlannerPayloadValidatorTest < Minitest::Test
     )
 
     result = validator.validate(payload)
+    assert_equal(true, result.valid)
+    assert_empty(result.errors)
+  end
+
+  def test_validate_rejects_unknown_action_type
+    validator = Redwright::PlannerPayloadValidator.new
+    payload = JSON.generate(
+      {
+        intent: "change",
+        message: "do unknown thing",
+        actions: [
+          {
+            id: "a1",
+            type: "unknown_action_type",
+            args: {},
+            requires_confirmation: false,
+            timeout_ms: 10_000,
+            on_failure: "abort"
+          }
+        ]
+      }
+    )
+
+    result = validator.validate(payload)
     assert_equal(false, result.valid)
-    assert_includes(result.errors, "action_0_type_not_allowed:write_files")
+    assert_includes(result.errors, "action_0_type_not_allowed:unknown_action_type")
   end
 end
