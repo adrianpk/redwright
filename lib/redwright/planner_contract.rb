@@ -6,7 +6,7 @@ module Redwright
     TOP_LEVEL_KEYS = %w[intent message actions].freeze
     ACTION_KEYS = %w[id type args requires_confirmation timeout_ms on_failure].freeze
     ACTION_ON_FAILURE = %w[abort continue].freeze
-    ACTION_TYPES = %w[
+    ACTION_PRIMITIVE_TYPES = %w[
       list_files
       read_file
       search
@@ -18,6 +18,12 @@ module Redwright
       git_commit
       git_push
     ].freeze
+    ACTION_MACRO_TYPES = %w[
+      write_files
+      run_command
+      run_commands
+    ].freeze
+    ACTION_TYPES = (ACTION_PRIMITIVE_TYPES + ACTION_MACRO_TYPES).freeze
 
     SYSTEM_PROMPT = <<~PROMPT
       You route runtime tasks for a coding agent.
@@ -43,6 +49,9 @@ module Redwright
       - git_branch
       - git_commit
       - git_push
+      - write_files (macro, expands to write_file)
+      - run_command (macro, expands to run)
+      - run_commands (macro, expands to run sequence)
       Do not return extra keys.
     PROMPT
   end

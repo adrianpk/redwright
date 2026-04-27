@@ -2,6 +2,7 @@
 
 require_relative "trace"
 require_relative "skill_dispatcher"
+require_relative "action_normalizer"
 
 module Redwright
   FlowResult = Struct.new(
@@ -18,7 +19,8 @@ module Redwright
       plan_spec_store: nil,
       primitive_executor: nil,
       action_execution_store: nil,
-      skill_dispatcher: SkillDispatcher.new
+      skill_dispatcher: SkillDispatcher.new,
+      action_normalizer: ActionNormalizer.new
     )
       @project_store = project_store
       @workstream_store = workstream_store
@@ -28,6 +30,7 @@ module Redwright
       @primitive_executor = primitive_executor
       @action_execution_store = action_execution_store
       @skill_dispatcher = skill_dispatcher
+      @action_normalizer = action_normalizer
     end
 
     def process(
@@ -179,8 +182,9 @@ module Redwright
       return [] if actions.nil? || actions.empty?
       raise ArgumentError, "primitive executor is not configured" unless @primitive_executor
 
+      normalized_actions = @action_normalizer.normalize(actions)
       results = []
-      actions.each do |action|
+      normalized_actions.each do |action|
         action_context = {
           project_id: project.id,
           project_path: project.path,
