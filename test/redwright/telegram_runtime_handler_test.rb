@@ -471,4 +471,81 @@ class TelegramRuntimeHandlerTest < Minitest::Test
     assert_match("No actions were executed for this turn.", client.messages.last[:text])
     assert_match("telegram planner_reject chat=12", out.string)
   end
+
+  def test_handle_reports_quality_gate_summary_when_enabled_by_context
+    fake_flow = Object.new
+    fake_flow.define_singleton_method(:process) do |**_kwargs|
+      FakeResult.new(
+        project: FakeProject.new(id: "project-q"),
+        workstream: FakeWorkstream.new(id: "ws-q", state: "executing"),
+        task: FakeTask.new(id: "task-q"),
+        alignment: nil,
+        action_results: [
+          FakeActionResult.new(action_id: "a1", status: "ok")
+        ]
+      )
+    end
+
+    fake_resolver = Object.new
+    fake_resolver.define_singleton_method(:resolve) do |**_kwargs|
+      Redwright::TelegramContextResolver::Resolution.new(
+        resolved: true,
+        project_ref: "project-q",
+        project_path: "/tmp/project-q",
+        workstream_id: nil,
+        question: nil
+      )
+    end
+
+    loader = Object.new
+    loader.define_singleton_method(:build) do |**_kwargs|
+      {
+        project_context: "project",
+        architecture_context: "architecture",
+        quality: {
+          auto_validate: true,
+          lint_command: "lint",
+          test_command: "test"
+        }
+      }
+    end
+
+    quality_runner = Object.new
+    quality_runner.define_singleton_method(:run) do |**_kwargs|
+      [
+        Struct.new(:name, :status).new("lint", "ok"),
+        Struct.new(:name, :status).new("test", "error")
+      ]
+    end
+
+    fake_interpreter = Object.new
+    fake_interpreter.define_singleton_method(:interpret) do |**_kwargs|
+      TelegramRuntimeHandlerTest::FakeDecision.new(
+        intent: "change",
+        message: "do thing",
+        actions: [],
+        source: "llm",
+        finish_reason: "stop",
+        raw_output: "{\"intent\":\"change\",\"message\":\"do thing\",\"actions\":[]}"
+      )
+    end
+    fake_interpreter.define_singleton_method(:system_prompt) { |**_kwargs| "prompt" }
+
+    client = FakeTelegramClient.new([])
+    handler = Redwright::TelegramRuntimeHandler.new(
+      flow: fake_flow,
+      telegram_client: client,
+      out: StringIO.new,
+      err: StringIO.new,
+      context_resolver: fake_resolver,
+      blocked_retry_attempts: 1,
+      intent_interpreter: fake_interpreter,
+      prompt_context_loader: loader,
+      quality_gate_runner: quality_runner
+    )
+
+    handler.handle(Redwright::TelegramEvent.new(update_id: 13, chat_id: 13, user_id: nil, username: nil, text: "do thing"))
+
+    assert_match("Quality checks: 1/2 passed, 1 failed.", client.messages.last[:text])
+  end
 end

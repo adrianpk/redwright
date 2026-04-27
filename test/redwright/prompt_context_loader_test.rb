@@ -25,6 +25,7 @@ class PromptContextLoaderTest < Minitest::Test
               - "Keep docs in English"
               - "Prefer table-driven tests"
           quality:
+            auto_validate: true
             lint_command: "bundle exec rubocop"
             test_command: "bundle exec rake test"
         YAML
@@ -36,6 +37,9 @@ class PromptContextLoaderTest < Minitest::Test
       assert_includes(context[:architecture_context], "Use strict module boundaries.")
       assert_includes(context[:architecture_context], "Keep docs in English")
       assert_includes(context[:architecture_context], "Lint command: bundle exec rubocop")
+      assert_equal(true, context.dig(:quality, :auto_validate))
+      assert_equal("bundle exec rubocop", context.dig(:quality, :lint_command))
+      assert_equal("bundle exec rake test", context.dig(:quality, :test_command))
     end
   end
 
@@ -63,6 +67,7 @@ class PromptContextLoaderTest < Minitest::Test
       assert_includes(context[:architecture_context], "Fallback conventions and guardrails")
       assert_includes(context[:architecture_context], "Always keep documentation in English")
       assert_includes(context[:architecture_context], "Must keep code comments concise")
+      assert_equal(false, context.dig(:quality, :auto_validate))
     end
   end
 end
