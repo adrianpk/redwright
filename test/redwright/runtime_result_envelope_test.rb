@@ -34,4 +34,13 @@ class RuntimeResultEnvelopeTest < Minitest::Test
     assert_equal("runtime_error", payload.dig("error", "code"))
     assert_equal("boom", payload.dig("error", "message"))
   end
+
+  def test_clarify_envelope_structure
+    envelope = Redwright::RuntimeResultEnvelope.clarify(trace_id: "trc-3", message: "Which project?")
+    payload = JSON.parse(envelope.to_json_string)
+
+    assert_equal("clarify", payload["status"])
+    assert_equal("trc-3", payload["trace_id"])
+    assert_equal("Which project?", payload.dig("clarify", "question"))
+  end
 end

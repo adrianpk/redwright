@@ -213,4 +213,45 @@ class TelegramRuntimeHandlerTest < Minitest::Test
     assert_equal("runtime_error", payload.dig("error", "code"))
     assert_equal("project not found", payload.dig("error", "message"))
   end
+
+  def test_handle_sends_clarify_and_skips_flow_when_context_is_ambiguous
+    fake_flow = Object.new
+    def fake_flow.process(**_kwargs)
+      raise "flow should not run on clarify"
+    end
+
+    fake_resolver = Object.new
+    def fake_resolver.resolve(chat_id:, text:)
+      raise "unexpected chat_id" unless chat_id == 88
+      raise "unexpected text" unless text == "continue"
+
+      Redwright::TelegramContextResolver::Resolution.new(
+        resolved: false,
+        project_ref: nil,
+        workstream_id: nil,
+        question: "Please specify project."
+      )
+    end
+
+    client = FakeTelegramClient.new([])
+    out = StringIO.new
+    err = StringIO.new
+    handler = Redwright::TelegramRuntimeHandler.new(
+      flow: fake_flow,
+      telegram_client: client,
+      out: out,
+      err: err,
+      context_resolver: fake_resolver,
+      blocked_retry_attempts: 1
+    )
+
+    handler.handle(Redwright::TelegramEvent.new(update_id: 2, chat_id: 88, user_id: nil, username: nil, text: "continue"))
+
+    assert_equal("", err.string)
+    assert_match("telegram clarify chat=88", out.string)
+    assert_equal(1, client.messages.size)
+    payload = JSON.parse(client.messages.first[:text])
+    assert_equal("clarify", payload["status"])
+    assert_equal("Please specify project.", payload.dig("clarify", "question"))
+  end
 end
