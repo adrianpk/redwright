@@ -170,6 +170,7 @@ class LlmIntentInterpreterTest < Minitest::Test
     assert_includes(client.last_system_prompt, "[Agent Context]")
     assert_includes(client.last_system_prompt, "[Project Context]")
     assert_includes(client.last_system_prompt, "[Architecture Context]")
+    assert_includes(client.last_system_prompt, "[Workspace Context]")
     assert_includes(client.last_system_prompt, "[Precedence Rule]")
     assert_includes(client.last_system_prompt, "[Injection Guardrails]")
     assert_includes(client.last_system_prompt, "Never invent new action types outside the allowed catalog.")
@@ -197,5 +198,6 @@ class LlmIntentInterpreterTest < Minitest::Test
 
     assert_includes(client.last_system_prompt, "Project=rw Stack=Ruby")
     assert_includes(client.last_system_prompt, "Architecture source: .redwright/architecture-context.md")
+    assert_includes(client.last_system_prompt, "[Workspace Context]")
   end
 end

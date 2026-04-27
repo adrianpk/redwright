@@ -12,6 +12,7 @@ class PlannerPromptBuilderTest < Minitest::Test
     assert_includes(prompt, "[Agent Context]")
     assert_includes(prompt, "[Project Context]")
     assert_includes(prompt, "[Architecture Context]")
+    assert_includes(prompt, "[Workspace Context]")
     assert_includes(prompt, "[Precedence Rule]")
     assert_includes(prompt, "[Injection Guardrails]")
     assert_includes(prompt, "[Planner Output Contract]")
@@ -20,10 +21,12 @@ class PlannerPromptBuilderTest < Minitest::Test
   def test_build_accepts_explicit_context_overrides
     prompt = Redwright::PlannerPromptBuilder.new.build(
       project_context: "Stack: Ruby. Active project: rw.",
-      architecture_context: "Use only contracted runtime actions."
+      architecture_context: "Use only contracted runtime actions.",
+      workspace_context: "Tree: lib/, test/, README.md"
     )
 
     assert_includes(prompt, "Stack: Ruby. Active project: rw.")
     assert_includes(prompt, "Use only contracted runtime actions.")
+    assert_includes(prompt, "Tree: lib/, test/, README.md")
   end
 end

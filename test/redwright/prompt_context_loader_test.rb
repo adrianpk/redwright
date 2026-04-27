@@ -37,6 +37,7 @@ class PromptContextLoaderTest < Minitest::Test
       assert_includes(context[:architecture_context], "Use strict module boundaries.")
       assert_includes(context[:architecture_context], "Keep docs in English")
       assert_includes(context[:architecture_context], "Lint command: bundle exec rubocop")
+      assert_includes(context[:workspace_context], "Workspace root:")
       assert_equal(true, context.dig(:quality, :auto_validate))
       assert_equal("bundle exec rubocop", context.dig(:quality, :lint_command))
       assert_equal("bundle exec rake test", context.dig(:quality, :test_command))
@@ -67,6 +68,7 @@ class PromptContextLoaderTest < Minitest::Test
       assert_includes(context[:architecture_context], "Fallback conventions and guardrails")
       assert_includes(context[:architecture_context], "Always keep documentation in English")
       assert_includes(context[:architecture_context], "Must keep code comments concise")
+      assert_includes(context[:workspace_context], "Workspace unavailable.")
       assert_equal(false, context.dig(:quality, :auto_validate))
     end
   end
