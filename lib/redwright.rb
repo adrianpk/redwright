@@ -54,10 +54,12 @@ module Redwright
         run_spec
       when "config"
         run_config
+      when "trace"
+        run_trace
       when "daemon"
         run_daemon
       else
-        @err.puts("usage: redwright <bootstrap|project|workstream|task|flow|worktree|spec|config|daemon>")
+        @err.puts("usage: redwright <bootstrap|project|workstream|task|flow|worktree|spec|config|trace|daemon>")
         1
       end
     end
@@ -493,6 +495,82 @@ module Redwright
         0
       else
         @err.puts("usage: redwright daemon run [--dev|--real] [--once] [--ingress telegram|none]")
+        1
+      end
+    rescue OptionParser::ParseError, ArgumentError => e
+      @err.puts(e.message)
+      1
+    end
+
+    def run_trace
+      mode = :dev
+      sub = @argv.shift
+      limit = 20
+
+      parser = OptionParser.new do |opts|
+        opts.on("--dev", "Use ./_workspace") { mode = :dev }
+        opts.on("--real", "Use $HOME paths") { mode = :real }
+        opts.on("--limit VALUE", Integer, "Result limit for recent traces") { |v| limit = v }
+      end
+      parser.parse!(@argv)
+
+      bootstrap = Bootstrap.new(mode: mode).call
+      tasks = TaskStore.new(bootstrap.db_path)
+      actions = ActionExecutionStore.new(bootstrap.db_path)
+
+      case sub
+      when "recent"
+        rows = tasks.list_recent_with_trace(limit: limit)
+        if rows.empty?
+          @out.puts("no trace records")
+          return 0
+        end
+        rows.each do |row|
+          @out.puts("trace_id: #{row.trace_id}")
+          @out.puts("task_id: #{row.task_id}")
+          @out.puts("project_id: #{row.project_id}")
+          @out.puts("workstream_id: #{row.workstream_id}")
+          @out.puts("intent: #{row.workstream_intent}")
+          @out.puts("task_status: #{row.task_status}")
+          @out.puts("task_description: #{row.task_description}")
+          @out.puts("created_at: #{row.created_at}")
+          @out.puts("---")
+        end
+        0
+      when "show"
+        trace_id = @argv.shift
+        raise OptionParser::MissingArgument, "<trace_id>" if trace_id.nil? || trace_id.empty?
+
+        task_rows = tasks.list_by_trace_id(trace_id)
+        action_rows = actions.list_by_trace_id(trace_id)
+        if task_rows.empty? && action_rows.empty?
+          @out.puts("trace not found")
+          return 2
+        end
+
+        @out.puts("trace_id: #{trace_id}")
+        @out.puts("tasks:")
+        task_rows.each do |row|
+          @out.puts("  - task_id: #{row.task_id}")
+          @out.puts("    project_id: #{row.project_id}")
+          @out.puts("    workstream_id: #{row.workstream_id}")
+          @out.puts("    intent: #{row.workstream_intent}")
+          @out.puts("    status: #{row.task_status}")
+          @out.puts("    description: #{row.task_description}")
+          @out.puts("    created_at: #{row.created_at}")
+        end
+        @out.puts("actions:")
+        action_rows.each do |row|
+          @out.puts("  - action_id: #{row.action_id}")
+          @out.puts("    type: #{row.action_type}")
+          @out.puts("    status: #{row.status}")
+          @out.puts("    task_id: #{row.task_id}")
+          @out.puts("    error_message: #{row.error_message}") if row.error_message
+          @out.puts("    created_at: #{row.created_at}")
+        end
+        0
+      else
+        @err.puts("usage: redwright trace <recent|show> [--dev|--real] [--limit N] [trace_id]")
         1
       end
     rescue OptionParser::ParseError, ArgumentError => e

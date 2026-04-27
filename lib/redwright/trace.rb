@@ -6,18 +6,6 @@ module Redwright
   module Trace
     module_function
 
-    def enabled?
-      value = ENV.fetch("REDWRIGHT_TRACE", "").strip.downcase
-      value == "1" || value == "true" || value == "yes" || value == "on"
-    end
-
-    def runtime_enabled?
-      return false unless enabled?
-
-      value = ENV.fetch("REDWRIGHT_TRACE_RUNTIME", "").strip.downcase
-      value == "1" || value == "true" || value == "yes" || value == "on"
-    end
-
     def current_trace_id
       Thread.current[:redwright_trace_id]
     end
@@ -31,8 +19,6 @@ module Redwright
     end
 
     def banner(title, fields = {})
-      return unless enabled?
-
       line = "=" * 52
       $stdout.puts(line)
       $stdout.puts(title)
@@ -41,6 +27,8 @@ module Redwright
     end
 
     def sqlite(op:, table:, detail: nil)
+      return unless sqlite_enabled?
+
       banner("SQLITE TRACE", {
         trace_id: current_trace_id || "none",
         op: op,
@@ -50,6 +38,8 @@ module Redwright
     end
 
     def llm_request(role:, provider:, model:, action:, payload_bytes:, system_prompt: nil, user_text: nil)
+      return unless llm_enabled?
+
       banner("LLM REQUEST", {
         trace_id: current_trace_id || "none",
         model_role: role,
@@ -72,6 +62,8 @@ module Redwright
       parsed_message: nil,
       decision_source: nil
     )
+      return unless llm_enabled?
+
       banner("LLM RESPONSE", {
         trace_id: current_trace_id || "none",
         status: status,
@@ -94,5 +86,27 @@ module Redwright
     def generate_trace_id
       "trc-#{SecureRandom.hex(4)}"
     end
+
+    def llm_enabled?
+      global_enabled? || truthy_env?("REDWRIGHT_TRACE_LLM")
+    end
+
+    def sqlite_enabled?
+      global_enabled? || truthy_env?("REDWRIGHT_TRACE_SQLITE")
+    end
+
+    def runtime_enabled?
+      global_enabled? || truthy_env?("REDWRIGHT_TRACE_RUNTIME")
+    end
+
+    def global_enabled?
+      truthy_env?("REDWRIGHT_TRACE")
+    end
+
+    def truthy_env?(name)
+      value = ENV.fetch(name, "").strip.downcase
+      value == "1" || value == "true" || value == "yes" || value == "on"
+    end
+    private_class_method :truthy_env?
   end
 end

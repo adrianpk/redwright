@@ -76,6 +76,7 @@ module Redwright
         CREATE TABLE IF NOT EXISTS tasks (
           id TEXT PRIMARY KEY,
           workstream_id TEXT NOT NULL,
+          trace_id TEXT,
           description TEXT NOT NULL,
           status TEXT NOT NULL,
           created_at TEXT NOT NULL,
@@ -123,6 +124,7 @@ module Redwright
         CREATE TABLE IF NOT EXISTS action_executions (
           id TEXT PRIMARY KEY,
           task_id TEXT NOT NULL,
+          trace_id TEXT,
           action_id TEXT NOT NULL,
           action_type TEXT NOT NULL,
           status TEXT NOT NULL,
@@ -134,13 +136,27 @@ module Redwright
         );
 
         INSERT INTO runtime_metadata (key, value, updated_at)
-        VALUES ('schema_version', '5', datetime('now'))
+        VALUES ('schema_version', '6', datetime('now'))
         ON CONFLICT(key) DO UPDATE SET
           value = excluded.value,
           updated_at = excluded.updated_at;
       SQL
+
+      ensure_column(db, table: "tasks", column: "trace_id", column_sql: "TEXT")
+      ensure_column(db, table: "action_executions", column: "trace_id", column_sql: "TEXT")
     ensure
       db&.close
+    end
+
+    def ensure_column(db, table:, column:, column_sql:)
+      return if column_exists?(db, table: table, column: column)
+
+      db.execute("ALTER TABLE #{table} ADD COLUMN #{column} #{column_sql}")
+    end
+
+    def column_exists?(db, table:, column:)
+      rows = db.execute("PRAGMA table_info(#{table})")
+      rows.any? { |row| row[1] == column }
     end
   end
 end
