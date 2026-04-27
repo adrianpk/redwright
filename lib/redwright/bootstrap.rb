@@ -120,8 +120,21 @@ module Redwright
           FOREIGN KEY(project_id) REFERENCES projects(id) ON DELETE CASCADE
         );
 
+        CREATE TABLE IF NOT EXISTS action_executions (
+          id TEXT PRIMARY KEY,
+          task_id TEXT NOT NULL,
+          action_id TEXT NOT NULL,
+          action_type TEXT NOT NULL,
+          status TEXT NOT NULL,
+          stdout TEXT,
+          stderr TEXT,
+          error_message TEXT,
+          created_at TEXT NOT NULL,
+          FOREIGN KEY(task_id) REFERENCES tasks(id) ON DELETE CASCADE
+        );
+
         INSERT INTO runtime_metadata (key, value, updated_at)
-        VALUES ('schema_version', '4', datetime('now'))
+        VALUES ('schema_version', '5', datetime('now'))
         ON CONFLICT(key) DO UPDATE SET
           value = excluded.value,
           updated_at = excluded.updated_at;

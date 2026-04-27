@@ -88,6 +88,7 @@ module Redwright
             project_ref: resolution.project_ref,
             intent: decision.intent,
             message: decision.message,
+            actions: decision.respond_to?(:actions) ? decision.actions : [],
             workstream_id: resolution.workstream_id,
             confirm_new_workstream: true,
             blocked_retry_attempts: @blocked_retry_attempts

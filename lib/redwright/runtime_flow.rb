@@ -3,18 +3,39 @@
 require_relative "trace"
 
 module Redwright
-  FlowResult = Struct.new(:project, :workstream, :task, :alignment, :functional_spec_path, :technical_spec_path, keyword_init: true)
+  FlowResult = Struct.new(
+    :project, :workstream, :task, :alignment, :functional_spec_path, :technical_spec_path, :action_results,
+    keyword_init: true
+  )
 
   class RuntimeFlow
-    def initialize(project_store:, workstream_store:, task_store:, alignment_store:, plan_spec_store: nil)
+    def initialize(
+      project_store:,
+      workstream_store:,
+      task_store:,
+      alignment_store:,
+      plan_spec_store: nil,
+      primitive_executor: nil,
+      action_execution_store: nil
+    )
       @project_store = project_store
       @workstream_store = workstream_store
       @task_store = task_store
       @alignment_store = alignment_store
       @plan_spec_store = plan_spec_store
+      @primitive_executor = primitive_executor
+      @action_execution_store = action_execution_store
     end
 
-    def process(project_ref:, intent:, message:, workstream_id: nil, confirm_new_workstream: false, blocked_retry_attempts: 1)
+    def process(
+      project_ref:,
+      intent:,
+      message:,
+      actions: [],
+      workstream_id: nil,
+      confirm_new_workstream: false,
+      blocked_retry_attempts: 1
+    )
       Trace.with_trace_id do
         retries = [blocked_retry_attempts.to_i, 1].max
         attempts = 0
@@ -25,6 +46,7 @@ module Redwright
             project_ref: project_ref,
             intent: intent,
             message: message,
+            actions: actions,
             workstream_id: workstream_id,
             confirm_new_workstream: confirm_new_workstream
           )
@@ -40,7 +62,7 @@ module Redwright
 
     private
 
-    def process_once(project_ref:, intent:, message:, workstream_id:, confirm_new_workstream:)
+    def process_once(project_ref:, intent:, message:, actions:, workstream_id:, confirm_new_workstream:)
       project = @project_store.resolve(project_ref)
       raise ArgumentError, "project not found" unless project
 
@@ -58,6 +80,7 @@ module Redwright
       end
 
       task = @task_store.create(workstream_id: workstream.id, description: message, status: "pending")
+      action_results = execute_actions(project: project, task: task, actions: actions)
       workstream = @workstream_store.update_state(workstream.id, "executing")
       Trace.runtime({
         trace_id: Trace.current_trace_id || "none",
@@ -66,7 +89,15 @@ module Redwright
         task_id: task.id,
         state: workstream.state
       })
-      FlowResult.new(project: project, workstream: workstream, task: task, alignment: nil, functional_spec_path: nil, technical_spec_path: nil)
+      FlowResult.new(
+        project: project,
+        workstream: workstream,
+        task: task,
+        alignment: nil,
+        functional_spec_path: nil,
+        technical_spec_path: nil,
+        action_results: action_results
+      )
     end
 
     def resolve_or_create_workstream(project:, intent:, workstream_id:, confirm_new_workstream:)
@@ -139,6 +170,32 @@ module Redwright
       workstream = @workstream_store.update_state(workstream.id, "waiting_user")
       task = @task_store.create(workstream_id: workstream.id, description: "alignment question: #{session.pending_question}", status: "waiting_user")
       FlowResult.new(project: project, workstream: workstream, task: task, alignment: session, functional_spec_path: nil, technical_spec_path: nil)
+    end
+
+    def execute_actions(project:, task:, actions:)
+      return [] if actions.nil? || actions.empty?
+      raise ArgumentError, "primitive executor is not configured" unless @primitive_executor
+
+      results = []
+      actions.each do |action|
+        result = @primitive_executor.execute(project_root: project.path, action: action)
+        @action_execution_store&.create(
+          task_id: task.id,
+          action_id: result.action_id,
+          action_type: result.action_type,
+          status: result.status,
+          stdout: result.stdout,
+          stderr: result.stderr,
+          error_message: result.error_message
+        )
+        results << result
+
+        next if result.status == "ok"
+        next if action["on_failure"] == "continue"
+
+        raise RuntimeError, "action_failed id=#{result.action_id} type=#{result.action_type}: #{result.error_message}"
+      end
+      results
     end
   end
 end

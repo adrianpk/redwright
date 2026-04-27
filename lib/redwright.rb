@@ -10,6 +10,8 @@ require_relative "redwright/task_commit_store"
 require_relative "redwright/alignment_store"
 require_relative "redwright/plan_spec_store"
 require_relative "redwright/runtime_flow"
+require_relative "redwright/primitive_executor"
+require_relative "redwright/action_execution_store"
 require_relative "redwright/worktree_manager"
 require_relative "redwright/spec_promotion"
 require_relative "redwright/runtime_config_store"
@@ -434,7 +436,9 @@ module Redwright
           workstream_store: WorkstreamStore.new(bootstrap.db_path),
           task_store: TaskStore.new(bootstrap.db_path),
           alignment_store: AlignmentStore.new(bootstrap.db_path),
-          plan_spec_store: PlanSpecStore.new
+          plan_spec_store: PlanSpecStore.new,
+          primitive_executor: PrimitiveExecutor.new,
+          action_execution_store: ActionExecutionStore.new(bootstrap.db_path)
         )
         telegram_client = TelegramClient.new(bot_token: config.telegram.bot_token)
         telegram_ingress = TelegramIngress.new(

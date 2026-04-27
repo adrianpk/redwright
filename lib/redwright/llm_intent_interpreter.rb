@@ -5,7 +5,7 @@ require_relative "planner_payload_validator"
 
 module Redwright
   class LlmIntentInterpreter
-    Decision = Struct.new(:intent, :message, :source, :finish_reason, :raw_output, keyword_init: true)
+    Decision = Struct.new(:intent, :message, :actions, :source, :finish_reason, :raw_output, keyword_init: true)
 
     SYSTEM_PROMPT = PlannerContract::SYSTEM_PROMPT
 
@@ -37,6 +37,7 @@ module Redwright
         return Decision.new(
           intent: validation.intent,
           message: validation.message,
+          actions: validation.actions,
           source: "llm",
           finish_reason: completion.finish_reason || "stop",
           raw_output: completion.content
@@ -54,6 +55,7 @@ module Redwright
       Decision.new(
         intent: "change",
         message: text,
+        actions: [],
         source: "fallback",
         finish_reason: reason,
         raw_output: raw_output
