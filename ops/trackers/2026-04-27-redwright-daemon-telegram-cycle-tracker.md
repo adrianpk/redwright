@@ -51,8 +51,7 @@ Tasks:
 
 Commits:
 
-- [ ] `<sha> feat(runtime): add daemon run loop command`
-- [ ] `<sha> test(runtime): validate daemon loop lifecycle and shutdown semantics`
+- [x] `12c9f36 feat(runtime): add daemon run loop command and lifecycle tests`
 
 Validation:
 
