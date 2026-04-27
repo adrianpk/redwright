@@ -24,6 +24,7 @@ class TelegramContextResolverTest < Minitest::Test
         result = resolver.resolve(chat_id: 99, text: "project:rw-alpha update docs")
         assert_equal(true, result.resolved)
         assert_equal(first.id, result.project_ref)
+        assert_equal(first.path, result.project_path)
       end
     end
   end
@@ -42,6 +43,7 @@ class TelegramContextResolverTest < Minitest::Test
         result = resolver.resolve(chat_id: 42, text: "continue with next step")
         assert_equal(true, result.resolved)
         assert_equal(project.id, result.project_ref)
+        assert_equal(project.path, result.project_path)
         assert_equal("ws-1", result.workstream_id)
       end
     end

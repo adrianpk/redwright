@@ -354,4 +354,72 @@ class TelegramRuntimeHandlerTest < Minitest::Test
     assert_equal("ws-z", payload.dig("runtime", "workstream_id"))
     assert_equal("task-z", payload.dig("runtime", "task_id"))
   end
+
+  def test_handle_passes_dynamic_prompt_context_to_interpreter_when_supported
+    fake_flow = Object.new
+    fake_flow.define_singleton_method(:process) do |**_kwargs|
+      FakeResult.new(
+        project: FakeProject.new(id: "project-c"),
+        workstream: FakeWorkstream.new(id: "ws-c", state: "executing"),
+        task: FakeTask.new(id: "task-c"),
+        alignment: nil,
+        action_results: nil
+      )
+    end
+
+    fake_resolver = Object.new
+    fake_resolver.define_singleton_method(:resolve) do |chat_id:, text:|
+      Redwright::TelegramContextResolver::Resolution.new(
+        resolved: true,
+        project_ref: "project-c",
+        project_path: "/tmp/project-c",
+        workstream_id: nil,
+        question: nil
+      )
+    end
+
+    loader = Object.new
+    loader.define_singleton_method(:build) do |project_path:|
+      {
+        project_context: "Project path: #{project_path}",
+        architecture_context: "Conventions: Keep docs in English"
+      }
+    end
+
+    fake_interpreter = Object.new
+    captured = {}
+    fake_interpreter.define_singleton_method(:interpret) do |text:, model:, project_context:, architecture_context:|
+      captured[:project_context] = project_context
+      captured[:architecture_context] = architecture_context
+      TelegramRuntimeHandlerTest::FakeDecision.new(
+        intent: "change",
+        message: "do thing",
+        actions: [],
+        source: "llm",
+        finish_reason: "stop",
+        raw_output: "{\"intent\":\"change\",\"message\":\"do thing\",\"actions\":[]}"
+      )
+    end
+    fake_interpreter.define_singleton_method(:system_prompt) do |project_context:, architecture_context:|
+      "PROMPT #{project_context} #{architecture_context}"
+    end
+
+    client = FakeTelegramClient.new([])
+    handler = Redwright::TelegramRuntimeHandler.new(
+      flow: fake_flow,
+      telegram_client: client,
+      out: StringIO.new,
+      err: StringIO.new,
+      context_resolver: fake_resolver,
+      blocked_retry_attempts: 1,
+      model_name: "gpt-5-mini",
+      intent_interpreter: fake_interpreter,
+      prompt_context_loader: loader
+    )
+
+    handler.handle(Redwright::TelegramEvent.new(update_id: 11, chat_id: 5, user_id: nil, username: nil, text: "do thing"))
+
+    assert_equal("Project path: /tmp/project-c", captured[:project_context])
+    assert_equal("Conventions: Keep docs in English", captured[:architecture_context])
+  end
 end
