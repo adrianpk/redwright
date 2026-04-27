@@ -422,4 +422,53 @@ class TelegramRuntimeHandlerTest < Minitest::Test
     assert_equal("Project path: /tmp/project-c", captured[:project_context])
     assert_equal("Conventions: Keep docs in English", captured[:architecture_context])
   end
+
+  def test_handle_rejects_invalid_planner_fallback_before_execution_and_persists_reason
+    fake_flow = Object.new
+    fake_flow.define_singleton_method(:process) do |**_kwargs|
+      raise "flow should not execute when planner output is invalid"
+    end
+
+    fake_interpreter = Object.new
+    fake_interpreter.define_singleton_method(:interpret) do |text:, model:, **_kwargs|
+      TelegramRuntimeHandlerTest::FakeDecision.new(
+        intent: "change",
+        message: text,
+        actions: [],
+        source: "fallback",
+        finish_reason: "invalid_payload:action_0_type_not_allowed:write_files",
+        raw_output: "{\"intent\":\"change\",\"actions\":[{\"type\":\"write_files\"}]}"
+      )
+    end
+    fake_interpreter.define_singleton_method(:system_prompt) { |**_kwargs| "prompt" }
+
+    persisted = []
+    fake_rejections = Object.new
+    fake_rejections.define_singleton_method(:create) do |**kwargs|
+      persisted << kwargs
+      Struct.new(:id).new("rej-1")
+    end
+
+    client = FakeTelegramClient.new([])
+    out = StringIO.new
+    err = StringIO.new
+    handler = Redwright::TelegramRuntimeHandler.new(
+      flow: fake_flow,
+      telegram_client: client,
+      out: out,
+      err: err,
+      blocked_retry_attempts: 1,
+      intent_interpreter: fake_interpreter,
+      planner_rejection_store: fake_rejections
+    )
+
+    handler.handle(Redwright::TelegramEvent.new(update_id: 12, chat_id: 12, user_id: nil, username: nil, text: "do stuff"))
+
+    assert_equal("", err.string)
+    assert_equal(1, persisted.size)
+    assert_equal("invalid_payload:action_0_type_not_allowed:write_files", persisted.first[:reason])
+    assert_match("Planner output was rejected before execution.", client.messages.last[:text])
+    assert_match("No actions were executed for this turn.", client.messages.last[:text])
+    assert_match("telegram planner_reject chat=12", out.string)
+  end
 end
