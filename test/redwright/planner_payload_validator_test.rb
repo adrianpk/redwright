@@ -75,4 +75,28 @@ class PlannerPayloadValidatorTest < Minitest::Test
     assert_equal(false, result.valid)
     assert_includes(result.errors.join("|"), "top_level_missing_keys:message")
   end
+
+  def test_validate_rejects_unsupported_action_type
+    validator = Redwright::PlannerPayloadValidator.new
+    payload = JSON.generate(
+      {
+        intent: "change",
+        message: "write multiple files",
+        actions: [
+          {
+            id: "a1",
+            type: "write_files",
+            args: { files: { "a.txt" => "x" } },
+            requires_confirmation: false,
+            timeout_ms: 10_000,
+            on_failure: "abort"
+          }
+        ]
+      }
+    )
+
+    result = validator.validate(payload)
+    assert_equal(false, result.valid)
+    assert_includes(result.errors, "action_0_type_not_allowed:write_files")
+  end
 end

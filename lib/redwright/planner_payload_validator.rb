@@ -62,7 +62,11 @@ module Redwright
         errors << "action_#{idx}_missing_keys:#{missing.sort.join(',')}" unless missing.empty?
 
         errors << "action_#{idx}_id_invalid" if action["id"].to_s.strip.empty?
-        errors << "action_#{idx}_type_invalid" if action["type"].to_s.strip.empty?
+        action_type = action["type"].to_s.strip
+        errors << "action_#{idx}_type_invalid" if action_type.empty?
+        unless action_type.empty? || PlannerContract::ACTION_TYPES.include?(action_type)
+          errors << "action_#{idx}_type_not_allowed:#{action_type}"
+        end
         errors << "action_#{idx}_args_not_object" unless action["args"].is_a?(Hash)
         errors << "action_#{idx}_requires_confirmation_not_boolean" unless [true, false].include?(action["requires_confirmation"])
         errors << "action_#{idx}_timeout_ms_invalid" unless positive_integer?(action["timeout_ms"])
