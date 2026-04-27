@@ -6,7 +6,7 @@
 - status: `in_progress`
 - state: `implementation`
 - updated: `2026-04-27`
-- active_slice: `slice-6`
+- active_slice: `slice-7`
 - active_task: `none`
 
 ## Slice Progress
@@ -157,27 +157,27 @@ Validation:
 
 ### Slice 7: Skill System Scaffold Interfaces
 
-- status: `pending`
+- status: `completed`
 - branch: `feat/slice-7-skill-scaffold`
 - PR: `tbd`
 - merge_target: `dev`
-- last_sync_commit: `tbd`
+- last_sync_commit: `63eccf8`
 
 Tasks:
 
-- [ ] `T7.1 define skill manifest interface and loader contract`
-- [ ] `T7.2 add planner/executor hook points for skill dispatch`
-- [ ] `T7.3 add no-op reference skill fixture and tests`
+- [x] `T7.1 define skill manifest interface and loader contract`
+- [x] `T7.2 add planner/executor hook points for skill dispatch`
+- [x] `T7.3 add no-op reference skill fixture and tests`
 
 Commits:
 
-- [ ] `<sha> feat(skills): add skill scaffold interfaces and loader seam`
-- [ ] `<sha> test(skills): validate skill registration and no-op dispatch`
+- [x] `1fbdca6 feat(skills): add skill scaffold interfaces and runtime hook seams`
+- [x] `63eccf8 test(skills): validate skill loader fixture and planner/executor hooks`
 
 Validation:
 
-- [ ] `runtime exposes stable extension seams without changing core flow semantics`
-- [ ] `skill scaffold remains optional and does not block baseline execution`
+- [x] `runtime exposes stable extension seams without changing core flow semantics`
+- [x] `skill scaffold remains optional and does not block baseline execution`
 
 ## Event Log
 
@@ -196,3 +196,5 @@ Validation:
 - `2026-04-27 20:38` validation=`bundle exec ruby -Itest -e 'Dir["test/redwright/*_test.rb"].sort.each { |f| require File.expand_path(f) }'`
 - `2026-04-27 20:56` state=`implementation` slice=`slice-6` note=`persisted trace correlation ids for tasks/actions, added per-class trace toggles, and exposed trace evidence query surface via CLI`
 - `2026-04-27 20:56` validation=`bundle exec ruby -Itest -e 'Dir["test/redwright/*_test.rb"].sort.each { |f| require File.expand_path(f) }'`
+- `2026-04-27 21:10` state=`implementation` slice=`slice-7` note=`added skill scaffold contracts, loader/registry, and no-op planner/executor hooks with fixture-backed tests`
+- `2026-04-27 21:10` validation=`bundle exec ruby -Itest -e 'Dir["test/redwright/*_test.rb"].sort.each { |f| require File.expand_path(f) }'`
