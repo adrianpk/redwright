@@ -11,6 +11,7 @@ require_relative "redwright/alignment_store"
 require_relative "redwright/plan_spec_store"
 require_relative "redwright/runtime_flow"
 require_relative "redwright/worktree_manager"
+require_relative "redwright/spec_promotion"
 
 module Redwright
   class CLI
@@ -36,8 +37,10 @@ module Redwright
         run_flow
       when "worktree"
         run_worktree
+      when "spec"
+        run_spec
       else
-        @err.puts("usage: redwright <bootstrap|project|workstream|task|flow|worktree>")
+        @err.puts("usage: redwright <bootstrap|project|workstream|task|flow|worktree|spec>")
         1
       end
     end
@@ -323,6 +326,25 @@ module Redwright
         1
       end
     rescue OptionParser::ParseError, ArgumentError => e
+      @err.puts(e.message)
+      1
+    end
+
+    def run_spec
+      sub = @argv.shift
+      promoter = SpecPromotion.new
+
+      case sub
+      when "promote"
+        file_name = @argv.shift
+        result = promoter.promote(file_name)
+        @out.puts("promoted: #{result.source_path} -> #{result.target_path}")
+        0
+      else
+        @err.puts("usage: redwright spec promote <draft-file-name>")
+        1
+      end
+    rescue ArgumentError => e
       @err.puts(e.message)
       1
     end
