@@ -12,6 +12,11 @@ task :bootstrap do
   sh "bundle exec ruby bin/redwright bootstrap --dev"
 end
 
+desc "Run daemon in foreground (dev mode)"
+task :daemon do
+  sh "bundle exec ruby bin/redwright daemon run --dev"
+end
+
 desc "Run redwright CLI. Usage: bundle exec rake run CMD='flow process --dev --message \"hi\"'"
 task :run do
   cmd = ENV.fetch("CMD", "").strip
