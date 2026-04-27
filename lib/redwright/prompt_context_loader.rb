@@ -1,11 +1,13 @@
 # frozen_string_literal: true
 
 require "yaml"
+require_relative "workspace_snapshot_builder"
 
 module Redwright
   class PromptContextLoader
-    def initialize(repo_root: Dir.pwd)
+    def initialize(repo_root: Dir.pwd, workspace_snapshot_builder: WorkspaceSnapshotBuilder.new)
       @repo_root = repo_root
+      @workspace_snapshot_builder = workspace_snapshot_builder
     end
 
     def build(project_path:)
@@ -13,7 +15,8 @@ module Redwright
       {
         project_context: project_context_from_manifest(manifest, project_path) || project_context_from_fallback(project_path),
         architecture_context: architecture_context_from_manifest(manifest) || architecture_context_from_fallback,
-        quality: quality_from_manifest(manifest)
+        quality: quality_from_manifest(manifest),
+        workspace_context: workspace_context(project_path)
       }
     end
 
@@ -135,6 +138,12 @@ module Redwright
       return nil unless non_empty_string?(value)
 
       value.strip
+    end
+
+    def workspace_context(project_path)
+      @workspace_snapshot_builder.build(project_path: project_path)
+    rescue StandardError
+      "Workspace snapshot unavailable."
     end
   end
 end

@@ -29,14 +29,15 @@ module Redwright
       @architecture_context_provider = architecture_context_provider
     end
 
-    def interpret(text:, model:, project_context: nil, architecture_context: nil)
+    def interpret(text:, model:, project_context: nil, architecture_context: nil, workspace_context: nil)
       context = { model: model, stage: "planner" }
       plan_text = @skill_dispatcher.before_plan(text: text, context: context)
       system_prompt = build_system_prompt(
         text: plan_text,
         model: model,
         project_context: project_context,
-        architecture_context: architecture_context
+        architecture_context: architecture_context,
+        workspace_context: workspace_context
       )
 
       return fallback(plan_text, "llm_not_configured") unless @llm_client&.configured?
@@ -73,23 +74,25 @@ module Redwright
       fallback(plan_text || text, "llm_error:#{e.class}")
     end
 
-    def system_prompt(project_context: nil, architecture_context: nil)
+    def system_prompt(project_context: nil, architecture_context: nil, workspace_context: nil)
       build_system_prompt(
         text: "",
         model: "",
         project_context: project_context,
-        architecture_context: architecture_context
+        architecture_context: architecture_context,
+        workspace_context: workspace_context
       )
     end
 
     private
 
-    def build_system_prompt(text:, model:, project_context:, architecture_context:)
+    def build_system_prompt(text:, model:, project_context:, architecture_context:, workspace_context:)
       project_override = project_context
       architecture_override = architecture_context
       @prompt_builder.build(
         project_context: project_override || resolve_context_provider(@project_context_provider, text: text, model: model),
-        architecture_context: architecture_override || resolve_context_provider(@architecture_context_provider, text: text, model: model)
+        architecture_context: architecture_override || resolve_context_provider(@architecture_context_provider, text: text, model: model),
+        workspace_context: workspace_context
       )
     end
 

@@ -83,7 +83,8 @@ module Redwright
             payload_bytes: event.text.to_s.bytesize,
             system_prompt: trace_system_prompt_for_interpreter(
               project_context: prompt_context[:project_context],
-              architecture_context: prompt_context[:architecture_context]
+              architecture_context: prompt_context[:architecture_context],
+              workspace_context: prompt_context[:workspace_context]
             ),
             user_text: event.text
           )
@@ -92,7 +93,8 @@ module Redwright
             text: event.text,
             model: @model_name,
             project_context: prompt_context[:project_context],
-            architecture_context: prompt_context[:architecture_context]
+            architecture_context: prompt_context[:architecture_context],
+            workspace_context: prompt_context[:workspace_context]
           )
           elapsed_ms = ((Process.clock_gettime(Process::CLOCK_MONOTONIC) - started_at) * 1000).to_i
           Trace.llm_response(
@@ -182,19 +184,17 @@ module Redwright
       @intent_interpreter ||= LlmIntentInterpreter.new(llm_client: nil)
     end
 
-    def trace_system_prompt_for_interpreter(project_context:, architecture_context:)
+    def trace_system_prompt_for_interpreter(project_context:, architecture_context:, workspace_context:)
       unless interpreter.respond_to?(:system_prompt)
         return LlmIntentInterpreter::SYSTEM_PROMPT.strip
       end
 
-      params = interpreter.method(:system_prompt).parameters
-      if params.any? { |type, name| [:key, :keyreq].include?(type) && name == :project_context }
-        return interpreter.system_prompt(
-          project_context: project_context,
-          architecture_context: architecture_context
-        )
-      end
-      interpreter.system_prompt
+      kwargs = {
+        project_context: project_context,
+        architecture_context: architecture_context,
+        workspace_context: workspace_context
+      }
+      call_with_supported_keywords(interpreter.method(:system_prompt), kwargs)
     end
 
     def resolve_context(event:)
@@ -204,25 +204,22 @@ module Redwright
     end
 
     def load_prompt_context(project_path:)
-      return { project_context: nil, architecture_context: nil, quality: { auto_validate: false } } unless @prompt_context_loader
+      return { project_context: nil, architecture_context: nil, workspace_context: nil, quality: { auto_validate: false } } unless @prompt_context_loader
 
       @prompt_context_loader.build(project_path: project_path)
     rescue StandardError
-      { project_context: nil, architecture_context: nil, quality: { auto_validate: false } }
+      { project_context: nil, architecture_context: nil, workspace_context: nil, quality: { auto_validate: false } }
     end
 
-    def interpret_with_context(text:, model:, project_context:, architecture_context:)
-      params = interpreter.method(:interpret).parameters
-      if params.any? { |type, name| [:key, :keyreq].include?(type) && name == :project_context }
-        return interpreter.interpret(
-          text: text,
-          model: model,
-          project_context: project_context,
-          architecture_context: architecture_context
-        )
-      end
-
-      interpreter.interpret(text: text, model: model)
+    def interpret_with_context(text:, model:, project_context:, architecture_context:, workspace_context:)
+      kwargs = {
+        text: text,
+        model: model,
+        project_context: project_context,
+        architecture_context: architecture_context,
+        workspace_context: workspace_context
+      }
+      call_with_supported_keywords(interpreter.method(:interpret), kwargs)
     end
 
     def planner_decision_invalid?(decision)
@@ -332,6 +329,16 @@ module Redwright
       return unless @send_json_envelope
 
       @telegram_client.send_message(chat_id: chat_id, text: "```json\n#{envelope.to_json_string}\n```")
+    end
+
+    def call_with_supported_keywords(method_obj, kwargs)
+      params = method_obj.parameters
+      accepts_keyrest = params.any? { |type, _name| type == :keyrest }
+      return method_obj.call(**kwargs) if accepts_keyrest
+
+      allowed = params.select { |type, _name| [:key, :keyreq].include?(type) }.map(&:last)
+      filtered = kwargs.select { |key, _| allowed.include?(key) }
+      method_obj.call(**filtered)
     end
 
     def start_typing_keepalive(chat_id)
