@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative "trace"
+require_relative "runtime_result_envelope"
 
 module Redwright
   class TelegramRuntimeHandler
@@ -50,11 +51,14 @@ module Redwright
         blocked_retry_attempts: @blocked_retry_attempts
       )
 
-      text = +"ok\n"
-      text << "project_id: #{result.project.id}\n"
-      text << "workstream_id: #{result.workstream.id}\n"
-      text << "task_id: #{result.task.id}\n"
-      text << "state: #{result.workstream.state}"
+      envelope = RuntimeResultEnvelope.success(
+        trace_id: Trace.current_trace_id || "none",
+        project_id: result.project.id,
+        workstream_id: result.workstream.id,
+        task_id: result.task.id,
+        state: result.workstream.state
+      )
+      text = envelope.to_json_string
       @telegram_client.send_message(chat_id: event.chat_id, text: text)
       Trace.banner("RUNTIME TRACE", {
         trace_id: Trace.current_trace_id || "none",
@@ -65,7 +69,11 @@ module Redwright
       })
       @out.puts("telegram processed chat=#{event.chat_id} task=#{result.task.id}")
     rescue StandardError => e
-      @telegram_client.send_message(chat_id: event.chat_id, text: "error: #{e.message}")
+      error_envelope = RuntimeResultEnvelope.error(
+        trace_id: Trace.current_trace_id || "none",
+        message: e.message
+      )
+      @telegram_client.send_message(chat_id: event.chat_id, text: error_envelope.to_json_string)
       @err.puts("telegram processing error chat=#{event.chat_id}: #{e.message}")
     end
   end

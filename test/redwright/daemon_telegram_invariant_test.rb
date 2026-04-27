@@ -2,6 +2,7 @@
 
 require "tmpdir"
 require "stringio"
+require "json"
 require "minitest/autorun"
 
 $LOAD_PATH.unshift(File.expand_path("../../lib", __dir__))
@@ -55,11 +56,12 @@ class DaemonTelegramInvariantTest < Minitest::Test
         handler.handle(event)
 
         assert_equal(1, client.messages.size)
-        text = client.messages.first[:text]
-        assert_match("project_id: #{project.id}", text)
-        assert_match("workstream_id: ", text)
-        assert_match("task_id: ", text)
-        assert_match("state: executing", text)
+        payload = JSON.parse(client.messages.first[:text])
+        assert_equal("ok", payload["status"])
+        assert_equal(project.id, payload.dig("runtime", "project_id"))
+        assert(payload.dig("runtime", "workstream_id"))
+        assert(payload.dig("runtime", "task_id"))
+        assert_equal("executing", payload.dig("runtime", "state"))
         tasks = task_store.list
         assert_equal(1, tasks.size)
         assert_equal("implement smoke", tasks.first.description)

@@ -2,6 +2,7 @@
 
 require "tmpdir"
 require "stringio"
+require "json"
 require "minitest/autorun"
 
 $LOAD_PATH.unshift(File.expand_path("../../lib", __dir__))
@@ -64,11 +65,13 @@ class TelegramRuntimeHandlerTest < Minitest::Test
 
         sent = client.messages.last
         assert_equal(42, sent[:chat_id])
-        assert_match(/^ok$/, sent[:text].lines.first.strip)
-        assert_match("project_id: #{project.id}", sent[:text])
-        assert_match("workstream_id: ", sent[:text])
-        assert_match("task_id: ", sent[:text])
-        assert_match("state: executing", sent[:text])
+        payload = JSON.parse(sent[:text])
+        assert_equal("ok", payload["status"])
+        assert(payload["trace_id"])
+        assert_equal(project.id, payload.dig("runtime", "project_id"))
+        assert(payload.dig("runtime", "workstream_id"))
+        assert(payload.dig("runtime", "task_id"))
+        assert_equal("executing", payload.dig("runtime", "state"))
       end
     end
   end
@@ -96,6 +99,10 @@ class TelegramRuntimeHandlerTest < Minitest::Test
     assert_match("project not found", err.string)
     assert_equal(1, client.messages.size)
     assert_equal(7, client.messages.first[:chat_id])
-    assert_match("error: project not found", client.messages.first[:text])
+    payload = JSON.parse(client.messages.first[:text])
+    assert_equal("error", payload["status"])
+    assert(payload["trace_id"])
+    assert_equal("runtime_error", payload.dig("error", "code"))
+    assert_equal("project not found", payload.dig("error", "message"))
   end
 end
