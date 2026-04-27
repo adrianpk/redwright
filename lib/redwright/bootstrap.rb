@@ -37,6 +37,7 @@ module Redwright
       db = SQLite3::Database.new(db_path)
       db.execute_batch(<<~SQL)
         PRAGMA journal_mode = WAL;
+        PRAGMA foreign_keys = ON;
 
         CREATE TABLE IF NOT EXISTS runtime_metadata (
           key TEXT PRIMARY KEY,
@@ -44,8 +45,54 @@ module Redwright
           updated_at TEXT NOT NULL
         );
 
+        CREATE TABLE IF NOT EXISTS projects (
+          id TEXT PRIMARY KEY,
+          name TEXT NOT NULL,
+          path TEXT NOT NULL UNIQUE,
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL,
+          last_active_at TEXT
+        );
+
+        CREATE TABLE IF NOT EXISTS project_aliases (
+          alias TEXT PRIMARY KEY,
+          project_id TEXT NOT NULL,
+          created_at TEXT NOT NULL,
+          FOREIGN KEY(project_id) REFERENCES projects(id) ON DELETE CASCADE
+        );
+
+        CREATE TABLE IF NOT EXISTS workstreams (
+          id TEXT PRIMARY KEY,
+          project_id TEXT NOT NULL,
+          intent TEXT NOT NULL,
+          state TEXT NOT NULL,
+          branch TEXT,
+          worktree_path TEXT,
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL,
+          FOREIGN KEY(project_id) REFERENCES projects(id) ON DELETE CASCADE
+        );
+
+        CREATE TABLE IF NOT EXISTS tasks (
+          id TEXT PRIMARY KEY,
+          workstream_id TEXT NOT NULL,
+          description TEXT NOT NULL,
+          status TEXT NOT NULL,
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL,
+          FOREIGN KEY(workstream_id) REFERENCES workstreams(id) ON DELETE CASCADE
+        );
+
+        CREATE TABLE IF NOT EXISTS task_commits (
+          task_id TEXT NOT NULL,
+          commit_sha TEXT NOT NULL,
+          created_at TEXT NOT NULL,
+          PRIMARY KEY(task_id, commit_sha),
+          FOREIGN KEY(task_id) REFERENCES tasks(id) ON DELETE CASCADE
+        );
+
         INSERT INTO runtime_metadata (key, value, updated_at)
-        VALUES ('schema_version', '1', datetime('now'))
+        VALUES ('schema_version', '2', datetime('now'))
         ON CONFLICT(key) DO UPDATE SET
           value = excluded.value,
           updated_at = excluded.updated_at;
