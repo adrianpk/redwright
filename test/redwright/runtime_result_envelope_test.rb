@@ -25,6 +25,28 @@ class RuntimeResultEnvelopeTest < Minitest::Test
     assert_equal("executing", payload.dig("runtime", "state"))
   end
 
+  def test_success_envelope_with_execution_summary
+    envelope = Redwright::RuntimeResultEnvelope.success(
+      trace_id: "trc-1",
+      project_id: "p1",
+      workstream_id: "ws1",
+      task_id: "t1",
+      state: "executing",
+      execution: {
+        total_actions: 2,
+        succeeded_actions: 1,
+        failed_actions: 1,
+        failed_action_ids: ["a2"]
+      }
+    )
+    payload = JSON.parse(envelope.to_json_string)
+
+    assert_equal(2, payload.dig("runtime", "execution", "total_actions"))
+    assert_equal(1, payload.dig("runtime", "execution", "succeeded_actions"))
+    assert_equal(1, payload.dig("runtime", "execution", "failed_actions"))
+    assert_equal(["a2"], payload.dig("runtime", "execution", "failed_action_ids"))
+  end
+
   def test_error_envelope_structure
     envelope = Redwright::RuntimeResultEnvelope.error(trace_id: "trc-2", message: "boom")
     payload = JSON.parse(envelope.to_json_string)

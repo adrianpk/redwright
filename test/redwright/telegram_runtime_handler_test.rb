@@ -31,11 +31,12 @@ class TelegramRuntimeHandlerTest < Minitest::Test
     end
   end
 
-  FakeDecision = Struct.new(:intent, :message, :source, :finish_reason, :raw_output, keyword_init: true)
+  FakeDecision = Struct.new(:intent, :message, :actions, :source, :finish_reason, :raw_output, keyword_init: true)
   FakeProject = Struct.new(:id, keyword_init: true)
   FakeWorkstream = Struct.new(:id, :state, keyword_init: true)
   FakeTask = Struct.new(:id, keyword_init: true)
-  FakeResult = Struct.new(:project, :workstream, :task, :alignment, keyword_init: true)
+  FakeActionResult = Struct.new(:action_id, :status, keyword_init: true)
+  FakeResult = Struct.new(:project, :workstream, :task, :alignment, :action_results, keyword_init: true)
 
   def test_handle_materializes_runtime_action_and_sends_ack
     Dir.mktmpdir("redwright-telegram-handler-ok-") do |dir|
@@ -98,7 +99,8 @@ class TelegramRuntimeHandlerTest < Minitest::Test
         project: FakeProject.new(id: "project-1"),
         workstream: FakeWorkstream.new(id: "ws-1", state: "executing"),
         task: FakeTask.new(id: "task-1"),
-        alignment: nil
+        alignment: nil,
+        action_results: nil
       )
     end
 
@@ -145,7 +147,8 @@ class TelegramRuntimeHandlerTest < Minitest::Test
         project: FakeProject.new(id: "project-2"),
         workstream: FakeWorkstream.new(id: "ws-2", state: "executing"),
         task: FakeTask.new(id: "task-2"),
-        alignment: nil
+        alignment: nil,
+        action_results: nil
       )
     end
 
@@ -253,5 +256,75 @@ class TelegramRuntimeHandlerTest < Minitest::Test
     payload = JSON.parse(client.messages.first[:text])
     assert_equal("clarify", payload["status"])
     assert_equal("Please specify project.", payload.dig("clarify", "question"))
+  end
+
+  def test_handle_includes_execution_summary_and_passes_actions_to_flow
+    fake_flow = Object.new
+    captured = {}
+    fake_flow.define_singleton_method(:process) do |**kwargs|
+      captured.merge!(kwargs)
+      FakeResult.new(
+        project: FakeProject.new(id: "project-x"),
+        workstream: FakeWorkstream.new(id: "ws-x", state: "executing"),
+        task: FakeTask.new(id: "task-x"),
+        alignment: nil,
+        action_results: [
+          FakeActionResult.new(action_id: "a1", status: "ok"),
+          FakeActionResult.new(action_id: "a2", status: "error")
+        ]
+      )
+    end
+
+    fake_interpreter = Object.new
+    def fake_interpreter.interpret(text:, model:)
+      raise "unexpected text" unless text == "do stuff"
+      raise "unexpected model" unless model == "gpt-5-mini"
+
+      TelegramRuntimeHandlerTest::FakeDecision.new(
+        intent: "change",
+        message: "do stuff normalized",
+        actions: [
+          {
+            "id" => "a1",
+            "type" => "list_files",
+            "args" => {},
+            "requires_confirmation" => false,
+            "timeout_ms" => 1000,
+            "on_failure" => "continue"
+          }
+        ],
+        source: "llm",
+        finish_reason: "stop",
+        raw_output: "{\"intent\":\"change\",\"message\":\"do stuff normalized\",\"actions\":[]}"
+      )
+    end
+
+    client = FakeTelegramClient.new([])
+    out = StringIO.new
+    err = StringIO.new
+    handler = Redwright::TelegramRuntimeHandler.new(
+      flow: fake_flow,
+      telegram_client: client,
+      out: out,
+      err: err,
+      blocked_retry_attempts: 1,
+      model_name: "gpt-5-mini",
+      intent_interpreter: fake_interpreter
+    )
+
+    handler.handle(Redwright::TelegramEvent.new(update_id: 9, chat_id: 9, user_id: nil, username: nil, text: "do stuff"))
+
+    assert_equal("change", captured[:intent])
+    assert_equal("do stuff normalized", captured[:message])
+    assert_equal(1, captured[:actions].size)
+
+    payload = JSON.parse(client.messages.last[:text])
+    assert_equal("ok", payload["status"])
+    assert_equal(2, payload.dig("runtime", "execution", "total_actions"))
+    assert_equal(1, payload.dig("runtime", "execution", "succeeded_actions"))
+    assert_equal(1, payload.dig("runtime", "execution", "failed_actions"))
+    assert_equal(["a2"], payload.dig("runtime", "execution", "failed_action_ids"))
+    assert_match("telegram processed chat=9 task=task-x", out.string)
+    assert_equal("", err.string)
   end
 end
