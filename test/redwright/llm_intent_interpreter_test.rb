@@ -9,10 +9,14 @@ class LlmIntentInterpreterTest < Minitest::Test
   Completion = Struct.new(:content, :finish_reason, keyword_init: true)
 
   class FakeLlmClient
-    def initialize(configured: true, completion: nil, raises: nil)
+    attr_reader :call_count
+
+    def initialize(configured: true, completion: nil, completions: nil, raises: nil)
       @configured = configured
       @completion = completion
+      @completions = completions
       @raises = raises
+      @call_count = 0
     end
 
     def configured?
@@ -20,14 +24,21 @@ class LlmIntentInterpreterTest < Minitest::Test
     end
 
     def complete_json(model:, system_prompt:, user_text:)
+      @call_count += 1
       raise @raises if @raises
 
-      raise "missing completion" unless @completion
+      completion = if @completions && !@completions.empty?
+                     @completions.shift
+                   else
+                     @completion
+                   end
+
+      raise "missing completion" unless completion
       raise "missing model" if model.to_s.empty?
       raise "missing prompt" if system_prompt.to_s.empty?
       raise "missing user text" if user_text.to_s.empty?
 
-      @completion
+      completion
     end
   end
 
@@ -47,7 +58,7 @@ class LlmIntentInterpreterTest < Minitest::Test
     interpreter = Redwright::LlmIntentInterpreter.new(
       llm_client: FakeLlmClient.new(
         completion: Completion.new(
-          content: "{\"intent\":\"meta\",\"message\":\"show runtime status\"}",
+          content: "{\"intent\":\"meta\",\"message\":\"show runtime status\",\"actions\":[]}",
           finish_reason: "stop"
         )
       )
@@ -63,7 +74,7 @@ class LlmIntentInterpreterTest < Minitest::Test
   def test_returns_fallback_on_invalid_payload
     interpreter = Redwright::LlmIntentInterpreter.new(
       llm_client: FakeLlmClient.new(
-        completion: Completion.new(content: "{\"intent\":\"weird\"}", finish_reason: "stop")
+        completion: Completion.new(content: "{\"intent\":\"weird\",\"actions\":[]}", finish_reason: "stop")
       )
     )
 
@@ -71,6 +82,38 @@ class LlmIntentInterpreterTest < Minitest::Test
     assert_equal("fallback", decision.source)
     assert_equal("change", decision.intent)
     assert_equal("foo", decision.message)
-    assert_equal("invalid_intent", decision.finish_reason)
+    assert_match(/^invalid_payload:/, decision.finish_reason)
+  end
+
+  def test_retries_invalid_payload_and_accepts_second_valid_response
+    client = FakeLlmClient.new(
+      completions: [
+        Completion.new(content: "{\"intent\":\"meta\",\"message\":\"\",\"actions\":[]}", finish_reason: "stop"),
+        Completion.new(content: "{\"intent\":\"meta\",\"message\":\"show runtime status\",\"actions\":[]}", finish_reason: "stop")
+      ]
+    )
+    interpreter = Redwright::LlmIntentInterpreter.new(llm_client: client, max_validation_attempts: 2)
+
+    decision = interpreter.interpret(text: "estado", model: "gpt-5-mini")
+    assert_equal("llm", decision.source)
+    assert_equal("meta", decision.intent)
+    assert_equal("show runtime status", decision.message)
+    assert_equal(2, client.call_count)
+  end
+
+  def test_returns_fallback_after_bounded_invalid_retries
+    client = FakeLlmClient.new(
+      completions: [
+        Completion.new(content: "{\"intent\":\"meta\",\"actions\":[]}", finish_reason: "stop"),
+        Completion.new(content: "{\"intent\":\"meta\",\"actions\":[]}", finish_reason: "stop")
+      ]
+    )
+    interpreter = Redwright::LlmIntentInterpreter.new(llm_client: client, max_validation_attempts: 2)
+
+    decision = interpreter.interpret(text: "foo", model: "gpt-5-mini")
+    assert_equal("fallback", decision.source)
+    assert_equal("foo", decision.message)
+    assert_match(/^invalid_payload:/, decision.finish_reason)
+    assert_equal(2, client.call_count)
   end
 end
