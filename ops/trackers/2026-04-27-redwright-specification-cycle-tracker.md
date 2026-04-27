@@ -4,17 +4,17 @@
 
 - cycle_id: `spec-cycle-2026-04-27-redwright-runtime`
 - status: `in_progress`
-- state: `planning`
+- state: `next_slice`
 - updated: `2026-04-27`
-- active_slice: `slice-2`
-- active_task: `T2.3`
+- active_slice: `slice-3`
+- active_task: `T3.1`
 
 ## Slice Progress
 
 ### Slice 1: Alignment and Question Battery
 
 - status: `completed`
-- branch: `fix/slice-1-spec-alignment-battery`
+- branch: `feat/slice-1-spec-alignment-battery`
 - PR: `tbd`
 - merge_target: `dev`
 - last_sync_commit: `tbd`
@@ -35,17 +35,17 @@ Validation:
 
 ### Slice 2: Refined Proto-Spec Draft
 
-- status: `in_progress`
-- branch: `fix/slice-2-refined-proto-spec`
+- status: `completed`
+- branch: `feat/slice-2-refined-proto-spec`
 - PR: `tbd`
 - merge_target: `dev`
 - last_sync_commit: `tbd`
 
 Tasks:
 
-- [x] `T2.1 draft ops/specs/2026-04-27-redwright-runtime-proto-spec.md`
+- [x] `T2.1 draft ops/specs/drafts/2026-04-27-redwright-runtime-proto-spec-draft.md`
 - [x] `T2.2 verify consistency with alignment decisions`
-- [ ] `T2.3 review with coordinator and apply corrections`
+- [x] `T2.3 review with coordinator and apply corrections`
 
 Commits:
 
@@ -53,12 +53,12 @@ Commits:
 
 Validation:
 
-- [ ] `proto-spec approved for formalization`
+- [x] `proto-spec approved for formalization`
 
 ### Slice 3: Stable Formal Spec
 
 - status: `pending`
-- branch: `fix/slice-3-stable-runtime-spec`
+- branch: `feat/slice-3-stable-runtime-spec`
 - PR: `tbd`
 - merge_target: `dev`
 - last_sync_commit: `tbd`
@@ -82,3 +82,4 @@ Validation:
 - `2026-04-27 10:40` state=`alignment` note=`cycle started; plan and tracker created; beginning exhaustive Q&A`
 - `2026-04-27 11:20` state=`planning` note=`alignment battery completed; refined proto-spec draft created in ops/specs/drafts`
 - `2026-04-27 11:35` state=`planning` note=`blocked/suspended and retry policy decisions integrated; proposed v1 done checklist added`
+- `2026-04-27 12:05` state=`next_slice` note=`slice 2 completed; proto-spec formalized in ops/specs/specs and ready to advance to slice 3`

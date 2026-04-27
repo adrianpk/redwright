@@ -41,7 +41,7 @@ State must remain inspectable by humans (through readable artifacts, reports, an
 
 - app state/db: `~/.redwright/`
 - config: `~/.config/redwright/`
-- project root (v1 hardcoded): `~/RedWright/` (later configurable)
+- project root (v1 hardcoded): `~/redwright/` (later configurable)
 
 ### Dev mode
 
@@ -50,10 +50,10 @@ State must remain inspectable by humans (through readable artifacts, reports, an
 Examples:
 - `./_workspace/.redwright/`
 - `./_workspace/.config/redwright/`
-- `./_workspace/RedWright/`
+- `./_workspace/redwright/`
 
 Worktrees in dev mode:
-- `./_workspace/RedWright/.worktrees/<workstream-id>`
+- `./_workspace/redwright/.worktrees/<workstream-id>`
 
 ## 5. Project Identity and Resolution
 
