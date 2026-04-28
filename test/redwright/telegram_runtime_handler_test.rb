@@ -39,6 +39,23 @@ class TelegramRuntimeHandlerTest < Minitest::Test
   FakeResult = Struct.new(:project, :workstream, :task, :alignment, :action_results, keyword_init: true)
   FakeQualityCheck = Struct.new(:name, :status, keyword_init: true)
 
+  def build_fake_clarification_store(cancellations)
+    store = Object.new
+    store.define_singleton_method(:get_open) do |**_kwargs|
+      nil
+    end
+    store.define_singleton_method(:open_planner_gap) do |**_kwargs|
+      nil
+    end
+    store.define_singleton_method(:advance) do |**_kwargs|
+      nil
+    end
+    store.define_singleton_method(:cancel_open) do |**kwargs|
+      cancellations << kwargs
+    end
+    store
+  end
+
   def test_handle_materializes_runtime_action_and_sends_ack
     Dir.mktmpdir("redwright-telegram-handler-ok-") do |dir|
       Dir.chdir(dir) do
@@ -295,15 +312,15 @@ class TelegramRuntimeHandlerTest < Minitest::Test
     assert_match("What is the project name?", client.messages.first[:text])
   end
 
-  def test_handle_routes_semantic_pause_control_to_flow
+  def test_handle_cancels_task_clarification_and_processes_when_semantic_intent_is_cancel_clarification_only
     fake_flow = Object.new
     captured = {}
-    fake_flow.define_singleton_method(:control) do |**kwargs|
+    fake_flow.define_singleton_method(:process) do |**kwargs|
       captured.merge!(kwargs)
       TelegramRuntimeHandlerTest::FakeResult.new(
         project: TelegramRuntimeHandlerTest::FakeProject.new(id: "project-1"),
-        workstream: TelegramRuntimeHandlerTest::FakeWorkstream.new(id: "ws-1", state: "suspended"),
-        task: TelegramRuntimeHandlerTest::FakeTask.new(id: "task-pause"),
+        workstream: TelegramRuntimeHandlerTest::FakeWorkstream.new(id: "ws-1", state: "executing"),
+        task: TelegramRuntimeHandlerTest::FakeTask.new(id: "task-after-cancel-clarify"),
         alignment: nil,
         action_results: []
       )
@@ -323,13 +340,15 @@ class TelegramRuntimeHandlerTest < Minitest::Test
     client = FakeTelegramClient.new([])
     out = StringIO.new
     err = StringIO.new
+    cancellations = []
+    fake_clarification_store = build_fake_clarification_store(cancellations)
     fake_interpreter = Object.new
     fake_interpreter.define_singleton_method(:interpret) do |text:, model:|
       TelegramRuntimeHandlerTest::FakeDecision.new(
-        intent: "meta",
-        message: "pause current flow",
+        intent: "change",
+        message: "continue with current task",
         actions: [],
-        gaps: [],
+        gaps: [{ "id" => "g1", "question" => "Which Ruby version?", "field" => "ruby_version", "resolved" => false, "priority" => 1 }],
         control_intent: "cancel_clarification_only",
         control_scope: "task",
         source: "llm",
@@ -344,17 +363,19 @@ class TelegramRuntimeHandlerTest < Minitest::Test
       out: out,
       err: err,
       context_resolver: fake_resolver,
+      clarification_session_store: fake_clarification_store,
       intent_interpreter: fake_interpreter,
       blocked_retry_attempts: 1
     )
 
     handler.handle(Redwright::TelegramEvent.new(update_id: 33, chat_id: 88, user_id: nil, username: nil, text: "pause for now"))
 
-    assert_equal("pause", captured[:command])
+    assert_equal("change", captured[:intent])
     assert_equal("rw", captured[:project_ref])
     assert_equal("ws-1", captured[:workstream_id])
+    assert_equal([{ chat_id: 88, workstream_id: "ws-1" }], cancellations)
     assert_equal("", err.string)
-    assert_match("telegram control chat=88 command=pause task=task-pause", out.string)
+    assert_match("telegram processed chat=88 task=task-after-cancel-clarify", out.string)
   end
 
   def test_handle_routes_semantic_stop_control_to_flow
@@ -383,6 +404,8 @@ class TelegramRuntimeHandlerTest < Minitest::Test
     end
 
     client = FakeTelegramClient.new([])
+    cancellations = []
+    fake_clarification_store = build_fake_clarification_store(cancellations)
     fake_interpreter = Object.new
     fake_interpreter.define_singleton_method(:interpret) do |text:, model:|
       TelegramRuntimeHandlerTest::FakeDecision.new(
@@ -404,6 +427,7 @@ class TelegramRuntimeHandlerTest < Minitest::Test
       out: StringIO.new,
       err: StringIO.new,
       context_resolver: fake_resolver,
+      clarification_session_store: fake_clarification_store,
       intent_interpreter: fake_interpreter,
       blocked_retry_attempts: 1
     )
@@ -413,6 +437,7 @@ class TelegramRuntimeHandlerTest < Minitest::Test
     assert_equal("stop", captured[:command])
     assert_equal("rw", captured[:project_ref])
     assert_equal("ws-1", captured[:workstream_id])
+    assert_equal([{ chat_id: 89 }], cancellations)
   end
 
   def test_handle_routes_semantic_resume_control_to_flow
@@ -441,6 +466,8 @@ class TelegramRuntimeHandlerTest < Minitest::Test
     end
 
     client = FakeTelegramClient.new([])
+    cancellations = []
+    fake_clarification_store = build_fake_clarification_store(cancellations)
     fake_interpreter = Object.new
     fake_interpreter.define_singleton_method(:interpret) do |text:, model:|
       TelegramRuntimeHandlerTest::FakeDecision.new(
@@ -462,6 +489,7 @@ class TelegramRuntimeHandlerTest < Minitest::Test
       out: StringIO.new,
       err: StringIO.new,
       context_resolver: fake_resolver,
+      clarification_session_store: fake_clarification_store,
       intent_interpreter: fake_interpreter,
       blocked_retry_attempts: 1
     )
@@ -471,6 +499,7 @@ class TelegramRuntimeHandlerTest < Minitest::Test
     assert_equal("resume", captured[:command])
     assert_equal("rw", captured[:project_ref])
     assert_equal("ws-1", captured[:workstream_id])
+    assert_equal([{ chat_id: 90 }, { chat_id: 90, workstream_id: "ws-1" }], cancellations)
   end
 
   def test_handle_includes_execution_summary_and_passes_actions_to_flow

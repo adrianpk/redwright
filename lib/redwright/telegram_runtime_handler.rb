@@ -97,8 +97,28 @@ module Redwright
             architecture_context: prompt_context[:architecture_context],
             workspace_context: prompt_context[:workspace_context]
           )
+          control_intent = if decision.respond_to?(:control_intent)
+                             decision.control_intent.to_s.strip
+                           else
+                             "none"
+                           end
+          suppress_gap_clarify = false
+          if %w[cancel_clarification_only proceed_with_current_context].include?(control_intent)
+            cancel_scope = control_intent == "cancel_clarification_only" ? "task" : "chat"
+            cancel_open_clarifications(
+              chat_id: event.chat_id,
+              workstream_id: resolution.workstream_id,
+              scope: cancel_scope
+            )
+            suppress_gap_clarify = true
+          end
           control = control_from_decision(decision, raw_text: event.text)
           if control
+            cancel_open_clarifications(
+              chat_id: event.chat_id,
+              workstream_id: resolution.workstream_id,
+              scope: control[:command] == "stop" ? "chat" : "task"
+            )
             control_result = @flow.control(
               project_ref: resolution.project_ref,
               command: control[:command],
@@ -129,7 +149,7 @@ module Redwright
             return
           end
 
-          gap = highest_value_gap(decision)
+          gap = suppress_gap_clarify ? nil : highest_value_gap(decision)
           gap_question = gap && gap["question"].to_s.strip
           if gap_question
             @clarification_session_store&.open_planner_gap(
@@ -589,10 +609,21 @@ module Redwright
     def control_intent_command_map
       {
         "proceed_with_current_context" => "resume",
-        "cancel_clarification_only" => "pause",
         "cancel_task" => "stop",
         "cancel_all" => "stop"
       }
+    end
+
+    def cancel_open_clarifications(chat_id:, workstream_id:, scope:)
+      return unless @clarification_session_store
+
+      if scope == "chat"
+        @clarification_session_store.cancel_open(chat_id: chat_id)
+      else
+        @clarification_session_store.cancel_open(chat_id: chat_id, workstream_id: workstream_id)
+      end
+    rescue StandardError => e
+      @err.puts("clarification cancel failed chat=#{chat_id}: #{e.message}")
     end
 
     def select_change_mode(event_text:, decision:)

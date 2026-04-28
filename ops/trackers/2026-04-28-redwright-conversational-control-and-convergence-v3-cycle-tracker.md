@@ -59,11 +59,11 @@
 
 ### Slice 7: Cancellation and Resume Semantics
 
-- status: `pending`
+- status: `completed`
 - branch: `feat/slice-7-cancel-and-resume-semantics`
 - PR: `tbd`
-- commits: `tbd`
-- validation: `tbd`
+- commits: `pending-push`
+- validation: `bundle exec ruby -Itest test/redwright/telegram_runtime_handler_test.rb`
 
 ### Slice 8: Human Output Contract + Optional Debug Envelope
 
