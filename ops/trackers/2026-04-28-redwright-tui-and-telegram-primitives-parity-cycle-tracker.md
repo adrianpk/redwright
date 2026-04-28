@@ -4,7 +4,7 @@
 
 - owner: `adrianpk`
 - status: `in_progress`
-- active_slice: `slice-1`
+- active_slice: `slice-2`
 - plan: `ops/plans/2026-04-28-redwright-tui-and-telegram-primitives-parity-cycle-plan.md`
 
 ## Slice Progress
@@ -19,11 +19,11 @@
 
 ### Slice 2: Primitive Contract Unification
 
-- status: `pending`
+- status: `completed`
 - branch: `feat/slice-2-primitive-contract-unification`
 - PR: `tbd`
-- commits: `tbd`
-- validation: `tbd`
+- commits: `pending-push`
+- validation: `bundle exec ruby -Itest test/redwright/planner_contract_test.rb && bundle exec ruby -Itest test/redwright/planner_payload_validator_test.rb && bundle exec ruby -Itest test/redwright/action_normalizer_test.rb`
 
 ### Slice 3: Busy-Turn Message Queue
 
@@ -69,3 +69,4 @@
 
 - `2026-04-28 20:00` state=`planned` note=`initialized cycle for full-screen TUI plus primitive-parity runtime across Telegram and Console channels`
 - `2026-04-28 20:00` state=`implementation` slice=`slice-1` note=`added console ingress adapter, daemon console wiring, and invariant tests for run-once console startup`
+- `2026-04-28 20:00` state=`implementation` slice=`slice-2` note=`unified primitive/macro action contract in planner contract, removed prompt duplication, and added contract consistency tests`

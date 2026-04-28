@@ -28,6 +28,23 @@ module Redwright
     ACTION_TYPES = (ACTION_PRIMITIVE_TYPES + ACTION_MACRO_TYPES).freeze
     GAP_KEYS = %w[id question field inferred_value resolved priority].freeze
 
+    def self.primitive_action_type?(value)
+      ACTION_PRIMITIVE_TYPES.include?(value.to_s)
+    end
+
+    def self.macro_action_type?(value)
+      ACTION_MACRO_TYPES.include?(value.to_s)
+    end
+
+    def self.allowed_action_types_prompt_lines
+      lines = ACTION_PRIMITIVE_TYPES.map { |type| "- #{type}" }
+      lines + [
+        "- write_files (macro, expands to write_file)",
+        "- run_command (macro, expands to run)",
+        "- run_commands (macro, expands to run sequence)"
+      ]
+    end
+
     SYSTEM_PROMPT = <<~PROMPT
       You route runtime tasks for a coding agent.
       Return strict JSON with exactly these keys:
@@ -52,19 +69,7 @@ module Redwright
       - timeout_ms: positive integer
       - on_failure: one of "abort" or "continue"
       Allowed action types:
-      - list_files
-      - read_file
-      - search
-      - write_file
-      - apply_patch
-      - run
-      - git_status
-      - git_branch
-      - git_commit
-      - git_push
-      - write_files (macro, expands to write_file)
-      - run_command (macro, expands to run)
-      - run_commands (macro, expands to run sequence)
+      #{allowed_action_types_prompt_lines.join("\n")}
       Do not return extra keys.
     PROMPT
   end

@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require_relative "planner_contract"
+
 module Redwright
   class ActionNormalizer
     def normalize(actions)
@@ -20,10 +22,13 @@ module Redwright
 
       case action["type"]
       when "write_files"
+        raise ArgumentError, "macro_type_not_allowed" unless PlannerContract.macro_action_type?(action["type"])
         expand_write_files(action)
       when "run_command"
+        raise ArgumentError, "macro_type_not_allowed" unless PlannerContract.macro_action_type?(action["type"])
         [build_run_action(action, suffix: nil, command: fetch_string(action.fetch("args", {}), "cmd", "run_command_missing_cmd"))]
       when "run_commands"
+        raise ArgumentError, "macro_type_not_allowed" unless PlannerContract.macro_action_type?(action["type"])
         expand_run_commands(action)
       else
         [action]
