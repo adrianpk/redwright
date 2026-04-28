@@ -11,6 +11,7 @@
 ## Principles
 
 - TUI is a persistent interactive session, not a one-shot wrapper.
+- TUI layout must use a fixed bottom prompt/composer area and a separate upper scrollable activity timeline (not full-screen chat-only text flow).
 - Human-visible output must show actionable runtime responses and errors.
 - Project context resolution must not depend on first-token hacks.
 - Server remains single execution owner.
@@ -25,6 +26,7 @@
 - [ ] `T1.1 run TUI in continuous read/render loop until explicit quit command`
 - [ ] `T1.2 keep session id stable across turns in one TUI process`
 - [ ] `T1.3 preserve and redraw history pane without shell restart flicker`
+- [ ] `T1.3b implement split-pane layout: upper scrollable activity area + fixed bottom prompt composer`
 - [ ] `T1.4 add explicit in-app commands (`:quit`, `:status`) without breaking natural prompts`
 - [ ] `T1.5 add loop lifecycle tests for multiple turns and clean exit`
 
@@ -71,6 +73,7 @@
 ## Global Exit Criteria
 
 - TUI runs as persistent interactive session and supports multiple consecutive turns.
+- TUI uses a split layout with a fixed bottom prompt area and an upper scrollable action/output timeline.
 - TUI shows meaningful server outcomes and errors per turn.
 - Project context resolution is robust and no longer token-prefix fragile.
 - Multi-client operation remains coherent under single server ownership.
