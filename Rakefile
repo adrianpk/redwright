@@ -19,9 +19,58 @@ task :daemon do
   sh "bundle exec ruby bin/redwright daemon run --dev"
 end
 
+desc "Run TUI client once against local dev server"
+task :tui do
+  sh "bundle exec ruby bin/redwright daemon run --dev --ingress tui --once"
+end
+
+desc "Run Telegram client once against local dev server"
+task :telegram do
+  sh "bundle exec ruby bin/redwright daemon run --dev --ingress telegram --once"
+end
+
 desc "Run daemon in foreground (dev mode) with trace banners enabled"
 task "daemon:trace" do
   sh "REDWRIGHT_TRACE=1 bundle exec ruby bin/redwright daemon run --dev"
+end
+
+namespace :server do
+  desc "Run server in foreground (dev mode)"
+  task :run do
+    sh "bundle exec ruby bin/redwright server run --dev"
+  end
+
+  desc "Server status (dev mode)"
+  task :status do
+    sh "bundle exec ruby bin/redwright server status --dev"
+  end
+
+  desc "Server ping (dev mode)"
+  task :ping do
+    sh "bundle exec ruby bin/redwright server ping --dev"
+  end
+
+  namespace :ctl do
+    desc "Server ctl status (dev mode)"
+    task :status do
+      sh "bundle exec ruby bin/redwright server ctl status --dev"
+    end
+
+    desc "Server ctl stop (dev mode)"
+    task :stop do
+      sh "bundle exec ruby bin/redwright server ctl stop --dev"
+    end
+
+    desc "Server ctl resume (dev mode)"
+    task :resume do
+      sh "bundle exec ruby bin/redwright server ctl resume --dev"
+    end
+
+    desc "Server ctl trace (dev mode)"
+    task :trace do
+      sh "bundle exec ruby bin/redwright server ctl trace --dev"
+    end
+  end
 end
 
 desc "Run traced dev cycle with banner output for runtime/sqlite and LLM placeholders"
