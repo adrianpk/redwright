@@ -9,6 +9,7 @@ Operational procedures for this repository.
 3. Never work on `main` directly.
 4. Merge into `main` only via PR.
 5. Avoid force push unless explicitly approved.
+6. Exception: `ops/plans/*` and `ops/trackers/*` updates may be committed directly to `dev` (no slice PR required) when they only formalize planning/tracking state.
 
 ## 2. Slice delivery
 

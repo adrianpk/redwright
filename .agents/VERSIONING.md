@@ -32,6 +32,7 @@ Examples:
 - Keep history linear where practical.
 - Avoid history rewrites unless explicitly approved.
 - Keep commit scope aligned with one active slice/task concern.
+- `ops/plans/*` and `ops/trackers/*` maintenance commits are allowed directly on `dev` when they do not include runtime code changes.
 
 ## Git safety
 
