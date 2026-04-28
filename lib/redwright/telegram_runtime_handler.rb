@@ -80,7 +80,22 @@ module Redwright
             return
           end
 
-          control = parse_control_command(event.text)
+          prompt_context = load_prompt_context(project_path: resolution.project_path)
+          stop_typing = start_typing_keepalive(event.chat_id)
+          decision_input = consume_pending_planner_gap_answer(
+            chat_id: event.chat_id,
+            workstream_id: resolution.workstream_id,
+            user_text: event.text
+          )
+          decision = interpret_with_trace(
+            action: decision_input[:action],
+            text: decision_input[:text],
+            model: @model_name,
+            project_context: prompt_context[:project_context],
+            architecture_context: prompt_context[:architecture_context],
+            workspace_context: prompt_context[:workspace_context]
+          )
+          control = control_from_decision(decision, raw_text: event.text)
           if control
             control_result = @flow.control(
               project_ref: resolution.project_ref,
@@ -111,22 +126,6 @@ module Redwright
             @out.puts("telegram control chat=#{event.chat_id} command=#{control[:command]} task=#{control_result.task.id}")
             return
           end
-
-          prompt_context = load_prompt_context(project_path: resolution.project_path)
-          stop_typing = start_typing_keepalive(event.chat_id)
-          decision_input = consume_pending_planner_gap_answer(
-            chat_id: event.chat_id,
-            workstream_id: resolution.workstream_id,
-            user_text: event.text
-          )
-          decision = interpret_with_trace(
-            action: decision_input[:action],
-            text: decision_input[:text],
-            model: @model_name,
-            project_context: prompt_context[:project_context],
-            architecture_context: prompt_context[:architecture_context],
-            workspace_context: prompt_context[:workspace_context]
-          )
 
           gap = highest_value_gap(decision)
           gap_question = gap && gap["question"].to_s.strip
@@ -567,21 +566,25 @@ module Redwright
       ].join("\n")
     end
 
-    def parse_control_command(text)
-      normalized = text.to_s.strip.downcase
-      return nil if normalized.empty?
+    def control_from_decision(decision, raw_text:)
+      intent = if decision.respond_to?(:control_intent)
+                 decision.control_intent.to_s.strip
+               else
+                 "none"
+               end
+      command = control_intent_command_map[intent]
+      return nil if command.nil?
 
-      if normalized.start_with?("pause")
-        return { command: "pause", reason: text.to_s.strip }
-      end
-      if normalized.start_with?("stop")
-        return { command: "stop", reason: text.to_s.strip }
-      end
-      if normalized.start_with?("resume")
-        return { command: "resume", reason: text.to_s.strip }
-      end
+      { command: command, reason: raw_text.to_s.strip }
+    end
 
-      nil
+    def control_intent_command_map
+      {
+        "proceed_with_current_context" => "resume",
+        "cancel_clarification_only" => "pause",
+        "cancel_task" => "stop",
+        "cancel_all" => "stop"
+      }
     end
 
     def select_change_mode(event_text:, decision:)

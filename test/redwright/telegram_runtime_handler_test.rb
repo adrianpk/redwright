@@ -31,7 +31,7 @@ class TelegramRuntimeHandlerTest < Minitest::Test
     end
   end
 
-  FakeDecision = Struct.new(:intent, :message, :actions, :gaps, :source, :finish_reason, :raw_output, keyword_init: true)
+  FakeDecision = Struct.new(:intent, :message, :actions, :gaps, :control_intent, :control_scope, :source, :finish_reason, :raw_output, keyword_init: true)
   FakeProject = Struct.new(:id, keyword_init: true)
   FakeWorkstream = Struct.new(:id, :state, keyword_init: true)
   FakeTask = Struct.new(:id, keyword_init: true)
@@ -295,7 +295,7 @@ class TelegramRuntimeHandlerTest < Minitest::Test
     assert_match("What is the project name?", client.messages.first[:text])
   end
 
-  def test_handle_routes_pause_command_to_control_flow
+  def test_handle_routes_semantic_pause_control_to_flow
     fake_flow = Object.new
     captured = {}
     fake_flow.define_singleton_method(:control) do |**kwargs|
@@ -323,12 +323,28 @@ class TelegramRuntimeHandlerTest < Minitest::Test
     client = FakeTelegramClient.new([])
     out = StringIO.new
     err = StringIO.new
+    fake_interpreter = Object.new
+    fake_interpreter.define_singleton_method(:interpret) do |text:, model:|
+      TelegramRuntimeHandlerTest::FakeDecision.new(
+        intent: "meta",
+        message: "pause current flow",
+        actions: [],
+        gaps: [],
+        control_intent: "cancel_clarification_only",
+        control_scope: "task",
+        source: "llm",
+        finish_reason: "stop",
+        raw_output: "{}"
+      )
+    end
+
     handler = Redwright::TelegramRuntimeHandler.new(
       flow: fake_flow,
       telegram_client: client,
       out: out,
       err: err,
       context_resolver: fake_resolver,
+      intent_interpreter: fake_interpreter,
       blocked_retry_attempts: 1
     )
 
@@ -339,6 +355,122 @@ class TelegramRuntimeHandlerTest < Minitest::Test
     assert_equal("ws-1", captured[:workstream_id])
     assert_equal("", err.string)
     assert_match("telegram control chat=88 command=pause task=task-pause", out.string)
+  end
+
+  def test_handle_routes_semantic_stop_control_to_flow
+    fake_flow = Object.new
+    captured = {}
+    fake_flow.define_singleton_method(:control) do |**kwargs|
+      captured.merge!(kwargs)
+      TelegramRuntimeHandlerTest::FakeResult.new(
+        project: TelegramRuntimeHandlerTest::FakeProject.new(id: "project-1"),
+        workstream: TelegramRuntimeHandlerTest::FakeWorkstream.new(id: "ws-1", state: "blocked"),
+        task: TelegramRuntimeHandlerTest::FakeTask.new(id: "task-stop"),
+        alignment: nil,
+        action_results: []
+      )
+    end
+
+    fake_resolver = Object.new
+    fake_resolver.define_singleton_method(:resolve) do |chat_id:, text:|
+      Redwright::TelegramContextResolver::Resolution.new(
+        resolved: true,
+        project_ref: "rw",
+        project_path: "/tmp/rw",
+        workstream_id: "ws-1",
+        question: nil
+      )
+    end
+
+    client = FakeTelegramClient.new([])
+    fake_interpreter = Object.new
+    fake_interpreter.define_singleton_method(:interpret) do |text:, model:|
+      TelegramRuntimeHandlerTest::FakeDecision.new(
+        intent: "meta",
+        message: "cancel current task",
+        actions: [],
+        gaps: [],
+        control_intent: "cancel_task",
+        control_scope: "task",
+        source: "llm",
+        finish_reason: "stop",
+        raw_output: "{}"
+      )
+    end
+
+    handler = Redwright::TelegramRuntimeHandler.new(
+      flow: fake_flow,
+      telegram_client: client,
+      out: StringIO.new,
+      err: StringIO.new,
+      context_resolver: fake_resolver,
+      intent_interpreter: fake_interpreter,
+      blocked_retry_attempts: 1
+    )
+
+    handler.handle(Redwright::TelegramEvent.new(update_id: 34, chat_id: 89, user_id: nil, username: nil, text: "cancela todo"))
+
+    assert_equal("stop", captured[:command])
+    assert_equal("rw", captured[:project_ref])
+    assert_equal("ws-1", captured[:workstream_id])
+  end
+
+  def test_handle_routes_semantic_resume_control_to_flow
+    fake_flow = Object.new
+    captured = {}
+    fake_flow.define_singleton_method(:control) do |**kwargs|
+      captured.merge!(kwargs)
+      TelegramRuntimeHandlerTest::FakeResult.new(
+        project: TelegramRuntimeHandlerTest::FakeProject.new(id: "project-1"),
+        workstream: TelegramRuntimeHandlerTest::FakeWorkstream.new(id: "ws-1", state: "executing"),
+        task: TelegramRuntimeHandlerTest::FakeTask.new(id: "task-resume"),
+        alignment: nil,
+        action_results: []
+      )
+    end
+
+    fake_resolver = Object.new
+    fake_resolver.define_singleton_method(:resolve) do |chat_id:, text:|
+      Redwright::TelegramContextResolver::Resolution.new(
+        resolved: true,
+        project_ref: "rw",
+        project_path: "/tmp/rw",
+        workstream_id: "ws-1",
+        question: nil
+      )
+    end
+
+    client = FakeTelegramClient.new([])
+    fake_interpreter = Object.new
+    fake_interpreter.define_singleton_method(:interpret) do |text:, model:|
+      TelegramRuntimeHandlerTest::FakeDecision.new(
+        intent: "meta",
+        message: "proceed with current context",
+        actions: [],
+        gaps: [],
+        control_intent: "proceed_with_current_context",
+        control_scope: "task",
+        source: "llm",
+        finish_reason: "stop",
+        raw_output: "{}"
+      )
+    end
+
+    handler = Redwright::TelegramRuntimeHandler.new(
+      flow: fake_flow,
+      telegram_client: client,
+      out: StringIO.new,
+      err: StringIO.new,
+      context_resolver: fake_resolver,
+      intent_interpreter: fake_interpreter,
+      blocked_retry_attempts: 1
+    )
+
+    handler.handle(Redwright::TelegramEvent.new(update_id: 35, chat_id: 90, user_id: nil, username: nil, text: "continua con lo que tengas"))
+
+    assert_equal("resume", captured[:command])
+    assert_equal("rw", captured[:project_ref])
+    assert_equal("ws-1", captured[:workstream_id])
   end
 
   def test_handle_includes_execution_summary_and_passes_actions_to_flow
