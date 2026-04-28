@@ -280,7 +280,9 @@ class TelegramRuntimeHandlerTest < Minitest::Test
       TelegramRuntimeHandlerTest::FakeDecision.new(
         intent: "change",
         message: "normalized",
-        actions: [],
+        actions: [
+          { "id" => "a1", "type" => "write_file", "args" => { "path" => "README.md", "content" => "x" }, "requires_confirmation" => false, "timeout_ms" => 1000, "on_failure" => "abort" }
+        ],
         gaps: [
           { "id" => "g2", "question" => "What branch strategy should be used?", "field" => "branch_strategy", "inferred_value" => "", "resolved" => false, "priority" => 3 },
           { "id" => "g1", "question" => "What is the project name?", "field" => "project_name", "inferred_value" => "hello-cli", "resolved" => false, "priority" => 1 }
@@ -310,6 +312,57 @@ class TelegramRuntimeHandlerTest < Minitest::Test
     assert_match("telegram clarify chat=66", out.string)
     assert_equal(1, client.messages.size)
     assert_match("What is the project name?", client.messages.first[:text])
+  end
+
+  def test_handle_defers_optional_gap_and_executes_change_turn
+    fake_flow = Object.new
+    captured = {}
+    fake_flow.define_singleton_method(:process) do |**kwargs|
+      captured.merge!(kwargs)
+      TelegramRuntimeHandlerTest::FakeResult.new(
+        project: TelegramRuntimeHandlerTest::FakeProject.new(id: "project-1"),
+        workstream: TelegramRuntimeHandlerTest::FakeWorkstream.new(id: "ws-1", state: "executing"),
+        task: TelegramRuntimeHandlerTest::FakeTask.new(id: "task-1"),
+        alignment: nil,
+        action_results: []
+      )
+    end
+
+    fake_interpreter = Object.new
+    fake_interpreter.define_singleton_method(:interpret) do |text:, model:|
+      TelegramRuntimeHandlerTest::FakeDecision.new(
+        intent: "change",
+        message: "build app",
+        actions: [
+          { "id" => "a1", "type" => "write_file", "args" => { "path" => "README.md", "content" => "x" }, "requires_confirmation" => false, "timeout_ms" => 1000, "on_failure" => "abort" }
+        ],
+        gaps: [
+          { "id" => "g1", "question" => "Architecture style?", "field" => "architecture_style", "inferred_value" => "clean", "resolved" => false, "priority" => 1 }
+        ],
+        source: "llm",
+        finish_reason: "stop",
+        raw_output: "{}"
+      )
+    end
+
+    client = FakeTelegramClient.new([])
+    out = StringIO.new
+    err = StringIO.new
+    handler = Redwright::TelegramRuntimeHandler.new(
+      flow: fake_flow,
+      telegram_client: client,
+      out: out,
+      err: err,
+      blocked_retry_attempts: 1,
+      model_name: "gpt-5-mini",
+      intent_interpreter: fake_interpreter
+    )
+
+    handler.handle(Redwright::TelegramEvent.new(update_id: 77, chat_id: 77, user_id: nil, username: nil, text: "build app"))
+
+    assert_equal("change", captured[:intent])
+    refute_match("telegram clarify chat=77", out.string)
+    assert_match("telegram processed chat=77 task=task-1", out.string)
   end
 
   def test_handle_does_not_send_json_envelope_when_disabled

@@ -5,6 +5,7 @@ require_relative "runtime_result_envelope"
 require_relative "llm_intent_interpreter"
 require_relative "telegram_context_resolver"
 require_relative "iteration_context_packet_builder"
+require_relative "bootstrap_minimum_gate"
 
 module Redwright
   class TelegramRuntimeHandler
@@ -31,7 +32,8 @@ module Redwright
       max_change_turn_seconds: 180,
       iteration_context_packet_builder: IterationContextPacketBuilder.new,
       typing_interval_seconds: 4.0,
-      typing_sleeper: ->(seconds) { sleep(seconds) }
+      typing_sleeper: ->(seconds) { sleep(seconds) },
+      bootstrap_minimum_gate: BootstrapMinimumGate.new
     )
       @flow = flow
       @telegram_client = telegram_client
@@ -54,6 +56,7 @@ module Redwright
       @iteration_context_packet_builder = iteration_context_packet_builder
       @typing_interval_seconds = typing_interval_seconds
       @typing_sleeper = typing_sleeper
+      @bootstrap_minimum_gate = bootstrap_minimum_gate
     end
 
     def handle(event)
@@ -149,7 +152,8 @@ module Redwright
             return
           end
 
-          gap = suppress_gap_clarify ? nil : highest_value_gap(decision)
+          gate_result = evaluate_bootstrap_gate(decision: decision, suppress_gap_clarify: suppress_gap_clarify)
+          gap = gate_result[:technical_blocking_gap]
           gap_question = gap && gap["question"].to_s.strip
           if gap_question
             @clarification_session_store&.open_planner_gap(
@@ -669,6 +673,34 @@ module Redwright
       return nil if unresolved.empty?
 
       unresolved.min_by { |g| [g["priority"].to_i <= 0 ? 9 : g["priority"].to_i, g["id"].to_s] }
+    end
+
+    def evaluate_bootstrap_gate(decision:, suppress_gap_clarify:)
+      return { technical_blocking_gap: nil } if suppress_gap_clarify
+
+      gate = @bootstrap_minimum_gate.evaluate(
+        intent: decision.intent,
+        actions: decision.respond_to?(:actions) ? decision.actions : [],
+        gaps: decision.respond_to?(:gaps) ? decision.gaps : []
+      )
+
+      technical = gate[:technical_blocking_gaps] || []
+      optional = gate[:alignment_optional_gaps] || []
+      Trace.runtime(
+        trace_id: Trace.current_trace_id || "none",
+        bootstrap_technical_gaps: technical.size,
+        bootstrap_optional_gaps: optional.size
+      )
+
+      {
+        technical_blocking_gap: highest_priority_gap(technical)
+      }
+    end
+
+    def highest_priority_gap(gaps)
+      return nil unless gaps.is_a?(Array) && !gaps.empty?
+
+      gaps.min_by { |g| [g["priority"].to_i <= 0 ? 9 : g["priority"].to_i, g["id"].to_s] }
     end
 
     def consume_pending_planner_gap_answer(chat_id:, workstream_id:, user_text:)
