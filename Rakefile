@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "shellwords"
+require "open3"
 require_relative "lib/redwright/local_quality"
 
 desc "Run full test suite"
@@ -109,6 +110,11 @@ namespace :test do
   task :invariants do
     sh "bundle exec ruby -Itest test/redwright/daemon_telegram_invariant_test.rb"
   end
+
+  desc "Run simulated ingress e2e with traces and persistent test workspace for inspection"
+  task :simulated_e2e_trace do
+    sh "REDWRIGHT_TRACE=1 KEEP_TEST_WORKSPACE=1 bundle exec ruby -Itest test/redwright/simulated_ingress_e2e_test.rb"
+  end
 end
 
 task "test-invariants": "test:invariants"
@@ -145,7 +151,16 @@ namespace :quality do
   end
 
   desc "Run all local quality checks"
-  task all: %i[lint test] do
+  task :coverage do
+    result = Open3.capture3("bundle exec ruby -Itest test/support/coverage_runner.rb")
+    stdout, stderr, status = result
+    puts stdout unless stdout.to_s.strip.empty?
+    warn stderr unless stderr.to_s.strip.empty?
+    abort("quality:coverage failed") unless status.success?
+  end
+
+  desc "Run all local quality checks"
+  task all: %i[lint test coverage] do
     lint = quality_helper.read_artifact(path: "tmp/quality/lint-status.json")
     test = quality_helper.read_artifact(path: "tmp/quality/test-status.json")
     summary = quality_helper.build_summary(lint: lint, test: test)
@@ -165,11 +180,13 @@ namespace :badges do
     lint = quality_helper.read_artifact(path: "tmp/quality/lint-status.json")
     test = quality_helper.read_artifact(path: "tmp/quality/test-status.json")
     summary = quality_helper.read_artifact(path: "tmp/quality/summary.json")
+    coverage = quality_helper.read_artifact(path: "tmp/quality/coverage.json")
     quality_helper.render_readme_badges(
       readme_path: "README.md",
       lint: lint,
       test: test,
-      summary: summary
+      summary: summary,
+      coverage: coverage
     )
     puts "badges:build updated README local badge section"
   end

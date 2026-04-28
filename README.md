@@ -1,5 +1,10 @@
 # RedWright
 
+<!-- REDWRIGHT_LOCAL_BADGES:START -->
+[![CI](https://img.shields.io/badge/CI-passing-brightgreen)](https://codeberg.org/adrianpk/redwright)
+[![coverage](https://img.shields.io/badge/coverage-31.12%-brightgreen)](badges/coverage.svg)
+<!-- REDWRIGHT_LOCAL_BADGES:END -->
+
 RedWright is a Ruby runtime agent for software engineering work.
 
 It receives natural-language requests (currently via Telegram), resolves the active project context, plans a structured turn, and executes safe, bounded actions inside the project workspace.
@@ -25,13 +30,3 @@ It receives natural-language requests (currently via Telegram), resolves the act
 - RedWright executes allowed actions and returns a concise runtime response
 
 RedWright is designed to evolve into a modular coding agent runtime with strict contracts between planning, validation, normalization, execution, and traceability layers.
-
-<!-- REDWRIGHT_LOCAL_BADGES:START -->
-## Local Quality Badges
-
-| Check | Status | Color |
-|---|---|---|
-| lint | PASS | green |
-| test | PASS | green |
-| summary | PASS | green |
-<!-- REDWRIGHT_LOCAL_BADGES:END -->

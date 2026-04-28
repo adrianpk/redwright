@@ -34,16 +34,16 @@ class LocalQualityTest < Minitest::Test
       lint = { "name" => "lint", "status" => "pass", "duration_ms" => 1 }
       test = { "name" => "test", "status" => "fail", "duration_ms" => 1 }
       summary = { "name" => "summary", "status" => "fail", "duration_ms" => 2 }
+      coverage = { "name" => "coverage", "status" => "pass", "line_percent" => 87.23 }
 
-      helper.render_readme_badges(readme_path: readme, lint: lint, test: test, summary: summary)
+      helper.render_readme_badges(readme_path: readme, lint: lint, test: test, summary: summary, coverage: coverage)
       first = File.read(readme)
-      helper.render_readme_badges(readme_path: readme, lint: lint, test: test, summary: summary)
+      helper.render_readme_badges(readme_path: readme, lint: lint, test: test, summary: summary, coverage: coverage)
       second = File.read(readme)
 
       assert_equal(first, second)
-      assert_includes(second, "| lint | PASS | green |")
-      assert_includes(second, "| test | FAIL | red |")
-      assert_includes(second, "| summary | FAIL | red |")
+      assert_includes(second, "[![CI](https://img.shields.io/badge/CI-failing-red)](https://codeberg.org/adrianpk/redwright)")
+      assert_includes(second, "[![coverage](https://img.shields.io/badge/coverage-87.23%-brightgreen)](badges/coverage.svg)")
     end
   end
 end
