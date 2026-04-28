@@ -37,6 +37,7 @@ class TelegramRuntimeHandlerTest < Minitest::Test
   FakeTask = Struct.new(:id, keyword_init: true)
   FakeActionResult = Struct.new(:action_id, :status, keyword_init: true)
   FakeResult = Struct.new(:project, :workstream, :task, :alignment, :action_results, keyword_init: true)
+  FakeQualityCheck = Struct.new(:name, :status, keyword_init: true)
 
   def test_handle_materializes_runtime_action_and_sends_ack
     Dir.mktmpdir("redwright-telegram-handler-ok-") do |dir|
@@ -547,5 +548,168 @@ class TelegramRuntimeHandlerTest < Minitest::Test
     handler.handle(Redwright::TelegramEvent.new(update_id: 13, chat_id: 13, user_id: nil, username: nil, text: "do thing"))
 
     assert_match("Quality checks: 1/2 passed, 1 failed.", client.messages.last[:text])
+  end
+
+  def test_handle_retries_change_turn_when_quality_fails_then_succeeds
+    flow_calls = 0
+    fake_flow = Object.new
+    fake_flow.define_singleton_method(:process) do |**_kwargs|
+      flow_calls += 1
+      FakeResult.new(
+        project: FakeProject.new(id: "project-r"),
+        workstream: FakeWorkstream.new(id: "ws-r", state: "executing"),
+        task: FakeTask.new(id: "task-r"),
+        alignment: nil,
+        action_results: [FakeActionResult.new(action_id: "a1", status: "ok")]
+      )
+    end
+
+    interp_calls = []
+    fake_interpreter = Object.new
+    fake_interpreter.define_singleton_method(:interpret) do |text:, model:|
+      interp_calls << text
+      raise "unexpected model" unless model == "gpt-5-mini"
+
+      FakeDecision.new(
+        intent: "change",
+        message: "apply change",
+        actions: [],
+        source: "llm",
+        finish_reason: "stop",
+        raw_output: "{\"intent\":\"change\",\"message\":\"apply change\",\"actions\":[]}"
+      )
+    end
+
+    quality_runs = 0
+    fake_quality_runner = Object.new
+    fake_quality_runner.define_singleton_method(:run) do |project_path:, lint_command:, test_command:|
+      quality_runs += 1
+      if quality_runs == 1
+        [FakeQualityCheck.new(name: "test", status: "error")]
+      else
+        [FakeQualityCheck.new(name: "test", status: "ok")]
+      end
+    end
+
+    fake_resolver = Object.new
+    fake_resolver.define_singleton_method(:resolve) do |chat_id:, text:|
+      Redwright::TelegramContextResolver::Resolution.new(
+        resolved: true,
+        project_ref: "p1",
+        project_path: "/tmp/project",
+        workstream_id: nil,
+        question: nil
+      )
+    end
+
+    fake_prompt_loader = Object.new
+    fake_prompt_loader.define_singleton_method(:build) do |project_path:|
+      {
+        project_context: nil,
+        architecture_context: nil,
+        workspace_context: nil,
+        quality: { auto_validate: true, lint_command: nil, test_command: "bundle exec rake test" }
+      }
+    end
+
+    client = FakeTelegramClient.new([])
+    out = StringIO.new
+    err = StringIO.new
+    handler = Redwright::TelegramRuntimeHandler.new(
+      flow: fake_flow,
+      telegram_client: client,
+      out: out,
+      err: err,
+      context_resolver: fake_resolver,
+      blocked_retry_attempts: 2,
+      model_name: "gpt-5-mini",
+      intent_interpreter: fake_interpreter,
+      prompt_context_loader: fake_prompt_loader,
+      quality_gate_runner: fake_quality_runner
+    )
+
+    handler.handle(Redwright::TelegramEvent.new(update_id: 21, chat_id: 9, user_id: nil, username: nil, text: "do work"))
+
+    assert_equal(2, quality_runs)
+    assert_equal(2, flow_calls)
+    assert_equal(2, interp_calls.size)
+    assert_match("Validation failed after execution.", interp_calls.last)
+    assert_match("Attempts: 2 (terminal: success).", client.messages.last[:text])
+    assert_equal("", err.string)
+  end
+
+  def test_handle_stops_at_max_attempts_when_quality_keeps_failing
+    flow_calls = 0
+    fake_flow = Object.new
+    fake_flow.define_singleton_method(:process) do |**_kwargs|
+      flow_calls += 1
+      FakeResult.new(
+        project: FakeProject.new(id: "project-f"),
+        workstream: FakeWorkstream.new(id: "ws-f", state: "executing"),
+        task: FakeTask.new(id: "task-f"),
+        alignment: nil,
+        action_results: [FakeActionResult.new(action_id: "a1", status: "ok")]
+      )
+    end
+
+    fake_interpreter = Object.new
+    fake_interpreter.define_singleton_method(:interpret) do |text:, model:|
+      FakeDecision.new(
+        intent: "change",
+        message: "apply change",
+        actions: [],
+        source: "llm",
+        finish_reason: "stop",
+        raw_output: "{\"intent\":\"change\",\"message\":\"apply change\",\"actions\":[]}"
+      )
+    end
+
+    fake_quality_runner = Object.new
+    fake_quality_runner.define_singleton_method(:run) do |project_path:, lint_command:, test_command:|
+      [FakeQualityCheck.new(name: "test", status: "error")]
+    end
+
+    fake_resolver = Object.new
+    fake_resolver.define_singleton_method(:resolve) do |chat_id:, text:|
+      Redwright::TelegramContextResolver::Resolution.new(
+        resolved: true,
+        project_ref: "p1",
+        project_path: "/tmp/project",
+        workstream_id: nil,
+        question: nil
+      )
+    end
+
+    fake_prompt_loader = Object.new
+    fake_prompt_loader.define_singleton_method(:build) do |project_path:|
+      {
+        project_context: nil,
+        architecture_context: nil,
+        workspace_context: nil,
+        quality: { auto_validate: true, lint_command: nil, test_command: "bundle exec rake test" }
+      }
+    end
+
+    client = FakeTelegramClient.new([])
+    out = StringIO.new
+    err = StringIO.new
+    handler = Redwright::TelegramRuntimeHandler.new(
+      flow: fake_flow,
+      telegram_client: client,
+      out: out,
+      err: err,
+      context_resolver: fake_resolver,
+      blocked_retry_attempts: 2,
+      model_name: "gpt-5-mini",
+      intent_interpreter: fake_interpreter,
+      prompt_context_loader: fake_prompt_loader,
+      quality_gate_runner: fake_quality_runner
+    )
+
+    handler.handle(Redwright::TelegramEvent.new(update_id: 22, chat_id: 9, user_id: nil, username: nil, text: "do work"))
+
+    assert_equal(2, flow_calls)
+    assert_match("Attempts: 2 (terminal: max_attempts).", client.messages.last[:text])
+    assert_equal("", err.string)
   end
 end

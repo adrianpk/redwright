@@ -6,7 +6,7 @@
 - status: `in_progress`
 - state: `awaiting_review`
 - updated: `2026-04-28`
-- active_slice: `slice-2`
+- active_slice: `slice-3`
 - active_task: `none`
 
 ## Slice Progress
@@ -51,7 +51,7 @@ Validation:
 
 ### Slice 3: Bounded Micro-Loop Execution Engine
 
-- status: `pending`
+- status: `completed`
 - branch: `feat/slice-3-bounded-micro-loop-engine`
 - PR: `tbd`
 - merge_target: `dev`
@@ -59,14 +59,14 @@ Validation:
 
 Tasks:
 
-- [ ] `T3.1 add bounded change-turn attempt loop (max_attempts + timeout)`
-- [ ] `T3.2 feed validation errors into next planning attempt`
-- [ ] `T3.3 persist terminal outcomes: success|max_attempts|blocked`
+- [x] `T3.1 add bounded change-turn attempt loop (max_attempts + timeout)`
+- [x] `T3.2 feed validation errors into next planning attempt`
+- [x] `T3.3 persist terminal outcomes: success|max_attempts|blocked`
 
 Validation:
 
-- [ ] `change turns can self-repair without extra user roundtrip`
-- [ ] `loop termination is deterministic and bounded`
+- [x] `change turns can self-repair without extra user roundtrip`
+- [x] `loop termination is deterministic and bounded`
 
 ### Slice 4: Iteration Context Budgeting and Stable Inputs
 
@@ -134,3 +134,6 @@ Validation:
 - `2026-04-28 09:32` state=`implementation` slice=`slice-2` note=`enforced mutating-action allowed root guard in primitive executor and wired daemon dev runtime to configured projects root boundary`
 - `2026-04-28 09:32` validation=`bundle exec ruby -Itest test/redwright/primitive_executor_test.rb`
 - `2026-04-28 09:33` validation=`bundle exec rake test`
+- `2026-04-28 10:02` state=`implementation` slice=`slice-3` note=`implemented bounded change-turn micro-loop with retry-on-quality-failure, refinement prompt with errors, and deterministic terminal outcomes`
+- `2026-04-28 10:03` validation=`bundle exec ruby -Itest test/redwright/telegram_runtime_handler_test.rb`
+- `2026-04-28 10:04` validation=`bundle exec rake test`

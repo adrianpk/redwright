@@ -24,6 +24,7 @@ module Redwright
       planner_rejection_store: nil,
       quality_gate_runner: nil,
       send_json_envelope: false,
+      max_change_turn_seconds: 180,
       typing_interval_seconds: 4.0,
       typing_sleeper: ->(seconds) { sleep(seconds) }
     )
@@ -43,6 +44,7 @@ module Redwright
       @planner_rejection_store = planner_rejection_store
       @quality_gate_runner = quality_gate_runner
       @send_json_envelope = send_json_envelope
+      @max_change_turn_seconds = max_change_turn_seconds
       @typing_interval_seconds = typing_interval_seconds
       @typing_sleeper = typing_sleeper
     end
@@ -75,37 +77,13 @@ module Redwright
 
           prompt_context = load_prompt_context(project_path: resolution.project_path)
           stop_typing = start_typing_keepalive(event.chat_id)
-          Trace.llm_request(
-            role: @model_role,
-            provider: @model_provider,
-            model: @model_name,
+          decision = interpret_with_trace(
             action: "intent_interpret",
-            payload_bytes: event.text.to_s.bytesize,
-            system_prompt: trace_system_prompt_for_interpreter(
-              project_context: prompt_context[:project_context],
-              architecture_context: prompt_context[:architecture_context],
-              workspace_context: prompt_context[:workspace_context]
-            ),
-            user_text: event.text
-          )
-          started_at = Process.clock_gettime(Process::CLOCK_MONOTONIC)
-          decision = interpret_with_context(
             text: event.text,
             model: @model_name,
             project_context: prompt_context[:project_context],
             architecture_context: prompt_context[:architecture_context],
             workspace_context: prompt_context[:workspace_context]
-          )
-          elapsed_ms = ((Process.clock_gettime(Process::CLOCK_MONOTONIC) - started_at) * 1000).to_i
-          Trace.llm_response(
-            status: decision.source == "llm" ? "ok" : "fallback",
-            latency_ms: elapsed_ms,
-            output_bytes: decision.raw_output.to_s.bytesize,
-            finish_reason: decision.finish_reason,
-            decision_source: decision.source,
-            parsed_intent: decision.intent,
-            parsed_message: decision.message,
-            raw_output: decision.raw_output
           )
 
           if decision.source == "fallback" && planner_decision_invalid?(decision)
@@ -128,19 +106,22 @@ module Redwright
             return
           end
 
-          result = @flow.process(
-            project_ref: resolution.project_ref,
-            intent: decision.intent,
-            message: decision.message,
-            actions: decision.respond_to?(:actions) ? decision.actions : [],
-            workstream_id: resolution.workstream_id,
-            confirm_new_workstream: true,
-            blocked_retry_attempts: @blocked_retry_attempts
-          )
-          quality_summary = run_quality_gate(
-            project_path: resolution.project_path,
-            quality_config: prompt_context[:quality]
-          )
+          loop_result = if decision.intent == "change"
+                          process_change_turn_with_micro_loop(
+                            initial_decision: decision,
+                            resolution: resolution,
+                            prompt_context: prompt_context,
+                            original_text: event.text
+                          )
+                        else
+                          process_single_turn(
+                            decision: decision,
+                            resolution: resolution,
+                            prompt_context: prompt_context
+                          ).merge(attempts: 1, terminal_reason: "single_pass")
+                        end
+          result = loop_result[:result]
+          quality_summary = loop_result[:quality_summary]
           @chat_context_store&.upsert(
             chat_id: event.chat_id,
             project_id: result.project.id,
@@ -153,11 +134,22 @@ module Redwright
             workstream_id: result.workstream.id,
             task_id: result.task.id,
             state: result.workstream.state,
-            execution: build_execution_summary(result, quality_summary: quality_summary)
+            execution: build_execution_summary(
+              result,
+              quality_summary: quality_summary,
+              attempts: loop_result[:attempts],
+              terminal_reason: loop_result[:terminal_reason]
+            )
           )
           @telegram_client.send_message(
             chat_id: event.chat_id,
-            text: human_success_message(result: result, trace_id: Trace.current_trace_id || "none", quality_summary: quality_summary)
+            text: human_success_message(
+              result: result,
+              trace_id: Trace.current_trace_id || "none",
+              quality_summary: quality_summary,
+              attempts: loop_result[:attempts],
+              terminal_reason: loop_result[:terminal_reason]
+            )
           )
           send_json_envelope_if_enabled(chat_id: event.chat_id, envelope: envelope)
           @out.puts("telegram processed chat=#{event.chat_id} task=#{result.task.id}")
@@ -182,6 +174,42 @@ module Redwright
 
     def interpreter
       @intent_interpreter ||= LlmIntentInterpreter.new(llm_client: nil)
+    end
+
+    def interpret_with_trace(action:, text:, model:, project_context:, architecture_context:, workspace_context:)
+      Trace.llm_request(
+        role: @model_role,
+        provider: @model_provider,
+        model: @model_name,
+        action: action,
+        payload_bytes: text.to_s.bytesize,
+        system_prompt: trace_system_prompt_for_interpreter(
+          project_context: project_context,
+          architecture_context: architecture_context,
+          workspace_context: workspace_context
+        ),
+        user_text: text
+      )
+      started_at = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+      decision = interpret_with_context(
+        text: text,
+        model: model,
+        project_context: project_context,
+        architecture_context: architecture_context,
+        workspace_context: workspace_context
+      )
+      elapsed_ms = ((Process.clock_gettime(Process::CLOCK_MONOTONIC) - started_at) * 1000).to_i
+      Trace.llm_response(
+        status: decision.source == "llm" ? "ok" : "fallback",
+        latency_ms: elapsed_ms,
+        output_bytes: decision.raw_output.to_s.bytesize,
+        finish_reason: decision.finish_reason,
+        decision_source: decision.source,
+        parsed_intent: decision.intent,
+        parsed_message: decision.message,
+        raw_output: decision.raw_output
+      )
+      decision
     end
 
     def trace_system_prompt_for_interpreter(project_context:, architecture_context:, workspace_context:)
@@ -271,7 +299,88 @@ module Redwright
       nil
     end
 
-    def build_execution_summary(result, quality_summary: nil)
+    def process_single_turn(decision:, resolution:, prompt_context:)
+      result = @flow.process(
+        project_ref: resolution.project_ref,
+        intent: decision.intent,
+        message: decision.message,
+        actions: decision.respond_to?(:actions) ? decision.actions : [],
+        workstream_id: resolution.workstream_id,
+        confirm_new_workstream: true,
+        blocked_retry_attempts: @blocked_retry_attempts
+      )
+      quality_summary = run_quality_gate(
+        project_path: resolution.project_path,
+        quality_config: prompt_context[:quality]
+      )
+      { result: result, quality_summary: quality_summary }
+    end
+
+    def process_change_turn_with_micro_loop(initial_decision:, resolution:, prompt_context:, original_text:)
+      max_attempts = [@blocked_retry_attempts.to_i, 1].max
+      deadline = Process.clock_gettime(Process::CLOCK_MONOTONIC) + @max_change_turn_seconds.to_i
+      decision = initial_decision
+      attempts = 0
+      last_outcome = nil
+      terminal_reason = "success"
+
+      while attempts < max_attempts
+        attempts += 1
+        Trace.runtime(trace_id: Trace.current_trace_id || "none", micro_loop_attempt: attempts, micro_loop_max_attempts: max_attempts)
+        last_outcome = process_single_turn(decision: decision, resolution: resolution, prompt_context: prompt_context)
+        quality_summary = last_outcome[:quality_summary]
+        if quality_failed?(quality_summary)
+          terminal_reason = "quality_failed"
+          break if attempts >= max_attempts
+          break if Process.clock_gettime(Process::CLOCK_MONOTONIC) >= deadline
+
+          decision = interpret_with_trace(
+            action: "intent_refine_with_errors",
+            text: build_refinement_prompt(original_text: original_text, quality_summary: quality_summary, previous_message: decision.message),
+            model: @model_name,
+            project_context: prompt_context[:project_context],
+            architecture_context: prompt_context[:architecture_context],
+            workspace_context: prompt_context[:workspace_context]
+          )
+          if decision.source == "fallback" && planner_decision_invalid?(decision)
+            terminal_reason = "planner_rejected_after_retry"
+            break
+          end
+          next
+        end
+
+        terminal_reason = "success"
+        break
+      end
+
+      terminal_reason = "max_attempts" if terminal_reason == "quality_failed" && attempts >= max_attempts
+      terminal_reason = "timeout" if terminal_reason == "quality_failed" && Process.clock_gettime(Process::CLOCK_MONOTONIC) >= deadline
+      last_outcome.merge(attempts: attempts, terminal_reason: terminal_reason)
+    end
+
+    def quality_failed?(quality_summary)
+      return false if quality_summary.nil?
+
+      quality_summary[:failed_checks].to_i.positive?
+    end
+
+    def build_refinement_prompt(original_text:, quality_summary:, previous_message:)
+      failed = quality_summary[:failed_check_names] || []
+      <<~TEXT
+        Original user request:
+        #{original_text}
+
+        Previous normalized task:
+        #{previous_message}
+
+        Validation failed after execution.
+        Failed checks: #{failed.join(", ")}
+
+        Return a corrected execution plan that repairs the failures while preserving the original goal.
+      TEXT
+    end
+
+    def build_execution_summary(result, quality_summary: nil, attempts: 1, terminal_reason: "single_pass")
       action_results = if result.respond_to?(:action_results)
                          result.action_results || []
                        else
@@ -287,13 +396,15 @@ module Redwright
         total_actions: total,
         succeeded_actions: succeeded,
         failed_actions: failed,
-        failed_action_ids: failed_action_ids
+        failed_action_ids: failed_action_ids,
+        attempts: attempts,
+        terminal_reason: terminal_reason
       }
       summary[:quality] = quality_summary if quality_summary
       summary
     end
 
-    def human_success_message(result:, trace_id:, quality_summary:)
+    def human_success_message(result:, trace_id:, quality_summary:, attempts:, terminal_reason:)
       parts = []
       parts << "Started task #{result.task.id} in project #{result.project.id}."
       parts << "Workstream: #{result.workstream.id} (state: #{result.workstream.state})."
@@ -301,6 +412,7 @@ module Redwright
       if execution
         parts << "Actions: #{execution[:succeeded_actions]}/#{execution[:total_actions]} succeeded, #{execution[:failed_actions]} failed."
       end
+      parts << "Attempts: #{attempts} (terminal: #{terminal_reason})."
       if quality_summary
         parts << "Quality checks: #{quality_summary[:passed_checks]}/#{quality_summary[:total_checks]} passed, #{quality_summary[:failed_checks]} failed."
       end
