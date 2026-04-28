@@ -78,6 +78,36 @@ module Redwright
             return
           end
 
+          control = parse_control_command(event.text)
+          if control
+            control_result = @flow.control(
+              project_ref: resolution.project_ref,
+              command: control[:command],
+              reason: control[:reason],
+              workstream_id: resolution.workstream_id
+            )
+            envelope = RuntimeResultEnvelope.success(
+              trace_id: Trace.current_trace_id || "none",
+              project_id: control_result.project.id,
+              workstream_id: control_result.workstream.id,
+              task_id: control_result.task.id,
+              state: control_result.workstream.state
+            )
+            @telegram_client.send_message(
+              chat_id: event.chat_id,
+              text: human_success_message(
+                result: control_result,
+                trace_id: Trace.current_trace_id || "none",
+                quality_summary: nil,
+                attempts: 1,
+                terminal_reason: "control_#{control[:command]}"
+              )
+            )
+            send_json_envelope_if_enabled(chat_id: event.chat_id, envelope: envelope)
+            @out.puts("telegram control chat=#{event.chat_id} command=#{control[:command]} task=#{control_result.task.id}")
+            return
+          end
+
           prompt_context = load_prompt_context(project_path: resolution.project_path)
           stop_typing = start_typing_keepalive(event.chat_id)
           decision = interpret_with_trace(
@@ -454,6 +484,23 @@ module Redwright
         "No actions were executed for this turn.",
         "Trace: #{trace_id}"
       ].join("\n")
+    end
+
+    def parse_control_command(text)
+      normalized = text.to_s.strip.downcase
+      return nil if normalized.empty?
+
+      if normalized.start_with?("pause")
+        return { command: "pause", reason: text.to_s.strip }
+      end
+      if normalized.start_with?("stop")
+        return { command: "stop", reason: text.to_s.strip }
+      end
+      if normalized.start_with?("resume")
+        return { command: "resume", reason: text.to_s.strip }
+      end
+
+      nil
     end
 
     def send_json_envelope_if_enabled(chat_id:, envelope:)

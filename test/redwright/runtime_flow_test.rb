@@ -10,6 +10,7 @@ require "redwright/workstream_store"
 require "redwright/task_store"
 require "redwright/action_execution_store"
 require "redwright/alignment_store"
+require "redwright/alignment_interruption_store"
 require "redwright/psam_store"
 require "redwright/plan_spec_store"
 require "redwright/runtime_flow"
@@ -612,6 +613,53 @@ class RuntimeFlowTest < Minitest::Test
           flow.process(project_ref: "rw", intent: "plan", workstream_id: workstream.id, message: "continue")
         end
         assert_match("invalid_alignment_transition", err.message)
+      end
+    end
+  end
+
+  def test_pause_stop_and_resume_are_persisted_and_deterministic
+    Dir.mktmpdir("redwright-flow-control-test-") do |dir|
+      Dir.chdir(dir) do
+        bootstrap = Redwright::Bootstrap.new(mode: :dev).call
+        project_store = Redwright::ProjectStore.new(bootstrap.db_path)
+        ws_store = Redwright::WorkstreamStore.new(bootstrap.db_path)
+        task_store = Redwright::TaskStore.new(bootstrap.db_path)
+        alignment_store = Redwright::AlignmentStore.new(bootstrap.db_path)
+        interruption_store = Redwright::AlignmentInterruptionStore.new(bootstrap.db_path)
+        spec_store = Redwright::PlanSpecStore.new(base_dir: dir)
+
+        project = project_store.register(path: "#{dir}/apps/core", aliases: ["rw"])
+        ws = ws_store.create(project_id: project.id, intent: "plan", state: "waiting_user", branch: "feat/plan")
+        alignment_store.ensure_session(ws.id)
+        alignment_store.set_pending_question(ws.id, question: "Q1?", unresolved_count: 1)
+
+        flow = Redwright::RuntimeFlow.new(
+          project_store: project_store,
+          workstream_store: ws_store,
+          task_store: task_store,
+          alignment_store: alignment_store,
+          alignment_interruption_store: interruption_store,
+          plan_spec_store: spec_store
+        )
+
+        paused = flow.control(project_ref: "rw", command: "pause", reason: "pause now", workstream_id: ws.id)
+        assert_equal("suspended", paused.workstream.state)
+        pause_meta = interruption_store.get(ws.id)
+        assert_equal("pause", pause_meta.interruption_type)
+        assert_equal("waiting_user", pause_meta.previous_state)
+        assert_equal(1, pause_meta.open_question_count)
+        assert_equal("feat/plan", pause_meta.open_branch_snapshot)
+
+        resumed = flow.control(project_ref: "rw", command: "resume", reason: "resume now", workstream_id: ws.id)
+        assert_equal("waiting_user", resumed.workstream.state)
+        resume_meta = interruption_store.get(ws.id)
+        refute_nil(resume_meta.resumed_at)
+
+        stopped = flow.control(project_ref: "rw", command: "stop", reason: "stop now", workstream_id: ws.id)
+        assert_equal("blocked", stopped.workstream.state)
+        stop_meta = interruption_store.get(ws.id)
+        assert_equal("stop", stop_meta.interruption_type)
+        refute(stop_meta.risk_acknowledged)
       end
     end
   end

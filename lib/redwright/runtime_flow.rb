@@ -7,6 +7,7 @@ require_relative "planner_contract"
 require_relative "alignment_contract"
 require_relative "psam_store"
 require_relative "alignment_question_engine"
+require_relative "alignment_interruption_store"
 
 module Redwright
   FlowResult = Struct.new(
@@ -24,6 +25,7 @@ module Redwright
       primitive_executor: nil,
       action_execution_store: nil,
       psam_store: nil,
+      alignment_interruption_store: nil,
       alignment_question_engine: nil,
       non_coding_model: "gpt-5-mini",
       skill_dispatcher: SkillDispatcher.new,
@@ -37,6 +39,7 @@ module Redwright
       @primitive_executor = primitive_executor
       @action_execution_store = action_execution_store
       @psam_store = psam_store
+      @alignment_interruption_store = alignment_interruption_store
       @alignment_question_engine = alignment_question_engine
       @non_coding_model = non_coding_model
       @skill_dispatcher = skill_dispatcher
@@ -73,6 +76,30 @@ module Redwright
 
           raise RuntimeError, "blocked after #{retries} attempt(s): #{e.message}"
         end
+      end
+    end
+
+    def control(project_ref:, command:, reason: nil, workstream_id: nil)
+      project = @project_store.resolve(project_ref)
+      raise ArgumentError, "project not found" unless project
+
+      workstream = if workstream_id && !workstream_id.empty?
+                     @workstream_store.get(workstream_id)
+                   else
+                     @workstream_store.find_latest_for_project(project_id: project.id)
+                   end
+      raise ArgumentError, "no workstream found" unless workstream
+      raise ArgumentError, "workstream does not belong to project" unless workstream.project_id == project.id
+
+      case command
+      when "pause"
+        pause_workstream(project: project, workstream: workstream, reason: reason || "user_pause")
+      when "stop"
+        stop_workstream(project: project, workstream: workstream, reason: reason || "user_stop")
+      when "resume"
+        resume_workstream(project: project, workstream: workstream)
+      else
+        raise ArgumentError, "unsupported control command: #{command}"
       end
     end
 
@@ -295,6 +322,58 @@ module Redwright
         raise RuntimeError, "action_failed id=#{result.action_id} type=#{result.action_type}: #{result.error_message}"
       end
       results
+    end
+
+    def pause_workstream(project:, workstream:, reason:)
+      unresolved = unresolved_questions_for(workstream.id)
+      @alignment_interruption_store&.upsert(
+        workstream_id: workstream.id,
+        interruption_type: "pause",
+        reason: reason,
+        previous_state: workstream.state,
+        open_question_count: unresolved,
+        risk_acknowledged: true,
+        open_branch_snapshot: workstream.branch
+      )
+      updated_ws = @workstream_store.update_state(workstream.id, "suspended")
+      task = @task_store.create(workstream_id: updated_ws.id, description: "pause workstream: #{reason}", status: "suspended")
+      FlowResult.new(project: project, workstream: updated_ws, task: task, alignment: nil, functional_spec_path: nil, technical_spec_path: nil, action_results: [])
+    end
+
+    def stop_workstream(project:, workstream:, reason:)
+      unresolved = unresolved_questions_for(workstream.id)
+      @alignment_interruption_store&.upsert(
+        workstream_id: workstream.id,
+        interruption_type: "stop",
+        reason: reason,
+        previous_state: workstream.state,
+        open_question_count: unresolved,
+        risk_acknowledged: false,
+        open_branch_snapshot: workstream.branch
+      )
+      updated_ws = @workstream_store.update_state(workstream.id, "blocked")
+      task = @task_store.create(workstream_id: updated_ws.id, description: "stop workstream: #{reason}", status: "blocked")
+      FlowResult.new(project: project, workstream: updated_ws, task: task, alignment: nil, functional_spec_path: nil, technical_spec_path: nil, action_results: [])
+    end
+
+    def resume_workstream(project:, workstream:)
+      interruption = @alignment_interruption_store&.get(workstream.id)
+      target_state = interruption&.previous_state || "executing"
+      if workstream.state != "suspended"
+        target_state = workstream.state
+      end
+      updated_ws = @workstream_store.update_state(workstream.id, target_state)
+      @alignment_interruption_store&.mark_resumed(workstream_id: workstream.id)
+      task = @task_store.create(workstream_id: updated_ws.id, description: "resume workstream", status: "resumed")
+      FlowResult.new(project: project, workstream: updated_ws, task: task, alignment: nil, functional_spec_path: nil, technical_spec_path: nil, action_results: [])
+    end
+
+    def unresolved_questions_for(workstream_id)
+      session = @alignment_store.get(workstream_id)
+      return 0 unless session
+      return 0 if session.pending_question.nil?
+
+      [session.unresolved_count.to_i, 1].max
     end
   end
 end

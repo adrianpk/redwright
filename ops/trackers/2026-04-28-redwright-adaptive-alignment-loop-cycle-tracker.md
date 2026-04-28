@@ -6,7 +6,7 @@
 - status: `in_progress`
 - state: `awaiting_review`
 - updated: `2026-04-28`
-- active_slice: `slice-3`
+- active_slice: `slice-4`
 - active_task: `none`
 
 ## Slice Progress
@@ -67,7 +67,7 @@ Validation:
 
 ### Slice 4: User Pause/Stop + Risk Acknowledgement
 
-- status: `pending`
+- status: `completed`
 - branch: `feat/slice-4-user-pause-stop-contract`
 - PR: `tbd`
 - merge_target: `dev`
@@ -75,13 +75,13 @@ Validation:
 
 Tasks:
 
-- [ ] `T4.1 add pause/stop handling in alignment flow`
-- [ ] `T4.2 persist stop metadata and unresolved risk snapshot`
-- [ ] `T4.3 support deterministic resume from paused state`
+- [x] `T4.1 add pause/stop handling in alignment flow`
+- [x] `T4.2 persist stop metadata and unresolved risk snapshot`
+- [x] `T4.3 support deterministic resume from paused state`
 
 Validation:
 
-- [ ] `user stop/pause is auditable and does not corrupt flow state`
+- [x] `user stop/pause is auditable and does not corrupt flow state`
 
 ### Slice 5: Governance Bounds and Adaptive Sufficiency
 
@@ -132,3 +132,4 @@ Validation:
 - `2026-04-28 10:11` validation=`bundle exec ruby -Itest test/redwright/alignment_question_engine_test.rb`
 - `2026-04-28 10:13` validation=`bundle exec ruby -Itest test/redwright/runtime_flow_test.rb`
 - `2026-04-28 10:14` validation=`bundle exec rake test`
+- `2026-04-28 10:42` state=`implementation` slice=`slice-4` note=`added pause/stop/resume control path with interruption metadata persistence and deterministic resume state restoration`

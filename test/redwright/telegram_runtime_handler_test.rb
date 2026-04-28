@@ -252,6 +252,52 @@ class TelegramRuntimeHandlerTest < Minitest::Test
     assert_match("Trace: trc-", client.messages.first[:text])
   end
 
+  def test_handle_routes_pause_command_to_control_flow
+    fake_flow = Object.new
+    captured = {}
+    fake_flow.define_singleton_method(:control) do |**kwargs|
+      captured.merge!(kwargs)
+      TelegramRuntimeHandlerTest::FakeResult.new(
+        project: TelegramRuntimeHandlerTest::FakeProject.new(id: "project-1"),
+        workstream: TelegramRuntimeHandlerTest::FakeWorkstream.new(id: "ws-1", state: "suspended"),
+        task: TelegramRuntimeHandlerTest::FakeTask.new(id: "task-pause"),
+        alignment: nil,
+        action_results: []
+      )
+    end
+
+    fake_resolver = Object.new
+    fake_resolver.define_singleton_method(:resolve) do |chat_id:, text:|
+      Redwright::TelegramContextResolver::Resolution.new(
+        resolved: true,
+        project_ref: "rw",
+        project_path: "/tmp/rw",
+        workstream_id: "ws-1",
+        question: nil
+      )
+    end
+
+    client = FakeTelegramClient.new([])
+    out = StringIO.new
+    err = StringIO.new
+    handler = Redwright::TelegramRuntimeHandler.new(
+      flow: fake_flow,
+      telegram_client: client,
+      out: out,
+      err: err,
+      context_resolver: fake_resolver,
+      blocked_retry_attempts: 1
+    )
+
+    handler.handle(Redwright::TelegramEvent.new(update_id: 33, chat_id: 88, user_id: nil, username: nil, text: "pause for now"))
+
+    assert_equal("pause", captured[:command])
+    assert_equal("rw", captured[:project_ref])
+    assert_equal("ws-1", captured[:workstream_id])
+    assert_equal("", err.string)
+    assert_match("telegram control chat=88 command=pause task=task-pause", out.string)
+  end
+
   def test_handle_includes_execution_summary_and_passes_actions_to_flow
     fake_flow = Object.new
     captured = {}

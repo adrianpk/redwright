@@ -177,6 +177,19 @@ module Redwright
         CREATE INDEX IF NOT EXISTS idx_alignment_artifacts_workstream
           ON alignment_artifact_links(workstream_id);
 
+        CREATE TABLE IF NOT EXISTS alignment_interruptions (
+          workstream_id TEXT PRIMARY KEY,
+          interruption_type TEXT NOT NULL,
+          reason TEXT NOT NULL,
+          previous_state TEXT NOT NULL,
+          open_question_count INTEGER NOT NULL,
+          risk_acknowledged INTEGER NOT NULL,
+          open_branch_snapshot TEXT,
+          created_at TEXT NOT NULL,
+          resumed_at TEXT,
+          FOREIGN KEY(workstream_id) REFERENCES workstreams(id) ON DELETE CASCADE
+        );
+
         CREATE TABLE IF NOT EXISTS chat_contexts (
           chat_id INTEGER PRIMARY KEY,
           project_id TEXT NOT NULL,
@@ -211,7 +224,7 @@ module Redwright
         );
 
         INSERT INTO runtime_metadata (key, value, updated_at)
-        VALUES ('schema_version', '8', datetime('now'))
+        VALUES ('schema_version', '9', datetime('now'))
         ON CONFLICT(key) DO UPDATE SET
           value = excluded.value,
           updated_at = excluded.updated_at;
