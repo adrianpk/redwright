@@ -4,7 +4,7 @@
 
 - owner: `adrianpk`
 - status: `in_progress`
-- active_slice: `slice-2`
+- active_slice: `slice-3`
 - plan: `ops/plans/2026-04-28-redwright-conversational-control-and-convergence-v3-cycle-plan.md`
 
 ## Slice Progress
@@ -27,11 +27,11 @@
 
 ### Slice 3: Turn Router Precedence for Pending Clarification
 
-- status: `pending`
+- status: `completed`
 - branch: `feat/slice-3-pending-clarification-turn-router`
 - PR: `tbd`
-- commits: `tbd`
-- validation: `tbd`
+- commits: `pending-push`
+- validation: `bundle exec ruby -Itest test/redwright/simulated_ingress_e2e_test.rb -n /test_simulated_ingress_consumes_short_gap_answer_without_meta_drift/ && bundle exec ruby -Itest test/redwright/telegram_context_resolver_test.rb`
 
 ### Slice 4: Multilingual Control Interpretation Layer
 
@@ -94,3 +94,4 @@
 - `2026-04-28 00:00` state=`planned` note=`initialized cycle from runtime feedback: clarification drift, multilingual control semantics, bounded convergence, and persistent session state requirements`
 - `2026-04-28 00:00` state=`implementation` slice=`slice-1` note=`extended planner contract with control_intent/control_scope, kept backward compatibility with default none, and added validator/interpreter tests`
 - `2026-04-28 00:00` state=`implementation` slice=`slice-2` note=`added persisted clarification_sessions store, deterministic open/close/cancel transitions, and resolver wiring to survive restarts`
+- `2026-04-28 00:00` state=`implementation` slice=`slice-3` note=`added pending planner-gap pre-routing so short replies are consumed as clarification answers before replanning, preventing meta drift`

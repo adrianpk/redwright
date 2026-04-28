@@ -18,12 +18,13 @@ require "redwright/runtime_flow"
 require "redwright/primitive_executor"
 require "redwright/telegram_runtime_handler"
 require "redwright/chat_context_store"
+require "redwright/clarification_session_store"
 require "redwright/telegram_context_resolver"
 require "redwright/daemon_runner"
 require "redwright/simulated_ingress_adapter"
 
 class SimulatedIngressE2ETest < Minitest::Test
-  FakeDecision = Struct.new(:intent, :message, :actions, :source, :finish_reason, :raw_output, keyword_init: true)
+  FakeDecision = Struct.new(:intent, :message, :actions, :gaps, :source, :finish_reason, :raw_output, keyword_init: true)
 
   class ScriptedInterpreter
     def interpret(text:, model:, **_kwargs)
@@ -170,6 +171,59 @@ class SimulatedIngressE2ETest < Minitest::Test
     end
   end
 
+  class PlannerGapThenExecuteInterpreter
+    attr_reader :seen_texts
+
+    def initialize
+      @seen_texts = []
+      @asked = false
+    end
+
+    def interpret(text:, model:, **_kwargs)
+      @seen_texts << text
+      unless @asked
+        @asked = true
+        return FakeDecision.new(
+          intent: "change",
+          message: "Create guess number CLI with tests",
+          actions: [],
+          gaps: [
+            {
+              "id" => "gap-framework",
+              "question" => "Which test framework do you prefer?",
+              "field" => "test_framework",
+              "inferred_value" => "RSpec",
+              "resolved" => false,
+              "priority" => 1
+            }
+          ],
+          source: "llm",
+          finish_reason: "stop",
+          raw_output: "{}"
+        )
+      end
+
+      FakeDecision.new(
+        intent: "change",
+        message: "write app after clarification",
+        actions: [
+          {
+            "id" => "write_after_gap",
+            "type" => "write_file",
+            "args" => { "path" => "README.md", "content" => "created\n" },
+            "requires_confirmation" => false,
+            "timeout_ms" => 10_000,
+            "on_failure" => "abort"
+          }
+        ],
+        gaps: [],
+        source: "llm",
+        finish_reason: "stop",
+        raw_output: "{}"
+      )
+    end
+  end
+
   def with_test_root(name)
     keep = ENV["KEEP_TEST_WORKSPACE"] == "1"
     if keep
@@ -189,7 +243,7 @@ class SimulatedIngressE2ETest < Minitest::Test
   def test_simulated_ingress_handles_multi_turn_multi_project_pause_resume_and_fs_effects
     with_test_root("complex") do |dir|
       Dir.chdir(dir) do
-        bootstrap = Redwright::Bootstrap.new(mode: :test).call
+        bootstrap = Redwright::Bootstrap.new(mode: :dev).call
         project_store = Redwright::ProjectStore.new(bootstrap.db_path)
         workstream_store = Redwright::WorkstreamStore.new(bootstrap.db_path)
         task_store = Redwright::TaskStore.new(bootstrap.db_path)
@@ -274,7 +328,7 @@ class SimulatedIngressE2ETest < Minitest::Test
   def test_simulated_ingress_happy_path_plan_then_feature_change
     with_test_root("happy") do |dir|
       Dir.chdir(dir) do
-        bootstrap = Redwright::Bootstrap.new(mode: :test).call
+        bootstrap = Redwright::Bootstrap.new(mode: :dev).call
         project_store = Redwright::ProjectStore.new(bootstrap.db_path)
         workstream_store = Redwright::WorkstreamStore.new(bootstrap.db_path)
         task_store = Redwright::TaskStore.new(bootstrap.db_path)
@@ -568,6 +622,76 @@ class SimulatedIngressE2ETest < Minitest::Test
         assert_equal("ok", payload["status"])
         assert_equal("success", payload.dig("runtime", "terminal_reason"))
         assert_equal(2, payload.dig("runtime", "execution", "attempts"))
+      end
+    end
+  end
+
+  def test_simulated_ingress_consumes_short_gap_answer_without_meta_drift
+    with_test_root("planner_gap_answer") do |dir|
+      Dir.chdir(dir) do
+        bootstrap = Redwright::Bootstrap.new(mode: :dev).call
+        project_store = Redwright::ProjectStore.new(bootstrap.db_path)
+        workstream_store = Redwright::WorkstreamStore.new(bootstrap.db_path)
+        task_store = Redwright::TaskStore.new(bootstrap.db_path)
+        chat_context_store = Redwright::ChatContextStore.new(bootstrap.db_path)
+        clarification_session_store = Redwright::ClarificationSessionStore.new(bootstrap.db_path)
+
+        project_path = File.join(bootstrap.projects_root, "project-one")
+        FileUtils.mkdir_p(project_path)
+        project_store.register(path: project_path, aliases: ["rw"])
+
+        flow = Redwright::RuntimeFlow.new(
+          project_store: project_store,
+          workstream_store: workstream_store,
+          task_store: task_store,
+          alignment_store: Redwright::AlignmentStore.new(bootstrap.db_path),
+          primitive_executor: Redwright::PrimitiveExecutor.new(
+            allowed_projects_root: bootstrap.projects_root,
+            enforce_mutating_projects_root: true
+          )
+        )
+
+        resolver = Redwright::TelegramContextResolver.new(
+          project_store: project_store,
+          chat_context_store: chat_context_store,
+          projects_root: bootstrap.projects_root,
+          clarification_session_store: clarification_session_store
+        )
+
+        ingress = Redwright::SimulatedIngressAdapter.new(
+          events: [
+            Redwright::SimulatedIngressAdapter.event(external_message_id: 1, external_chat_id: 100, text: "Create guess-number CLI in rw"),
+            Redwright::SimulatedIngressAdapter.event(external_message_id: 2, external_chat_id: 100, text: "RSpec")
+          ]
+        )
+
+        interpreter = PlannerGapThenExecuteInterpreter.new
+        handler = Redwright::TelegramRuntimeHandler.new(
+          flow: flow,
+          telegram_client: ingress,
+          out: StringIO.new,
+          err: StringIO.new,
+          context_resolver: resolver,
+          chat_context_store: chat_context_store,
+          clarification_session_store: clarification_session_store,
+          blocked_retry_attempts: 1,
+          intent_interpreter: interpreter
+        )
+
+        cursor = nil
+        runner = Redwright::DaemonRunner.new(
+          ingress_poller: lambda {
+            poll = ingress.poll(cursor: cursor, timeout_seconds: 0)
+            cursor = poll.next_cursor
+            poll.events
+          },
+          event_handler: ->(event) { handler.handle(event) }
+        )
+        runner.run(loop_interval_seconds: 0.0, max_iterations: 1)
+
+        assert(File.file?(File.join(project_path, "README.md")))
+        assert_includes(interpreter.seen_texts.last, "Clarification for test_framework: RSpec")
+        assert_nil(clarification_session_store.get_open(chat_id: 100))
       end
     end
   end

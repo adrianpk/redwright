@@ -68,6 +68,31 @@ module Redwright
       get_open(chat_id: chat_id, workstream_id: workstream_id)
     end
 
+    def open_planner_gap(chat_id:, workstream_id:, base_message:, gap:, question_id: nil)
+      now = utc_now
+      session_id = build_id(chat_id: chat_id, workstream_id: workstream_id, now: now)
+      payload = {
+        "base_message" => base_message.to_s,
+        "gap" => gap.is_a?(Hash) ? gap : {}
+      }
+
+      with_db do |db|
+        db.transaction
+        close_open_for_chat!(db, chat_id: chat_id)
+        db.execute(
+          "INSERT INTO clarification_sessions (id, chat_id, workstream_id, status, gap_type, payload_json, resolved_fields_json, last_question_id, turn_counter, created_at, updated_at) VALUES (?, ?, ?, 'open', ?, ?, ?, ?, 0, ?, ?)",
+          [session_id, chat_id, workstream_id, "planner_gap", JSON.generate(payload), JSON.generate({}), question_id, now, now]
+        )
+        db.commit
+        Trace.sqlite(op: "insert", table: "clarification_sessions", detail: "id=#{session_id} status=open")
+      rescue StandardError
+        db.rollback
+        raise
+      end
+
+      get_open(chat_id: chat_id, workstream_id: workstream_id)
+    end
+
     def advance(chat_id:, session_id:, resolved_fields:, status:, last_question_id: nil)
       raise ArgumentError, "invalid status" unless STATUSES.include?(status)
 

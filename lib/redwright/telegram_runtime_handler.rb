@@ -23,6 +23,7 @@ module Redwright
       intent_interpreter: nil,
       prompt_context_loader: nil,
       planner_rejection_store: nil,
+      clarification_session_store: nil,
       quality_gate_runner: nil,
       send_json_envelope: false,
       max_change_turn_seconds: 180,
@@ -44,6 +45,7 @@ module Redwright
       @intent_interpreter = intent_interpreter
       @prompt_context_loader = prompt_context_loader
       @planner_rejection_store = planner_rejection_store
+      @clarification_session_store = clarification_session_store
       @quality_gate_runner = quality_gate_runner
       @send_json_envelope = send_json_envelope
       @max_change_turn_seconds = max_change_turn_seconds
@@ -112,17 +114,30 @@ module Redwright
 
           prompt_context = load_prompt_context(project_path: resolution.project_path)
           stop_typing = start_typing_keepalive(event.chat_id)
+          decision_input = consume_pending_planner_gap_answer(
+            chat_id: event.chat_id,
+            workstream_id: resolution.workstream_id,
+            user_text: event.text
+          )
           decision = interpret_with_trace(
-            action: "intent_interpret",
-            text: event.text,
+            action: decision_input[:action],
+            text: decision_input[:text],
             model: @model_name,
             project_context: prompt_context[:project_context],
             architecture_context: prompt_context[:architecture_context],
             workspace_context: prompt_context[:workspace_context]
           )
 
-          gap_question = highest_value_gap_question(decision)
+          gap = highest_value_gap(decision)
+          gap_question = gap && gap["question"].to_s.strip
           if gap_question
+            @clarification_session_store&.open_planner_gap(
+              chat_id: event.chat_id,
+              workstream_id: resolution.workstream_id,
+              base_message: decision.message,
+              gap: gap,
+              question_id: gap["id"].to_s.strip.empty? ? nil : gap["id"].to_s.strip
+            )
             clarify = RuntimeResultEnvelope.clarify(
               trace_id: Trace.current_trace_id || "none",
               message: gap_question
@@ -589,6 +604,13 @@ module Redwright
     end
 
     def highest_value_gap_question(decision)
+      gap = highest_value_gap(decision)
+      return nil unless gap
+
+      gap["question"].to_s.strip
+    end
+
+    def highest_value_gap(decision)
       gaps = if decision.respond_to?(:gaps)
                decision.gaps
              else
@@ -599,8 +621,30 @@ module Redwright
       unresolved = gaps.select { |g| g.is_a?(Hash) && g["resolved"] == false && !g["question"].to_s.strip.empty? }
       return nil if unresolved.empty?
 
-      best = unresolved.min_by { |g| [g["priority"].to_i <= 0 ? 9 : g["priority"].to_i, g["id"].to_s] }
-      best["question"].to_s.strip
+      unresolved.min_by { |g| [g["priority"].to_i <= 0 ? 9 : g["priority"].to_i, g["id"].to_s] }
+    end
+
+    def consume_pending_planner_gap_answer(chat_id:, workstream_id:, user_text:)
+      pending = @clarification_session_store&.get_open(chat_id: chat_id, workstream_id: workstream_id)
+      return { text: user_text, action: "intent_interpret" } unless pending && pending.gap_type == "planner_gap"
+
+      base = pending.payload.fetch("base_message", "").to_s.strip
+      gap_field = pending.payload.fetch("gap", {}).fetch("field", "").to_s.strip
+      merged = if base.empty?
+                 user_text.to_s
+               else
+                 [base, "Clarification#{gap_field.empty? ? '' : " for #{gap_field}"}: #{user_text}"].join("\n")
+               end
+
+      @clarification_session_store&.advance(
+        chat_id: chat_id,
+        session_id: pending.id,
+        resolved_fields: { gap_field.empty? ? "clarification_answer" : gap_field => user_text.to_s },
+        status: "closed",
+        last_question_id: pending.last_question_id
+      )
+
+      { text: merged, action: "intent_interpret_with_gap_answer" }
     end
 
     def send_json_envelope_if_enabled(chat_id:, envelope:)

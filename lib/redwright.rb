@@ -497,6 +497,7 @@ module Redwright
           model_name: non_coding_model.name,
           prompt_context_loader: PromptContextLoader.new(repo_root: Dir.pwd),
           planner_rejection_store: PlannerRejectionStore.new(bootstrap.db_path),
+          clarification_session_store: clarification_session_store,
           quality_gate_runner: QualityGateRunner.new,
           send_json_envelope: config.telegram.send_json_envelope,
           intent_interpreter: LlmIntentInterpreter.new(
