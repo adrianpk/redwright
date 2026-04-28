@@ -400,6 +400,7 @@ class TelegramRuntimeHandlerTest < Minitest::Test
     assert_equal("project-z", payload.dig("runtime", "project_id"))
     assert_equal("ws-z", payload.dig("runtime", "workstream_id"))
     assert_equal("task-z", payload.dig("runtime", "task_id"))
+    assert_equal("success", payload.dig("runtime", "terminal_reason"))
   end
 
   def test_handle_passes_dynamic_prompt_context_to_interpreter_when_supported

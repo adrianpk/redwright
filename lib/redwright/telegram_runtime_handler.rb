@@ -91,7 +91,8 @@ module Redwright
               project_id: control_result.project.id,
               workstream_id: control_result.workstream.id,
               task_id: control_result.task.id,
-              state: control_result.workstream.state
+              state: control_result.workstream.state,
+              terminal_reason: "control_#{control[:command]}"
             )
             @telegram_client.send_message(
               chat_id: event.chat_id,
@@ -172,7 +173,8 @@ module Redwright
               quality_summary: quality_summary,
               attempts: loop_result[:attempts],
               terminal_reason: loop_result[:terminal_reason]
-            )
+            ),
+            terminal_reason: loop_result[:terminal_reason]
           )
           @telegram_client.send_message(
             chat_id: event.chat_id,

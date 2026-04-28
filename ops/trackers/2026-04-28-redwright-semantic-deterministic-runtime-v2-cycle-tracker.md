@@ -4,30 +4,30 @@
 
 - cycle_id: `runtime-cycle-2026-04-28-redwright-semantic-deterministic-runtime-v2`
 - status: `in_progress`
-- state: `planning`
+- state: `in_progress`
 - updated: `2026-04-28`
-- active_slice: `slice-1`
+- active_slice: `slice-2`
 - active_task: `none`
 
 ## Slice Progress
 
 ### Slice 1: State Contract and Terminal Reasons
 
-- status: `pending`
+- status: `completed`
 - branch: `feat/slice-1-runtime-v2-state-contract`
-- PR: `tbd`
+- PR: `#tbd`
 - merge_target: `dev`
 - last_sync_commit: `tbd`
 
 Tasks:
 
-- [ ] `T1.1 implement static transition matrix for v2 states`
-- [ ] `T1.2 enforce transition validation in runtime entrypoints`
-- [ ] `T1.3 persist terminal reason in runtime results`
+- [x] `T1.1 implement static transition matrix for v2 states`
+- [x] `T1.2 enforce transition validation in runtime entrypoints`
+- [x] `T1.3 persist terminal reason in runtime results`
 
 Validation:
 
-- [ ] `invalid transition rejection and terminal reason coverage pass`
+- [x] `invalid transition rejection and terminal reason coverage pass`
 
 ### Slice 2: Semantic Packet V2 (Tree + Files + Errors)
 
@@ -143,3 +143,4 @@ Validation:
 ## Event Log
 
 - `2026-04-28 13:40` state=`planning` note=`created hyper-granular runtime-v2 spec with deterministic state core, semantic packet v2, dynamic gap clarification, bounded convergence loop, dual mode orchestration, and multi-stack neutrality constraints`
+- `2026-04-28 14:55` state=`in_progress` note=`slice-1 completed: added runtime_state_contract transition matrix, enforced runtime transition guards in flow entrypoints, and persisted terminal_reason in runtime result envelope`

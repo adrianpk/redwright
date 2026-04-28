@@ -9,6 +9,7 @@ require_relative "psam_store"
 require_relative "alignment_question_engine"
 require_relative "alignment_interruption_store"
 require_relative "alignment_sufficiency_heuristic"
+require_relative "runtime_state_contract"
 
 module Redwright
   FlowResult = Struct.new(
@@ -130,7 +131,7 @@ module Redwright
 
       task = @task_store.create(workstream_id: workstream.id, description: message, status: "pending")
       action_results = execute_actions(project: project, task: task, actions: actions)
-      workstream = @workstream_store.update_state(workstream.id, "executing")
+      workstream = update_workstream_state_checked(workstream: workstream, next_state: "executing")
       Trace.runtime({
         trace_id: Trace.current_trace_id || "none",
         project_id: project.id,
@@ -215,7 +216,7 @@ module Redwright
       end
 
       if session.step_index >= @alignment_max_turns
-        workstream = @workstream_store.update_state(workstream.id, "blocked")
+        workstream = update_workstream_state_checked(workstream: workstream, next_state: "blocked")
         task = @task_store.create(workstream_id: workstream.id, description: "alignment max turns reached", status: "blocked")
         return FlowResult.new(
           project: project,
@@ -361,7 +362,7 @@ module Redwright
         risk_acknowledged: true,
         open_branch_snapshot: workstream.branch
       )
-      updated_ws = @workstream_store.update_state(workstream.id, "suspended")
+      updated_ws = update_workstream_state_checked(workstream: workstream, next_state: "suspended")
       task = @task_store.create(workstream_id: updated_ws.id, description: "pause workstream: #{reason}", status: "suspended")
       FlowResult.new(project: project, workstream: updated_ws, task: task, alignment: nil, functional_spec_path: nil, technical_spec_path: nil, action_results: [])
     end
@@ -377,7 +378,7 @@ module Redwright
         risk_acknowledged: false,
         open_branch_snapshot: workstream.branch
       )
-      updated_ws = @workstream_store.update_state(workstream.id, "blocked")
+      updated_ws = update_workstream_state_checked(workstream: workstream, next_state: "blocked")
       task = @task_store.create(workstream_id: updated_ws.id, description: "stop workstream: #{reason}", status: "blocked")
       FlowResult.new(project: project, workstream: updated_ws, task: task, alignment: nil, functional_spec_path: nil, technical_spec_path: nil, action_results: [])
     end
@@ -388,7 +389,7 @@ module Redwright
       if workstream.state != "suspended"
         target_state = workstream.state
       end
-      updated_ws = @workstream_store.update_state(workstream.id, target_state)
+      updated_ws = update_workstream_state_checked(workstream: workstream, next_state: target_state)
       @alignment_interruption_store&.mark_resumed(workstream_id: workstream.id)
       task = @task_store.create(workstream_id: updated_ws.id, description: "resume workstream", status: "resumed")
       FlowResult.new(project: project, workstream: updated_ws, task: task, alignment: nil, functional_spec_path: nil, technical_spec_path: nil, action_results: [], terminal_reason: "ready")
@@ -417,6 +418,11 @@ module Redwright
         action_results: [],
         terminal_reason: terminal_reason
       )
+    end
+
+    def update_workstream_state_checked(workstream:, next_state:)
+      RuntimeStateContract.assert_transition!(from: workstream.state, to: next_state)
+      @workstream_store.update_state(workstream.id, next_state)
     end
   end
 end

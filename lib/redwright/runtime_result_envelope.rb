@@ -4,7 +4,7 @@ require "json"
 
 module Redwright
   class RuntimeResultEnvelope
-    def self.success(trace_id:, project_id:, workstream_id:, task_id:, state:, execution: nil)
+    def self.success(trace_id:, project_id:, workstream_id:, task_id:, state:, execution: nil, terminal_reason: nil)
       new(
         status: "ok",
         trace_id: trace_id,
@@ -13,7 +13,8 @@ module Redwright
           workstream_id: workstream_id,
           task_id: task_id,
           state: state,
-          execution: execution
+          execution: execution,
+          terminal_reason: terminal_reason
         }.compact
       )
     end

@@ -158,6 +158,33 @@ class RuntimeFlowTest < Minitest::Test
     end
   end
 
+  def test_process_rejects_invalid_runtime_transition
+    Dir.mktmpdir("redwright-flow-transition-test-") do |dir|
+      Dir.chdir(dir) do
+        bootstrap = Redwright::Bootstrap.new(mode: :dev).call
+        project_store = Redwright::ProjectStore.new(bootstrap.db_path)
+        ws_store = Redwright::WorkstreamStore.new(bootstrap.db_path)
+        task_store = Redwright::TaskStore.new(bootstrap.db_path)
+        alignment_store = Redwright::AlignmentStore.new(bootstrap.db_path)
+
+        project = project_store.register(path: "#{dir}/apps/core", aliases: ["rw"])
+        ws = ws_store.create(project_id: project.id, intent: "change", state: "blocked")
+
+        flow = Redwright::RuntimeFlow.new(
+          project_store: project_store,
+          workstream_store: ws_store,
+          task_store: task_store,
+          alignment_store: alignment_store
+        )
+
+        err = assert_raises(ArgumentError) do
+          flow.process(project_ref: "rw", intent: "change", message: "retry", workstream_id: ws.id)
+        end
+        assert_match("invalid_runtime_transition", err.message)
+      end
+    end
+  end
+
   def test_plan_intent_enforces_one_question_at_a_time_until_ready
     Dir.mktmpdir("redwright-flow-plan-test-") do |dir|
       Dir.chdir(dir) do
