@@ -20,7 +20,7 @@ module Redwright
       @home = home
     end
 
-    def load
+    def load(ingress: "telegram")
       config_path = File.join(Paths.new(mode: @mode, pwd: @pwd, home: @home).config_dir, "config.yml")
       raise ArgumentError, "missing config file: #{config_path}" unless File.file?(config_path)
 
@@ -28,7 +28,7 @@ module Redwright
       raise ArgumentError, "invalid config: root must be a mapping" unless raw.is_a?(Hash)
 
       runtime = fetch_hash(raw, "runtime")
-      telegram = fetch_hash(raw, "telegram")
+      telegram = raw["telegram"].is_a?(Hash) ? raw["telegram"] : {}
       paths = fetch_hash(raw, "paths")
       models = fetch_hash(raw, "models")
       alignment = raw["alignment"].is_a?(Hash) ? raw["alignment"] : {}
@@ -40,9 +40,9 @@ module Redwright
           queue_drain_mode: optional_runtime_queue_drain_mode(runtime, "queue_drain_mode", default: "all")
         ),
         telegram: TelegramConfig.new(
-          bot_token: required_string(telegram, "bot_token"),
-          poll_interval_seconds: positive_integer(telegram, "poll_interval_seconds"),
-          allowed_chat_ids: required_array(telegram, "allowed_chat_ids").map { |id| integer_value(id, "allowed_chat_ids[]") },
+          bot_token: telegram_bot_token(telegram, ingress: ingress),
+          poll_interval_seconds: telegram_poll_interval(telegram),
+          allowed_chat_ids: telegram_allowed_chat_ids(telegram),
           send_json_envelope: optional_boolean(telegram, "send_json_envelope", default: false)
         ),
         paths: PathsConfig.new(
@@ -144,6 +144,24 @@ module Redwright
                    end
 
       ModelRoleConfig.new(candidates: candidates)
+    end
+
+    def telegram_bot_token(telegram, ingress:)
+      return "" unless ingress.to_s == "telegram"
+
+      required_string(telegram, "bot_token")
+    end
+
+    def telegram_poll_interval(telegram)
+      return 1 unless telegram.key?("poll_interval_seconds")
+
+      positive_integer(telegram, "poll_interval_seconds")
+    end
+
+    def telegram_allowed_chat_ids(telegram)
+      return [] unless telegram.key?("allowed_chat_ids")
+
+      required_array(telegram, "allowed_chat_ids").map { |id| integer_value(id, "allowed_chat_ids[]") }
     end
 
     def parse_model_candidate(candidate, prefix)

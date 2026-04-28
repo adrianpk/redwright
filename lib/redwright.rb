@@ -34,6 +34,7 @@ require_relative "redwright/telegram_runtime_handler"
 require_relative "redwright/console/ingress_adapter"
 require_relative "redwright/tui/shell"
 require_relative "redwright/tui/ingress_adapter"
+require_relative "redwright/tui/socket_client_runner"
 require_relative "redwright/chat_context_store"
 require_relative "redwright/clarification_session_store"
 require_relative "redwright/telegram_context_resolver"
@@ -47,6 +48,8 @@ require_relative "redwright/runtime_lock"
 require_relative "redwright/local_ipc_server"
 require_relative "redwright/local_ipc_session_registry"
 require_relative "redwright/server_runtime_dispatcher"
+require_relative "redwright/local_ipc_client"
+require_relative "redwright/telegram_socket_client_runner"
 
 module Redwright
   class CLI
@@ -459,85 +462,8 @@ module Redwright
         end
 
         bootstrap = Bootstrap.new(mode: mode).call
-        config = AppConfigLoader.new(mode: mode).load
-        model_resolver = ModelResolver.new(config.models)
-        non_coding_model = model_resolver.resolve("non_coding")
-        primitive_executor = PrimitiveExecutor.new(
-          allowed_projects_root: config.paths.default_projects_root,
-          enforce_mutating_projects_root: mode == :dev
-        )
-        flow = RuntimeFlow.new(
-          project_store: ProjectStore.new(bootstrap.db_path),
-          workstream_store: WorkstreamStore.new(bootstrap.db_path),
-          task_store: TaskStore.new(bootstrap.db_path),
-          alignment_store: AlignmentStore.new(bootstrap.db_path),
-          alignment_interruption_store: AlignmentInterruptionStore.new(bootstrap.db_path),
-          psam_store: PsamStore.new(bootstrap.db_path),
-          alignment_question_engine: AlignmentQuestionEngine.new(llm_client: llm_client_for(non_coding_model.provider)),
-          alignment_max_turns: config.alignment.max_turns,
-          alignment_sufficiency_heuristic: AlignmentSufficiencyHeuristic.new,
-          non_coding_model: non_coding_model.name,
-          plan_spec_store: PlanSpecStore.new,
-          primitive_executor: primitive_executor,
-          action_execution_store: ActionExecutionStore.new(bootstrap.db_path),
-          skill_dispatcher: SkillDispatcher.new
-        )
-        ingress_port = case ingress
-                       when "console"
-                         Console::IngressAdapter.new(input: $stdin, output: @out)
-                       when "tui"
-                         Tui::IngressAdapter.new(input: $stdin, shell: Tui::Shell.new(output: @out))
-                       else
-                         telegram_client = TelegramClient.new(bot_token: config.telegram.bot_token)
-                         TelegramIngressAdapter.new(
-                           client: telegram_client,
-                           allowed_chat_ids: config.telegram.allowed_chat_ids
-                         )
-                       end
-        chat_context_store = ChatContextStore.new(bootstrap.db_path)
-        clarification_session_store = ClarificationSessionStore.new(bootstrap.db_path)
-        runtime_handler = TelegramRuntimeHandler.new(
-          flow: flow,
-          telegram_client: ingress_port,
-          out: @out,
-          err: @err,
-          context_resolver: TelegramContextResolver.new(
-            project_store: ProjectStore.new(bootstrap.db_path),
-            chat_context_store: chat_context_store,
-            projects_root: config.paths.default_projects_root,
-            clarification_session_store: clarification_session_store
-          ),
-          chat_context_store: chat_context_store,
-          blocked_retry_attempts: config.runtime.blocked_retry_attempts,
-          model_role: "non_coding",
-          model_provider: non_coding_model.provider,
-          model_name: non_coding_model.name,
-          prompt_context_loader: PromptContextLoader.new(repo_root: Dir.pwd),
-          planner_rejection_store: PlannerRejectionStore.new(bootstrap.db_path),
-          clarification_session_store: clarification_session_store,
-          quality_gate_runner: QualityGateRunner.new,
-          send_json_envelope: config.telegram.send_json_envelope,
-          intent_interpreter: LlmIntentInterpreter.new(
-            llm_client: llm_client_for(non_coding_model.provider),
-            skill_dispatcher: SkillDispatcher.new
-          )
-        )
-        offset = nil
-        runner = DaemonRunner.new(
-          ingress_poller: lambda {
-            next [] if ingress == "none"
-
-            poll = ingress_port.poll(
-              cursor: offset,
-              timeout_seconds: config.telegram.poll_interval_seconds
-            )
-            offset = poll.next_cursor
-            poll.events
-          },
-          event_handler: ->(event) { runtime_handler.handle(event) },
-          turn_queue: TurnMessageQueue.new,
-          queue_drain_mode: config.runtime.queue_drain_mode
-        )
+        config = AppConfigLoader.new(mode: mode).load(ingress: ingress)
+        socket_path = File.join(bootstrap.state_dir, "rw.sock")
 
         @out.puts("daemon starting")
         @out.puts("mode: #{mode}")
@@ -545,12 +471,54 @@ module Redwright
         @out.puts("once: #{run_once}")
         @out.puts("loop_interval_ms: #{config.runtime.loop_interval_ms}")
         @out.puts("queue_drain_mode: #{config.runtime.queue_drain_mode}")
+        @out.puts("socket_path: #{socket_path}")
 
-        runner.run(
-          loop_interval_seconds: config.runtime.loop_interval_ms / 1000.0,
-          max_iterations: run_once ? 1 : nil
-        )
-        ingress_port.close if ingress_port.respond_to?(:close)
+        if ingress == "tui"
+          tui_runner = Tui::SocketClientRunner.new(input: $stdin, output: @out, socket_path: socket_path)
+          tui_runner.run_once
+        elsif ingress == "telegram"
+          telegram_client = TelegramClient.new(bot_token: config.telegram.bot_token)
+          ingress_port = TelegramIngressAdapter.new(
+            client: telegram_client,
+            allowed_chat_ids: config.telegram.allowed_chat_ids
+          )
+          tg_runner = TelegramSocketClientRunner.new(
+            ingress_port: ingress_port,
+            socket_path: socket_path,
+            out: @out,
+            poll_interval_seconds: config.telegram.poll_interval_seconds
+          )
+          if run_once
+            tg_runner.run_once
+          else
+            loop do
+              tg_runner.run_once
+              sleep(config.runtime.loop_interval_ms / 1000.0)
+            end
+          end
+        elsif ingress == "console"
+          console = Console::IngressAdapter.new(input: $stdin, output: @out)
+          poll = console.poll(cursor: nil, timeout_seconds: 0)
+          event = poll.events.first
+          if event
+            response = LocalIpcClient.new(socket_path: socket_path).request(
+              type: "send",
+              session_id: "console-#{event.chat_id}",
+              payload: {
+                "channel" => "console",
+                "project_ref" => event.text.to_s.strip.split(/\s+/).first.to_s,
+                "intent" => "change",
+                "message" => event.text.to_s,
+                "actions" => []
+              }
+            )
+            console.send_message(chat_id: event.chat_id, text: "status=#{response.dig('payload', 'status')}")
+          end
+        elsif ingress == "none"
+          # no-op
+        else
+          raise ArgumentError, "unsupported ingress in client mode: #{ingress}"
+        end
         @out.puts("daemon stopped")
         0
       else

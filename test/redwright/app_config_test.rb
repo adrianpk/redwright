@@ -261,6 +261,34 @@ class AppConfigTest < Minitest::Test
     end
   end
 
+  def test_non_telegram_ingress_does_not_require_bot_token
+    Dir.mktmpdir("redwright-app-config-no-telegram-token-") do |home|
+      config_dir = File.join(home, ".config", "redwright")
+      FileUtils.mkdir_p(config_dir)
+      File.write(File.join(config_dir, "config.yml"), <<~YAML)
+        runtime:
+          loop_interval_ms: 100
+          blocked_retry_attempts: 1
+        telegram:
+          poll_interval_seconds: 2
+          allowed_chat_ids: [1]
+        paths:
+          default_projects_root: "#{home}/redwright"
+        models:
+          coding:
+            - provider: "openai"
+              name: "gpt-5.2"
+          non_coding:
+            - provider: "openai"
+              name: "gpt-5-mini"
+      YAML
+
+      config = Redwright::AppConfigLoader.new(mode: :real, home: home).load(ingress: "tui")
+      assert_equal("", config.telegram.bot_token)
+      assert_equal(2, config.telegram.poll_interval_seconds)
+    end
+  end
+
   def test_missing_required_sections_are_rejected
     Dir.mktmpdir("redwright-app-config-sections-") do |dir|
       config_dir = File.join(dir, ".config", "redwright")
@@ -272,7 +300,7 @@ class AppConfigTest < Minitest::Test
       YAML
 
       err = assert_raises(ArgumentError) { Redwright::AppConfigLoader.new(mode: :real, home: dir).load }
-      assert_equal("missing config key: telegram", err.message)
+      assert_equal("missing config key: paths", err.message)
     end
   end
 

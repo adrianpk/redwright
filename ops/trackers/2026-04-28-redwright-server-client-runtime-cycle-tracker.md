@@ -4,7 +4,7 @@
 
 - owner: `adrianpk`
 - status: `in_progress`
-- active_slice: `slice-3`
+- active_slice: `slice-4`
 - plan: `ops/plans/2026-04-28-redwright-server-client-runtime-cycle-plan.md`
 
 ## Slice Progress
@@ -35,11 +35,11 @@
 
 ### Slice 4: TUI and Telegram as Socket Clients
 
-- status: `pending`
+- status: `completed`
 - branch: `feat/slice-4-tui-telegram-socket-clients`
 - PR: `tbd`
-- commits: `tbd`
-- validation: `tbd`
+- commits: `pending-push`
+- validation: `bundle exec ruby -Itest test/redwright/tui_socket_client_runner_test.rb && bundle exec ruby -Itest test/redwright/telegram_socket_client_runner_test.rb && bundle exec ruby -Itest test/redwright/app_config_test.rb`
 
 ### Slice 5: Recovery, Controls, and Cross-Channel Parity
 
@@ -55,3 +55,4 @@
 - `2026-04-28 21:00` state=`implementation` slice=`slice-1` note=`added rw server core command with single-writer runtime lock, stale-lock replacement, and health probes via status/ping`
 - `2026-04-28 21:00` state=`implementation` slice=`slice-2` note=`added local unix-socket IPC JSONL protocol, session registry, server request dispatcher wiring, and malformed payload rejection handling`
 - `2026-04-28 21:00` state=`implementation` slice=`slice-3` note=`migrated server request handling to runtime flow ownership so send requests execute actions and persist outcomes through centralized server dispatcher`
+- `2026-04-28 21:00` state=`implementation` slice=`slice-4` note=`added tui and telegram socket client runners, switched daemon ingress paths to server-backed client mode, and made telegram token requirement conditional on ingress`
