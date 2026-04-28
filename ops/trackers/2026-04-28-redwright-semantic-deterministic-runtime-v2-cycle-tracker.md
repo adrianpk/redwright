@@ -6,7 +6,7 @@
 - status: `in_progress`
 - state: `in_progress`
 - updated: `2026-04-28`
-- active_slice: `slice-2`
+- active_slice: `slice-3`
 - active_task: `none`
 
 ## Slice Progress
@@ -15,7 +15,7 @@
 
 - status: `completed`
 - branch: `feat/slice-1-runtime-v2-state-contract`
-- PR: `#tbd`
+- PR: `#62`
 - merge_target: `dev`
 - last_sync_commit: `tbd`
 
@@ -31,22 +31,22 @@ Validation:
 
 ### Slice 2: Semantic Packet V2 (Tree + Files + Errors)
 
-- status: `pending`
+- status: `completed`
 - branch: `feat/slice-2-semantic-packet-v2`
-- PR: `tbd`
+- PR: `#63`
 - merge_target: `dev`
 - last_sync_commit: `tbd`
 
 Tasks:
 
-- [ ] `T2.1 define strict packet schema and serializer`
-- [ ] `T2.2 add tree snapshot capture with configurable limits`
-- [ ] `T2.3 add file-selection heuristics and bounded payload sizing`
-- [ ] `T2.4 include compile/test/runtime error context on retries`
+- [x] `T2.1 define strict packet schema and serializer`
+- [x] `T2.2 add tree snapshot capture with configurable limits`
+- [x] `T2.3 add file-selection heuristics and bounded payload sizing`
+- [x] `T2.4 include compile/test/runtime error context on retries`
 
 Validation:
 
-- [ ] `packet schema and bounded payload checks pass`
+- [x] `packet schema and bounded payload checks pass`
 
 ### Slice 3: Dynamic Gap Collection and Clarification Engine
 
@@ -143,4 +143,5 @@ Validation:
 ## Event Log
 
 - `2026-04-28 13:40` state=`planning` note=`created hyper-granular runtime-v2 spec with deterministic state core, semantic packet v2, dynamic gap clarification, bounded convergence loop, dual mode orchestration, and multi-stack neutrality constraints`
-- `2026-04-28 14:55` state=`in_progress` note=`slice-1 completed: added runtime_state_contract transition matrix, enforced runtime transition guards in flow entrypoints, and persisted terminal_reason in runtime result envelope`
+- `2026-04-28 14:44` state=`in_progress` note=`slice-1 merged via PR #62 with runtime state contract and terminal reason persistence`
+- `2026-04-28 15:08` state=`in_progress` note=`slice-2 completed with semantic packet v2 schema/serializer, bounded tree+files capture, and packet-size trimming`
