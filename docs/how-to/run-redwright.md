@@ -5,7 +5,7 @@ This guide shows the shortest local run flow.
 ## 1) Start Server
 
 ```bash
-bundle exec ruby bin/redwright server run --dev
+bin/rake server:run
 ```
 
 ## 2) Use a Client
@@ -13,19 +13,19 @@ bundle exec ruby bin/redwright server run --dev
 TUI client:
 
 ```bash
-bundle exec ruby bin/redwright daemon run --dev --ingress tui --once
+bin/rake tui
 ```
 
 Telegram client:
 
 ```bash
-bundle exec ruby bin/redwright daemon run --dev --ingress telegram --once
+bin/rake telegram
 ```
 
 ## 3) Check Server Health
 
 ```bash
-bundle exec ruby bin/redwright server status --dev
-bundle exec ruby bin/redwright server ping --dev
-bundle exec ruby bin/redwright server ctl status --dev
+bin/rake server:status
+bin/rake server:ping
+bin/rake server:ctl:status
 ```

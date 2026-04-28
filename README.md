@@ -7,11 +7,13 @@
 
 RedWright is an **agent harness** for software development, built around messaging-first workflows.
 
-It treats Telegram and Slack as primary interfaces, alongside a local TUI for project work. You describe engineering tasks in natural language, and RedWright executes them inside real workspaces with controlled access to files, commands, and tools.
+Telegram is the current messaging interface, alongside a local TUI for project work. You describe engineering tasks in natural language, and RedWright executes them inside real workspaces with controlled access to files, commands, and tools.
+
+(*) Slack is expected as a later extension after the Telegram path is stable.
 
 ## Product Focus
 
-RedWright is designed for software-development execution, not generic chat. Current baseline interfaces are Telegram and local TUI. Slack and richer cross-channel multi-project continuity are part of the planned scope.
+RedWright is designed for software-development execution, not generic chat. Current baseline interfaces are Telegram and local TUI.
 
 ## What It Delivers
 
