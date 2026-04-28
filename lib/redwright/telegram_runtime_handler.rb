@@ -583,7 +583,7 @@ module Redwright
 
     def human_clarify_message(question:, trace_id:)
       [
-        "Clarification needed (active question): #{question}",
+        question.to_s,
         "Trace: #{trace_id}"
       ].join("\n")
     end

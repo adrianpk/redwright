@@ -265,7 +265,7 @@ class TelegramRuntimeHandlerTest < Minitest::Test
     assert_equal("", err.string)
     assert_match("telegram clarify chat=88", out.string)
     assert_equal(1, client.messages.size)
-    assert_match("Clarification needed (active question): Please specify project.", client.messages.first[:text])
+    assert_match("Please specify project.", client.messages.first[:text])
     assert_match("Trace: trc-", client.messages.first[:text])
   end
 
@@ -309,7 +309,7 @@ class TelegramRuntimeHandlerTest < Minitest::Test
     assert_equal("", err.string)
     assert_match("telegram clarify chat=66", out.string)
     assert_equal(1, client.messages.size)
-    assert_match("Clarification needed (active question): What is the project name?", client.messages.first[:text])
+    assert_match("What is the project name?", client.messages.first[:text])
   end
 
   def test_handle_does_not_send_json_envelope_when_disabled
