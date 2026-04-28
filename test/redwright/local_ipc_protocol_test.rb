@@ -13,6 +13,13 @@ class LocalIpcProtocolTest < Minitest::Test
     assert_equal("s1", req["session_id"])
   end
 
+  def test_decode_valid_ctl_request
+    protocol = Redwright::LocalIpcProtocol.new
+    req = protocol.decode_request('{"type":"ctl","session_id":"ctl-1","payload":{"channel":"ctl","command":"status"}}')
+    assert_equal("ctl", req["type"])
+    assert_equal("ctl-1", req["session_id"])
+  end
+
   def test_decode_rejects_malformed_payload
     protocol = Redwright::LocalIpcProtocol.new
     err = assert_raises(ArgumentError) { protocol.decode_request('{"type":"send","session_id":"s1","payload":1}') }

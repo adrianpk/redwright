@@ -12,6 +12,8 @@ module Redwright
       payload = request.fetch("payload")
 
       case type
+      when "ctl"
+        dispatch_ctl(payload)
       when "subscribe"
         {
           "status" => "subscribed",
@@ -25,6 +27,26 @@ module Redwright
     end
 
     private
+
+    def dispatch_ctl(payload)
+      command = payload.fetch("command").to_s
+      case command
+      when "status"
+        {
+          "status" => "ok",
+          "command" => "status",
+          "message" => "server runtime ready"
+        }
+      when "stop", "resume", "trace"
+        {
+          "status" => "ok",
+          "command" => command,
+          "message" => "accepted"
+        }
+      else
+        raise ArgumentError, "unsupported_ctl_command"
+      end
+    end
 
     def dispatch_send(payload)
       project_ref = payload.fetch("project_ref").to_s.strip

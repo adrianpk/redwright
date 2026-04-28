@@ -672,6 +672,7 @@ module Redwright
             ipc_server.run_once
           end
         end
+        ipc_server.close
         @out.puts("server stopped")
         0
       when "status"
@@ -690,8 +691,21 @@ module Redwright
           @out.puts("no_server")
           2
         end
+      when "ctl"
+        command = @argv.shift.to_s
+        raise ArgumentError, "missing ctl command" if command.empty?
+
+        response = LocalIpcClient.new(socket_path: socket_path).request(
+          type: "ctl",
+          session_id: "server-ctl",
+          payload: { "channel" => "ctl", "command" => command }
+        )
+        @out.puts("status: #{response.dig('payload', 'status')}")
+        @out.puts("command: #{response.dig('payload', 'command')}")
+        @out.puts("message: #{response.dig('payload', 'message')}")
+        0
       else
-        @err.puts("usage: redwright server <run|status|ping> [--dev|--real] [--once]")
+        @err.puts("usage: redwright server <run|status|ping|ctl> [--dev|--real] [--once]")
         1
       end
     rescue OptionParser::ParseError, ArgumentError, RuntimeError => e

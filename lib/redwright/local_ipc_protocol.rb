@@ -4,7 +4,7 @@ require "json"
 
 module Redwright
   class LocalIpcProtocol
-    REQUEST_TYPES = %w[send subscribe].freeze
+    REQUEST_TYPES = %w[send subscribe ctl].freeze
     RESPONSE_TYPES = %w[ack error event].freeze
 
     def decode_request(line)

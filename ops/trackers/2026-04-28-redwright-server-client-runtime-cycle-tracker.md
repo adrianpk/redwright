@@ -4,7 +4,7 @@
 
 - owner: `adrianpk`
 - status: `in_progress`
-- active_slice: `slice-4`
+- active_slice: `slice-5`
 - plan: `ops/plans/2026-04-28-redwright-server-client-runtime-cycle-plan.md`
 
 ## Slice Progress
@@ -43,11 +43,11 @@
 
 ### Slice 5: Recovery, Controls, and Cross-Channel Parity
 
-- status: `pending`
+- status: `completed`
 - branch: `feat/slice-5-recovery-controls-parity`
 - PR: `tbd`
-- commits: `tbd`
-- validation: `tbd`
+- commits: `pending-push`
+- validation: `bundle exec ruby -Itest test/redwright/server_client_recovery_parity_test.rb && bundle exec ruby -Itest test/redwright/local_ipc_protocol_test.rb && bundle exec ruby -Itest test/redwright/server_runtime_dispatcher_test.rb`
 
 ## Event Log
 
@@ -56,3 +56,4 @@
 - `2026-04-28 21:00` state=`implementation` slice=`slice-2` note=`added local unix-socket IPC JSONL protocol, session registry, server request dispatcher wiring, and malformed payload rejection handling`
 - `2026-04-28 21:00` state=`implementation` slice=`slice-3` note=`migrated server request handling to runtime flow ownership so send requests execute actions and persist outcomes through centralized server dispatcher`
 - `2026-04-28 21:00` state=`implementation` slice=`slice-4` note=`added tui and telegram socket client runners, switched daemon ingress paths to server-backed client mode, and made telegram token requirement conditional on ingress`
+- `2026-04-28 21:00` state=`implementation` slice=`slice-5` note=`added ctl request path (status/stop/resume/trace), multi-client reconnect parity test on single server socket, and finalized cross-channel safety parity invariants for same-project mutations`

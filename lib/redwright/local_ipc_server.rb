@@ -41,7 +41,6 @@ module Redwright
       end
     ensure
       client&.close
-      close
     end
 
     def close
@@ -53,6 +52,8 @@ module Redwright
     private
 
     def open_server
+      return if @server
+
       FileUtils.mkdir_p(File.dirname(@socket_path))
       File.delete(@socket_path) if File.exist?(@socket_path)
       @server = UNIXServer.new(@socket_path)
