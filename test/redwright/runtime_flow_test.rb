@@ -13,6 +13,7 @@ require "redwright/alignment_store"
 require "redwright/plan_spec_store"
 require "redwright/runtime_flow"
 require "redwright/primitive_executor"
+require "redwright/trace"
 
 class RuntimeFlowTest < Minitest::Test
   FlakyTaskStore = Struct.new(:real_store, :failures_left) do
@@ -463,6 +464,55 @@ class RuntimeFlowTest < Minitest::Test
         assert_equal("verify", result.action_results[2].action_id)
         assert_equal("run", result.action_results[2].action_type)
         assert_equal("ok\n", result.action_results[2].stdout)
+      end
+    end
+  end
+
+  def test_process_preserves_existing_turn_trace_id_for_task_and_actions
+    Dir.mktmpdir("redwright-flow-trace-correlation-test-") do |dir|
+      Dir.chdir(dir) do
+        bootstrap = Redwright::Bootstrap.new(mode: :dev).call
+        project_store = Redwright::ProjectStore.new(bootstrap.db_path)
+        ws_store = Redwright::WorkstreamStore.new(bootstrap.db_path)
+        task_store = Redwright::TaskStore.new(bootstrap.db_path)
+        action_store = Redwright::ActionExecutionStore.new(bootstrap.db_path)
+        alignment_store = Redwright::AlignmentStore.new(bootstrap.db_path)
+
+        project_store.register(path: "#{dir}/apps/core", aliases: ["rw"])
+        flow = Redwright::RuntimeFlow.new(
+          project_store: project_store,
+          workstream_store: ws_store,
+          task_store: task_store,
+          alignment_store: alignment_store,
+          primitive_executor: Redwright::PrimitiveExecutor.new,
+          action_execution_store: action_store
+        )
+
+        result = nil
+        Redwright::Trace.with_trace_id("trc-unified-1") do
+          result = flow.process(
+            project_ref: "rw",
+            intent: "change",
+            message: "trace correlation",
+            confirm_new_workstream: true,
+            actions: [
+              {
+                "id" => "a1",
+                "type" => "list_files",
+                "args" => {},
+                "requires_confirmation" => false,
+                "timeout_ms" => 2_000,
+                "on_failure" => "abort"
+              }
+            ]
+          )
+        end
+
+        task = task_store.get(result.task.id)
+        assert_equal("trc-unified-1", task.trace_id)
+        rows = action_store.list(task_id: result.task.id)
+        assert_equal(1, rows.size)
+        assert_equal("trc-unified-1", rows.first.trace_id)
       end
     end
   end

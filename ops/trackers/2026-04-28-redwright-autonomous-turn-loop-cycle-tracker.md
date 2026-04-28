@@ -6,7 +6,7 @@
 - status: `in_progress`
 - state: `awaiting_review`
 - updated: `2026-04-28`
-- active_slice: `slice-5`
+- active_slice: `slice-6`
 - active_task: `none`
 
 ## Slice Progress
@@ -108,7 +108,7 @@ Validation:
 
 ### Slice 6: Unified Turn Trace Correlation
 
-- status: `pending`
+- status: `completed`
 - branch: `feat/slice-6-unified-turn-trace-correlation`
 - PR: `tbd`
 - merge_target: `dev`
@@ -116,14 +116,14 @@ Validation:
 
 Tasks:
 
-- [ ] `T6.1 propagate one top-level trace id across ingress/planner/execution/response`
-- [ ] `T6.2 link per-attempt events under the same turn trace id`
-- [ ] `T6.3 keep trace toggles while preserving single-trace query path`
+- [x] `T6.1 propagate one top-level trace id across ingress/planner/execution/response`
+- [x] `T6.2 link per-attempt events under the same turn trace id`
+- [x] `T6.3 keep trace toggles while preserving single-trace query path`
 
 Validation:
 
-- [ ] `one trace id explains the full turn lifecycle`
-- [ ] `llm trace and execution trace are correlated by design`
+- [x] `one trace id explains the full turn lifecycle`
+- [x] `llm trace and execution trace are correlated by design`
 
 ## Event Log
 
@@ -144,3 +144,6 @@ Validation:
 - `2026-04-28 10:31` state=`implementation` slice=`slice-5` note=`added explicit actionable confirmation-blocked guidance in human response while preserving optional debug json envelope behavior`
 - `2026-04-28 10:31` validation=`bundle exec ruby -Itest test/redwright/telegram_runtime_handler_test.rb`
 - `2026-04-28 10:32` validation=`bundle exec rake test`
+- `2026-04-28 10:43` state=`implementation` slice=`slice-6` note=`preserved outer turn trace id inside RuntimeFlow to keep planner/task/action traces under one unified correlation id`
+- `2026-04-28 10:43` validation=`bundle exec ruby -Itest test/redwright/runtime_flow_test.rb`
+- `2026-04-28 10:44` validation=`bundle exec rake test`

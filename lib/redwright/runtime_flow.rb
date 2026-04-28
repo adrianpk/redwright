@@ -43,7 +43,7 @@ module Redwright
       confirm_new_workstream: false,
       blocked_retry_attempts: 1
     )
-      Trace.with_trace_id do
+      Trace.with_trace_id(Trace.current_trace_id) do
         retries = [blocked_retry_attempts.to_i, 1].max
         attempts = 0
 
