@@ -30,6 +30,7 @@ require_relative "redwright/ingress_port"
 require_relative "redwright/telegram_ingress_adapter"
 require_relative "redwright/simulated_ingress_adapter"
 require_relative "redwright/telegram_runtime_handler"
+require_relative "redwright/console/ingress_adapter"
 require_relative "redwright/chat_context_store"
 require_relative "redwright/clarification_session_store"
 require_relative "redwright/telegram_context_resolver"
@@ -438,14 +439,14 @@ module Redwright
         opts.on("--dev", "Use ./_workspace") { mode = :dev }
         opts.on("--real", "Use $HOME paths") { mode = :real }
         opts.on("--once", "Run only one loop iteration and exit") { run_once = true }
-        opts.on("--ingress VALUE", "Ingress mode: telegram|none") { |v| ingress = v }
+        opts.on("--ingress VALUE", "Ingress mode: telegram|console|none") { |v| ingress = v }
       end
       parser.parse!(@argv)
 
       case sub
       when "run"
-        unless %w[telegram none].include?(ingress)
-          raise ArgumentError, "invalid ingress mode: #{ingress} (expected telegram|none)"
+        unless %w[telegram console none].include?(ingress)
+          raise ArgumentError, "invalid ingress mode: #{ingress} (expected telegram|console|none)"
         end
 
         bootstrap = Bootstrap.new(mode: mode).call
@@ -472,11 +473,15 @@ module Redwright
           action_execution_store: ActionExecutionStore.new(bootstrap.db_path),
           skill_dispatcher: SkillDispatcher.new
         )
-        telegram_client = TelegramClient.new(bot_token: config.telegram.bot_token)
-        ingress_port = TelegramIngressAdapter.new(
-          client: telegram_client,
-          allowed_chat_ids: config.telegram.allowed_chat_ids
-        )
+        ingress_port = if ingress == "console"
+                         Console::IngressAdapter.new(input: $stdin, output: @out)
+                       else
+                         telegram_client = TelegramClient.new(bot_token: config.telegram.bot_token)
+                         TelegramIngressAdapter.new(
+                           client: telegram_client,
+                           allowed_chat_ids: config.telegram.allowed_chat_ids
+                         )
+                       end
         chat_context_store = ChatContextStore.new(bootstrap.db_path)
         clarification_session_store = ClarificationSessionStore.new(bootstrap.db_path)
         runtime_handler = TelegramRuntimeHandler.new(
@@ -533,7 +538,7 @@ module Redwright
         @out.puts("daemon stopped")
         0
       else
-        @err.puts("usage: redwright daemon run [--dev|--real] [--once] [--ingress telegram|none]")
+        @err.puts("usage: redwright daemon run [--dev|--real] [--once] [--ingress telegram|console|none]")
         1
       end
     rescue OptionParser::ParseError, ArgumentError => e
