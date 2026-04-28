@@ -27,7 +27,7 @@ Tasks:
 
 Commits:
 
-- [ ] `<sha> docs(spec): capture alignment decisions and open questions`
+- [x] `211c7b4 chore(ops): initialize specification convergence cycle artifacts`
 
 Validation:
 
@@ -49,7 +49,7 @@ Tasks:
 
 Commits:
 
-- [ ] `<sha> docs(spec): publish refined runtime proto-spec`
+- [x] `15ccdda docs(spec): formalize slice-2 runtime proto-spec and sync ops ledger`
 
 Validation:
 
@@ -71,7 +71,7 @@ Tasks:
 
 Commits:
 
-- [ ] `<sha> docs(spec): publish stable runtime specification`
+- [x] `e53f020 docs(spec): publish stable runtime spec and close slice-3 cycle`
 
 Validation:
 

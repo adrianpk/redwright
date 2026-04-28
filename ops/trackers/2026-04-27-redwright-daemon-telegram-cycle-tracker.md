@@ -27,8 +27,8 @@ Tasks:
 
 Commits:
 
-- [ ] `<sha> feat(config): add yaml runtime configuration loader and schema validation`
-- [ ] `<sha> test(config): cover yaml parsing and required key validation`
+- [x] `832bb7e feat(config): add yaml runtime config loader with strict validation`
+- [x] `832bb7e test(config): coverage included in strict validation commit`
 
 Validation:
 

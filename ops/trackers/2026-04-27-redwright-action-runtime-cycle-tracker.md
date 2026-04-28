@@ -3,10 +3,10 @@
 ## Metadata
 
 - cycle_id: `runtime-cycle-2026-04-27-redwright-structured-action-runtime`
-- status: `in_progress`
-- state: `implementation`
+- status: `completed`
+- state: `done`
 - updated: `2026-04-27`
-- active_slice: `slice-7`
+- active_slice: `none`
 - active_task: `none`
 
 ## Slice Progress
@@ -198,3 +198,4 @@ Validation:
 - `2026-04-27 20:56` validation=`bundle exec ruby -Itest -e 'Dir["test/redwright/*_test.rb"].sort.each { |f| require File.expand_path(f) }'`
 - `2026-04-27 21:10` state=`implementation` slice=`slice-7` note=`added skill scaffold contracts, loader/registry, and no-op planner/executor hooks with fixture-backed tests`
 - `2026-04-27 21:10` validation=`bundle exec ruby -Itest -e 'Dir["test/redwright/*_test.rb"].sort.each { |f| require File.expand_path(f) }'`
+- `2026-04-27 21:11` state=`done` note=`slice 7 merged and cycle closed`
