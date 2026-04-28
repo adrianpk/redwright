@@ -6,7 +6,7 @@
 - status: `in_progress`
 - state: `awaiting_review`
 - updated: `2026-04-28`
-- active_slice: `slice-4`
+- active_slice: `slice-5`
 - active_task: `none`
 
 ## Slice Progress
@@ -85,7 +85,7 @@ Validation:
 
 ### Slice 5: Governance Bounds and Adaptive Sufficiency
 
-- status: `pending`
+- status: `completed`
 - branch: `feat/slice-5-aal-governance-bounds`
 - PR: `tbd`
 - merge_target: `dev`
@@ -93,13 +93,13 @@ Validation:
 
 Tasks:
 
-- [ ] `T5.1 enforce hard configurable max turns`
-- [ ] `T5.2 add sufficiency heuristic for early stop on trivial scope`
-- [ ] `T5.3 emit explicit terminal reason`
+- [x] `T5.1 enforce hard configurable max turns`
+- [x] `T5.2 add sufficiency heuristic for early stop on trivial scope`
+- [x] `T5.3 emit explicit terminal reason`
 
 Validation:
 
-- [ ] `loop is bounded and avoids pointless over-questioning`
+- [x] `loop is bounded and avoids pointless over-questioning`
 
 ### Slice 6: Persistence Hygiene and Dev Reset Safety
 
@@ -133,3 +133,4 @@ Validation:
 - `2026-04-28 10:13` validation=`bundle exec ruby -Itest test/redwright/runtime_flow_test.rb`
 - `2026-04-28 10:14` validation=`bundle exec rake test`
 - `2026-04-28 10:42` state=`implementation` slice=`slice-4` note=`added pause/stop/resume control path with interruption metadata persistence and deterministic resume state restoration`
+- `2026-04-28 10:58` state=`implementation` slice=`slice-5` note=`enforced max-turn governance, added sufficiency heuristic, and exposed explicit terminal_reason for plan convergence`

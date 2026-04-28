@@ -11,6 +11,7 @@ require_relative "redwright/alignment_store"
 require_relative "redwright/alignment_interruption_store"
 require_relative "redwright/psam_store"
 require_relative "redwright/alignment_question_engine"
+require_relative "redwright/alignment_sufficiency_heuristic"
 require_relative "redwright/plan_spec_store"
 require_relative "redwright/runtime_flow"
 require_relative "redwright/primitive_executor"
@@ -285,6 +286,8 @@ module Redwright
         alignment_interruption_store: AlignmentInterruptionStore.new(bootstrap.db_path),
         psam_store: PsamStore.new(bootstrap.db_path),
         alignment_question_engine: AlignmentQuestionEngine.new(llm_client: nil),
+        alignment_max_turns: 8,
+        alignment_sufficiency_heuristic: AlignmentSufficiencyHeuristic.new,
         plan_spec_store: PlanSpecStore.new
       )
 
@@ -457,6 +460,8 @@ module Redwright
           alignment_interruption_store: AlignmentInterruptionStore.new(bootstrap.db_path),
           psam_store: PsamStore.new(bootstrap.db_path),
           alignment_question_engine: AlignmentQuestionEngine.new(llm_client: llm_client_for(non_coding_model.provider)),
+          alignment_max_turns: config.alignment.max_turns,
+          alignment_sufficiency_heuristic: AlignmentSufficiencyHeuristic.new,
           non_coding_model: non_coding_model.name,
           plan_spec_store: PlanSpecStore.new,
           primitive_executor: primitive_executor,

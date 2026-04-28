@@ -8,10 +8,12 @@ require_relative "alignment_contract"
 require_relative "psam_store"
 require_relative "alignment_question_engine"
 require_relative "alignment_interruption_store"
+require_relative "alignment_sufficiency_heuristic"
 
 module Redwright
   FlowResult = Struct.new(
     :project, :workstream, :task, :alignment, :functional_spec_path, :technical_spec_path, :action_results,
+    :terminal_reason,
     keyword_init: true
   )
 
@@ -27,6 +29,8 @@ module Redwright
       psam_store: nil,
       alignment_interruption_store: nil,
       alignment_question_engine: nil,
+      alignment_max_turns: 8,
+      alignment_sufficiency_heuristic: AlignmentSufficiencyHeuristic.new,
       non_coding_model: "gpt-5-mini",
       skill_dispatcher: SkillDispatcher.new,
       action_normalizer: ActionNormalizer.new
@@ -41,6 +45,8 @@ module Redwright
       @psam_store = psam_store
       @alignment_interruption_store = alignment_interruption_store
       @alignment_question_engine = alignment_question_engine
+      @alignment_max_turns = [alignment_max_turns.to_i, 1].max
+      @alignment_sufficiency_heuristic = alignment_sufficiency_heuristic
       @non_coding_model = non_coding_model
       @skill_dispatcher = skill_dispatcher
       @action_normalizer = action_normalizer
@@ -139,7 +145,8 @@ module Redwright
         alignment: nil,
         functional_spec_path: nil,
         technical_spec_path: nil,
-        action_results: action_results
+        action_results: action_results,
+        terminal_reason: "executing"
       )
     end
 
@@ -198,17 +205,27 @@ module Redwright
       turn = next_alignment_turn(workstream: workstream, message: message)
       if turn.status == "ready"
         session = @alignment_store.mark_ready(workstream.id)
-        workstream = update_plan_workstream_state_checked(workstream: workstream, next_state: "ready")
-        task = @task_store.create(workstream_id: workstream.id, description: "alignment complete", status: "done")
-        turns = @alignment_store.turns(workstream.id)
-        artifacts = @plan_spec_store&.generate(project: project, workstream: workstream, turns: turns)
+        return finalize_ready_plan(project: project, workstream: workstream, session: session, terminal_reason: "ready")
+      end
+
+      answered_turns_count = @alignment_store.turns(workstream.id).size
+      if @alignment_sufficiency_heuristic&.sufficient?(objective: message, answered_turns_count: answered_turns_count)
+        session = @alignment_store.mark_ready(workstream.id)
+        return finalize_ready_plan(project: project, workstream: workstream, session: session, terminal_reason: "ready")
+      end
+
+      if session.step_index >= @alignment_max_turns
+        workstream = @workstream_store.update_state(workstream.id, "blocked")
+        task = @task_store.create(workstream_id: workstream.id, description: "alignment max turns reached", status: "blocked")
         return FlowResult.new(
           project: project,
           workstream: workstream,
           task: task,
           alignment: session,
-          functional_spec_path: artifacts&.functional_spec_path,
-          technical_spec_path: artifacts&.technical_spec_path
+          functional_spec_path: nil,
+          technical_spec_path: nil,
+          action_results: [],
+          terminal_reason: "max_turns"
         )
       end
 
@@ -216,7 +233,16 @@ module Redwright
       session = @alignment_store.set_pending_question(workstream.id, question: turn.question, unresolved_count: 1)
       workstream = update_plan_workstream_state_checked(workstream: workstream, next_state: "waiting_user")
       task = @task_store.create(workstream_id: workstream.id, description: "alignment question: #{session.pending_question}", status: "waiting_user")
-      FlowResult.new(project: project, workstream: workstream, task: task, alignment: session, functional_spec_path: nil, technical_spec_path: nil)
+      FlowResult.new(
+        project: project,
+        workstream: workstream,
+        task: task,
+        alignment: session,
+        functional_spec_path: nil,
+        technical_spec_path: nil,
+        action_results: [],
+        terminal_reason: "continue"
+      )
     end
 
     def next_alignment_turn(workstream:, message:)
@@ -365,7 +391,7 @@ module Redwright
       updated_ws = @workstream_store.update_state(workstream.id, target_state)
       @alignment_interruption_store&.mark_resumed(workstream_id: workstream.id)
       task = @task_store.create(workstream_id: updated_ws.id, description: "resume workstream", status: "resumed")
-      FlowResult.new(project: project, workstream: updated_ws, task: task, alignment: nil, functional_spec_path: nil, technical_spec_path: nil, action_results: [])
+      FlowResult.new(project: project, workstream: updated_ws, task: task, alignment: nil, functional_spec_path: nil, technical_spec_path: nil, action_results: [], terminal_reason: "ready")
     end
 
     def unresolved_questions_for(workstream_id)
@@ -374,6 +400,23 @@ module Redwright
       return 0 if session.pending_question.nil?
 
       [session.unresolved_count.to_i, 1].max
+    end
+
+    def finalize_ready_plan(project:, workstream:, session:, terminal_reason:)
+      workstream = update_plan_workstream_state_checked(workstream: workstream, next_state: "ready")
+      task = @task_store.create(workstream_id: workstream.id, description: "alignment complete", status: "done")
+      turns = @alignment_store.turns(workstream.id)
+      artifacts = @plan_spec_store&.generate(project: project, workstream: workstream, turns: turns)
+      FlowResult.new(
+        project: project,
+        workstream: workstream,
+        task: task,
+        alignment: session,
+        functional_spec_path: artifacts&.functional_spec_path,
+        technical_spec_path: artifacts&.technical_spec_path,
+        action_results: [],
+        terminal_reason: terminal_reason
+      )
     end
   end
 end

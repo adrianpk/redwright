@@ -17,6 +17,7 @@ require "redwright/runtime_flow"
 require "redwright/primitive_executor"
 require "redwright/trace"
 require "redwright/alignment_question_engine"
+require "redwright/alignment_sufficiency_heuristic"
 
 class RuntimeFlowTest < Minitest::Test
   FlakyTaskStore = Struct.new(:real_store, :failures_left) do
@@ -173,6 +174,7 @@ class RuntimeFlowTest < Minitest::Test
           workstream_store: ws_store,
           task_store: task_store,
           alignment_store: alignment_store,
+          alignment_sufficiency_heuristic: Object.new.tap { |o| o.define_singleton_method(:sufficient?) { |**_k| false } },
           psam_store: Redwright::PsamStore.new(bootstrap.db_path),
           alignment_question_engine: ScriptedAlignmentEngine.new([
             Redwright::AlignmentQuestionEngine::Turn.new(
@@ -660,6 +662,113 @@ class RuntimeFlowTest < Minitest::Test
         stop_meta = interruption_store.get(ws.id)
         assert_equal("stop", stop_meta.interruption_type)
         refute(stop_meta.risk_acknowledged)
+      end
+    end
+  end
+
+  def test_plan_is_blocked_when_alignment_max_turns_is_reached
+    Dir.mktmpdir("redwright-flow-max-turns-test-") do |dir|
+      Dir.chdir(dir) do
+        bootstrap = Redwright::Bootstrap.new(mode: :dev).call
+        project_store = Redwright::ProjectStore.new(bootstrap.db_path)
+        ws_store = Redwright::WorkstreamStore.new(bootstrap.db_path)
+        task_store = Redwright::TaskStore.new(bootstrap.db_path)
+        alignment_store = Redwright::AlignmentStore.new(bootstrap.db_path)
+        spec_store = Redwright::PlanSpecStore.new(base_dir: dir)
+
+        project_store.register(path: "#{dir}/apps/core", aliases: ["rw"])
+        flow = Redwright::RuntimeFlow.new(
+          project_store: project_store,
+          workstream_store: ws_store,
+          task_store: task_store,
+          alignment_store: alignment_store,
+          alignment_max_turns: 1,
+          alignment_sufficiency_heuristic: Object.new.tap { |o| o.define_singleton_method(:sufficient?) { |**_k| false } },
+          alignment_question_engine: ScriptedAlignmentEngine.new([
+            Redwright::AlignmentQuestionEngine::Turn.new(
+              status: "continue",
+              question: "Q1?",
+              recommendation: "R1",
+              rationale: "Why 1",
+              decision_node: "n1",
+              tags: ["scope"],
+              completion_status: "open",
+              source: "test",
+              finish_reason: "stop"
+            ),
+            Redwright::AlignmentQuestionEngine::Turn.new(
+              status: "continue",
+              question: "Q2?",
+              recommendation: "R2",
+              rationale: "Why 2",
+              decision_node: "n2",
+              tags: ["scope"],
+              completion_status: "open",
+              source: "test",
+              finish_reason: "stop"
+            )
+          ]),
+          plan_spec_store: spec_store
+        )
+
+        first = flow.process(project_ref: "rw", intent: "plan", message: "need planning")
+        assert_equal("continue", first.terminal_reason)
+        blocked = flow.process(project_ref: "rw", intent: "plan", workstream_id: first.workstream.id, message: "answer 1")
+        assert_equal("blocked", blocked.workstream.state)
+        assert_equal("max_turns", blocked.terminal_reason)
+      end
+    end
+  end
+
+  def test_plan_can_finish_early_with_sufficiency_heuristic
+    Dir.mktmpdir("redwright-flow-sufficient-test-") do |dir|
+      Dir.chdir(dir) do
+        bootstrap = Redwright::Bootstrap.new(mode: :dev).call
+        project_store = Redwright::ProjectStore.new(bootstrap.db_path)
+        ws_store = Redwright::WorkstreamStore.new(bootstrap.db_path)
+        task_store = Redwright::TaskStore.new(bootstrap.db_path)
+        alignment_store = Redwright::AlignmentStore.new(bootstrap.db_path)
+        spec_store = Redwright::PlanSpecStore.new(base_dir: dir)
+
+        project_store.register(path: "#{dir}/apps/core", aliases: ["rw"])
+        flow = Redwright::RuntimeFlow.new(
+          project_store: project_store,
+          workstream_store: ws_store,
+          task_store: task_store,
+          alignment_store: alignment_store,
+          alignment_max_turns: 8,
+          alignment_sufficiency_heuristic: Redwright::AlignmentSufficiencyHeuristic.new,
+          alignment_question_engine: ScriptedAlignmentEngine.new([
+            Redwright::AlignmentQuestionEngine::Turn.new(
+              status: "continue",
+              question: "Q1?",
+              recommendation: "R1",
+              rationale: "Why 1",
+              decision_node: "n1",
+              tags: ["scope"],
+              completion_status: "open",
+              source: "test",
+              finish_reason: "stop"
+            ),
+            Redwright::AlignmentQuestionEngine::Turn.new(
+              status: "continue",
+              question: "Q2?",
+              recommendation: "R2",
+              rationale: "Why 2",
+              decision_node: "n2",
+              tags: ["scope"],
+              completion_status: "open",
+              source: "test",
+              finish_reason: "stop"
+            )
+          ]),
+          plan_spec_store: spec_store
+        )
+
+        first = flow.process(project_ref: "rw", intent: "plan", message: "minimal hello cli")
+        ready = flow.process(project_ref: "rw", intent: "plan", workstream_id: first.workstream.id, message: "one command is enough")
+        assert_equal("ready", ready.workstream.state)
+        assert_equal("ready", ready.terminal_reason)
       end
     end
   end

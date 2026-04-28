@@ -433,7 +433,12 @@ module Redwright
                        else
                          []
                        end
-      return nil if action_results.empty? && quality_summary.nil?
+      if action_results.empty? && quality_summary.nil?
+        if result.respond_to?(:terminal_reason) && result.terminal_reason
+          return { terminal_reason: result.terminal_reason }
+        end
+        return nil
+      end
 
       total = action_results.size
       failed = action_results.count { |r| r.status != "ok" }
