@@ -26,6 +26,9 @@ require_relative "redwright/app_config"
 require_relative "redwright/daemon_runner"
 require_relative "redwright/telegram_client"
 require_relative "redwright/telegram_ingress"
+require_relative "redwright/ingress_port"
+require_relative "redwright/telegram_ingress_adapter"
+require_relative "redwright/simulated_ingress_adapter"
 require_relative "redwright/telegram_runtime_handler"
 require_relative "redwright/chat_context_store"
 require_relative "redwright/telegram_context_resolver"
@@ -469,14 +472,14 @@ module Redwright
           skill_dispatcher: SkillDispatcher.new
         )
         telegram_client = TelegramClient.new(bot_token: config.telegram.bot_token)
-        telegram_ingress = TelegramIngress.new(
+        ingress_port = TelegramIngressAdapter.new(
           client: telegram_client,
           allowed_chat_ids: config.telegram.allowed_chat_ids
         )
         chat_context_store = ChatContextStore.new(bootstrap.db_path)
         runtime_handler = TelegramRuntimeHandler.new(
           flow: flow,
-          telegram_client: telegram_client,
+          telegram_client: ingress_port,
           out: @out,
           err: @err,
           context_resolver: TelegramContextResolver.new(
@@ -503,11 +506,11 @@ module Redwright
           ingress_poller: lambda {
             next [] if ingress == "none"
 
-            poll = telegram_ingress.poll(
-              offset: offset,
+            poll = ingress_port.poll(
+              cursor: offset,
               timeout_seconds: config.telegram.poll_interval_seconds
             )
-            offset = poll.next_offset
+            offset = poll.next_cursor
             poll.events
           },
           event_handler: ->(event) { runtime_handler.handle(event) }
