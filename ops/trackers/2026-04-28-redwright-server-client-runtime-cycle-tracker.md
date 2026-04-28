@@ -4,18 +4,18 @@
 
 - owner: `adrianpk`
 - status: `in_progress`
-- active_slice: `slice-0`
+- active_slice: `slice-1`
 - plan: `ops/plans/2026-04-28-redwright-server-client-runtime-cycle-plan.md`
 
 ## Slice Progress
 
 ### Slice 1: Server Core and Runtime Lock
 
-- status: `pending`
+- status: `completed`
 - branch: `feat/slice-1-server-core-runtime-lock`
 - PR: `tbd`
-- commits: `tbd`
-- validation: `tbd`
+- commits: `pending-push`
+- validation: `bundle exec ruby -Itest test/redwright/runtime_lock_test.rb && bundle exec ruby -Itest test/redwright/server_cli_test.rb`
 
 ### Slice 2: Local IPC Protocol and Session Bus
 
@@ -52,3 +52,4 @@
 ## Event Log
 
 - `2026-04-28 21:00` state=`planned` note=`initialized 5-slice server-client runtime transition cycle to centralize execution in rw-server and run telegram/tui as clients`
+- `2026-04-28 21:00` state=`implementation` slice=`slice-1` note=`added rw server core command with single-writer runtime lock, stale-lock replacement, and health probes via status/ping`

@@ -43,6 +43,7 @@ require_relative "redwright/llm_intent_interpreter"
 require_relative "redwright/prompt_context_loader"
 require_relative "redwright/planner_rejection_store"
 require_relative "redwright/quality_gate_runner"
+require_relative "redwright/runtime_lock"
 
 module Redwright
   class CLI
@@ -76,8 +77,10 @@ module Redwright
         run_trace
       when "daemon"
         run_daemon
+      when "server"
+        run_server
       else
-        @err.puts("usage: redwright <bootstrap|project|workstream|task|flow|worktree|spec|config|trace|daemon>")
+        @err.puts("usage: redwright <bootstrap|project|workstream|task|flow|worktree|spec|config|trace|daemon|server>")
         1
       end
     end
@@ -630,6 +633,66 @@ module Redwright
     rescue OptionParser::ParseError, ArgumentError => e
       @err.puts(e.message)
       1
+    end
+
+    def run_server
+      mode = :dev
+      sub = @argv.shift
+      run_once = false
+      lock = nil
+
+      parser = OptionParser.new do |opts|
+        opts.on("--dev", "Use ./_workspace") { mode = :dev }
+        opts.on("--real", "Use $HOME paths") { mode = :real }
+        opts.on("--once", "Run only one loop iteration and exit") { run_once = true }
+      end
+      parser.parse!(@argv)
+
+      bootstrap = Bootstrap.new(mode: mode).call
+      lock_path = File.join(bootstrap.state_dir, "runtime.lock")
+      lock = RuntimeLock.new(lock_path: lock_path)
+
+      case sub
+      when "run"
+        info = lock.acquire!
+        @out.puts("server starting")
+        @out.puts("mode: #{mode}")
+        @out.puts("state_dir: #{bootstrap.state_dir}")
+        @out.puts("lock_path: #{lock_path}")
+        @out.puts("pid: #{info.pid}")
+        unless run_once
+          stop_requested = false
+          trap_handler = ->(signal, &block) { Signal.trap(signal, &block) }
+          trap_handler.call("INT") { stop_requested = true }
+          trap_handler.call("TERM") { stop_requested = true }
+          sleep(0.1) until stop_requested
+        end
+        @out.puts("server stopped")
+        0
+      when "status"
+        running = lock.running?
+        info = lock.current_info
+        @out.puts("status: #{running ? 'running' : 'stopped'}")
+        @out.puts("lock_path: #{lock_path}")
+        @out.puts("pid: #{info&.pid || 'none'}")
+        0
+      when "ping"
+        if lock.running?
+          @out.puts("pong")
+          0
+        else
+          @out.puts("no_server")
+          2
+        end
+      else
+        @err.puts("usage: redwright server <run|status|ping> [--dev|--real] [--once]")
+        1
+      end
+    rescue OptionParser::ParseError, ArgumentError, RuntimeError => e
+      @err.puts(e.message)
+      1
+    ensure
+      lock&.release! if sub == "run"
     end
 
     def print_project_record(record)
