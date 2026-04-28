@@ -403,6 +403,10 @@ module Redwright
             architecture_context: prompt_context[:architecture_context],
             workspace_context: prompt_context[:workspace_context]
           )
+          if highest_value_gap_question(decision)
+            terminal_reason = "clarify"
+            break
+          end
           if decision.source == "fallback" && planner_decision_invalid?(decision)
             terminal_reason = "planner_rejected_after_retry"
             break
@@ -414,9 +418,20 @@ module Redwright
         break
       end
 
-      terminal_reason = "max_attempts" if terminal_reason == "quality_failed" && attempts >= max_attempts
-      terminal_reason = "timeout" if terminal_reason == "quality_failed" && Process.clock_gettime(Process::CLOCK_MONOTONIC) >= deadline
+      terminal_reason = classify_change_loop_exit(
+        terminal_reason: terminal_reason,
+        attempts: attempts,
+        max_attempts: max_attempts,
+        deadline: deadline
+      )
       last_outcome.merge(attempts: attempts, terminal_reason: terminal_reason)
+    end
+
+    def classify_change_loop_exit(terminal_reason:, attempts:, max_attempts:, deadline:)
+      return "timeout" if terminal_reason == "quality_failed" && Process.clock_gettime(Process::CLOCK_MONOTONIC) >= deadline
+      return "max_attempts" if terminal_reason == "quality_failed" && attempts >= max_attempts
+
+      terminal_reason
     end
 
     def quality_failed?(quality_summary)

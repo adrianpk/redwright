@@ -6,7 +6,7 @@
 - status: `in_progress`
 - state: `in_progress`
 - updated: `2026-04-28`
-- active_slice: `slice-4`
+- active_slice: `slice-5`
 - active_task: `none`
 
 ## Slice Progress
@@ -52,7 +52,7 @@ Validation:
 
 - status: `completed`
 - branch: `feat/slice-3-dynamic-gap-clarification`
-- PR: `#tbd`
+- PR: `#64`
 - merge_target: `dev`
 - last_sync_commit: `tbd`
 
@@ -69,21 +69,21 @@ Validation:
 
 ### Slice 4: Internal Convergence Loop V2
 
-- status: `pending`
+- status: `completed`
 - branch: `feat/slice-4-internal-convergence-loop-v2`
-- PR: `tbd`
+- PR: `#tbd`
 - merge_target: `dev`
 - last_sync_commit: `tbd`
 
 Tasks:
 
-- [ ] `T4.1 run execute->verify->refine loop inside one user turn`
-- [ ] `T4.2 enforce max_attempts and max_turn_seconds bounds`
-- [ ] `T4.3 classify loop exits into terminal reasons`
+- [x] `T4.1 run execute->verify->refine loop inside one user turn`
+- [x] `T4.2 enforce max_attempts and max_turn_seconds bounds`
+- [x] `T4.3 classify loop exits into terminal reasons`
 
 Validation:
 
-- [ ] `converged/blocked/clarify exits are deterministic and auditable`
+- [x] `converged/blocked/clarify exits are deterministic and auditable`
 
 ### Slice 5: Dual Mode Orchestration (Structured + Direct)
 
@@ -146,3 +146,4 @@ Validation:
 - `2026-04-28 14:44` state=`in_progress` note=`slice-1 merged via PR #62 with runtime state contract and terminal reason persistence`
 - `2026-04-28 15:08` state=`in_progress` note=`slice-2 completed with semantic packet v2 schema/serializer, bounded tree+files capture, and packet-size trimming`
 - `2026-04-28 15:28` state=`in_progress` note=`slice-3 completed: added planner gap contract support, inferred-project confirmation flow, and single high-value clarification routing`
+- `2026-04-28 15:44` state=`in_progress` note=`slice-4 completed: hardened internal convergence loop exit classification and added timeout/clarify deterministic tests`
