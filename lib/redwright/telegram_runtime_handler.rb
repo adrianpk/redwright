@@ -8,6 +8,8 @@ require_relative "iteration_context_packet_builder"
 
 module Redwright
   class TelegramRuntimeHandler
+    MAX_CHANGE_LOOP_ATTEMPTS = 8
+
     def initialize(
       flow:,
       telegram_client:,
@@ -408,7 +410,7 @@ module Redwright
     end
 
     def process_change_turn_with_micro_loop(initial_decision:, resolution:, prompt_context:, original_text:)
-      max_attempts = [@blocked_retry_attempts.to_i, 1].max
+      max_attempts = normalized_change_loop_attempts(@blocked_retry_attempts)
       deadline = Process.clock_gettime(Process::CLOCK_MONOTONIC) + @max_change_turn_seconds.to_i
       decision = initial_decision
       attempts = 0
@@ -466,6 +468,12 @@ module Redwright
         deadline: deadline
       )
       last_outcome.merge(attempts: attempts, terminal_reason: terminal_reason)
+    end
+
+    def normalized_change_loop_attempts(raw)
+      value = raw.to_i
+      value = 1 if value <= 0
+      [value, MAX_CHANGE_LOOP_ATTEMPTS].min
     end
 
     def classify_change_loop_exit(terminal_reason:, attempts:, max_attempts:, deadline:)

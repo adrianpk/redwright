@@ -4,7 +4,7 @@
 
 - owner: `adrianpk`
 - status: `in_progress`
-- active_slice: `slice-5`
+- active_slice: `slice-6`
 - plan: `ops/plans/2026-04-28-redwright-conversational-control-and-convergence-v3-cycle-plan.md`
 
 ## Slice Progress
@@ -51,11 +51,11 @@
 
 ### Slice 6: Bounded Micro-Loop Execution V3
 
-- status: `pending`
+- status: `completed`
 - branch: `feat/slice-6-bounded-micro-loop-v3`
 - PR: `tbd`
-- commits: `tbd`
-- validation: `tbd`
+- commits: `pending-push`
+- validation: `bundle exec ruby -Itest test/redwright/telegram_runtime_handler_test.rb`
 
 ### Slice 7: Cancellation and Resume Semantics
 
@@ -97,3 +97,4 @@
 - `2026-04-28 00:00` state=`implementation` slice=`slice-3` note=`added pending planner-gap pre-routing so short replies are consumed as clarification answers before replanning, preventing meta drift`
 - `2026-04-28 00:00` state=`implementation` slice=`slice-4` note=`expanded control command interpretation to multilingual phrasing for pause/stop/resume and validated routing behavior through handler tests`
 - `2026-04-28 00:00` state=`implementation` slice=`slice-5` note=`upgraded iteration context budgeting with hard top-k cap, bounded snippet lines, deterministic top-level tree default, and explicit recursive override`
+- `2026-04-28 00:00` state=`implementation` slice=`slice-6` note=`hardened bounded micro-loop runtime by enforcing deterministic max-attempt cap and added explicit tests for attempt normalization behavior`

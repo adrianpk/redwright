@@ -935,6 +935,20 @@ class TelegramRuntimeHandlerTest < Minitest::Test
     assert_equal("", err.string)
   end
 
+  def test_normalized_change_loop_attempts_enforces_runtime_upper_bound
+    handler = Redwright::TelegramRuntimeHandler.new(
+      flow: Object.new,
+      telegram_client: FakeTelegramClient.new([]),
+      out: StringIO.new,
+      err: StringIO.new,
+      blocked_retry_attempts: 1
+    )
+
+    assert_equal(1, handler.send(:normalized_change_loop_attempts, 0))
+    assert_equal(3, handler.send(:normalized_change_loop_attempts, 3))
+    assert_equal(8, handler.send(:normalized_change_loop_attempts, 99))
+  end
+
   def test_handle_stops_with_timeout_when_quality_fails_and_deadline_reached
     flow_calls = 0
     fake_flow = Object.new
