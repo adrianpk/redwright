@@ -1,0 +1,38 @@
+# RedWright runtime configuration example.
+# Copy this file to your active config location and replace placeholder values.
+
+runtime:
+  # Milliseconds between daemon loop iterations.
+  loop_interval_ms: 1000
+  # Max retries for transient blocked execution before failing a turn.
+  blocked_retry_attempts: 2
+
+telegram:
+  # Telegram bot token (recommended via env var reference).
+  bot_token: "${TELEGRAM_BOT_TOKEN}"
+  # Polling interval in seconds for Telegram ingress.
+  poll_interval_seconds: 1
+  # Optional allowlist of Telegram chat IDs; empty means no restriction.
+  allowed_chat_ids: []
+  # When true, sends JSON debug envelope in addition to human message.
+  send_json_envelope: false
+
+paths:
+  # Default projects root in real mode; dev mode uses _workspace/Projects.
+  default_projects_root: "~/redwright"
+
+alignment:
+  # Max clarification/planning turns before bounded stop.
+  max_turns: 8
+  # Max seconds per change turn before timeout classification.
+  max_turn_seconds: 180
+
+models:
+  coding:
+    # Primary model candidates for coding-heavy tasks (ordered by priority).
+    - provider: "openai"
+      name: "gpt-5.2"
+  non_coding:
+    # Primary model candidates for routing/planning/meta tasks.
+    - provider: "openai"
+      name: "gpt-5-mini"
