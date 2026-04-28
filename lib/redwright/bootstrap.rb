@@ -113,6 +113,70 @@ module Redwright
           FOREIGN KEY(workstream_id) REFERENCES workstreams(id) ON DELETE CASCADE
         );
 
+        CREATE TABLE IF NOT EXISTS alignment_questions (
+          id TEXT PRIMARY KEY,
+          workstream_id TEXT NOT NULL,
+          step_index INTEGER NOT NULL,
+          question TEXT NOT NULL,
+          recommendation TEXT,
+          rationale TEXT,
+          decision_node TEXT,
+          completion_status TEXT,
+          created_at TEXT NOT NULL,
+          FOREIGN KEY(workstream_id) REFERENCES workstreams(id) ON DELETE CASCADE,
+          UNIQUE(workstream_id, step_index)
+        );
+
+        CREATE TABLE IF NOT EXISTS alignment_answers (
+          id TEXT PRIMARY KEY,
+          question_id TEXT NOT NULL UNIQUE,
+          answer TEXT NOT NULL,
+          created_at TEXT NOT NULL,
+          FOREIGN KEY(question_id) REFERENCES alignment_questions(id) ON DELETE CASCADE
+        );
+
+        CREATE TABLE IF NOT EXISTS alignment_question_tags (
+          question_id TEXT NOT NULL,
+          tag TEXT NOT NULL,
+          created_at TEXT NOT NULL,
+          PRIMARY KEY(question_id, tag),
+          FOREIGN KEY(question_id) REFERENCES alignment_questions(id) ON DELETE CASCADE
+        );
+
+        CREATE TABLE IF NOT EXISTS alignment_question_dependencies (
+          question_id TEXT NOT NULL,
+          depends_on_question_id TEXT NOT NULL,
+          created_at TEXT NOT NULL,
+          PRIMARY KEY(question_id, depends_on_question_id),
+          FOREIGN KEY(question_id) REFERENCES alignment_questions(id) ON DELETE CASCADE,
+          FOREIGN KEY(depends_on_question_id) REFERENCES alignment_questions(id) ON DELETE CASCADE,
+          CHECK(question_id != depends_on_question_id)
+        );
+
+        CREATE TABLE IF NOT EXISTS alignment_artifact_links (
+          id TEXT PRIMARY KEY,
+          workstream_id TEXT NOT NULL,
+          task_id TEXT,
+          question_id TEXT,
+          artifact_kind TEXT NOT NULL,
+          artifact_path TEXT NOT NULL,
+          created_at TEXT NOT NULL,
+          FOREIGN KEY(workstream_id) REFERENCES workstreams(id) ON DELETE CASCADE,
+          FOREIGN KEY(task_id) REFERENCES tasks(id) ON DELETE SET NULL,
+          FOREIGN KEY(question_id) REFERENCES alignment_questions(id) ON DELETE SET NULL
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_alignment_questions_workstream_step
+          ON alignment_questions(workstream_id, step_index);
+        CREATE INDEX IF NOT EXISTS idx_alignment_answers_question
+          ON alignment_answers(question_id);
+        CREATE INDEX IF NOT EXISTS idx_alignment_tags_tag
+          ON alignment_question_tags(tag);
+        CREATE INDEX IF NOT EXISTS idx_alignment_dependencies_question
+          ON alignment_question_dependencies(question_id);
+        CREATE INDEX IF NOT EXISTS idx_alignment_artifacts_workstream
+          ON alignment_artifact_links(workstream_id);
+
         CREATE TABLE IF NOT EXISTS chat_contexts (
           chat_id INTEGER PRIMARY KEY,
           project_id TEXT NOT NULL,
@@ -147,7 +211,7 @@ module Redwright
         );
 
         INSERT INTO runtime_metadata (key, value, updated_at)
-        VALUES ('schema_version', '7', datetime('now'))
+        VALUES ('schema_version', '8', datetime('now'))
         ON CONFLICT(key) DO UPDATE SET
           value = excluded.value,
           updated_at = excluded.updated_at;

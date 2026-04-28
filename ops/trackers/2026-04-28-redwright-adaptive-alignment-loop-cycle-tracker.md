@@ -4,9 +4,9 @@
 
 - cycle_id: `runtime-cycle-2026-04-28-redwright-adaptive-alignment-loop`
 - status: `in_progress`
-- state: `awaiting_review`
+- state: `implementation`
 - updated: `2026-04-28`
-- active_slice: `slice-1`
+- active_slice: `slice-2`
 - active_task: `none`
 
 ## Slice Progress
@@ -31,7 +31,7 @@ Validation:
 
 ### Slice 2: PSAM Schema
 
-- status: `pending`
+- status: `completed`
 - branch: `feat/slice-2-psam-schema`
 - PR: `tbd`
 - merge_target: `dev`
@@ -39,13 +39,13 @@ Validation:
 
 Tasks:
 
-- [ ] `T2.1 add normalized alignment persistence tables`
-- [ ] `T2.2 ensure migration/bootstrap compatibility`
-- [ ] `T2.3 add relational integrity tests`
+- [x] `T2.1 add normalized alignment persistence tables`
+- [x] `T2.2 ensure migration/bootstrap compatibility`
+- [x] `T2.3 add relational integrity tests`
 
 Validation:
 
-- [ ] `project/workstream-scoped semantic retrieval works from sqlite`
+- [x] `project/workstream-scoped semantic retrieval works from sqlite`
 
 ### Slice 3: LLM-Driven One-Question Engine
 
@@ -127,3 +127,4 @@ Validation:
 - `2026-04-28 10:06` validation=`bundle exec ruby -Itest test/redwright/app_config_test.rb`
 - `2026-04-28 10:07` validation=`bundle exec ruby -Itest test/redwright/runtime_flow_test.rb`
 - `2026-04-28 10:08` validation=`bundle exec rake test`
+- `2026-04-28 10:34` state=`implementation` slice=`slice-2` note=`added normalized PSAM sqlite schema + semantic retrieval store + relational integrity tests`
