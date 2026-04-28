@@ -4,7 +4,7 @@
 
 - owner: `adrianpk`
 - status: `in_progress`
-- active_slice: `slice-6`
+- active_slice: `slice-7`
 - plan: `ops/plans/2026-04-28-redwright-tui-and-telegram-primitives-parity-cycle-plan.md`
 
 ## Slice Progress
@@ -59,11 +59,11 @@
 
 ### Slice 7: Cross-Channel Parity Matrix
 
-- status: `pending`
+- status: `completed`
 - branch: `feat/slice-7-cross-channel-parity-matrix`
 - PR: `tbd`
-- commits: `tbd`
-- validation: `tbd`
+- commits: `pending-push`
+- validation: `bundle exec ruby -Itest test/redwright/cross_channel_parity_matrix_test.rb`
 
 ## Event Log
 
@@ -74,3 +74,4 @@
 - `2026-04-28 20:00` state=`implementation` slice=`slice-4` note=`hardened intent precedence so control routing is meta-only, preventing accidental resume control on change intent while preserving explicit control turns`
 - `2026-04-28 20:00` state=`implementation` slice=`slice-5` note=`added bootstrap minimum gate that blocks only technical unresolved gaps before mutating change execution, defers alignment-optional gaps, and adds stack-agnostic gate tests`
 - `2026-04-28 20:00` state=`implementation` slice=`slice-6` note=`added minimal full-screen TUI shell and tui ingress adapter, wired daemon ingress mode tui, and added render/input startup tests`
+- `2026-04-28 20:00` state=`implementation` slice=`slice-7` note=`added cross-channel parity matrix test that runs equivalent scenarios through Telegram/Console/TUI and asserts primitive parity, terminal reason parity, SQLite action parity, and out-of-root mutation blocking invariants`
