@@ -4,7 +4,7 @@
 
 - owner: `adrianpk`
 - status: `in_progress`
-- active_slice: `slice-8`
+- active_slice: `slice-9`
 - plan: `ops/plans/2026-04-28-redwright-conversational-control-and-convergence-v3-cycle-plan.md`
 
 ## Slice Progress
@@ -75,11 +75,11 @@
 
 ### Slice 9: Persistence Hygiene and Dev Reset Safety
 
-- status: `pending`
+- status: `completed`
 - branch: `feat/slice-9-persistence-hygiene-dev-reset`
 - PR: `tbd`
-- commits: `tbd`
-- validation: `tbd`
+- commits: `pending-push`
+- validation: `bundle exec ruby -Itest test/redwright/clarification_persistence_hygiene_test.rb && bundle exec ruby -Itest test/redwright/bootstrap_test.rb && bundle exec ruby -Itest test/redwright/clarification_session_store_test.rb`
 
 ### Slice 10: Simulated E2E Matrix for Realistic Conversations
 
