@@ -46,6 +46,7 @@ require_relative "redwright/quality_gate_runner"
 require_relative "redwright/runtime_lock"
 require_relative "redwright/local_ipc_server"
 require_relative "redwright/local_ipc_session_registry"
+require_relative "redwright/server_runtime_dispatcher"
 
 module Redwright
   class CLI
@@ -661,17 +662,29 @@ module Redwright
       when "run"
         info = lock.acquire!
         session_registry = LocalIpcSessionRegistry.new
-        dispatcher = lambda do |request|
-          type = request.fetch("type")
-          if type == "subscribe"
-            { "status" => "subscribed", "session_count" => session_registry.count }
-          else
-            { "status" => "accepted", "echo" => request.fetch("payload") }
-          end
-        end
+        primitive_executor = PrimitiveExecutor.new(
+          allowed_projects_root: bootstrap.projects_root,
+          enforce_mutating_projects_root: true
+        )
+        flow = RuntimeFlow.new(
+          project_store: ProjectStore.new(bootstrap.db_path),
+          workstream_store: WorkstreamStore.new(bootstrap.db_path),
+          task_store: TaskStore.new(bootstrap.db_path),
+          alignment_store: AlignmentStore.new(bootstrap.db_path),
+          alignment_interruption_store: AlignmentInterruptionStore.new(bootstrap.db_path),
+          psam_store: PsamStore.new(bootstrap.db_path),
+          primitive_executor: primitive_executor,
+          action_execution_store: ActionExecutionStore.new(bootstrap.db_path),
+          skill_dispatcher: SkillDispatcher.new
+        )
+        runtime_dispatcher = ServerRuntimeDispatcher.new(flow: flow, blocked_retry_attempts: 1)
         ipc_server = LocalIpcServer.new(
           socket_path: socket_path,
-          dispatcher: dispatcher,
+          dispatcher: lambda do |request|
+            response = runtime_dispatcher.call(request)
+            response["session_count"] = session_registry.count
+            response
+          end,
           session_registry: session_registry
         )
         @out.puts("server starting")
