@@ -72,6 +72,8 @@ class LlmIntentInterpreterTest < Minitest::Test
     assert_equal("fallback", decision.source)
     assert_equal("change", decision.intent)
     assert_equal("hola", decision.message)
+    assert_equal("none", decision.control_intent)
+    assert_equal("none", decision.control_scope)
     assert_equal("llm_not_configured", decision.finish_reason)
   end
 
@@ -89,6 +91,8 @@ class LlmIntentInterpreterTest < Minitest::Test
     assert_equal("llm", decision.source)
     assert_equal("meta", decision.intent)
     assert_equal("show runtime status", decision.message)
+    assert_equal("none", decision.control_intent)
+    assert_equal("none", decision.control_scope)
     assert_equal("stop", decision.finish_reason)
   end
 

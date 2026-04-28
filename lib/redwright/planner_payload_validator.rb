@@ -5,7 +5,7 @@ require_relative "planner_contract"
 
 module Redwright
   class PlannerPayloadValidator
-    ValidationResult = Struct.new(:valid, :intent, :message, :actions, :gaps, :errors, keyword_init: true)
+    ValidationResult = Struct.new(:valid, :intent, :message, :actions, :gaps, :control_intent, :control_scope, :errors, keyword_init: true)
     REQUIRED_TOP_LEVEL_KEYS = %w[intent message actions].freeze
 
     def validate(raw_output)
@@ -25,6 +25,8 @@ module Redwright
         message: parsed["message"].to_s.strip,
         actions: parsed["actions"],
         gaps: parsed["gaps"] || [],
+        control_intent: normalized_control_intent(parsed["control_intent"]),
+        control_scope: normalized_control_scope(parsed["control_scope"]),
         errors: []
       )
     rescue JSON::ParserError => e
@@ -48,6 +50,16 @@ module Redwright
 
       actions = parsed["actions"]
       errors << "actions_not_array" unless actions.is_a?(Array)
+
+      control_intent = parsed["control_intent"]
+      if !control_intent.nil? && !PlannerContract::CONTROL_INTENTS.include?(control_intent.to_s.strip)
+        errors << "control_intent_not_allowed"
+      end
+
+      control_scope = parsed["control_scope"]
+      if !control_scope.nil? && !PlannerContract::CONTROL_SCOPES.include?(control_scope.to_s.strip)
+        errors << "control_scope_not_allowed"
+      end
 
       gaps = parsed["gaps"]
       return if gaps.nil?
@@ -111,7 +123,30 @@ module Redwright
     end
 
     def invalid(errors)
-      ValidationResult.new(valid: false, intent: nil, message: nil, actions: nil, gaps: nil, errors: errors)
+      ValidationResult.new(
+        valid: false,
+        intent: nil,
+        message: nil,
+        actions: nil,
+        gaps: nil,
+        control_intent: nil,
+        control_scope: nil,
+        errors: errors
+      )
+    end
+
+    def normalized_control_intent(raw)
+      value = raw.to_s.strip
+      return "none" if value.empty?
+
+      value
+    end
+
+    def normalized_control_scope(raw)
+      value = raw.to_s.strip
+      return "none" if value.empty?
+
+      value
     end
   end
 end

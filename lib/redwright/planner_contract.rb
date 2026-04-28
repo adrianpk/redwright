@@ -3,7 +3,9 @@
 module Redwright
   module PlannerContract
     INTENTS = %w[change meta].freeze
-    TOP_LEVEL_KEYS = %w[intent message actions gaps].freeze
+    CONTROL_INTENTS = %w[none proceed_with_current_context cancel_clarification_only cancel_task cancel_all].freeze
+    CONTROL_SCOPES = %w[none gap task workstream chat runtime].freeze
+    TOP_LEVEL_KEYS = %w[intent message actions gaps control_intent control_scope].freeze
     ACTION_KEYS = %w[id type args requires_confirmation timeout_ms on_failure].freeze
     ACTION_ON_FAILURE = %w[abort continue].freeze
     ACTION_PRIMITIVE_TYPES = %w[
@@ -33,6 +35,8 @@ module Redwright
       - message: concise normalized task text in English
       - actions: array of action objects (can be empty)
       - gaps: array of unresolved clarification gaps (can be empty)
+      - control_intent: one of "none", "proceed_with_current_context", "cancel_clarification_only", "cancel_task", "cancel_all"
+      - control_scope: one of "none", "gap", "task", "workstream", "chat", "runtime"
       Gap object keys:
       - id: stable gap id
       - question: one high-value clarification question

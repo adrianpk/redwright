@@ -30,6 +30,8 @@ class PlannerPayloadValidatorTest < Minitest::Test
     assert_equal("change", result.intent)
     assert_equal("update README with setup steps", result.message)
     assert_equal([], result.gaps)
+    assert_equal("none", result.control_intent)
+    assert_equal("none", result.control_scope)
     assert_empty(result.errors)
   end
 
@@ -149,5 +151,40 @@ class PlannerPayloadValidatorTest < Minitest::Test
     assert_equal(true, result.valid)
     assert_equal(1, result.gaps.size)
     assert_empty(result.errors)
+  end
+
+  def test_validate_accepts_control_intent_and_scope
+    validator = Redwright::PlannerPayloadValidator.new
+    payload = JSON.generate(
+      {
+        intent: "change",
+        message: "continue with current assumptions",
+        actions: [],
+        control_intent: "proceed_with_current_context",
+        control_scope: "task"
+      }
+    )
+
+    result = validator.validate(payload)
+    assert_equal(true, result.valid)
+    assert_equal("proceed_with_current_context", result.control_intent)
+    assert_equal("task", result.control_scope)
+    assert_empty(result.errors)
+  end
+
+  def test_validate_rejects_invalid_control_intent
+    validator = Redwright::PlannerPayloadValidator.new
+    payload = JSON.generate(
+      {
+        intent: "meta",
+        message: "control",
+        actions: [],
+        control_intent: "unknown_control"
+      }
+    )
+
+    result = validator.validate(payload)
+    assert_equal(false, result.valid)
+    assert_includes(result.errors, "control_intent_not_allowed")
   end
 end

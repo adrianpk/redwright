@@ -7,7 +7,7 @@ require_relative "planner_prompt_builder"
 
 module Redwright
   class LlmIntentInterpreter
-    Decision = Struct.new(:intent, :message, :actions, :gaps, :source, :finish_reason, :raw_output, keyword_init: true)
+    Decision = Struct.new(:intent, :message, :actions, :gaps, :control_intent, :control_scope, :source, :finish_reason, :raw_output, keyword_init: true)
 
     SYSTEM_PROMPT = PlannerContract::SYSTEM_PROMPT
 
@@ -63,6 +63,8 @@ module Redwright
           message: validation.message,
           actions: validation.actions,
           gaps: validation.gaps,
+          control_intent: validation.control_intent,
+          control_scope: validation.control_scope,
           source: "llm",
           finish_reason: completion.finish_reason || "stop",
           raw_output: completion.content
@@ -111,6 +113,8 @@ module Redwright
         message: text,
         actions: [],
         gaps: [],
+        control_intent: "none",
+        control_scope: "none",
         source: "fallback",
         finish_reason: reason,
         raw_output: raw_output
