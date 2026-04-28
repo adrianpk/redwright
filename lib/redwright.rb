@@ -32,6 +32,8 @@ require_relative "redwright/telegram_ingress_adapter"
 require_relative "redwright/simulated_ingress_adapter"
 require_relative "redwright/telegram_runtime_handler"
 require_relative "redwright/console/ingress_adapter"
+require_relative "redwright/tui/shell"
+require_relative "redwright/tui/ingress_adapter"
 require_relative "redwright/chat_context_store"
 require_relative "redwright/clarification_session_store"
 require_relative "redwright/telegram_context_resolver"
@@ -446,8 +448,8 @@ module Redwright
 
       case sub
       when "run"
-        unless %w[telegram console none].include?(ingress)
-          raise ArgumentError, "invalid ingress mode: #{ingress} (expected telegram|console|none)"
+        unless %w[telegram console tui none].include?(ingress)
+          raise ArgumentError, "invalid ingress mode: #{ingress} (expected telegram|console|tui|none)"
         end
 
         bootstrap = Bootstrap.new(mode: mode).call
@@ -474,8 +476,11 @@ module Redwright
           action_execution_store: ActionExecutionStore.new(bootstrap.db_path),
           skill_dispatcher: SkillDispatcher.new
         )
-        ingress_port = if ingress == "console"
+        ingress_port = case ingress
+                       when "console"
                          Console::IngressAdapter.new(input: $stdin, output: @out)
+                       when "tui"
+                         Tui::IngressAdapter.new(input: $stdin, shell: Tui::Shell.new(output: @out))
                        else
                          telegram_client = TelegramClient.new(bot_token: config.telegram.bot_token)
                          TelegramIngressAdapter.new(
@@ -539,10 +544,11 @@ module Redwright
           loop_interval_seconds: config.runtime.loop_interval_ms / 1000.0,
           max_iterations: run_once ? 1 : nil
         )
+        ingress_port.close if ingress_port.respond_to?(:close)
         @out.puts("daemon stopped")
         0
       else
-        @err.puts("usage: redwright daemon run [--dev|--real] [--once] [--ingress telegram|console|none]")
+        @err.puts("usage: redwright daemon run [--dev|--real] [--once] [--ingress telegram|console|tui|none]")
         1
       end
     rescue OptionParser::ParseError, ArgumentError => e

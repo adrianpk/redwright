@@ -4,7 +4,7 @@
 
 - owner: `adrianpk`
 - status: `in_progress`
-- active_slice: `slice-5`
+- active_slice: `slice-6`
 - plan: `ops/plans/2026-04-28-redwright-tui-and-telegram-primitives-parity-cycle-plan.md`
 
 ## Slice Progress
@@ -51,11 +51,11 @@
 
 ### Slice 6: Minimal Full-Screen TUI Shell
 
-- status: `pending`
+- status: `completed`
 - branch: `feat/slice-6-minimal-fullscreen-tui-shell`
 - PR: `tbd`
-- commits: `tbd`
-- validation: `tbd`
+- commits: `pending-push`
+- validation: `bundle exec ruby -Itest test/redwright/tui_shell_test.rb && bundle exec ruby -Itest test/redwright/tui_ingress_adapter_test.rb && bundle exec ruby -Itest test/redwright/daemon_cli_test.rb`
 
 ### Slice 7: Cross-Channel Parity Matrix
 
@@ -73,3 +73,4 @@
 - `2026-04-28 20:00` state=`implementation` slice=`slice-3` note=`added deterministic turn message queue with configurable drain mode all|one, wired queue draining in daemon loop, and added queue semantics tests`
 - `2026-04-28 20:00` state=`implementation` slice=`slice-4` note=`hardened intent precedence so control routing is meta-only, preventing accidental resume control on change intent while preserving explicit control turns`
 - `2026-04-28 20:00` state=`implementation` slice=`slice-5` note=`added bootstrap minimum gate that blocks only technical unresolved gaps before mutating change execution, defers alignment-optional gaps, and adds stack-agnostic gate tests`
+- `2026-04-28 20:00` state=`implementation` slice=`slice-6` note=`added minimal full-screen TUI shell and tui ingress adapter, wired daemon ingress mode tui, and added render/input startup tests`
