@@ -6,7 +6,7 @@
 - status: `in_progress`
 - state: `awaiting_review`
 - updated: `2026-04-28`
-- active_slice: `slice-1`
+- active_slice: `slice-2`
 - active_task: `none`
 
 ## Slice Progress
@@ -32,7 +32,7 @@ Validation:
 
 ### Slice 2: Dev Target-Root Safety Hardening
 
-- status: `pending`
+- status: `completed`
 - branch: `feat/slice-2-dev-target-root-safety`
 - PR: `tbd`
 - merge_target: `dev`
@@ -40,14 +40,14 @@ Validation:
 
 Tasks:
 
-- [ ] `T2.1 enforce execution target under ./_workspace/Projects in dev mode`
-- [ ] `T2.2 reject harness-root write/run unless explicit override policy exists`
-- [ ] `T2.3 emit clear rejection diagnostics for unsafe target roots`
+- [x] `T2.1 enforce execution target under ./_workspace/Projects in dev mode`
+- [x] `T2.2 reject harness-root write/run unless explicit override policy exists`
+- [x] `T2.3 emit clear rejection diagnostics for unsafe target roots`
 
 Validation:
 
-- [ ] `dev mutations are blocked outside ./_workspace/Projects/*`
-- [ ] `blocked operations return actionable diagnostics`
+- [x] `dev mutations are blocked outside ./_workspace/Projects/*`
+- [x] `blocked operations return actionable diagnostics`
 
 ### Slice 3: Bounded Micro-Loop Execution Engine
 
@@ -131,3 +131,6 @@ Validation:
 - `2026-04-28 09:20` state=`implementation` slice=`slice-1` note=`implemented first-run context bootstrap with deterministic workspace candidate selection and default project fallback`
 - `2026-04-28 09:20` validation=`bundle exec ruby -Itest test/redwright/telegram_context_resolver_test.rb`
 - `2026-04-28 09:21` validation=`bundle exec rake test`
+- `2026-04-28 09:32` state=`implementation` slice=`slice-2` note=`enforced mutating-action allowed root guard in primitive executor and wired daemon dev runtime to configured projects root boundary`
+- `2026-04-28 09:32` validation=`bundle exec ruby -Itest test/redwright/primitive_executor_test.rb`
+- `2026-04-28 09:33` validation=`bundle exec rake test`

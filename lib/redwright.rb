@@ -439,13 +439,17 @@ module Redwright
         config = AppConfigLoader.new(mode: mode).load
         model_resolver = ModelResolver.new(config.models)
         non_coding_model = model_resolver.resolve("non_coding")
+        primitive_executor = PrimitiveExecutor.new(
+          allowed_projects_root: config.paths.default_projects_root,
+          enforce_mutating_projects_root: mode == :dev
+        )
         flow = RuntimeFlow.new(
           project_store: ProjectStore.new(bootstrap.db_path),
           workstream_store: WorkstreamStore.new(bootstrap.db_path),
           task_store: TaskStore.new(bootstrap.db_path),
           alignment_store: AlignmentStore.new(bootstrap.db_path),
           plan_spec_store: PlanSpecStore.new,
-          primitive_executor: PrimitiveExecutor.new,
+          primitive_executor: primitive_executor,
           action_execution_store: ActionExecutionStore.new(bootstrap.db_path),
           skill_dispatcher: SkillDispatcher.new
         )

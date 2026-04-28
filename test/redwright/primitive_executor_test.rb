@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "tmpdir"
+require "fileutils"
 require "minitest/autorun"
 
 $LOAD_PATH.unshift(File.expand_path("../../lib", __dir__))
@@ -173,6 +174,74 @@ class PrimitiveExecutorTest < Minitest::Test
 
       assert_equal("error", result.status)
       assert_match("git_command_failed:push", result.error_message)
+    end
+  end
+
+  def test_rejects_mutating_actions_outside_allowed_projects_root
+    Dir.mktmpdir("redwright-primitive-executor-allowed-root-") do |dir|
+      allowed_root = File.join(dir, "_workspace", "Projects")
+      safe_project = File.join(allowed_root, "safe")
+      unsafe_project = File.join(dir, "lab", "redwright")
+      FileUtils.mkdir_p(safe_project)
+      FileUtils.mkdir_p(unsafe_project)
+
+      executor = Redwright::PrimitiveExecutor.new(
+        allowed_projects_root: allowed_root,
+        enforce_mutating_projects_root: true
+      )
+
+      denied = executor.execute(
+        project_root: unsafe_project,
+        action: {
+          "id" => "m1",
+          "type" => "write_file",
+          "args" => { "path" => "x.txt", "content" => "x" },
+          "timeout_ms" => 2_000,
+          "on_failure" => "abort"
+        }
+      )
+      assert_equal("error", denied.status)
+      assert_match("unsafe_project_root", denied.error_message)
+
+      allowed = executor.execute(
+        project_root: safe_project,
+        action: {
+          "id" => "m2",
+          "type" => "write_file",
+          "args" => { "path" => "x.txt", "content" => "ok" },
+          "timeout_ms" => 2_000,
+          "on_failure" => "abort"
+        }
+      )
+      assert_equal("ok", allowed.status)
+      assert(File.file?(File.join(safe_project, "x.txt")))
+    end
+  end
+
+  def test_rejects_run_outside_allowed_projects_root
+    Dir.mktmpdir("redwright-primitive-executor-allowed-root-run-") do |dir|
+      allowed_root = File.join(dir, "_workspace", "Projects")
+      unsafe_project = File.join(dir, "lab", "redwright")
+      FileUtils.mkdir_p(allowed_root)
+      FileUtils.mkdir_p(unsafe_project)
+
+      executor = Redwright::PrimitiveExecutor.new(
+        allowed_projects_root: allowed_root,
+        enforce_mutating_projects_root: true
+      )
+
+      denied = executor.execute(
+        project_root: unsafe_project,
+        action: {
+          "id" => "m3",
+          "type" => "run",
+          "args" => { "command" => "echo hello" },
+          "timeout_ms" => 2_000,
+          "on_failure" => "abort"
+        }
+      )
+      assert_equal("error", denied.status)
+      assert_match("unsafe_project_root", denied.error_message)
     end
   end
 

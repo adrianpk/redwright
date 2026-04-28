@@ -13,6 +13,12 @@ module Redwright
 
   class PrimitiveExecutor
     DEFAULT_TIMEOUT_MS = 10_000
+    MUTATING_ACTION_TYPES = %w[run write_file apply_patch git_branch git_commit git_push].freeze
+
+    def initialize(allowed_projects_root: nil, enforce_mutating_projects_root: false)
+      @allowed_projects_root = normalize_root(allowed_projects_root)
+      @enforce_mutating_projects_root = enforce_mutating_projects_root
+    end
 
     def execute(project_root:, action:)
       action_id = fetch(action, "id")
@@ -23,6 +29,8 @@ module Redwright
 
       stdout = +""
       stderr = +""
+
+      enforce_allowed_projects_root!(project_root: project_root, action_type: action_type)
 
       if action_type == "run"
         result = execute_run(project_root: project_root, args: args, timeout_ms: timeout_ms)
@@ -241,6 +249,26 @@ module Redwright
       return candidate if candidate.start_with?("#{root}/")
 
       raise ArgumentError, "path_outside_project_root"
+    end
+
+    def enforce_allowed_projects_root!(project_root:, action_type:)
+      return unless @enforce_mutating_projects_root
+      return unless MUTATING_ACTION_TYPES.include?(action_type)
+      return if @allowed_projects_root.nil?
+
+      root = File.expand_path(project_root)
+      return if root == @allowed_projects_root
+      return if root.start_with?("#{@allowed_projects_root}/")
+
+      raise ArgumentError, "unsafe_project_root: #{root} (allowed root: #{@allowed_projects_root})"
+    end
+
+    def normalize_root(path)
+      return nil if path.nil?
+      trimmed = path.to_s.strip
+      return nil if trimmed.empty?
+
+      File.expand_path(trimmed)
     end
   end
 end
