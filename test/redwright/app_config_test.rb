@@ -35,6 +35,7 @@ class AppConfigTest < Minitest::Test
         config = Redwright::AppConfigLoader.new(mode: :dev).load
         assert_equal(300, config.runtime.loop_interval_ms)
         assert_equal(2, config.runtime.blocked_retry_attempts)
+        assert_equal("all", config.runtime.queue_drain_mode)
         assert_equal("token-123", config.telegram.bot_token)
         assert_equal(1, config.telegram.poll_interval_seconds)
         assert_equal([111, 222], config.telegram.allowed_chat_ids)
@@ -192,6 +193,64 @@ class AppConfigTest < Minitest::Test
 
       config = Redwright::AppConfigLoader.new(mode: :real, home: home).load
       assert_equal(true, config.telegram.send_json_envelope)
+    end
+  end
+
+  def test_loads_runtime_queue_drain_mode_when_enabled
+    Dir.mktmpdir("redwright-app-config-queue-drain-") do |home|
+      config_dir = File.join(home, ".config", "redwright")
+      FileUtils.mkdir_p(config_dir)
+      File.write(File.join(config_dir, "config.yml"), <<~YAML)
+        runtime:
+          loop_interval_ms: 100
+          blocked_retry_attempts: 1
+          queue_drain_mode: one
+        telegram:
+          bot_token: "real-token"
+          poll_interval_seconds: 2
+          allowed_chat_ids: [1]
+        paths:
+          default_projects_root: "#{home}/redwright"
+        models:
+          coding:
+            - provider: "openai"
+              name: "gpt-5.2"
+          non_coding:
+            - provider: "openai"
+              name: "gpt-5-mini"
+      YAML
+
+      config = Redwright::AppConfigLoader.new(mode: :real, home: home).load
+      assert_equal("one", config.runtime.queue_drain_mode)
+    end
+  end
+
+  def test_invalid_queue_drain_mode_is_rejected
+    Dir.mktmpdir("redwright-app-config-queue-drain-invalid-") do |home|
+      config_dir = File.join(home, ".config", "redwright")
+      FileUtils.mkdir_p(config_dir)
+      File.write(File.join(config_dir, "config.yml"), <<~YAML)
+        runtime:
+          loop_interval_ms: 100
+          blocked_retry_attempts: 1
+          queue_drain_mode: invalid
+        telegram:
+          bot_token: "real-token"
+          poll_interval_seconds: 2
+          allowed_chat_ids: [1]
+        paths:
+          default_projects_root: "#{home}/redwright"
+        models:
+          coding:
+            - provider: "openai"
+              name: "gpt-5.2"
+          non_coding:
+            - provider: "openai"
+              name: "gpt-5-mini"
+      YAML
+
+      err = assert_raises(ArgumentError) { Redwright::AppConfigLoader.new(mode: :real, home: home).load }
+      assert_equal("invalid config key: queue_drain_mode must be one of all|one", err.message)
     end
   end
 

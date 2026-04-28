@@ -24,6 +24,7 @@ require_relative "redwright/spec_promotion"
 require_relative "redwright/runtime_config_store"
 require_relative "redwright/app_config"
 require_relative "redwright/daemon_runner"
+require_relative "redwright/turn_message_queue"
 require_relative "redwright/telegram_client"
 require_relative "redwright/telegram_ingress"
 require_relative "redwright/ingress_port"
@@ -522,7 +523,9 @@ module Redwright
             offset = poll.next_cursor
             poll.events
           },
-          event_handler: ->(event) { runtime_handler.handle(event) }
+          event_handler: ->(event) { runtime_handler.handle(event) },
+          turn_queue: TurnMessageQueue.new,
+          queue_drain_mode: config.runtime.queue_drain_mode
         )
 
         @out.puts("daemon starting")
@@ -530,6 +533,7 @@ module Redwright
         @out.puts("ingress: #{ingress}")
         @out.puts("once: #{run_once}")
         @out.puts("loop_interval_ms: #{config.runtime.loop_interval_ms}")
+        @out.puts("queue_drain_mode: #{config.runtime.queue_drain_mode}")
 
         runner.run(
           loop_interval_seconds: config.runtime.loop_interval_ms / 1000.0,

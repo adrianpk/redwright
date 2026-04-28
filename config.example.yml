@@ -6,6 +6,8 @@ runtime:
   loop_interval_ms: 1000
   # Max retries for transient blocked execution before failing a turn.
   blocked_retry_attempts: 2
+  # Queue drain mode: all (drain all queued events per loop) or one.
+  queue_drain_mode: "all"
 
 telegram:
   # Telegram bot token (recommended via env var reference).

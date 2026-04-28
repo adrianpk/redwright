@@ -4,6 +4,7 @@ require "minitest/autorun"
 
 $LOAD_PATH.unshift(File.expand_path("../../lib", __dir__))
 require "redwright/daemon_runner"
+require "redwright/turn_message_queue"
 
 class DaemonRunnerTest < Minitest::Test
   def test_run_polls_events_until_stop_requested
@@ -68,5 +69,49 @@ class DaemonRunnerTest < Minitest::Test
     runner.run(loop_interval_seconds: 0.001, max_iterations: 1)
 
     assert_equal(1, polled)
+  end
+
+  def test_run_with_turn_queue_drains_one_per_iteration
+    polled = 0
+    handled = []
+    queue = Redwright::TurnMessageQueue.new
+    runner = Redwright::DaemonRunner.new(
+      ingress_poller: lambda {
+        polled += 1
+        polled == 1 ? %w[e1 e2 e3] : []
+      },
+      event_handler: ->(event) { handled << event },
+      sleeper: ->(_seconds) {},
+      trap_handler: ->(_signal, &_block) {},
+      turn_queue: queue,
+      queue_drain_mode: "one"
+    )
+
+    runner.run(loop_interval_seconds: 0.001, max_iterations: 2)
+
+    assert_equal(%w[e1 e2], handled)
+    assert_equal(1, queue.size)
+  end
+
+  def test_run_with_turn_queue_drains_all_per_iteration
+    polled = 0
+    handled = []
+    queue = Redwright::TurnMessageQueue.new
+    runner = Redwright::DaemonRunner.new(
+      ingress_poller: lambda {
+        polled += 1
+        polled == 1 ? %w[e1 e2 e3] : []
+      },
+      event_handler: ->(event) { handled << event },
+      sleeper: ->(_seconds) {},
+      trap_handler: ->(_signal, &_block) {},
+      turn_queue: queue,
+      queue_drain_mode: "all"
+    )
+
+    runner.run(loop_interval_seconds: 0.001, max_iterations: 1)
+
+    assert_equal(%w[e1 e2 e3], handled)
+    assert_equal(0, queue.size)
   end
 end

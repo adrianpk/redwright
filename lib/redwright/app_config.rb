@@ -5,7 +5,7 @@ require_relative "paths"
 
 module Redwright
   AppConfig = Struct.new(:runtime, :telegram, :paths, :alignment, :models, keyword_init: true)
-  RuntimeConfig = Struct.new(:loop_interval_ms, :blocked_retry_attempts, keyword_init: true)
+  RuntimeConfig = Struct.new(:loop_interval_ms, :blocked_retry_attempts, :queue_drain_mode, keyword_init: true)
   TelegramConfig = Struct.new(:bot_token, :poll_interval_seconds, :allowed_chat_ids, :send_json_envelope, keyword_init: true)
   PathsConfig = Struct.new(:default_projects_root, keyword_init: true)
   AlignmentConfig = Struct.new(:max_turns, :max_turn_seconds, keyword_init: true)
@@ -36,7 +36,8 @@ module Redwright
       AppConfig.new(
         runtime: RuntimeConfig.new(
           loop_interval_ms: positive_integer(runtime, "loop_interval_ms"),
-          blocked_retry_attempts: positive_integer(runtime, "blocked_retry_attempts")
+          blocked_retry_attempts: positive_integer(runtime, "blocked_retry_attempts"),
+          queue_drain_mode: optional_runtime_queue_drain_mode(runtime, "queue_drain_mode", default: "all")
         ),
         telegram: TelegramConfig.new(
           bot_token: required_string(telegram, "bot_token"),
@@ -112,6 +113,15 @@ module Redwright
       raise ArgumentError, "invalid config key: #{key} must be >= 1" if int < 1
 
       int
+    end
+
+    def optional_runtime_queue_drain_mode(map, key, default:)
+      return default unless map.key?(key)
+
+      value = map[key].to_s.strip.downcase
+      return value if %w[all one].include?(value)
+
+      raise ArgumentError, "invalid config key: #{key} must be one of all|one"
     end
 
     def parse_model_role(models, key)

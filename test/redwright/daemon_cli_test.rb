@@ -41,6 +41,7 @@ class DaemonCliTest < Minitest::Test
         assert_match("daemon starting", out.string)
         assert_match("ingress: none", out.string)
         assert_match("once: true", out.string)
+        assert_match("queue_drain_mode: all", out.string)
         assert_match("daemon stopped", out.string)
       end
     end
@@ -80,6 +81,7 @@ class DaemonCliTest < Minitest::Test
         assert_match("daemon starting", out.string)
         assert_match("ingress: console", out.string)
         assert_match("once: true", out.string)
+        assert_match("queue_drain_mode: all", out.string)
         assert_match("daemon stopped", out.string)
       ensure
         $stdin = original_stdin
