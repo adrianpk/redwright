@@ -8,6 +8,8 @@ require_relative "redwright/workstream_store"
 require_relative "redwright/task_store"
 require_relative "redwright/task_commit_store"
 require_relative "redwright/alignment_store"
+require_relative "redwright/psam_store"
+require_relative "redwright/alignment_question_engine"
 require_relative "redwright/plan_spec_store"
 require_relative "redwright/runtime_flow"
 require_relative "redwright/primitive_executor"
@@ -279,6 +281,8 @@ module Redwright
         workstream_store: WorkstreamStore.new(bootstrap.db_path),
         task_store: TaskStore.new(bootstrap.db_path),
         alignment_store: AlignmentStore.new(bootstrap.db_path),
+        psam_store: PsamStore.new(bootstrap.db_path),
+        alignment_question_engine: AlignmentQuestionEngine.new(llm_client: nil),
         plan_spec_store: PlanSpecStore.new
       )
 
@@ -448,6 +452,9 @@ module Redwright
           workstream_store: WorkstreamStore.new(bootstrap.db_path),
           task_store: TaskStore.new(bootstrap.db_path),
           alignment_store: AlignmentStore.new(bootstrap.db_path),
+          psam_store: PsamStore.new(bootstrap.db_path),
+          alignment_question_engine: AlignmentQuestionEngine.new(llm_client: llm_client_for(non_coding_model.provider)),
+          non_coding_model: non_coding_model.name,
           plan_spec_store: PlanSpecStore.new,
           primitive_executor: primitive_executor,
           action_execution_store: ActionExecutionStore.new(bootstrap.db_path),

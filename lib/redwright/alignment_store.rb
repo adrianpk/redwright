@@ -17,12 +17,6 @@ module Redwright
   )
 
   class AlignmentStore
-    QUESTIONS = [
-      "What are the primary use cases this plan must cover?",
-      "What inputs, outputs, and failure scenarios must be handled?",
-      "What architecture components and data flow should implement this plan?"
-    ].freeze
-
     def initialize(db_path)
       @db_path = db_path
     end
@@ -43,29 +37,22 @@ module Redwright
         db.execute(
           <<~SQL,
             INSERT INTO alignments (workstream_id, status, step_index, pending_question, unresolved_count, decisions_stable, updated_at)
-            VALUES (?, 'collecting_context', 0, NULL, ?, 0, ?)
+            VALUES (?, 'collecting_context', 0, NULL, 1, 0, ?)
             ON CONFLICT(workstream_id) DO NOTHING
           SQL
-          [workstream_id, QUESTIONS.size, now]
+          [workstream_id, now]
         )
       end
       get(workstream_id)
     end
 
-    def ask_next(workstream_id)
-      session = ensure_session(workstream_id)
-      return session if session.pending_question
-
-      question = QUESTIONS[session.step_index]
-      now = utc_now
-
+    def set_pending_question(workstream_id, question:, unresolved_count:)
       with_db do |db|
         db.execute(
-          "UPDATE alignments SET pending_question = ?, updated_at = ? WHERE workstream_id = ?",
-          [question, now, workstream_id]
+          "UPDATE alignments SET status = 'collecting_context', pending_question = ?, unresolved_count = ?, decisions_stable = 0, updated_at = ? WHERE workstream_id = ?",
+          [question, unresolved_count, utc_now, workstream_id]
         )
       end
-
       get(workstream_id)
     end
 
@@ -75,11 +62,6 @@ module Redwright
 
       now = utc_now
       next_index = session.step_index + 1
-      unresolved = [QUESTIONS.size - next_index, 0].max
-      done = next_index >= QUESTIONS.size
-      pending = done ? nil : QUESTIONS[next_index]
-      status = done ? "ready" : "collecting_context"
-      stable = done ? 1 : 0
 
       with_db do |db|
         db.transaction
@@ -91,7 +73,7 @@ module Redwright
 
         db.execute(
           "UPDATE alignments SET status = ?, step_index = ?, pending_question = ?, unresolved_count = ?, decisions_stable = ?, updated_at = ? WHERE workstream_id = ?",
-          [status, next_index, pending, unresolved, stable, now, workstream_id]
+          ["collecting_context", next_index, nil, session.unresolved_count, 0, now, workstream_id]
         )
 
         db.commit
@@ -100,6 +82,16 @@ module Redwright
         raise
       end
 
+      get(workstream_id)
+    end
+
+    def mark_ready(workstream_id)
+      with_db do |db|
+        db.execute(
+          "UPDATE alignments SET status = 'ready', pending_question = NULL, unresolved_count = 0, decisions_stable = 1, updated_at = ? WHERE workstream_id = ?",
+          [utc_now, workstream_id]
+        )
+      end
       get(workstream_id)
     end
 

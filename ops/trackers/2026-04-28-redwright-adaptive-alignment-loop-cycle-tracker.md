@@ -4,9 +4,9 @@
 
 - cycle_id: `runtime-cycle-2026-04-28-redwright-adaptive-alignment-loop`
 - status: `in_progress`
-- state: `implementation`
+- state: `awaiting_review`
 - updated: `2026-04-28`
-- active_slice: `slice-2`
+- active_slice: `slice-3`
 - active_task: `none`
 
 ## Slice Progress
@@ -49,7 +49,7 @@ Validation:
 
 ### Slice 3: LLM-Driven One-Question Engine
 
-- status: `pending`
+- status: `completed`
 - branch: `feat/slice-3-llm-alignment-engine`
 - PR: `tbd`
 - merge_target: `dev`
@@ -57,13 +57,13 @@ Validation:
 
 Tasks:
 
-- [ ] `T3.1 add next-question generation prompt contract`
-- [ ] `T3.2 enforce one-question-per-turn invariant`
-- [ ] `T3.3 persist turn semantics in PSAM`
+- [x] `T3.1 add next-question generation prompt contract`
+- [x] `T3.2 enforce one-question-per-turn invariant`
+- [x] `T3.3 persist turn semantics in PSAM`
 
 Validation:
 
-- [ ] `dynamic questioning replaces fixed battery under adaptive mode`
+- [x] `dynamic questioning replaces fixed battery under adaptive mode`
 
 ### Slice 4: User Pause/Stop + Risk Acknowledgement
 
@@ -128,3 +128,7 @@ Validation:
 - `2026-04-28 10:07` validation=`bundle exec ruby -Itest test/redwright/runtime_flow_test.rb`
 - `2026-04-28 10:08` validation=`bundle exec rake test`
 - `2026-04-28 10:34` state=`implementation` slice=`slice-2` note=`added normalized PSAM sqlite schema + semantic retrieval store + relational integrity tests`
+- `2026-04-28 10:03` state=`implementation` slice=`slice-3` note=`added LLM-driven alignment question engine and runtime one-question loop with PSAM turn persistence`
+- `2026-04-28 10:11` validation=`bundle exec ruby -Itest test/redwright/alignment_question_engine_test.rb`
+- `2026-04-28 10:13` validation=`bundle exec ruby -Itest test/redwright/runtime_flow_test.rb`
+- `2026-04-28 10:14` validation=`bundle exec rake test`

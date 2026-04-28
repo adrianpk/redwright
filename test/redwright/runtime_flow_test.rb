@@ -10,10 +10,12 @@ require "redwright/workstream_store"
 require "redwright/task_store"
 require "redwright/action_execution_store"
 require "redwright/alignment_store"
+require "redwright/psam_store"
 require "redwright/plan_spec_store"
 require "redwright/runtime_flow"
 require "redwright/primitive_executor"
 require "redwright/trace"
+require "redwright/alignment_question_engine"
 
 class RuntimeFlowTest < Minitest::Test
   FlakyTaskStore = Struct.new(:real_store, :failures_left) do
@@ -43,6 +45,26 @@ class RuntimeFlowTest < Minitest::Test
     def after_action(action:, result:, context:)
       @after_action_calls += 1
       result
+    end
+  end
+
+  class ScriptedAlignmentEngine
+    def initialize(turns)
+      @turns = turns
+    end
+
+    def next_turn(model:, objective:, prior_turns:)
+      @turns.shift || Redwright::AlignmentQuestionEngine::Turn.new(
+        status: "ready",
+        question: "",
+        recommendation: "done",
+        rationale: "done",
+        decision_node: "done",
+        tags: ["done"],
+        completion_status: "done",
+        source: "test",
+        finish_reason: "stop"
+      )
     end
   end
 
@@ -150,6 +172,53 @@ class RuntimeFlowTest < Minitest::Test
           workstream_store: ws_store,
           task_store: task_store,
           alignment_store: alignment_store,
+          psam_store: Redwright::PsamStore.new(bootstrap.db_path),
+          alignment_question_engine: ScriptedAlignmentEngine.new([
+            Redwright::AlignmentQuestionEngine::Turn.new(
+              status: "continue",
+              question: "Q1?",
+              recommendation: "R1",
+              rationale: "Why 1",
+              decision_node: "n1",
+              tags: ["scope"],
+              completion_status: "open",
+              source: "test",
+              finish_reason: "stop"
+            ),
+            Redwright::AlignmentQuestionEngine::Turn.new(
+              status: "continue",
+              question: "Q2?",
+              recommendation: "R2",
+              rationale: "Why 2",
+              decision_node: "n2",
+              tags: ["io"],
+              completion_status: "open",
+              source: "test",
+              finish_reason: "stop"
+            ),
+            Redwright::AlignmentQuestionEngine::Turn.new(
+              status: "continue",
+              question: "Q3?",
+              recommendation: "R3",
+              rationale: "Why 3",
+              decision_node: "n3",
+              tags: ["arch"],
+              completion_status: "open",
+              source: "test",
+              finish_reason: "stop"
+            ),
+            Redwright::AlignmentQuestionEngine::Turn.new(
+              status: "ready",
+              question: "",
+              recommendation: "Done",
+              rationale: "Sufficient",
+              decision_node: "ready",
+              tags: ["ready"],
+              completion_status: "done",
+              source: "test",
+              finish_reason: "stop"
+            )
+          ]),
           plan_spec_store: spec_store
         )
 
@@ -157,7 +226,7 @@ class RuntimeFlowTest < Minitest::Test
         assert_equal("waiting_user", first.workstream.state)
         refute_nil(first.alignment.pending_question)
         assert_equal(0, first.alignment.step_index)
-        assert_equal(3, first.alignment.unresolved_count)
+        assert_equal(1, first.alignment.unresolved_count)
 
         second = flow.process(project_ref: "rw", intent: "plan", workstream_id: first.workstream.id, message: "use case is CLI runtime")
         assert_equal("waiting_user", second.workstream.state)

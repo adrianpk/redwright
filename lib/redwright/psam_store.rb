@@ -70,6 +70,25 @@ module Redwright
       id
     end
 
+    def find_question(workstream_id:, step_index:)
+      with_db do |db|
+        row = db.get_first_row(
+          "SELECT id, workstream_id, step_index, question FROM alignment_questions WHERE workstream_id = ? AND step_index = ?",
+          [workstream_id, step_index]
+        )
+        next nil unless row
+
+        { id: row[0], workstream_id: row[1], step_index: row[2], question: row[3] }
+      end
+    end
+
+    def answer_exists?(question_id:)
+      with_db do |db|
+        row = db.get_first_row("SELECT 1 FROM alignment_answers WHERE question_id = ? LIMIT 1", [question_id])
+        !row.nil?
+      end
+    end
+
     def list_semantic_context(project_id:, workstream_id: nil, tag: nil, limit: 25)
       with_db do |db|
         sql = <<~SQL

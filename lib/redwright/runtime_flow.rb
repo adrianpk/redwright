@@ -5,6 +5,8 @@ require_relative "skill_dispatcher"
 require_relative "action_normalizer"
 require_relative "planner_contract"
 require_relative "alignment_contract"
+require_relative "psam_store"
+require_relative "alignment_question_engine"
 
 module Redwright
   FlowResult = Struct.new(
@@ -21,6 +23,9 @@ module Redwright
       plan_spec_store: nil,
       primitive_executor: nil,
       action_execution_store: nil,
+      psam_store: nil,
+      alignment_question_engine: nil,
+      non_coding_model: "gpt-5-mini",
       skill_dispatcher: SkillDispatcher.new,
       action_normalizer: ActionNormalizer.new
     )
@@ -31,6 +36,9 @@ module Redwright
       @plan_spec_store = plan_spec_store
       @primitive_executor = primitive_executor
       @action_execution_store = action_execution_store
+      @psam_store = psam_store
+      @alignment_question_engine = alignment_question_engine
+      @non_coding_model = non_coding_model
       @skill_dispatcher = skill_dispatcher
       @action_normalizer = action_normalizer
     end
@@ -156,10 +164,13 @@ module Redwright
       session = @alignment_store.ensure_session(workstream.id)
 
       if session.pending_question
+        persist_psam_answer(workstream_id: workstream.id, step_index: session.step_index, answer: message)
         session = @alignment_store.answer_pending(workstream.id, message)
       end
 
-      if session.decisions_stable
+      turn = next_alignment_turn(workstream: workstream, message: message)
+      if turn.status == "ready"
+        session = @alignment_store.mark_ready(workstream.id)
         workstream = update_plan_workstream_state_checked(workstream: workstream, next_state: "ready")
         task = @task_store.create(workstream_id: workstream.id, description: "alignment complete", status: "done")
         turns = @alignment_store.turns(workstream.id)
@@ -174,10 +185,61 @@ module Redwright
         )
       end
 
-      session = @alignment_store.ask_next(workstream.id)
+      persist_psam_question(workstream_id: workstream.id, step_index: session.step_index, turn: turn)
+      session = @alignment_store.set_pending_question(workstream.id, question: turn.question, unresolved_count: 1)
       workstream = update_plan_workstream_state_checked(workstream: workstream, next_state: "waiting_user")
       task = @task_store.create(workstream_id: workstream.id, description: "alignment question: #{session.pending_question}", status: "waiting_user")
       FlowResult.new(project: project, workstream: workstream, task: task, alignment: session, functional_spec_path: nil, technical_spec_path: nil)
+    end
+
+    def next_alignment_turn(workstream:, message:)
+      return fallback_alignment_turn if @alignment_question_engine.nil?
+
+      prior_turns = @alignment_store.turns(workstream.id)
+      @alignment_question_engine.next_turn(
+        model: @non_coding_model,
+        objective: message,
+        prior_turns: prior_turns
+      )
+    end
+
+    def fallback_alignment_turn
+      AlignmentQuestionEngine::Turn.new(
+        status: "continue",
+        question: "What is the minimal acceptance criteria for this task?",
+        recommendation: "Define the smallest verifiable outcome first.",
+        rationale: "A minimal target reduces ambiguity and iteration waste.",
+        decision_node: "planning.acceptance_criteria",
+        tags: %w[scope acceptance],
+        completion_status: "open",
+        source: "fallback",
+        finish_reason: "engine_not_configured"
+      )
+    end
+
+    def persist_psam_question(workstream_id:, step_index:, turn:)
+      return unless @psam_store
+
+      question_id = @psam_store.create_question(
+        workstream_id: workstream_id,
+        step_index: step_index,
+        question: turn.question,
+        recommendation: turn.recommendation,
+        rationale: turn.rationale,
+        decision_node: turn.decision_node,
+        completion_status: turn.completion_status
+      )
+      turn.tags.each { |tag| @psam_store.add_tag(question_id: question_id, tag: tag) }
+    end
+
+    def persist_psam_answer(workstream_id:, step_index:, answer:)
+      return unless @psam_store
+
+      question = @psam_store.find_question(workstream_id: workstream_id, step_index: step_index)
+      return unless question
+      return if @psam_store.answer_exists?(question_id: question[:id])
+
+      @psam_store.create_answer(question_id: question[:id], answer: answer)
     end
 
     def update_plan_workstream_state_checked(workstream:, next_state:)
