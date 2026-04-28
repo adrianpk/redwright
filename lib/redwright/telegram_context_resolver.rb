@@ -4,14 +4,13 @@ require "fileutils"
 module Redwright
   class TelegramContextResolver
     Resolution = Struct.new(:resolved, :project_ref, :project_path, :workstream_id, :question, keyword_init: true)
-    PendingGap = Struct.new(:type, :suggested_project_name, keyword_init: true)
 
-    def initialize(project_store:, chat_context_store:, projects_root: nil, default_project_dirname: "project-1")
+    def initialize(project_store:, chat_context_store:, projects_root: nil, default_project_dirname: "project-1", clarification_session_store: nil)
       @project_store = project_store
       @chat_context_store = chat_context_store
       @projects_root = projects_root
       @default_project_dirname = default_project_dirname
-      @pending_gaps_by_chat = {}
+      @clarification_session_store = clarification_session_store
     end
 
     def resolve(chat_id:, text:)
@@ -60,7 +59,12 @@ module Redwright
 
       inferred_name = infer_project_name(text.to_s)
       if inferred_name
-        @pending_gaps_by_chat[chat_id] = PendingGap.new(type: "project_name_confirm", suggested_project_name: inferred_name)
+        @clarification_session_store&.open_project_name_confirm(
+          chat_id: chat_id,
+          workstream_id: context&.workstream_id,
+          suggested_project_name: inferred_name,
+          question_id: "project_name_confirm"
+        )
         return Resolution.new(
           resolved: false,
           project_ref: nil,
@@ -85,14 +89,21 @@ module Redwright
     private
 
     def resolve_pending_gap(chat_id:, text:)
-      pending = @pending_gaps_by_chat[chat_id]
+      pending = @clarification_session_store&.get_open(chat_id: chat_id)
       return nil unless pending
 
-      if pending.type == "project_name_confirm"
+      if pending.gap_type == "project_name_confirm"
+        suggested_name = pending.payload.fetch("suggested_project_name", "").to_s
         if confirmation_reply?(text)
-          project = register_or_get_project_by_name(pending.suggested_project_name)
+          project = register_or_get_project_by_name(suggested_name)
           @chat_context_store.upsert(chat_id: chat_id, project_id: project.id, workstream_id: nil)
-          @pending_gaps_by_chat.delete(chat_id)
+          @clarification_session_store&.advance(
+            chat_id: chat_id,
+            session_id: pending.id,
+            resolved_fields: { "project_name" => suggested_name },
+            status: "closed",
+            last_question_id: "project_name_confirm"
+          )
           return Resolution.new(
             resolved: true,
             project_ref: project.id,
@@ -106,7 +117,13 @@ module Redwright
         if suggested && !suggested.empty?
           project = register_or_get_project_by_name(suggested)
           @chat_context_store.upsert(chat_id: chat_id, project_id: project.id, workstream_id: nil)
-          @pending_gaps_by_chat.delete(chat_id)
+          @clarification_session_store&.advance(
+            chat_id: chat_id,
+            session_id: pending.id,
+            resolved_fields: { "project_name" => suggested },
+            status: "closed",
+            last_question_id: "project_name_confirm"
+          )
           return Resolution.new(
             resolved: true,
             project_ref: project.id,
@@ -121,7 +138,7 @@ module Redwright
           project_ref: nil,
           project_path: nil,
           workstream_id: nil,
-          question: "Please confirm the inferred project name '#{pending.suggested_project_name}' with 'yes' or provide a different project name."
+          question: "Please confirm the inferred project name '#{suggested_name}' with 'yes' or provide a different project name."
         )
       end
 

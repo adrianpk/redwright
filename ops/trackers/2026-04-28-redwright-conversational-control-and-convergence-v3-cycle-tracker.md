@@ -4,7 +4,7 @@
 
 - owner: `adrianpk`
 - status: `in_progress`
-- active_slice: `slice-1`
+- active_slice: `slice-2`
 - plan: `ops/plans/2026-04-28-redwright-conversational-control-and-convergence-v3-cycle-plan.md`
 
 ## Slice Progress
@@ -19,11 +19,11 @@
 
 ### Slice 2: Clarification Session State Machine
 
-- status: `pending`
+- status: `completed`
 - branch: `feat/slice-2-clarification-session-state-machine`
 - PR: `tbd`
-- commits: `tbd`
-- validation: `tbd`
+- commits: `pending-push`
+- validation: `bundle exec ruby -Itest test/redwright/clarification_session_store_test.rb && bundle exec ruby -Itest test/redwright/telegram_context_resolver_test.rb`
 
 ### Slice 3: Turn Router Precedence for Pending Clarification
 
@@ -93,3 +93,4 @@
 
 - `2026-04-28 00:00` state=`planned` note=`initialized cycle from runtime feedback: clarification drift, multilingual control semantics, bounded convergence, and persistent session state requirements`
 - `2026-04-28 00:00` state=`implementation` slice=`slice-1` note=`extended planner contract with control_intent/control_scope, kept backward compatibility with default none, and added validator/interpreter tests`
+- `2026-04-28 00:00` state=`implementation` slice=`slice-2` note=`added persisted clarification_sessions store, deterministic open/close/cancel transitions, and resolver wiring to survive restarts`

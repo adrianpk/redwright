@@ -31,6 +31,7 @@ require_relative "redwright/telegram_ingress_adapter"
 require_relative "redwright/simulated_ingress_adapter"
 require_relative "redwright/telegram_runtime_handler"
 require_relative "redwright/chat_context_store"
+require_relative "redwright/clarification_session_store"
 require_relative "redwright/telegram_context_resolver"
 require_relative "redwright/model_resolver"
 require_relative "redwright/openai_client"
@@ -477,6 +478,7 @@ module Redwright
           allowed_chat_ids: config.telegram.allowed_chat_ids
         )
         chat_context_store = ChatContextStore.new(bootstrap.db_path)
+        clarification_session_store = ClarificationSessionStore.new(bootstrap.db_path)
         runtime_handler = TelegramRuntimeHandler.new(
           flow: flow,
           telegram_client: ingress_port,
@@ -485,7 +487,8 @@ module Redwright
           context_resolver: TelegramContextResolver.new(
             project_store: ProjectStore.new(bootstrap.db_path),
             chat_context_store: chat_context_store,
-            projects_root: config.paths.default_projects_root
+            projects_root: config.paths.default_projects_root,
+            clarification_session_store: clarification_session_store
           ),
           chat_context_store: chat_context_store,
           blocked_retry_attempts: config.runtime.blocked_retry_attempts,

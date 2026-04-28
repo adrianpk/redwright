@@ -200,6 +200,25 @@ module Redwright
           FOREIGN KEY(project_id) REFERENCES projects(id) ON DELETE CASCADE
         );
 
+        CREATE TABLE IF NOT EXISTS clarification_sessions (
+          id TEXT PRIMARY KEY,
+          chat_id INTEGER NOT NULL,
+          workstream_id TEXT,
+          status TEXT NOT NULL,
+          gap_type TEXT NOT NULL,
+          payload_json TEXT NOT NULL,
+          resolved_fields_json TEXT NOT NULL,
+          last_question_id TEXT,
+          turn_counter INTEGER NOT NULL,
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_clarification_sessions_chat_status
+          ON clarification_sessions(chat_id, status, updated_at DESC);
+        CREATE INDEX IF NOT EXISTS idx_clarification_sessions_workstream_status
+          ON clarification_sessions(workstream_id, status, updated_at DESC);
+
         CREATE TABLE IF NOT EXISTS action_executions (
           id TEXT PRIMARY KEY,
           task_id TEXT NOT NULL,
