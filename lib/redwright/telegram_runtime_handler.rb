@@ -582,7 +582,10 @@ module Redwright
     end
 
     def human_clarify_message(question:, trace_id:)
-      "#{question}\nTrace: #{trace_id}"
+      [
+        "Clarification needed (active question): #{question}",
+        "Trace: #{trace_id}"
+      ].join("\n")
     end
 
     def human_planner_rejection_message(reason:, trace_id:)

@@ -4,7 +4,7 @@
 
 - owner: `adrianpk`
 - status: `in_progress`
-- active_slice: `slice-6`
+- active_slice: `slice-8`
 - plan: `ops/plans/2026-04-28-redwright-conversational-control-and-convergence-v3-cycle-plan.md`
 
 ## Slice Progress
@@ -67,11 +67,11 @@
 
 ### Slice 8: Human Output Contract + Optional Debug Envelope
 
-- status: `pending`
+- status: `completed`
 - branch: `feat/slice-8-human-output-and-debug-envelope`
 - PR: `tbd`
-- commits: `tbd`
-- validation: `tbd`
+- commits: `pending-push`
+- validation: `bundle exec ruby -Itest test/redwright/telegram_runtime_handler_test.rb`
 
 ### Slice 9: Persistence Hygiene and Dev Reset Safety
 

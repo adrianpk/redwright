@@ -265,7 +265,7 @@ class TelegramRuntimeHandlerTest < Minitest::Test
     assert_equal("", err.string)
     assert_match("telegram clarify chat=88", out.string)
     assert_equal(1, client.messages.size)
-    assert_match("Please specify project.", client.messages.first[:text])
+    assert_match("Clarification needed (active question): Please specify project.", client.messages.first[:text])
     assert_match("Trace: trc-", client.messages.first[:text])
   end
 
@@ -309,7 +309,36 @@ class TelegramRuntimeHandlerTest < Minitest::Test
     assert_equal("", err.string)
     assert_match("telegram clarify chat=66", out.string)
     assert_equal(1, client.messages.size)
-    assert_match("What is the project name?", client.messages.first[:text])
+    assert_match("Clarification needed (active question): What is the project name?", client.messages.first[:text])
+  end
+
+  def test_handle_does_not_send_json_envelope_when_disabled
+    fake_flow = Object.new
+    fake_flow.define_singleton_method(:process) do |**_kwargs|
+      FakeResult.new(
+        project: FakeProject.new(id: "project-no-json"),
+        workstream: FakeWorkstream.new(id: "ws-no-json", state: "executing"),
+        task: FakeTask.new(id: "task-no-json"),
+        alignment: nil,
+        action_results: nil
+      )
+    end
+
+    client = FakeTelegramClient.new([])
+    handler = Redwright::TelegramRuntimeHandler.new(
+      flow: fake_flow,
+      telegram_client: client,
+      out: StringIO.new,
+      err: StringIO.new,
+      blocked_retry_attempts: 1,
+      send_json_envelope: false
+    )
+
+    handler.handle(Redwright::TelegramEvent.new(update_id: 99, chat_id: 33, user_id: nil, username: nil, text: "do stuff"))
+
+    assert_equal(1, client.messages.size)
+    refute_match(/```json/, client.messages.first[:text])
+    assert_match("Started task task-no-json in project project-no-json.", client.messages.first[:text])
   end
 
   def test_handle_cancels_task_clarification_and_processes_when_semantic_intent_is_cancel_clarification_only
