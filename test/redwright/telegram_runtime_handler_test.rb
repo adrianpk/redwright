@@ -531,6 +531,78 @@ class TelegramRuntimeHandlerTest < Minitest::Test
     assert_equal([{ chat_id: 90 }, { chat_id: 90, workstream_id: "ws-1" }], cancellations)
   end
 
+  def test_handle_does_not_route_resume_control_when_intent_is_change
+    fake_flow = Object.new
+    captured_process = {}
+    control_calls = 0
+    fake_flow.define_singleton_method(:process) do |**kwargs|
+      captured_process.merge!(kwargs)
+      TelegramRuntimeHandlerTest::FakeResult.new(
+        project: TelegramRuntimeHandlerTest::FakeProject.new(id: "project-1"),
+        workstream: TelegramRuntimeHandlerTest::FakeWorkstream.new(id: "ws-1", state: "executing"),
+        task: TelegramRuntimeHandlerTest::FakeTask.new(id: "task-change"),
+        alignment: nil,
+        action_results: []
+      )
+    end
+    fake_flow.define_singleton_method(:control) do |**_kwargs|
+      control_calls += 1
+      raise "unexpected control call"
+    end
+
+    fake_resolver = Object.new
+    fake_resolver.define_singleton_method(:resolve) do |chat_id:, text:|
+      Redwright::TelegramContextResolver::Resolution.new(
+        resolved: true,
+        project_ref: "rw",
+        project_path: "/tmp/rw",
+        workstream_id: "ws-1",
+        question: nil
+      )
+    end
+
+    client = FakeTelegramClient.new([])
+    fake_interpreter = Object.new
+    fake_interpreter.define_singleton_method(:interpret) do |text:, model:|
+      TelegramRuntimeHandlerTest::FakeDecision.new(
+        intent: "change",
+        message: "continue implementation and apply pending changes",
+        actions: [],
+        gaps: [],
+        control_intent: "proceed_with_current_context",
+        control_scope: "task",
+        source: "llm",
+        finish_reason: "stop",
+        raw_output: "{}"
+      )
+    end
+
+    handler = Redwright::TelegramRuntimeHandler.new(
+      flow: fake_flow,
+      telegram_client: client,
+      out: StringIO.new,
+      err: StringIO.new,
+      context_resolver: fake_resolver,
+      blocked_retry_attempts: 1,
+      intent_interpreter: fake_interpreter
+    )
+
+    handler.handle(
+      Redwright::TelegramEvent.new(
+        update_id: 350,
+        chat_id: 901,
+        user_id: nil,
+        username: nil,
+        text: "para con las preguntas y continua implementando"
+      )
+    )
+
+    assert_equal(0, control_calls)
+    assert_equal("rw", captured_process[:project_ref])
+    assert_equal("change", captured_process[:intent])
+    assert_equal("continue implementation and apply pending changes", captured_process[:message])
+  end
+
   def test_handle_includes_execution_summary_and_passes_actions_to_flow
     fake_flow = Object.new
     captured = {}

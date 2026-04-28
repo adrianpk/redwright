@@ -598,6 +598,8 @@ module Redwright
     end
 
     def control_from_decision(decision, raw_text:)
+      return nil unless decision.respond_to?(:intent) && decision.intent.to_s.strip == "meta"
+
       intent = if decision.respond_to?(:control_intent)
                  decision.control_intent.to_s.strip
                else
