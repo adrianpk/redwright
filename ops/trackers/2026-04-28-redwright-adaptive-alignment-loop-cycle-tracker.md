@@ -3,10 +3,10 @@
 ## Metadata
 
 - cycle_id: `runtime-cycle-2026-04-28-redwright-adaptive-alignment-loop`
-- status: `in_progress`
+- status: `completed`
 - state: `awaiting_review`
 - updated: `2026-04-28`
-- active_slice: `slice-5`
+- active_slice: `slice-6`
 - active_task: `none`
 
 ## Slice Progress
@@ -103,7 +103,7 @@ Validation:
 
 ### Slice 6: Persistence Hygiene and Dev Reset Safety
 
-- status: `pending`
+- status: `completed`
 - branch: `feat/slice-6-alignment-persistence-hygiene`
 - PR: `tbd`
 - merge_target: `dev`
@@ -111,13 +111,13 @@ Validation:
 
 Tasks:
 
-- [ ] `T6.1 add cleanup/consistency checks for partial sessions`
-- [ ] `T6.2 validate fresh DB rebuild path in dev`
-- [ ] `T6.3 add no-residue invariants for interrupted flows`
+- [x] `T6.1 add cleanup/consistency checks for partial sessions`
+- [x] `T6.2 validate fresh DB rebuild path in dev`
+- [x] `T6.3 add no-residue invariants for interrupted flows`
 
 Validation:
 
-- [ ] `no unusable persistence residue remains after interruption/reset`
+- [x] `no unusable persistence residue remains after interruption/reset`
 
 ## Event Log
 
@@ -134,3 +134,7 @@ Validation:
 - `2026-04-28 10:14` validation=`bundle exec rake test`
 - `2026-04-28 10:42` state=`implementation` slice=`slice-4` note=`added pause/stop/resume control path with interruption metadata persistence and deterministic resume state restoration`
 - `2026-04-28 10:58` state=`implementation` slice=`slice-5` note=`enforced max-turn governance, added sufficiency heuristic, and exposed explicit terminal_reason for plan convergence`
+- `2026-04-28 11:12` state=`implementation` slice=`slice-6` note=`added startup persistence hygiene pass, resumed-row cleanup, interrupted-state repair, and dev rebuild/no-residue invariants`
+- `2026-04-28 11:13` validation=`bundle exec ruby -Itest test/redwright/alignment_persistence_hygiene_test.rb`
+- `2026-04-28 11:13` validation=`bundle exec ruby -Itest test/redwright/bootstrap_test.rb`
+- `2026-04-28 11:14` validation=`bundle exec rake test`

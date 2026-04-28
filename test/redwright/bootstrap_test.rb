@@ -3,6 +3,7 @@
 require "tmpdir"
 require "fileutils"
 require "minitest/autorun"
+require "sqlite3"
 
 $LOAD_PATH.unshift(File.expand_path("../../lib", __dir__))
 require "redwright/bootstrap"
@@ -24,6 +25,31 @@ class BootstrapTest < Minitest::Test
         assert(File.directory?(result.projects_root))
         assert(File.directory?(result.worktrees_root))
         assert(File.file?(result.db_path))
+      end
+    end
+  end
+
+  def test_bootstrap_rebuilds_fresh_db_after_dev_delete
+    Dir.mktmpdir("redwright-test-rebuild-") do |dir|
+      Dir.chdir(dir) do
+        first = Redwright::Bootstrap.new(mode: :dev).call
+        db_path = first.db_path
+        assert(File.file?(db_path))
+
+        FileUtils.rm_f(db_path)
+        refute(File.exist?(db_path))
+
+        second = Redwright::Bootstrap.new(mode: :dev).call
+        assert(File.file?(second.db_path))
+
+        db = SQLite3::Database.new(second.db_path)
+        tables = db.execute("SELECT name FROM sqlite_master WHERE type='table'").flatten
+        assert_includes(tables, "workstreams")
+        assert_includes(tables, "alignments")
+        assert_includes(tables, "alignment_questions")
+        assert_includes(tables, "alignment_interruptions")
+      ensure
+        db&.close
       end
     end
   end

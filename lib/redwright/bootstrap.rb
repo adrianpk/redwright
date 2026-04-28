@@ -3,6 +3,7 @@
 require "fileutils"
 require "sqlite3"
 require_relative "paths"
+require_relative "alignment_persistence_hygiene"
 
 module Redwright
   BootstrapResult = Struct.new(:state_dir, :config_dir, :projects_root, :worktrees_root, :db_path, keyword_init: true)
@@ -21,6 +22,7 @@ module Redwright
       FileUtils.mkdir_p(paths.worktrees_root)
 
       init_db(paths.db_path)
+      AlignmentPersistenceHygiene.new(paths.db_path).run!
 
       BootstrapResult.new(
         state_dir: paths.state_dir,
