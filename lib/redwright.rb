@@ -44,6 +44,8 @@ require_relative "redwright/prompt_context_loader"
 require_relative "redwright/planner_rejection_store"
 require_relative "redwright/quality_gate_runner"
 require_relative "redwright/runtime_lock"
+require_relative "redwright/local_ipc_server"
+require_relative "redwright/local_ipc_session_registry"
 
 module Redwright
   class CLI
@@ -640,32 +642,54 @@ module Redwright
       sub = @argv.shift
       run_once = false
       lock = nil
+      socket_path = nil
 
       parser = OptionParser.new do |opts|
         opts.on("--dev", "Use ./_workspace") { mode = :dev }
         opts.on("--real", "Use $HOME paths") { mode = :real }
         opts.on("--once", "Run only one loop iteration and exit") { run_once = true }
+        opts.on("--socket-path VALUE", "Override local unix socket path") { |v| socket_path = v }
       end
       parser.parse!(@argv)
 
       bootstrap = Bootstrap.new(mode: mode).call
       lock_path = File.join(bootstrap.state_dir, "runtime.lock")
       lock = RuntimeLock.new(lock_path: lock_path)
+      socket_path ||= File.join(bootstrap.state_dir, "rw.sock")
 
       case sub
       when "run"
         info = lock.acquire!
+        session_registry = LocalIpcSessionRegistry.new
+        dispatcher = lambda do |request|
+          type = request.fetch("type")
+          if type == "subscribe"
+            { "status" => "subscribed", "session_count" => session_registry.count }
+          else
+            { "status" => "accepted", "echo" => request.fetch("payload") }
+          end
+        end
+        ipc_server = LocalIpcServer.new(
+          socket_path: socket_path,
+          dispatcher: dispatcher,
+          session_registry: session_registry
+        )
         @out.puts("server starting")
         @out.puts("mode: #{mode}")
         @out.puts("state_dir: #{bootstrap.state_dir}")
         @out.puts("lock_path: #{lock_path}")
+        @out.puts("socket_path: #{socket_path}")
         @out.puts("pid: #{info.pid}")
-        unless run_once
+        if run_once
+          ipc_server.run_once
+        else
           stop_requested = false
           trap_handler = ->(signal, &block) { Signal.trap(signal, &block) }
           trap_handler.call("INT") { stop_requested = true }
           trap_handler.call("TERM") { stop_requested = true }
-          sleep(0.1) until stop_requested
+          until stop_requested
+            ipc_server.run_once
+          end
         end
         @out.puts("server stopped")
         0
@@ -674,6 +698,7 @@ module Redwright
         info = lock.current_info
         @out.puts("status: #{running ? 'running' : 'stopped'}")
         @out.puts("lock_path: #{lock_path}")
+        @out.puts("socket_path: #{socket_path}")
         @out.puts("pid: #{info&.pid || 'none'}")
         0
       when "ping"

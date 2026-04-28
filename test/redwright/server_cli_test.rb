@@ -2,6 +2,8 @@
 
 require "tmpdir"
 require "stringio"
+require "socket"
+require "timeout"
 require "minitest/autorun"
 
 $LOAD_PATH.unshift(File.expand_path("../../lib", __dir__))
@@ -14,7 +16,16 @@ class ServerCliTest < Minitest::Test
       Dir.chdir(dir) do
         out = StringIO.new
         err = StringIO.new
-        code = Redwright::CLI.new(["server", "run", "--dev", "--once"], out: out, err: err).run
+        socket_path = File.join(dir, "_workspace", "redwright", "rw.sock")
+        code = nil
+        worker = Thread.new do
+          code = Redwright::CLI.new(["server", "run", "--dev", "--once"], out: out, err: err).run
+        end
+        Timeout.timeout(2) { sleep(0.01) until File.exist?(socket_path) }
+        client = UNIXSocket.new(socket_path)
+        client.write("{\"type\":\"send\",\"session_id\":\"cli-test\",\"payload\":{\"channel\":\"test\",\"text\":\"hello\"}}\n")
+        _response = client.gets
+        worker.join(2)
 
         assert_equal(0, code)
         assert_equal("", err.string)
@@ -23,6 +34,9 @@ class ServerCliTest < Minitest::Test
 
         state_dir = File.join(dir, "_workspace", "redwright")
         assert_equal(false, File.exist?(File.join(state_dir, "runtime.lock")))
+        assert_equal(false, File.exist?(socket_path))
+      ensure
+        client&.close
       end
     end
   end
