@@ -6,7 +6,7 @@
 - status: `in_progress`
 - state: `in_progress`
 - updated: `2026-04-28`
-- active_slice: `slice-5`
+- active_slice: `slice-6`
 - active_task: `none`
 
 ## Slice Progress
@@ -71,7 +71,7 @@ Validation:
 
 - status: `completed`
 - branch: `feat/slice-4-internal-convergence-loop-v2`
-- PR: `#tbd`
+- PR: `#65`
 - merge_target: `dev`
 - last_sync_commit: `tbd`
 
@@ -87,21 +87,21 @@ Validation:
 
 ### Slice 5: Dual Mode Orchestration (Structured + Direct)
 
-- status: `pending`
+- status: `completed`
 - branch: `feat/slice-5-dual-mode-orchestration`
-- PR: `tbd`
+- PR: `#tbd`
 - merge_target: `dev`
 - last_sync_commit: `tbd`
 
 Tasks:
 
-- [ ] `T5.1 add mode inference with explicit override support`
-- [ ] `T5.2 preserve structured lifecycle path`
-- [ ] `T5.3 preserve direct execution path`
+- [x] `T5.1 add mode inference with explicit override support`
+- [x] `T5.2 preserve structured lifecycle path`
+- [x] `T5.3 preserve direct execution path`
 
 Validation:
 
-- [ ] `mode inference and override behavior pass invariants`
+- [x] `mode inference and override behavior pass invariants`
 
 ### Slice 6: Multi-Stack Semantics Without Hardcoded Workflow Branches
 
@@ -147,3 +147,4 @@ Validation:
 - `2026-04-28 15:08` state=`in_progress` note=`slice-2 completed with semantic packet v2 schema/serializer, bounded tree+files capture, and packet-size trimming`
 - `2026-04-28 15:28` state=`in_progress` note=`slice-3 completed: added planner gap contract support, inferred-project confirmation flow, and single high-value clarification routing`
 - `2026-04-28 15:44` state=`in_progress` note=`slice-4 completed: hardened internal convergence loop exit classification and added timeout/clarify deterministic tests`
+- `2026-04-28 16:14` state=`in_progress` note=`slice-5 completed with dual-mode orchestration (structured default, direct override) and mode-selection runtime traces`

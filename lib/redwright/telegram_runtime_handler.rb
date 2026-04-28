@@ -101,7 +101,8 @@ module Redwright
                 trace_id: Trace.current_trace_id || "none",
                 quality_summary: nil,
                 attempts: 1,
-                terminal_reason: "control_#{control[:command]}"
+                terminal_reason: "control_#{control[:command]}",
+                mode: "direct"
               )
             )
             send_json_envelope_if_enabled(chat_id: event.chat_id, envelope: envelope)
@@ -156,18 +157,25 @@ module Redwright
           end
 
           loop_result = if decision.intent == "change"
-                          process_change_turn_with_micro_loop(
+                          mode_selection = select_change_mode(event_text: event.text, decision: decision)
+                          Trace.runtime(
+                            trace_id: Trace.current_trace_id || "none",
+                            selected_mode: mode_selection[:mode],
+                            selected_mode_source: mode_selection[:source]
+                          )
+                          process_change_turn(
+                            mode: mode_selection[:mode],
                             initial_decision: decision,
                             resolution: resolution,
                             prompt_context: prompt_context,
                             original_text: event.text
-                          )
+                          ).merge(mode: mode_selection[:mode])
                         else
                           process_single_turn(
                             decision: decision,
                             resolution: resolution,
                             prompt_context: prompt_context
-                          ).merge(attempts: 1, terminal_reason: "single_pass")
+                          ).merge(attempts: 1, terminal_reason: "single_pass", mode: "direct")
                         end
           result = loop_result[:result]
           quality_summary = loop_result[:quality_summary]
@@ -187,7 +195,8 @@ module Redwright
               result,
               quality_summary: quality_summary,
               attempts: loop_result[:attempts],
-              terminal_reason: loop_result[:terminal_reason]
+              terminal_reason: loop_result[:terminal_reason],
+              mode: loop_result[:mode]
             ),
             terminal_reason: loop_result[:terminal_reason]
           )
@@ -198,7 +207,8 @@ module Redwright
               trace_id: Trace.current_trace_id || "none",
               quality_summary: quality_summary,
               attempts: loop_result[:attempts],
-              terminal_reason: loop_result[:terminal_reason]
+              terminal_reason: loop_result[:terminal_reason],
+              mode: loop_result[:mode]
             )
           )
           send_json_envelope_if_enabled(chat_id: event.chat_id, envelope: envelope)
@@ -366,6 +376,23 @@ module Redwright
       { result: result, quality_summary: quality_summary }
     end
 
+    def process_change_turn(mode:, initial_decision:, resolution:, prompt_context:, original_text:)
+      if mode == "direct"
+        return process_single_turn(
+          decision: initial_decision,
+          resolution: resolution,
+          prompt_context: prompt_context
+        ).merge(attempts: 1, terminal_reason: "direct_pass")
+      end
+
+      process_change_turn_with_micro_loop(
+        initial_decision: initial_decision,
+        resolution: resolution,
+        prompt_context: prompt_context,
+        original_text: original_text
+      )
+    end
+
     def process_change_turn_with_micro_loop(initial_decision:, resolution:, prompt_context:, original_text:)
       max_attempts = [@blocked_retry_attempts.to_i, 1].max
       deadline = Process.clock_gettime(Process::CLOCK_MONOTONIC) + @max_change_turn_seconds.to_i
@@ -459,7 +486,7 @@ module Redwright
       packet
     end
 
-    def build_execution_summary(result, quality_summary: nil, attempts: 1, terminal_reason: "single_pass")
+    def build_execution_summary(result, quality_summary: nil, attempts: 1, terminal_reason: "single_pass", mode: nil)
       action_results = if result.respond_to?(:action_results)
                          result.action_results || []
                        else
@@ -484,18 +511,20 @@ module Redwright
         attempts: attempts,
         terminal_reason: terminal_reason
       }
+      summary[:mode] = mode if mode
       summary[:quality] = quality_summary if quality_summary
       summary
     end
 
-    def human_success_message(result:, trace_id:, quality_summary:, attempts:, terminal_reason:)
+    def human_success_message(result:, trace_id:, quality_summary:, attempts:, terminal_reason:, mode:)
       parts = []
       parts << "Started task #{result.task.id} in project #{result.project.id}."
       parts << "Workstream: #{result.workstream.id} (state: #{result.workstream.state})."
-      execution = build_execution_summary(result, quality_summary: nil, attempts: attempts, terminal_reason: terminal_reason)
+      execution = build_execution_summary(result, quality_summary: nil, attempts: attempts, terminal_reason: terminal_reason, mode: mode)
       if execution
         parts << "Actions: #{execution[:succeeded_actions]}/#{execution[:total_actions]} succeeded, #{execution[:failed_actions]} failed."
       end
+      parts << "Mode: #{mode}."
       parts << "Attempts: #{attempts} (terminal: #{terminal_reason})."
       if quality_summary
         parts << "Quality checks: #{quality_summary[:passed_checks]}/#{quality_summary[:total_checks]} passed, #{quality_summary[:failed_checks]} failed."
@@ -538,6 +567,25 @@ module Redwright
       end
 
       nil
+    end
+
+    def select_change_mode(event_text:, decision:)
+      explicit = extract_mode_override(event_text)
+      return { mode: explicit, source: "override" } if explicit
+
+      normalized = "#{event_text}\n#{decision.message}".downcase
+      if normalized.match?(/\b(plan|planning|slice|spec|tracker|pr|alignment|draft)\b/)
+        return { mode: "structured", source: "inferred" }
+      end
+
+      { mode: "structured", source: "default" }
+    end
+
+    def extract_mode_override(text)
+      match = text.to_s.downcase.match(/\bmode\s*[:=]\s*(structured|direct)\b/)
+      return nil unless match
+
+      match[1]
     end
 
     def highest_value_gap_question(decision)

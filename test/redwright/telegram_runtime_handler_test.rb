@@ -949,7 +949,7 @@ class TelegramRuntimeHandlerTest < Minitest::Test
       quality_gate_runner: fake_quality_runner
     )
 
-    handler.handle(Redwright::TelegramEvent.new(update_id: 25, chat_id: 9, user_id: nil, username: nil, text: "do work"))
+    handler.handle(Redwright::TelegramEvent.new(update_id: 25, chat_id: 9, user_id: nil, username: nil, text: "mode:structured do work"))
 
     assert_equal(1, flow_calls)
     assert_match("Attempts: 1 (terminal: clarify).", client.messages.last[:text])
@@ -999,5 +999,108 @@ class TelegramRuntimeHandlerTest < Minitest::Test
     assert_match("Commit/push actions were blocked by confirmation policy", client.messages.last[:text])
     assert_match("git_commit_1", client.messages.last[:text])
     assert_equal("", err.string)
+  end
+
+  def test_change_mode_explicit_override_forces_direct
+    fake_flow = Object.new
+    fake_flow.define_singleton_method(:process) do |**_kwargs|
+      FakeResult.new(
+        project: FakeProject.new(id: "project-m1"),
+        workstream: FakeWorkstream.new(id: "ws-m1", state: "executing"),
+        task: FakeTask.new(id: "task-m1"),
+        alignment: nil,
+        action_results: []
+      )
+    end
+
+    fake_interpreter = Object.new
+    fake_interpreter.define_singleton_method(:interpret) do |**_kwargs|
+      FakeDecision.new(intent: "change", message: "fix bug", actions: [], gaps: [], source: "llm", finish_reason: "stop", raw_output: "{}")
+    end
+
+    client = FakeTelegramClient.new([])
+    handler = Redwright::TelegramRuntimeHandler.new(
+      flow: fake_flow,
+      telegram_client: client,
+      out: StringIO.new,
+      err: StringIO.new,
+      blocked_retry_attempts: 2,
+      model_name: "gpt-5-mini",
+      intent_interpreter: fake_interpreter
+    )
+
+    handler.handle(Redwright::TelegramEvent.new(update_id: 30, chat_id: 9, user_id: nil, username: nil, text: "mode:direct fix this parser"))
+    assert_match("Mode: direct.", client.messages.last[:text])
+    assert_match("Attempts: 1 (terminal: direct_pass).", client.messages.last[:text])
+  end
+
+  def test_change_mode_infers_structured_for_planning_language
+    flow_calls = 0
+    fake_flow = Object.new
+    fake_flow.define_singleton_method(:process) do |**_kwargs|
+      flow_calls += 1
+      FakeResult.new(
+        project: FakeProject.new(id: "project-m2"),
+        workstream: FakeWorkstream.new(id: "ws-m2", state: "executing"),
+        task: FakeTask.new(id: "task-m2"),
+        alignment: nil,
+        action_results: []
+      )
+    end
+
+    fake_interpreter = Object.new
+    fake_interpreter.define_singleton_method(:interpret) do |**_kwargs|
+      FakeDecision.new(intent: "change", message: "create plan and slices", actions: [], gaps: [], source: "llm", finish_reason: "stop", raw_output: "{}")
+    end
+
+    client = FakeTelegramClient.new([])
+    handler = Redwright::TelegramRuntimeHandler.new(
+      flow: fake_flow,
+      telegram_client: client,
+      out: StringIO.new,
+      err: StringIO.new,
+      blocked_retry_attempts: 2,
+      model_name: "gpt-5-mini",
+      intent_interpreter: fake_interpreter
+    )
+
+    handler.handle(Redwright::TelegramEvent.new(update_id: 31, chat_id: 9, user_id: nil, username: nil, text: "prepare plan and slice set"))
+    assert_equal(1, flow_calls)
+    assert_match("Mode: structured.", client.messages.last[:text])
+  end
+
+  def test_change_mode_default_is_structured
+    flow_calls = 0
+    fake_flow = Object.new
+    fake_flow.define_singleton_method(:process) do |**_kwargs|
+      flow_calls += 1
+      FakeResult.new(
+        project: FakeProject.new(id: "project-m3"),
+        workstream: FakeWorkstream.new(id: "ws-m3", state: "executing"),
+        task: FakeTask.new(id: "task-m3"),
+        alignment: nil,
+        action_results: []
+      )
+    end
+
+    fake_interpreter = Object.new
+    fake_interpreter.define_singleton_method(:interpret) do |**_kwargs|
+      FakeDecision.new(intent: "change", message: "small fix", actions: [], gaps: [], source: "llm", finish_reason: "stop", raw_output: "{}")
+    end
+
+    client = FakeTelegramClient.new([])
+    handler = Redwright::TelegramRuntimeHandler.new(
+      flow: fake_flow,
+      telegram_client: client,
+      out: StringIO.new,
+      err: StringIO.new,
+      blocked_retry_attempts: 2,
+      model_name: "gpt-5-mini",
+      intent_interpreter: fake_interpreter
+    )
+
+    handler.handle(Redwright::TelegramEvent.new(update_id: 32, chat_id: 9, user_id: nil, username: nil, text: "quick fix"))
+    assert_equal(1, flow_calls)
+    assert_match("Mode: structured.", client.messages.last[:text])
   end
 end
