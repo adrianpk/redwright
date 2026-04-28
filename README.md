@@ -5,28 +5,20 @@
 [![coverage](https://img.shields.io/badge/coverage-31.12%-brightgreen)](badges/coverage.svg)
 <!-- REDWRIGHT_LOCAL_BADGES:END -->
 
-RedWright is a Ruby runtime agent for software engineering work.
+RedWright is an **agent harness** for software development, built around messaging-first workflows.
 
-It receives natural-language requests (currently via Telegram), resolves the active project context, plans a structured turn, and executes safe, bounded actions inside the project workspace.
+It treats Telegram and Slack as primary interfaces, alongside a local TUI for project work. You describe engineering tasks in natural language, and RedWright executes them inside real workspaces with controlled access to files, commands, and tools.
 
-## What RedWright Does
+## Product Focus
 
-- interprets user intent into a strict runtime plan
-- validates planner output before execution
-- executes filesystem, shell, and git primitives with guardrails
-- persists runtime state and action evidence in SQLite
-- emits traces for ingress, planning, execution, and persistence
+RedWright is designed for software-development execution, not generic chat. Current baseline interfaces are Telegram and local TUI. Slack and richer cross-channel multi-project continuity are part of the planned scope.
 
-## Runtime Boundaries
+## What It Delivers
 
-- execution is constrained to the active project/worktree boundary
-- invalid or ambiguous context yields clarify/error responses instead of unsafe execution
-- action execution follows explicit contracts (`id`, `type`, `args`, confirmation, timeout, failure policy)
+RedWright provides natural-language task intake, structured execution, guarded filesystem and command boundaries, and persisted execution evidence. The execution path is deterministic and server-owned (single writer).
 
-## Interaction Model
+## Start Here
 
-- the user sends a request in natural language
-- RedWright normalizes and validates the turn plan
-- RedWright executes allowed actions and returns a concise runtime response
-
-RedWright is designed to evolve into a modular coding agent runtime with strict contracts between planning, validation, normalization, execution, and traceability layers.
+- Concept: [What Is RedWright?](docs/explanation/what-is-redwright.md)
+- Run guide: [Run RedWright](docs/how-to/run-redwright.md)
+- Technical reference: [Runtime Capabilities](docs/reference/runtime-capabilities.md)
