@@ -6,7 +6,7 @@
 - status: `in_progress`
 - state: `awaiting_review`
 - updated: `2026-04-28`
-- active_slice: `slice-4`
+- active_slice: `slice-5`
 - active_task: `none`
 
 ## Slice Progress
@@ -89,7 +89,7 @@ Validation:
 
 ### Slice 5: Human-First Response Envelope and Confirmation UX
 
-- status: `pending`
+- status: `completed`
 - branch: `feat/slice-5-human-envelope-and-confirmation`
 - PR: `tbd`
 - merge_target: `dev`
@@ -97,14 +97,14 @@ Validation:
 
 Tasks:
 
-- [ ] `T5.1 default Telegram response is concise human-readable summary`
-- [ ] `T5.2 optional fenced-json debug envelope via config flag`
-- [ ] `T5.3 explicit next-step messaging for confirmation-blocked commit/push`
+- [x] `T5.1 default Telegram response is concise human-readable summary`
+- [x] `T5.2 optional fenced-json debug envelope via config flag`
+- [x] `T5.3 explicit next-step messaging for confirmation-blocked commit/push`
 
 Validation:
 
-- [ ] `default user output is human-first`
-- [ ] `blocked commit/push responses are actionable`
+- [x] `default user output is human-first`
+- [x] `blocked commit/push responses are actionable`
 
 ### Slice 6: Unified Turn Trace Correlation
 
@@ -141,3 +141,6 @@ Validation:
 - `2026-04-28 10:20` validation=`bundle exec ruby -Itest test/redwright/iteration_context_packet_builder_test.rb`
 - `2026-04-28 10:20` validation=`bundle exec ruby -Itest test/redwright/telegram_runtime_handler_test.rb`
 - `2026-04-28 10:21` validation=`bundle exec rake test`
+- `2026-04-28 10:31` state=`implementation` slice=`slice-5` note=`added explicit actionable confirmation-blocked guidance in human response while preserving optional debug json envelope behavior`
+- `2026-04-28 10:31` validation=`bundle exec ruby -Itest test/redwright/telegram_runtime_handler_test.rb`
+- `2026-04-28 10:32` validation=`bundle exec rake test`

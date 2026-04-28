@@ -425,7 +425,7 @@ module Redwright
       parts = []
       parts << "Started task #{result.task.id} in project #{result.project.id}."
       parts << "Workstream: #{result.workstream.id} (state: #{result.workstream.state})."
-      execution = build_execution_summary(result, quality_summary: nil)
+      execution = build_execution_summary(result, quality_summary: nil, attempts: attempts, terminal_reason: terminal_reason)
       if execution
         parts << "Actions: #{execution[:succeeded_actions]}/#{execution[:total_actions]} succeeded, #{execution[:failed_actions]} failed."
       end
@@ -433,6 +433,8 @@ module Redwright
       if quality_summary
         parts << "Quality checks: #{quality_summary[:passed_checks]}/#{quality_summary[:total_checks]} passed, #{quality_summary[:failed_checks]} failed."
       end
+      confirmation_hint = confirmation_required_hint(result)
+      parts << confirmation_hint if confirmation_hint
       parts << "Trace: #{trace_id}"
       parts.join("\n")
     end
@@ -458,6 +460,28 @@ module Redwright
       return unless @send_json_envelope
 
       @telegram_client.send_message(chat_id: chat_id, text: "```json\n#{envelope.to_json_string}\n```")
+    end
+
+    def confirmation_required_hint(result)
+      action_results = if result.respond_to?(:action_results)
+                         result.action_results || []
+                       else
+                         []
+                       end
+      blocked = action_results.select do |r|
+        next false unless r.respond_to?(:status) && r.status != "ok"
+        next false unless r.respond_to?(:error_message) && r.error_message.to_s == "confirmation_required"
+
+        if r.respond_to?(:action_type)
+          %w[git_commit git_push].include?(r.action_type.to_s)
+        else
+          true
+        end
+      end
+      return nil if blocked.empty?
+
+      ids = blocked.map { |r| r.respond_to?(:action_id) ? r.action_id : "unknown" }.join(", ")
+      "Commit/push actions were blocked by confirmation policy (#{ids}). Ask to retry with explicit confirmation."
     end
 
     def call_with_supported_keywords(method_obj, kwargs)

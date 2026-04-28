@@ -35,7 +35,7 @@ class TelegramRuntimeHandlerTest < Minitest::Test
   FakeProject = Struct.new(:id, keyword_init: true)
   FakeWorkstream = Struct.new(:id, :state, keyword_init: true)
   FakeTask = Struct.new(:id, keyword_init: true)
-  FakeActionResult = Struct.new(:action_id, :status, keyword_init: true)
+  FakeActionResult = Struct.new(:action_id, :action_type, :status, :error_message, keyword_init: true)
   FakeResult = Struct.new(:project, :workstream, :task, :alignment, :action_results, keyword_init: true)
   FakeQualityCheck = Struct.new(:name, :status, keyword_init: true)
 
@@ -710,6 +710,52 @@ class TelegramRuntimeHandlerTest < Minitest::Test
 
     assert_equal(2, flow_calls)
     assert_match("Attempts: 2 (terminal: max_attempts).", client.messages.last[:text])
+    assert_equal("", err.string)
+  end
+
+  def test_handle_includes_actionable_confirmation_hint_when_commit_is_blocked
+    fake_flow = Object.new
+    fake_flow.define_singleton_method(:process) do |**_kwargs|
+      FakeResult.new(
+        project: FakeProject.new(id: "project-cb"),
+        workstream: FakeWorkstream.new(id: "ws-cb", state: "executing"),
+        task: FakeTask.new(id: "task-cb"),
+        alignment: nil,
+        action_results: [
+          FakeActionResult.new(action_id: "git_commit_1", action_type: "git_commit", status: "error", error_message: "confirmation_required")
+        ]
+      )
+    end
+
+    fake_interpreter = Object.new
+    fake_interpreter.define_singleton_method(:interpret) do |text:, model:|
+      FakeDecision.new(
+        intent: "change",
+        message: "commit changes",
+        actions: [],
+        source: "llm",
+        finish_reason: "stop",
+        raw_output: "{\"intent\":\"change\",\"message\":\"commit changes\",\"actions\":[]}"
+      )
+    end
+
+    client = FakeTelegramClient.new([])
+    out = StringIO.new
+    err = StringIO.new
+    handler = Redwright::TelegramRuntimeHandler.new(
+      flow: fake_flow,
+      telegram_client: client,
+      out: out,
+      err: err,
+      blocked_retry_attempts: 1,
+      model_name: "gpt-5-mini",
+      intent_interpreter: fake_interpreter
+    )
+
+    handler.handle(Redwright::TelegramEvent.new(update_id: 23, chat_id: 9, user_id: nil, username: nil, text: "commit this"))
+
+    assert_match("Commit/push actions were blocked by confirmation policy", client.messages.last[:text])
+    assert_match("git_commit_1", client.messages.last[:text])
     assert_equal("", err.string)
   end
 end
