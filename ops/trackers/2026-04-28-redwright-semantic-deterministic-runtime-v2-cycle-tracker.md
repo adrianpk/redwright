@@ -6,7 +6,7 @@
 - status: `in_progress`
 - state: `in_progress`
 - updated: `2026-04-28`
-- active_slice: `slice-6`
+- active_slice: `slice-7`
 - active_task: `none`
 
 ## Slice Progress
@@ -89,7 +89,7 @@ Validation:
 
 - status: `completed`
 - branch: `feat/slice-5-dual-mode-orchestration`
-- PR: `#tbd`
+- PR: `#66`
 - merge_target: `dev`
 - last_sync_commit: `tbd`
 
@@ -105,21 +105,21 @@ Validation:
 
 ### Slice 6: Multi-Stack Semantics Without Hardcoded Workflow Branches
 
-- status: `pending`
+- status: `completed`
 - branch: `feat/slice-6-multistack-semantic-runtime`
-- PR: `tbd`
+- PR: `#tbd`
 - merge_target: `dev`
 - last_sync_commit: `tbd`
 
 Tasks:
 
-- [ ] `T6.1 encode stack/toolchain hints in semantic packet`
-- [ ] `T6.2 validate no hardcoded language-specific workflow routing`
-- [ ] `T6.3 add multi-stack fixture tests`
+- [x] `T6.1 encode stack/toolchain hints in semantic packet`
+- [x] `T6.2 validate no hardcoded language-specific workflow routing`
+- [x] `T6.3 add multi-stack fixture tests`
 
 Validation:
 
-- [ ] `workflow-core stack neutrality checks pass`
+- [x] `workflow-core stack neutrality checks pass`
 
 ### Slice 7: End-to-End Tests for Clarification, Convergence, and Persistence
 
@@ -148,3 +148,4 @@ Validation:
 - `2026-04-28 15:28` state=`in_progress` note=`slice-3 completed: added planner gap contract support, inferred-project confirmation flow, and single high-value clarification routing`
 - `2026-04-28 15:44` state=`in_progress` note=`slice-4 completed: hardened internal convergence loop exit classification and added timeout/clarify deterministic tests`
 - `2026-04-28 16:14` state=`in_progress` note=`slice-5 completed with dual-mode orchestration (structured default, direct override) and mode-selection runtime traces`
+- `2026-04-28 16:28` state=`in_progress` note=`slice-6 completed: semantic packet now emits stack/toolchain hints with multi-stack fixture coverage (go/ruby/node)`

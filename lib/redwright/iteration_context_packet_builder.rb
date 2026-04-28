@@ -37,6 +37,7 @@ module Redwright
         version: "v2",
         task_goal: task_goal.to_s,
         previous_message: previous_message.to_s,
+        stack_hints: detect_stack_hints(project_path: project_path),
         errors: Array(current_errors).map(&:to_s),
         tree: {
           entries: tree_entries,
@@ -78,6 +79,7 @@ module Redwright
         version: "v2",
         task_goal: task_goal.to_s,
         previous_message: previous_message.to_s,
+        stack_hints: { ecosystem: "unknown", primary_language: "unknown", toolchains: [] },
         errors: Array(current_errors).map(&:to_s),
         tree: { entries: [], total_entries: 0 },
         files: [],
@@ -154,6 +156,10 @@ module Redwright
       lines << "- version: #{packet[:version]}"
       lines << "- task_goal: #{packet[:task_goal]}"
       lines << "- previous_message: #{packet[:previous_message]}"
+      lines << "- stack_hints:"
+      lines << "  - ecosystem: #{packet.dig(:stack_hints, :ecosystem)}"
+      lines << "  - primary_language: #{packet.dig(:stack_hints, :primary_language)}"
+      lines << "  - toolchains: #{Array(packet.dig(:stack_hints, :toolchains)).join(', ')}"
       lines << "- errors:"
       packet[:errors].each { |err| lines << "  - #{err}" }
       lines << "- tree_entries_count: #{packet.dig(:tree, :entries).size}"
@@ -185,6 +191,38 @@ module Redwright
         break
       end
       trimmed
+    end
+
+    def detect_stack_hints(project_path:)
+      if File.file?(File.join(project_path, "go.mod"))
+        return {
+          ecosystem: "go",
+          primary_language: "go",
+          toolchains: ["go test", "go vet"]
+        }
+      end
+
+      if File.file?(File.join(project_path, "Gemfile"))
+        return {
+          ecosystem: "ruby",
+          primary_language: "ruby",
+          toolchains: ["bundle exec rake", "bundle exec ruby -Itest"]
+        }
+      end
+
+      if File.file?(File.join(project_path, "package.json"))
+        return {
+          ecosystem: "node",
+          primary_language: "javascript",
+          toolchains: ["npm test", "npm run lint"]
+        }
+      end
+
+      {
+        ecosystem: "unknown",
+        primary_language: "unknown",
+        toolchains: []
+      }
     end
   end
 end

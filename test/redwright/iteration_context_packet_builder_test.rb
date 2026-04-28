@@ -27,6 +27,7 @@ class IterationContextPacketBuilderTest < Minitest::Test
       assert_equal(2, packet[:summary][:top_files_count])
       assert_equal(2, packet[:summary][:top_files].size)
       assert_equal("v2", packet.dig(:packet, :version))
+      assert_equal("unknown", packet.dig(:packet, :stack_hints, :ecosystem))
       assert_includes(packet[:prompt_text], "Semantic Context Packet v2")
       assert_includes(packet[:prompt_text], "task_goal: fix failing test")
       assert_includes(packet[:prompt_text], "content: |")
@@ -55,6 +56,51 @@ class IterationContextPacketBuilderTest < Minitest::Test
       assert_operator(packet[:prompt_text].bytesize, :<=, 1500)
       assert_operator(packet.dig(:packet, :files).size, :<=, 5)
       assert_operator(packet.dig(:packet, :tree, :entries).size, :<=, 5)
+    end
+  end
+
+  def test_detects_go_stack_hints
+    Dir.mktmpdir("redwright-iter-packet-go-") do |dir|
+      File.write(File.join(dir, "go.mod"), "module example.com/x\n\ngo 1.22\n")
+      packet = Redwright::IterationContextPacketBuilder.new.build(
+        project_path: dir,
+        task_goal: "build go app",
+        previous_message: "none",
+        current_errors: []
+      )
+      assert_equal("go", packet.dig(:packet, :stack_hints, :ecosystem))
+      assert_equal("go", packet.dig(:packet, :stack_hints, :primary_language))
+      assert_includes(packet.dig(:packet, :stack_hints, :toolchains), "go test")
+    end
+  end
+
+  def test_detects_ruby_stack_hints
+    Dir.mktmpdir("redwright-iter-packet-ruby-") do |dir|
+      File.write(File.join(dir, "Gemfile"), "source 'https://rubygems.org'\n")
+      packet = Redwright::IterationContextPacketBuilder.new.build(
+        project_path: dir,
+        task_goal: "build ruby app",
+        previous_message: "none",
+        current_errors: []
+      )
+      assert_equal("ruby", packet.dig(:packet, :stack_hints, :ecosystem))
+      assert_equal("ruby", packet.dig(:packet, :stack_hints, :primary_language))
+      assert_includes(packet.dig(:packet, :stack_hints, :toolchains), "bundle exec rake")
+    end
+  end
+
+  def test_detects_node_stack_hints
+    Dir.mktmpdir("redwright-iter-packet-node-") do |dir|
+      File.write(File.join(dir, "package.json"), "{\"name\":\"x\"}\n")
+      packet = Redwright::IterationContextPacketBuilder.new.build(
+        project_path: dir,
+        task_goal: "build node app",
+        previous_message: "none",
+        current_errors: []
+      )
+      assert_equal("node", packet.dig(:packet, :stack_hints, :ecosystem))
+      assert_equal("javascript", packet.dig(:packet, :stack_hints, :primary_language))
+      assert_includes(packet.dig(:packet, :stack_hints, :toolchains), "npm test")
     end
   end
 end
