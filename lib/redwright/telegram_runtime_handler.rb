@@ -4,6 +4,7 @@ require_relative "trace"
 require_relative "runtime_result_envelope"
 require_relative "llm_intent_interpreter"
 require_relative "telegram_context_resolver"
+require_relative "iteration_context_packet_builder"
 
 module Redwright
   class TelegramRuntimeHandler
@@ -25,6 +26,7 @@ module Redwright
       quality_gate_runner: nil,
       send_json_envelope: false,
       max_change_turn_seconds: 180,
+      iteration_context_packet_builder: IterationContextPacketBuilder.new,
       typing_interval_seconds: 4.0,
       typing_sleeper: ->(seconds) { sleep(seconds) }
     )
@@ -45,6 +47,7 @@ module Redwright
       @quality_gate_runner = quality_gate_runner
       @send_json_envelope = send_json_envelope
       @max_change_turn_seconds = max_change_turn_seconds
+      @iteration_context_packet_builder = iteration_context_packet_builder
       @typing_interval_seconds = typing_interval_seconds
       @typing_sleeper = typing_sleeper
     end
@@ -334,9 +337,20 @@ module Redwright
           break if attempts >= max_attempts
           break if Process.clock_gettime(Process::CLOCK_MONOTONIC) >= deadline
 
+          refinement_packet = build_refinement_context_packet(
+            project_path: resolution.project_path,
+            original_text: original_text,
+            quality_summary: quality_summary,
+            previous_message: decision.message
+          )
+          Trace.runtime(
+            trace_id: Trace.current_trace_id || "none",
+            refinement_top_files_count: refinement_packet[:summary][:top_files_count],
+            refinement_top_files: refinement_packet[:summary][:top_files].join(",")
+          )
           decision = interpret_with_trace(
             action: "intent_refine_with_errors",
-            text: build_refinement_prompt(original_text: original_text, quality_summary: quality_summary, previous_message: decision.message),
+            text: refinement_packet[:prompt_text],
             model: @model_name,
             project_context: prompt_context[:project_context],
             architecture_context: prompt_context[:architecture_context],
@@ -364,20 +378,23 @@ module Redwright
       quality_summary[:failed_checks].to_i.positive?
     end
 
-    def build_refinement_prompt(original_text:, quality_summary:, previous_message:)
+    def build_refinement_context_packet(project_path:, original_text:, quality_summary:, previous_message:)
       failed = quality_summary[:failed_check_names] || []
-      <<~TEXT
-        Original user request:
-        #{original_text}
-
-        Previous normalized task:
-        #{previous_message}
-
-        Validation failed after execution.
-        Failed checks: #{failed.join(", ")}
-
-        Return a corrected execution plan that repairs the failures while preserving the original goal.
-      TEXT
+      packet = @iteration_context_packet_builder.build(
+        project_path: project_path,
+        task_goal: original_text,
+        previous_message: previous_message,
+        current_errors: [
+          "Validation failed after execution.",
+          "Failed checks: #{failed.join(', ')}"
+        ]
+      )
+      packet[:prompt_text] = [
+        packet[:prompt_text],
+        "",
+        "Return a corrected execution plan that repairs the failures while preserving the original goal."
+      ].join("\n")
+      packet
     end
 
     def build_execution_summary(result, quality_summary: nil, attempts: 1, terminal_reason: "single_pass")

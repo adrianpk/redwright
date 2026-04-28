@@ -6,7 +6,7 @@
 - status: `in_progress`
 - state: `awaiting_review`
 - updated: `2026-04-28`
-- active_slice: `slice-3`
+- active_slice: `slice-4`
 - active_task: `none`
 
 ## Slice Progress
@@ -70,7 +70,7 @@ Validation:
 
 ### Slice 4: Iteration Context Budgeting and Stable Inputs
 
-- status: `pending`
+- status: `completed`
 - branch: `feat/slice-4-iteration-context-budgeting`
 - PR: `tbd`
 - merge_target: `dev`
@@ -78,14 +78,14 @@ Validation:
 
 Tasks:
 
-- [ ] `T4.1 enforce top-K significant file budget per iteration`
-- [ ] `T4.2 provide concise task goal + snippets + errors + optional previous diff`
-- [ ] `T4.3 persist context packet summaries for auditability`
+- [x] `T4.1 enforce top-K significant file budget per iteration`
+- [x] `T4.2 provide concise task goal + snippets + errors + optional previous diff`
+- [x] `T4.3 persist context packet summaries for auditability`
 
 Validation:
 
-- [ ] `planner packets remain bounded and deterministic`
-- [ ] `full-repo payloads are avoided by default`
+- [x] `planner packets remain bounded and deterministic`
+- [x] `full-repo payloads are avoided by default`
 
 ### Slice 5: Human-First Response Envelope and Confirmation UX
 
@@ -137,3 +137,7 @@ Validation:
 - `2026-04-28 10:02` state=`implementation` slice=`slice-3` note=`implemented bounded change-turn micro-loop with retry-on-quality-failure, refinement prompt with errors, and deterministic terminal outcomes`
 - `2026-04-28 10:03` validation=`bundle exec ruby -Itest test/redwright/telegram_runtime_handler_test.rb`
 - `2026-04-28 10:04` validation=`bundle exec rake test`
+- `2026-04-28 10:19` state=`implementation` slice=`slice-4` note=`added bounded iteration context packet builder (top-K files + snippets + errors) and wired packet summary trace fields into micro-loop refinement`
+- `2026-04-28 10:20` validation=`bundle exec ruby -Itest test/redwright/iteration_context_packet_builder_test.rb`
+- `2026-04-28 10:20` validation=`bundle exec ruby -Itest test/redwright/telegram_runtime_handler_test.rb`
+- `2026-04-28 10:21` validation=`bundle exec rake test`
