@@ -141,4 +141,49 @@ class TelegramContextResolverTest < Minitest::Test
       end
     end
   end
+
+  def test_resolve_asks_for_inferred_project_name_confirmation_then_confirms
+    Dir.mktmpdir("redwright-context-resolver-infer-confirm-") do |dir|
+      Dir.chdir(dir) do
+        bootstrap = Redwright::Bootstrap.new(mode: :dev).call
+        projects = Redwright::ProjectStore.new(bootstrap.db_path)
+        contexts = Redwright::ChatContextStore.new(bootstrap.db_path)
+        resolver = Redwright::TelegramContextResolver.new(
+          project_store: projects,
+          chat_context_store: contexts,
+          projects_root: bootstrap.projects_root
+        )
+
+        first = resolver.resolve(chat_id: 200, text: "Create a tiny CLI project named hello-cli")
+        assert_equal(false, first.resolved)
+        assert_match("I inferred project name 'hello-cli'", first.question)
+
+        second = resolver.resolve(chat_id: 200, text: "yes")
+        assert_equal(true, second.resolved)
+        assert_equal(File.join(bootstrap.projects_root, "hello-cli"), second.project_path)
+      end
+    end
+  end
+
+  def test_resolve_pending_inferred_project_accepts_replacement_name
+    Dir.mktmpdir("redwright-context-resolver-infer-replace-") do |dir|
+      Dir.chdir(dir) do
+        bootstrap = Redwright::Bootstrap.new(mode: :dev).call
+        projects = Redwright::ProjectStore.new(bootstrap.db_path)
+        contexts = Redwright::ChatContextStore.new(bootstrap.db_path)
+        resolver = Redwright::TelegramContextResolver.new(
+          project_store: projects,
+          chat_context_store: contexts,
+          projects_root: bootstrap.projects_root
+        )
+
+        first = resolver.resolve(chat_id: 300, text: "start project called sample-one")
+        assert_equal(false, first.resolved)
+
+        second = resolver.resolve(chat_id: 300, text: "better use sample-two and module example.com/sample-two")
+        assert_equal(true, second.resolved)
+        assert_equal(File.join(bootstrap.projects_root, "sample-two"), second.project_path)
+      end
+    end
+  end
 end

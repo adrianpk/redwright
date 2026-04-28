@@ -3,7 +3,7 @@
 module Redwright
   module PlannerContract
     INTENTS = %w[change meta].freeze
-    TOP_LEVEL_KEYS = %w[intent message actions].freeze
+    TOP_LEVEL_KEYS = %w[intent message actions gaps].freeze
     ACTION_KEYS = %w[id type args requires_confirmation timeout_ms on_failure].freeze
     ACTION_ON_FAILURE = %w[abort continue].freeze
     ACTION_PRIMITIVE_TYPES = %w[
@@ -24,6 +24,7 @@ module Redwright
       run_commands
     ].freeze
     ACTION_TYPES = (ACTION_PRIMITIVE_TYPES + ACTION_MACRO_TYPES).freeze
+    GAP_KEYS = %w[id question field inferred_value resolved priority].freeze
 
     SYSTEM_PROMPT = <<~PROMPT
       You route runtime tasks for a coding agent.
@@ -31,6 +32,14 @@ module Redwright
       - intent: one of "change" or "meta"
       - message: concise normalized task text in English
       - actions: array of action objects (can be empty)
+      - gaps: array of unresolved clarification gaps (can be empty)
+      Gap object keys:
+      - id: stable gap id
+      - question: one high-value clarification question
+      - field: normalized missing field name
+      - inferred_value: inferred suggestion string or empty string
+      - resolved: boolean
+      - priority: integer from 1 (highest) to 5 (lowest)
       Action object keys:
       - id: stable action id
       - type: action type string

@@ -5,7 +5,8 @@ require_relative "planner_contract"
 
 module Redwright
   class PlannerPayloadValidator
-    ValidationResult = Struct.new(:valid, :intent, :message, :actions, :errors, keyword_init: true)
+    ValidationResult = Struct.new(:valid, :intent, :message, :actions, :gaps, :errors, keyword_init: true)
+    REQUIRED_TOP_LEVEL_KEYS = %w[intent message actions].freeze
 
     def validate(raw_output)
       parsed = JSON.parse(raw_output.to_s)
@@ -14,6 +15,7 @@ module Redwright
       errors = []
       validate_top_level(parsed, errors)
       validate_actions(parsed["actions"], errors)
+      validate_gaps(parsed["gaps"], errors)
 
       return invalid(errors) unless errors.empty?
 
@@ -22,6 +24,7 @@ module Redwright
         intent: parsed["intent"].to_s.strip,
         message: parsed["message"].to_s.strip,
         actions: parsed["actions"],
+        gaps: parsed["gaps"] || [],
         errors: []
       )
     rescue JSON::ParserError => e
@@ -32,7 +35,7 @@ module Redwright
 
     def validate_top_level(parsed, errors)
       extra = parsed.keys - PlannerContract::TOP_LEVEL_KEYS
-      missing = PlannerContract::TOP_LEVEL_KEYS - parsed.keys
+      missing = REQUIRED_TOP_LEVEL_KEYS - parsed.keys
       errors << "top_level_extra_keys:#{extra.sort.join(',')}" unless extra.empty?
       errors << "top_level_missing_keys:#{missing.sort.join(',')}" unless missing.empty?
 
@@ -45,6 +48,11 @@ module Redwright
 
       actions = parsed["actions"]
       errors << "actions_not_array" unless actions.is_a?(Array)
+
+      gaps = parsed["gaps"]
+      return if gaps.nil?
+
+      errors << "gaps_not_array" unless gaps.is_a?(Array)
     end
 
     def validate_actions(actions, errors)
@@ -76,12 +84,34 @@ module Redwright
       end
     end
 
+    def validate_gaps(gaps, errors)
+      return if gaps.nil?
+      return unless gaps.is_a?(Array)
+
+      gaps.each_with_index do |gap, idx|
+        unless gap.is_a?(Hash)
+          errors << "gap_#{idx}_not_object"
+          next
+        end
+        extra = gap.keys - PlannerContract::GAP_KEYS
+        missing = PlannerContract::GAP_KEYS - gap.keys
+        errors << "gap_#{idx}_extra_keys:#{extra.sort.join(',')}" unless extra.empty?
+        errors << "gap_#{idx}_missing_keys:#{missing.sort.join(',')}" unless missing.empty?
+        errors << "gap_#{idx}_id_invalid" if gap["id"].to_s.strip.empty?
+        errors << "gap_#{idx}_question_invalid" if gap["question"].to_s.strip.empty?
+        errors << "gap_#{idx}_field_invalid" if gap["field"].to_s.strip.empty?
+        errors << "gap_#{idx}_inferred_value_not_string" unless gap["inferred_value"].is_a?(String)
+        errors << "gap_#{idx}_resolved_not_boolean" unless [true, false].include?(gap["resolved"])
+        errors << "gap_#{idx}_priority_invalid" unless positive_integer?(gap["priority"]) && gap["priority"] <= 5
+      end
+    end
+
     def positive_integer?(value)
       value.is_a?(Integer) && value.positive?
     end
 
     def invalid(errors)
-      ValidationResult.new(valid: false, intent: nil, message: nil, actions: nil, errors: errors)
+      ValidationResult.new(valid: false, intent: nil, message: nil, actions: nil, gaps: nil, errors: errors)
     end
   end
 end

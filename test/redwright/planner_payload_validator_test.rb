@@ -29,6 +29,7 @@ class PlannerPayloadValidatorTest < Minitest::Test
     assert_equal(true, result.valid)
     assert_equal("change", result.intent)
     assert_equal("update README with setup steps", result.message)
+    assert_equal([], result.gaps)
     assert_empty(result.errors)
   end
 
@@ -122,5 +123,31 @@ class PlannerPayloadValidatorTest < Minitest::Test
     result = validator.validate(payload)
     assert_equal(false, result.valid)
     assert_includes(result.errors, "action_0_type_not_allowed:unknown_action_type")
+  end
+
+  def test_validate_accepts_optional_gaps_schema
+    validator = Redwright::PlannerPayloadValidator.new
+    payload = JSON.generate(
+      {
+        intent: "change",
+        message: "plan task",
+        actions: [],
+        gaps: [
+          {
+            id: "gap-project-name",
+            question: "What is the project name?",
+            field: "project_name",
+            inferred_value: "hello-cli",
+            resolved: false,
+            priority: 1
+          }
+        ]
+      }
+    )
+
+    result = validator.validate(payload)
+    assert_equal(true, result.valid)
+    assert_equal(1, result.gaps.size)
+    assert_empty(result.errors)
   end
 end

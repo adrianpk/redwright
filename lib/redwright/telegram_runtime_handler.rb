@@ -120,6 +120,21 @@ module Redwright
             workspace_context: prompt_context[:workspace_context]
           )
 
+          gap_question = highest_value_gap_question(decision)
+          if gap_question
+            clarify = RuntimeResultEnvelope.clarify(
+              trace_id: Trace.current_trace_id || "none",
+              message: gap_question
+            )
+            @telegram_client.send_message(
+              chat_id: event.chat_id,
+              text: human_clarify_message(question: gap_question, trace_id: Trace.current_trace_id || "none")
+            )
+            send_json_envelope_if_enabled(chat_id: event.chat_id, envelope: clarify)
+            @out.puts("telegram clarify chat=#{event.chat_id}")
+            return
+          end
+
           if decision.source == "fallback" && planner_decision_invalid?(decision)
             rejection = persist_planner_rejection(
               resolution: resolution,
@@ -508,6 +523,21 @@ module Redwright
       end
 
       nil
+    end
+
+    def highest_value_gap_question(decision)
+      gaps = if decision.respond_to?(:gaps)
+               decision.gaps
+             else
+               []
+             end
+      return nil unless gaps.is_a?(Array) && !gaps.empty?
+
+      unresolved = gaps.select { |g| g.is_a?(Hash) && g["resolved"] == false && !g["question"].to_s.strip.empty? }
+      return nil if unresolved.empty?
+
+      best = unresolved.min_by { |g| [g["priority"].to_i <= 0 ? 9 : g["priority"].to_i, g["id"].to_s] }
+      best["question"].to_s.strip
     end
 
     def send_json_envelope_if_enabled(chat_id:, envelope:)

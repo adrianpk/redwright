@@ -31,7 +31,7 @@ class TelegramRuntimeHandlerTest < Minitest::Test
     end
   end
 
-  FakeDecision = Struct.new(:intent, :message, :actions, :source, :finish_reason, :raw_output, keyword_init: true)
+  FakeDecision = Struct.new(:intent, :message, :actions, :gaps, :source, :finish_reason, :raw_output, keyword_init: true)
   FakeProject = Struct.new(:id, keyword_init: true)
   FakeWorkstream = Struct.new(:id, :state, keyword_init: true)
   FakeTask = Struct.new(:id, keyword_init: true)
@@ -250,6 +250,49 @@ class TelegramRuntimeHandlerTest < Minitest::Test
     assert_equal(1, client.messages.size)
     assert_match("Please specify project.", client.messages.first[:text])
     assert_match("Trace: trc-", client.messages.first[:text])
+  end
+
+  def test_handle_sends_single_high_value_clarify_for_unresolved_gaps
+    fake_flow = Object.new
+    def fake_flow.process(**_kwargs)
+      raise "flow should not run when unresolved gaps exist"
+    end
+
+    fake_interpreter = Object.new
+    fake_interpreter.define_singleton_method(:interpret) do |text:, model:|
+      TelegramRuntimeHandlerTest::FakeDecision.new(
+        intent: "change",
+        message: "normalized",
+        actions: [],
+        gaps: [
+          { "id" => "g2", "question" => "What branch strategy should be used?", "field" => "branch_strategy", "inferred_value" => "", "resolved" => false, "priority" => 3 },
+          { "id" => "g1", "question" => "What is the project name?", "field" => "project_name", "inferred_value" => "hello-cli", "resolved" => false, "priority" => 1 }
+        ],
+        source: "llm",
+        finish_reason: "stop",
+        raw_output: "{}"
+      )
+    end
+
+    client = FakeTelegramClient.new([])
+    out = StringIO.new
+    err = StringIO.new
+    handler = Redwright::TelegramRuntimeHandler.new(
+      flow: fake_flow,
+      telegram_client: client,
+      out: out,
+      err: err,
+      blocked_retry_attempts: 1,
+      model_name: "gpt-5-mini",
+      intent_interpreter: fake_interpreter
+    )
+
+    handler.handle(Redwright::TelegramEvent.new(update_id: 2, chat_id: 66, user_id: nil, username: nil, text: "build app"))
+
+    assert_equal("", err.string)
+    assert_match("telegram clarify chat=66", out.string)
+    assert_equal(1, client.messages.size)
+    assert_match("What is the project name?", client.messages.first[:text])
   end
 
   def test_handle_routes_pause_command_to_control_flow
