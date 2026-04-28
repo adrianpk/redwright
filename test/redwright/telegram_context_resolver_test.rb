@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "tmpdir"
+require "fileutils"
 require "minitest/autorun"
 
 $LOAD_PATH.unshift(File.expand_path("../../lib", __dir__))
@@ -63,6 +64,80 @@ class TelegramContextResolverTest < Minitest::Test
         result = resolver.resolve(chat_id: 7, text: "work on rw-alpha and rw-beta")
         assert_equal(false, result.resolved)
         assert_match("multiple project matches", result.question)
+      end
+    end
+  end
+
+  def test_resolve_bootstraps_first_run_from_single_workspace_project
+    Dir.mktmpdir("redwright-context-resolver-bootstrap-single-") do |dir|
+      Dir.chdir(dir) do
+        bootstrap = Redwright::Bootstrap.new(mode: :dev).call
+        projects = Redwright::ProjectStore.new(bootstrap.db_path)
+        contexts = Redwright::ChatContextStore.new(bootstrap.db_path)
+        FileUtils.mkdir_p(File.join(bootstrap.projects_root, "hello-cli"))
+        resolver = Redwright::TelegramContextResolver.new(
+          project_store: projects,
+          chat_context_store: contexts,
+          projects_root: bootstrap.projects_root
+        )
+
+        result = resolver.resolve(chat_id: 123, text: "create something")
+        assert_equal(true, result.resolved)
+        assert_equal(File.join(bootstrap.projects_root, "hello-cli"), result.project_path)
+        assert_equal(1, projects.list.size)
+
+        context = contexts.get(123)
+        refute_nil(context)
+        assert_equal(result.project_ref, context.project_id)
+      end
+    end
+  end
+
+  def test_resolve_bootstraps_first_run_by_creating_default_project_when_workspace_is_empty
+    Dir.mktmpdir("redwright-context-resolver-bootstrap-empty-") do |dir|
+      Dir.chdir(dir) do
+        bootstrap = Redwright::Bootstrap.new(mode: :dev).call
+        projects = Redwright::ProjectStore.new(bootstrap.db_path)
+        contexts = Redwright::ChatContextStore.new(bootstrap.db_path)
+        resolver = Redwright::TelegramContextResolver.new(
+          project_store: projects,
+          chat_context_store: contexts,
+          projects_root: bootstrap.projects_root
+        )
+
+        result = resolver.resolve(chat_id: 456, text: "start now")
+        expected_path = File.join(bootstrap.projects_root, "project-1")
+        assert_equal(true, result.resolved)
+        assert_equal(expected_path, result.project_path)
+        assert(File.directory?(expected_path))
+        assert_equal(1, projects.list.size)
+
+        context = contexts.get(456)
+        refute_nil(context)
+        assert_equal(result.project_ref, context.project_id)
+      end
+    end
+  end
+
+  def test_resolve_keeps_clarify_when_bootstrap_candidates_are_ambiguous
+    Dir.mktmpdir("redwright-context-resolver-bootstrap-ambiguous-") do |dir|
+      Dir.chdir(dir) do
+        bootstrap = Redwright::Bootstrap.new(mode: :dev).call
+        projects = Redwright::ProjectStore.new(bootstrap.db_path)
+        contexts = Redwright::ChatContextStore.new(bootstrap.db_path)
+        FileUtils.mkdir_p(File.join(bootstrap.projects_root, "alpha"))
+        FileUtils.mkdir_p(File.join(bootstrap.projects_root, "beta"))
+        resolver = Redwright::TelegramContextResolver.new(
+          project_store: projects,
+          chat_context_store: contexts,
+          projects_root: bootstrap.projects_root
+        )
+
+        result = resolver.resolve(chat_id: 777, text: "build feature")
+        assert_equal(false, result.resolved)
+        assert_match("No active project context found", result.question)
+        assert_equal(0, projects.list.size)
+        assert_nil(contexts.get(777))
       end
     end
   end

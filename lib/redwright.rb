@@ -462,7 +462,8 @@ module Redwright
           err: @err,
           context_resolver: TelegramContextResolver.new(
             project_store: ProjectStore.new(bootstrap.db_path),
-            chat_context_store: chat_context_store
+            chat_context_store: chat_context_store,
+            projects_root: config.paths.default_projects_root
           ),
           chat_context_store: chat_context_store,
           blocked_retry_attempts: config.runtime.blocked_retry_attempts,

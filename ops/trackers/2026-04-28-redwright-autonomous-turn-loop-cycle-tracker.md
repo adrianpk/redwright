@@ -4,16 +4,16 @@
 
 - cycle_id: `runtime-cycle-2026-04-28-redwright-autonomous-turn-loop`
 - status: `in_progress`
-- state: `planning`
+- state: `awaiting_review`
 - updated: `2026-04-28`
-- active_slice: `none`
+- active_slice: `slice-1`
 - active_task: `none`
 
 ## Slice Progress
 
 ### Slice 1: First-Run Context Bootstrap
 
-- status: `pending`
+- status: `completed`
 - branch: `feat/slice-1-first-run-context-bootstrap`
 - PR: `tbd`
 - merge_target: `dev`
@@ -21,14 +21,14 @@
 
 Tasks:
 
-- [ ] `T1.1 detect empty-context state (no projects + no chat context) during turn resolution`
-- [ ] `T1.2 auto-register/select initial project under mode-specific projects root when unambiguous`
-- [ ] `T1.3 keep clarify path only for real ambiguity (multiple candidate projects)`
+- [x] `T1.1 detect empty-context state (no projects + no chat context) during turn resolution`
+- [x] `T1.2 auto-register/select initial project under mode-specific projects root when unambiguous`
+- [x] `T1.3 keep clarify path only for real ambiguity (multiple candidate projects)`
 
 Validation:
 
-- [ ] `fresh dev DB plus first Telegram message resolves context without manual setup`
-- [ ] `clarify appears only on real multi-project ambiguity`
+- [x] `fresh dev DB plus first Telegram message resolves context without manual setup`
+- [x] `clarify appears only on real multi-project ambiguity`
 
 ### Slice 2: Dev Target-Root Safety Hardening
 
@@ -128,3 +128,6 @@ Validation:
 ## Event Log
 
 - `2026-04-28 09:00` state=`planning` note=`initialized autonomous-turn-loop cycle from external context notes; slices integrated into one execution flow`
+- `2026-04-28 09:20` state=`implementation` slice=`slice-1` note=`implemented first-run context bootstrap with deterministic workspace candidate selection and default project fallback`
+- `2026-04-28 09:20` validation=`bundle exec ruby -Itest test/redwright/telegram_context_resolver_test.rb`
+- `2026-04-28 09:21` validation=`bundle exec rake test`
