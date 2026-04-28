@@ -4,7 +4,7 @@
 
 - owner: `adrianpk`
 - status: `in_progress`
-- active_slice: `slice-4`
+- active_slice: `slice-5`
 - plan: `ops/plans/2026-04-28-redwright-conversational-control-and-convergence-v3-cycle-plan.md`
 
 ## Slice Progress
@@ -43,11 +43,11 @@
 
 ### Slice 5: Context Packet V3 Budgeting
 
-- status: `pending`
+- status: `completed`
 - branch: `feat/slice-5-context-packet-v3-budgeting`
 - PR: `tbd`
-- commits: `tbd`
-- validation: `tbd`
+- commits: `pending-push`
+- validation: `bundle exec ruby -Itest test/redwright/iteration_context_packet_builder_test.rb`
 
 ### Slice 6: Bounded Micro-Loop Execution V3
 
@@ -96,3 +96,4 @@
 - `2026-04-28 00:00` state=`implementation` slice=`slice-2` note=`added persisted clarification_sessions store, deterministic open/close/cancel transitions, and resolver wiring to survive restarts`
 - `2026-04-28 00:00` state=`implementation` slice=`slice-3` note=`added pending planner-gap pre-routing so short replies are consumed as clarification answers before replanning, preventing meta drift`
 - `2026-04-28 00:00` state=`implementation` slice=`slice-4` note=`expanded control command interpretation to multilingual phrasing for pause/stop/resume and validated routing behavior through handler tests`
+- `2026-04-28 00:00` state=`implementation` slice=`slice-5` note=`upgraded iteration context budgeting with hard top-k cap, bounded snippet lines, deterministic top-level tree default, and explicit recursive override`

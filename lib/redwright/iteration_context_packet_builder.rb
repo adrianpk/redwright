@@ -7,6 +7,9 @@ module Redwright
     DEFAULT_MAX_TREE_ENTRIES = 64
     DEFAULT_MAX_SNIPPET_BYTES = 2000
     DEFAULT_MAX_PACKET_BYTES = 16_000
+    MAX_TOP_K_FILES = 5
+    MAX_SNIPPET_LINES = 40
+    DEFAULT_TREE_VIEW = "top_level"
 
     def build(
       project_path:,
@@ -17,17 +20,25 @@ module Redwright
       snippet_lines: DEFAULT_SNIPPET_LINES,
       max_tree_entries: DEFAULT_MAX_TREE_ENTRIES,
       max_snippet_bytes: DEFAULT_MAX_SNIPPET_BYTES,
-      max_packet_bytes: DEFAULT_MAX_PACKET_BYTES
+      max_packet_bytes: DEFAULT_MAX_PACKET_BYTES,
+      tree_view: DEFAULT_TREE_VIEW
     )
       return fallback_packet(task_goal: task_goal, current_errors: current_errors, previous_message: previous_message) unless Dir.exist?(project_path.to_s)
 
-      files = significant_files(project_path: project_path, top_k_files: top_k_files)
-      tree_entries = project_tree_snapshot(project_path: project_path, max_tree_entries: max_tree_entries)
+      bounded_top_k = [[top_k_files.to_i, 1].max, MAX_TOP_K_FILES].min
+      bounded_snippet_lines = [[snippet_lines.to_i, 1].max, MAX_SNIPPET_LINES].min
+
+      files = significant_files(project_path: project_path, top_k_files: bounded_top_k)
+      tree_entries = project_tree_snapshot(
+        project_path: project_path,
+        max_tree_entries: max_tree_entries,
+        tree_view: tree_view
+      )
       snippets = files.map do |rel_path|
         snippet = read_snippet(
           project_path: project_path,
           rel_path: rel_path,
-          snippet_lines: snippet_lines,
+          snippet_lines: bounded_snippet_lines,
           max_snippet_bytes: max_snippet_bytes
         )
         { path: rel_path, snippet: snippet }
@@ -45,11 +56,12 @@ module Redwright
         },
         files: snippets,
         bounds: {
-          top_k_files: top_k_files.to_i,
-          snippet_lines: snippet_lines.to_i,
+          top_k_files: bounded_top_k,
+          snippet_lines: bounded_snippet_lines,
           max_tree_entries: max_tree_entries.to_i,
           max_snippet_bytes: max_snippet_bytes.to_i,
-          max_packet_bytes: max_packet_bytes.to_i
+          max_packet_bytes: max_packet_bytes.to_i,
+          tree_view: normalize_tree_view(tree_view)
         }
       }
       prompt = serialize_packet(packet)
@@ -88,7 +100,8 @@ module Redwright
           snippet_lines: DEFAULT_SNIPPET_LINES,
           max_tree_entries: DEFAULT_MAX_TREE_ENTRIES,
           max_snippet_bytes: DEFAULT_MAX_SNIPPET_BYTES,
-          max_packet_bytes: DEFAULT_MAX_PACKET_BYTES
+          max_packet_bytes: DEFAULT_MAX_PACKET_BYTES,
+          tree_view: DEFAULT_TREE_VIEW
         }
       }
       {
@@ -136,7 +149,10 @@ module Redwright
       relative_path.start_with?(".git", ".bundle", "vendor/bundle", "node_modules", "_workspace")
     end
 
-    def project_tree_snapshot(project_path:, max_tree_entries:)
+    def project_tree_snapshot(project_path:, max_tree_entries:, tree_view: DEFAULT_TREE_VIEW)
+      normalized_view = normalize_tree_view(tree_view)
+      return project_tree_top_level_snapshot(project_path: project_path, max_tree_entries: max_tree_entries) if normalized_view == "top_level"
+
       entries = []
       Dir.glob(File.join(project_path, "**/*"), File::FNM_DOTMATCH).sort.each do |path|
         next if File.directory?(path)
@@ -145,6 +161,21 @@ module Redwright
         next if rel.empty? || skip_path?(rel)
 
         entries << rel
+        break if entries.size >= max_tree_entries.to_i
+      end
+      entries
+    end
+
+    def project_tree_top_level_snapshot(project_path:, max_tree_entries:)
+      entries = []
+      Dir.children(project_path).sort.each do |entry|
+        next if entry.start_with?(".") || entry == "_workspace"
+
+        full = File.join(project_path, entry)
+        marker = File.directory?(full) ? "#{entry}/" : entry
+        next if skip_path?(marker)
+
+        entries << marker
         break if entries.size >= max_tree_entries.to_i
       end
       entries
@@ -191,6 +222,15 @@ module Redwright
         break
       end
       trimmed
+    end
+
+    def normalize_tree_view(tree_view)
+      value = tree_view.to_s.strip
+      return DEFAULT_TREE_VIEW if value.empty?
+      return "top_level" if value == "top_level"
+      return "recursive" if value == "recursive"
+
+      DEFAULT_TREE_VIEW
     end
 
     def detect_stack_hints(project_path:)

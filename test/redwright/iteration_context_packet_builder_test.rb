@@ -35,6 +35,26 @@ class IterationContextPacketBuilderTest < Minitest::Test
     end
   end
 
+  def test_build_enforces_hard_top_k_cap
+    Dir.mktmpdir("redwright-iter-packet-topk-") do |dir|
+      FileUtils.mkdir_p(File.join(dir, "lib"))
+      12.times do |idx|
+        File.write(File.join(dir, "lib", "f#{idx}.rb"), "class F#{idx}\nend\n")
+      end
+
+      packet = Redwright::IterationContextPacketBuilder.new.build(
+        project_path: dir,
+        task_goal: "implement feature",
+        previous_message: "initial",
+        current_errors: [],
+        top_k_files: 99
+      )
+
+      assert_operator(packet[:summary][:top_files_count], :<=, 5)
+      assert_equal(5, packet.dig(:packet, :bounds, :top_k_files))
+    end
+  end
+
   def test_build_applies_bounded_packet_size
     Dir.mktmpdir("redwright-iter-packet-bounds-") do |dir|
       FileUtils.mkdir_p(File.join(dir, "lib"))
@@ -56,6 +76,48 @@ class IterationContextPacketBuilderTest < Minitest::Test
       assert_operator(packet[:prompt_text].bytesize, :<=, 1500)
       assert_operator(packet.dig(:packet, :files).size, :<=, 5)
       assert_operator(packet.dig(:packet, :tree, :entries).size, :<=, 5)
+    end
+  end
+
+  def test_build_uses_top_level_tree_by_default
+    Dir.mktmpdir("redwright-iter-packet-tree-top-level-") do |dir|
+      FileUtils.mkdir_p(File.join(dir, "lib", "nested"))
+      FileUtils.mkdir_p(File.join(dir, "test"))
+      File.write(File.join(dir, "README.md"), "# demo\n")
+      File.write(File.join(dir, "lib", "nested", "deep.rb"), "class Deep\nend\n")
+
+      packet = Redwright::IterationContextPacketBuilder.new.build(
+        project_path: dir,
+        task_goal: "fix",
+        previous_message: "retry",
+        current_errors: []
+      )
+
+      tree = packet.dig(:packet, :tree, :entries)
+      assert_includes(tree, "lib/")
+      assert_includes(tree, "test/")
+      assert_includes(tree, "README.md")
+      refute(tree.any? { |e| e.include?("/") && e != "lib/" && e != "test/" })
+      assert_equal("top_level", packet.dig(:packet, :bounds, :tree_view))
+    end
+  end
+
+  def test_build_supports_recursive_tree_view_when_explicitly_requested
+    Dir.mktmpdir("redwright-iter-packet-tree-recursive-") do |dir|
+      FileUtils.mkdir_p(File.join(dir, "lib", "nested"))
+      File.write(File.join(dir, "lib", "nested", "deep.rb"), "class Deep\nend\n")
+
+      packet = Redwright::IterationContextPacketBuilder.new.build(
+        project_path: dir,
+        task_goal: "fix",
+        previous_message: "retry",
+        current_errors: [],
+        tree_view: "recursive"
+      )
+
+      tree = packet.dig(:packet, :tree, :entries)
+      assert_includes(tree, "lib/nested/deep.rb")
+      assert_equal("recursive", packet.dig(:packet, :bounds, :tree_view))
     end
   end
 
