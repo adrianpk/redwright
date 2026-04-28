@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "shellwords"
+require_relative "lib/redwright/local_quality"
 
 desc "Run full test suite"
 task :test do
@@ -113,3 +114,66 @@ end
 task "test-invariants": "test:invariants"
 
 task default: :test
+
+namespace :quality do
+  def quality_helper
+    @quality_helper ||= Redwright::LocalQuality.new
+  end
+
+  def lint_command
+    ENV.fetch("LINT_CMD", "bundle exec ruby -wc lib/redwright.rb")
+  end
+
+  def test_command
+    ENV.fetch("TEST_CMD", "bundle exec rake test")
+  end
+
+  desc "Run local lint quality check and persist artifact"
+  task :lint do
+    artifact = quality_helper.run_step(name: "lint", command: lint_command)
+    quality_helper.write_artifact(path: "tmp/quality/lint-status.json", payload: artifact)
+    puts "quality:lint status=#{artifact[:status]} exit_code=#{artifact[:exit_code]}"
+    abort("quality:lint failed") unless artifact[:status] == "pass"
+  end
+
+  desc "Run local test quality check and persist artifact"
+  task :test do
+    artifact = quality_helper.run_step(name: "test", command: test_command)
+    quality_helper.write_artifact(path: "tmp/quality/test-status.json", payload: artifact)
+    puts "quality:test status=#{artifact[:status]} exit_code=#{artifact[:exit_code]}"
+    abort("quality:test failed") unless artifact[:status] == "pass"
+  end
+
+  desc "Run all local quality checks"
+  task all: %i[lint test] do
+    lint = quality_helper.read_artifact(path: "tmp/quality/lint-status.json")
+    test = quality_helper.read_artifact(path: "tmp/quality/test-status.json")
+    summary = quality_helper.build_summary(lint: lint, test: test)
+    quality_helper.write_artifact(path: "tmp/quality/summary.json", payload: summary)
+    puts "quality:all status=#{summary[:status]}"
+    abort("quality:all failed") unless summary[:status] == "pass"
+  end
+end
+
+namespace :badges do
+  def quality_helper
+    @quality_helper ||= Redwright::LocalQuality.new
+  end
+
+  desc "Build README local badges from tmp/quality artifacts"
+  task :build do
+    lint = quality_helper.read_artifact(path: "tmp/quality/lint-status.json")
+    test = quality_helper.read_artifact(path: "tmp/quality/test-status.json")
+    summary = quality_helper.read_artifact(path: "tmp/quality/summary.json")
+    quality_helper.render_readme_badges(
+      readme_path: "README.md",
+      lint: lint,
+      test: test,
+      summary: summary
+    )
+    puts "badges:build updated README local badge section"
+  end
+
+  desc "Run quality checks and refresh README local badges"
+  task refresh: ["quality:all", :build]
+end
