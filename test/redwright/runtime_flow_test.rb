@@ -516,4 +516,34 @@ class RuntimeFlowTest < Minitest::Test
       end
     end
   end
+
+  def test_plan_transition_validation_rejects_ready_to_waiting_user
+    Dir.mktmpdir("redwright-flow-plan-transition-guard-test-") do |dir|
+      Dir.chdir(dir) do
+        bootstrap = Redwright::Bootstrap.new(mode: :dev).call
+        project_store = Redwright::ProjectStore.new(bootstrap.db_path)
+        ws_store = Redwright::WorkstreamStore.new(bootstrap.db_path)
+        task_store = Redwright::TaskStore.new(bootstrap.db_path)
+        alignment_store = Redwright::AlignmentStore.new(bootstrap.db_path)
+        spec_store = Redwright::PlanSpecStore.new(base_dir: dir)
+
+        project = project_store.register(path: "#{dir}/apps/core", aliases: ["rw"])
+        workstream = ws_store.create(project_id: project.id, intent: "plan", state: "ready")
+        alignment_store.ensure_session(workstream.id)
+
+        flow = Redwright::RuntimeFlow.new(
+          project_store: project_store,
+          workstream_store: ws_store,
+          task_store: task_store,
+          alignment_store: alignment_store,
+          plan_spec_store: spec_store
+        )
+
+        err = assert_raises(ArgumentError) do
+          flow.process(project_ref: "rw", intent: "plan", workstream_id: workstream.id, message: "continue")
+        end
+        assert_match("invalid_alignment_transition", err.message)
+      end
+    end
+  end
 end

@@ -4,10 +4,11 @@ require "yaml"
 require_relative "paths"
 
 module Redwright
-  AppConfig = Struct.new(:runtime, :telegram, :paths, :models, keyword_init: true)
+  AppConfig = Struct.new(:runtime, :telegram, :paths, :alignment, :models, keyword_init: true)
   RuntimeConfig = Struct.new(:loop_interval_ms, :blocked_retry_attempts, keyword_init: true)
   TelegramConfig = Struct.new(:bot_token, :poll_interval_seconds, :allowed_chat_ids, :send_json_envelope, keyword_init: true)
   PathsConfig = Struct.new(:default_projects_root, keyword_init: true)
+  AlignmentConfig = Struct.new(:max_turns, :max_turn_seconds, keyword_init: true)
   ModelCandidate = Struct.new(:provider, :name, keyword_init: true)
   ModelRoleConfig = Struct.new(:candidates, keyword_init: true)
   ModelsConfig = Struct.new(:coding, :non_coding, keyword_init: true)
@@ -30,6 +31,7 @@ module Redwright
       telegram = fetch_hash(raw, "telegram")
       paths = fetch_hash(raw, "paths")
       models = fetch_hash(raw, "models")
+      alignment = raw["alignment"].is_a?(Hash) ? raw["alignment"] : {}
 
       AppConfig.new(
         runtime: RuntimeConfig.new(
@@ -44,6 +46,10 @@ module Redwright
         ),
         paths: PathsConfig.new(
           default_projects_root: normalize_path_root(required_string(paths, "default_projects_root"))
+        ),
+        alignment: AlignmentConfig.new(
+          max_turns: optional_positive_integer(alignment, "max_turns", default: 8),
+          max_turn_seconds: optional_positive_integer(alignment, "max_turn_seconds", default: 180)
         ),
         models: ModelsConfig.new(
           coding: parse_model_role(models, "coding"),
@@ -97,6 +103,15 @@ module Redwright
       return value if value == true || value == false
 
       raise ArgumentError, "invalid config key: #{key} must be a boolean"
+    end
+
+    def optional_positive_integer(map, key, default:)
+      return default unless map.key?(key)
+
+      int = integer_value(map[key], key)
+      raise ArgumentError, "invalid config key: #{key} must be >= 1" if int < 1
+
+      int
     end
 
     def parse_model_role(models, key)

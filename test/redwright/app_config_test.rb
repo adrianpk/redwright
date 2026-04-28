@@ -40,6 +40,8 @@ class AppConfigTest < Minitest::Test
         assert_equal([111, 222], config.telegram.allowed_chat_ids)
         assert_equal(false, config.telegram.send_json_envelope)
         assert_equal(File.join(dir, "_workspace", "Projects"), config.paths.default_projects_root)
+        assert_equal(8, config.alignment.max_turns)
+        assert_equal(180, config.alignment.max_turn_seconds)
         assert_equal("openai", config.models.coding.candidates.first.provider)
         assert_equal("gpt-5-mini", config.models.non_coding.candidates.first.name)
       end
@@ -324,6 +326,38 @@ class AppConfigTest < Minitest::Test
       assert_equal("missing env var: MISSING_REDWRIGHT_TOKEN (referenced by bot_token)", err.message)
     ensure
       ENV["MISSING_REDWRIGHT_TOKEN"] = previous if previous
+    end
+  end
+
+  def test_loads_alignment_bounds_from_config
+    Dir.mktmpdir("redwright-app-config-alignment-") do |dir|
+      config_dir = File.join(dir, ".config", "redwright")
+      FileUtils.mkdir_p(config_dir)
+      File.write(File.join(config_dir, "config.yml"), <<~YAML)
+        runtime:
+          loop_interval_ms: 100
+          blocked_retry_attempts: 2
+        telegram:
+          bot_token: "x"
+          poll_interval_seconds: 1
+          allowed_chat_ids: [1]
+        paths:
+          default_projects_root: "#{dir}/projects"
+        alignment:
+          max_turns: 12
+          max_turn_seconds: 240
+        models:
+          coding:
+            - provider: "openai"
+              name: "gpt-5.2"
+          non_coding:
+            - provider: "openai"
+              name: "gpt-5-mini"
+      YAML
+
+      config = Redwright::AppConfigLoader.new(mode: :real, home: dir).load
+      assert_equal(12, config.alignment.max_turns)
+      assert_equal(240, config.alignment.max_turn_seconds)
     end
   end
 end

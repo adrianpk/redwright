@@ -4,6 +4,7 @@ require_relative "trace"
 require_relative "skill_dispatcher"
 require_relative "action_normalizer"
 require_relative "planner_contract"
+require_relative "alignment_contract"
 
 module Redwright
   FlowResult = Struct.new(
@@ -159,7 +160,7 @@ module Redwright
       end
 
       if session.decisions_stable
-        workstream = @workstream_store.update_state(workstream.id, "ready")
+        workstream = update_plan_workstream_state_checked(workstream: workstream, next_state: "ready")
         task = @task_store.create(workstream_id: workstream.id, description: "alignment complete", status: "done")
         turns = @alignment_store.turns(workstream.id)
         artifacts = @plan_spec_store&.generate(project: project, workstream: workstream, turns: turns)
@@ -174,9 +175,17 @@ module Redwright
       end
 
       session = @alignment_store.ask_next(workstream.id)
-      workstream = @workstream_store.update_state(workstream.id, "waiting_user")
+      workstream = update_plan_workstream_state_checked(workstream: workstream, next_state: "waiting_user")
       task = @task_store.create(workstream_id: workstream.id, description: "alignment question: #{session.pending_question}", status: "waiting_user")
       FlowResult.new(project: project, workstream: workstream, task: task, alignment: session, functional_spec_path: nil, technical_spec_path: nil)
+    end
+
+    def update_plan_workstream_state_checked(workstream:, next_state:)
+      unless AlignmentContract.allowed_transition?(from: workstream.state, to: next_state)
+        raise ArgumentError, "invalid_alignment_transition from=#{workstream.state} to=#{next_state}"
+      end
+
+      @workstream_store.update_state(workstream.id, next_state)
     end
 
     def execute_actions(project:, task:, actions:)

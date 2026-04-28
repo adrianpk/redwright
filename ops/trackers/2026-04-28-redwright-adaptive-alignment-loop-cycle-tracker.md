@@ -4,16 +4,16 @@
 
 - cycle_id: `runtime-cycle-2026-04-28-redwright-adaptive-alignment-loop`
 - status: `in_progress`
-- state: `planning`
+- state: `awaiting_review`
 - updated: `2026-04-28`
-- active_slice: `none`
+- active_slice: `slice-1`
 - active_task: `none`
 
 ## Slice Progress
 
 ### Slice 1: Runtime Contract for Adaptive Alignment Loop
 
-- status: `pending`
+- status: `completed`
 - branch: `feat/slice-1-aal-runtime-contract`
 - PR: `tbd`
 - merge_target: `dev`
@@ -21,13 +21,13 @@
 
 Tasks:
 
-- [ ] `T1.1 define alignment turn payload schema`
-- [ ] `T1.2 define terminal states and transition rules`
-- [ ] `T1.3 define config keys for bounded loop control`
+- [x] `T1.1 define alignment turn payload schema`
+- [x] `T1.2 define terminal states and transition rules`
+- [x] `T1.3 define config keys for bounded loop control`
 
 Validation:
 
-- [ ] `AAL contract and state transitions are deterministic and testable`
+- [x] `AAL contract and state transitions are deterministic and testable`
 
 ### Slice 2: PSAM Schema
 
@@ -122,3 +122,8 @@ Validation:
 ## Event Log
 
 - `2026-04-28 09:35` state=`planning` note=`initialized AAL cycle from external redesign + semantic model notes; greenfield replacement policy accepted`
+- `2026-04-28 10:05` state=`implementation` slice=`slice-1` note=`added executable AAL contract module, alignment bounds config keys, and runtime transition guardrails for plan-state changes`
+- `2026-04-28 10:06` validation=`bundle exec ruby -Itest test/redwright/alignment_contract_test.rb`
+- `2026-04-28 10:06` validation=`bundle exec ruby -Itest test/redwright/app_config_test.rb`
+- `2026-04-28 10:07` validation=`bundle exec ruby -Itest test/redwright/runtime_flow_test.rb`
+- `2026-04-28 10:08` validation=`bundle exec rake test`
