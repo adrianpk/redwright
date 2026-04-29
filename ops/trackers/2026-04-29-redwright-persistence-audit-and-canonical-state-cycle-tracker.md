@@ -4,7 +4,7 @@
 
 - owner: `adrianpk`
 - status: `in_progress`
-- active_slice: `slice-1`
+- active_slice: `slice-2`
 - plan: `ops/plans/2026-04-29-redwright-persistence-audit-and-canonical-state-cycle-plan.md`
 
 ## Slice Progress
@@ -19,7 +19,7 @@
 
 ### Slice 2: Zombie Detection Matrix
 
-- status: `pending`
+- status: `completed`
 - branch: `feat/slice-2-persistence-zombie-detection-matrix`
 - PR: `tbd`
 - commits: `pending`
@@ -62,3 +62,4 @@
 - `2026-04-29 14:10` state=`planned` note=`cycle created to audit persistence, remove zombies, and lock canonical state ownership`
 - `2026-04-29 14:23` state=`implementation` slice=`slice-1` note=`generated machine-readable persistence inventory from bootstrap schema and mapped runtime callsites`
 - `2026-04-29 14:24` validation=`bundle exec ruby -Itest test/redwright/bootstrap_test.rb`
+- `2026-04-29 14:33` state=`implementation` slice=`slice-2` note=`generated static read/write zombie-detection matrix and flagged write-only candidates for dependency/artifact link tables`

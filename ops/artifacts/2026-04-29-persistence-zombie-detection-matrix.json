@@ -1,0 +1,355 @@
+{
+  "generated_at_utc": "2026-04-29T12:49:25Z",
+  "source_inventory": "ops/artifacts/2026-04-29-persistence-inventory.json",
+  "method": "static sql pattern scan over lib and test",
+  "tables": [
+    {
+      "table": "runtime_metadata",
+      "classification": "active",
+      "proposed_action": "keep",
+      "lib_callsite_count": 7,
+      "test_callsite_count": 0,
+      "reader_count": 2,
+      "writer_count": 4,
+      "readers": [
+        "lib/redwright/runtime_config_store.rb:38:        row = db.get_first_row(\"SELECT value FROM runtime_metadata WHERE key = ?\", [key])",
+        "lib/redwright/bootstrap.rb:270:          SELECT 1 FROM runtime_metadata WHERE key = 'schema_version'"
+      ],
+      "writers": [
+        "lib/redwright/runtime_config_store.rb:47:          \"UPDATE runtime_metadata SET value = ?, updated_at = ? WHERE key = ?\",",
+        "lib/redwright/runtime_config_store.rb:54:            INSERT INTO runtime_metadata (key, value, updated_at)",
+        "lib/redwright/bootstrap.rb:263:        UPDATE runtime_metadata",
+        "lib/redwright/bootstrap.rb:267:        INSERT INTO runtime_metadata (key, value, updated_at)"
+      ]
+    },
+    {
+      "table": "projects",
+      "classification": "active",
+      "proposed_action": "keep",
+      "lib_callsite_count": 65,
+      "test_callsite_count": 184,
+      "reader_count": 6,
+      "writer_count": 3,
+      "readers": [
+        "lib/redwright/project_store.rb:25:        row = db.get_first_row(\"SELECT id FROM projects WHERE path = ?\", [normalized_path])",
+        "lib/redwright/project_store.rb:64:          row = db.get_first_row(\"SELECT id FROM projects ORDER BY last_active_at DESC, updated_at DESC, rowid DESC LIMIT 1\")",
+        "lib/redwright/project_store.rb:71:        row = db.get_first_row(\"SELECT id, name, path, last_active_at FROM projects WHERE id = ? OR path = ?\", [ref, File.expand_path(ref)])",
+        "lib/redwright/project_store.rb:74:            \"SELECT p.id, p.name, p.path, p.last_active_at FROM projects p JOIN project_aliases a ON a.project_id = p.id WHERE a.alias = ?\",",
+        "lib/redwright/project_store.rb:87:        row = db.get_first_row(\"SELECT id, name, path, last_active_at FROM projects WHERE id = ?\", [id])",
+        "lib/redwright/project_store.rb:97:        rows = db.execute(\"SELECT id, name, path, last_active_at FROM projects ORDER BY last_active_at DESC, updated_at DESC, rowid DESC\")"
+      ],
+      "writers": [
+        "lib/redwright/project_store.rb:29:            \"UPDATE projects SET name = ?, updated_at = ?, last_active_at = ? WHERE id = ?\",",
+        "lib/redwright/project_store.rb:35:            \"INSERT INTO projects (id, name, path, created_at, updated_at, last_active_at) VALUES (?, ?, ?, ?, ?, ?)\",",
+        "lib/redwright/project_store.rb:108:        db.execute(\"UPDATE projects SET last_active_at = ?, updated_at = ? WHERE id = ?\", [now, now, project_id])"
+      ]
+    },
+    {
+      "table": "project_aliases",
+      "classification": "active",
+      "proposed_action": "keep",
+      "lib_callsite_count": 8,
+      "test_callsite_count": 0,
+      "reader_count": 4,
+      "writer_count": 2,
+      "readers": [
+        "lib/redwright/project_store.rb:74:            \"SELECT p.id, p.name, p.path, p.last_active_at FROM projects p JOIN project_aliases a ON a.project_id = p.id WHERE a.alias = ?\",",
+        "lib/redwright/project_store.rb:80:        aliases = db.execute(\"SELECT alias FROM project_aliases WHERE project_id = ? ORDER BY alias\", [row[0]]).map(&:first)",
+        "lib/redwright/project_store.rb:90:        aliases = db.execute(\"SELECT alias FROM project_aliases WHERE project_id = ? ORDER BY alias\", [row[0]]).map(&:first)",
+        "lib/redwright/project_store.rb:99:          aliases = db.execute(\"SELECT alias FROM project_aliases WHERE project_id = ? ORDER BY alias\", [row[0]]).map(&:first)"
+      ],
+      "writers": [
+        "lib/redwright/project_store.rb:42:          db.execute(\"UPDATE project_aliases SET project_id = ?, created_at = ? WHERE alias = ?\", [project_id, now, a])",
+        "lib/redwright/project_store.rb:45:              \"INSERT INTO project_aliases (alias, project_id, created_at) VALUES (?, ?, ?)\","
+      ]
+    },
+    {
+      "table": "workstreams",
+      "classification": "active",
+      "proposed_action": "keep",
+      "lib_callsite_count": 39,
+      "test_callsite_count": 28,
+      "reader_count": 16,
+      "writer_count": 5,
+      "readers": [
+        "lib/redwright/psam_store.rb:107:          JOIN workstreams w ON w.id = q.workstream_id",
+        "lib/redwright/workstream_store.rb:48:                   \"SELECT id, project_id, intent, state, branch, worktree_path, created_at, updated_at FROM workstreams WHERE project_id = ? ORDER BY updated_at DESC, rowid DESC\",",
+        "lib/redwright/workstream_store.rb:53:                   \"SELECT id, project_id, intent, state, branch, worktree_path, created_at, updated_at FROM workstreams ORDER BY updated_at DESC, rowid DESC\"",
+        "lib/redwright/workstream_store.rb:64:          \"SELECT id, project_id, intent, state, branch, worktree_path, created_at, updated_at FROM workstreams WHERE id = ?\",",
+        "lib/redwright/workstream_store.rb:73:        query = +\"SELECT id, project_id, intent, state, branch, worktree_path, created_at, updated_at FROM workstreams WHERE project_id = ? AND intent = ?\"",
+        "lib/redwright/workstream_store.rb:90:        query = +\"SELECT id, project_id, intent, state, branch, worktree_path, created_at, updated_at FROM workstreams WHERE project_id = ?\"",
+        "lib/redwright/task_store.rb:71:            JOIN workstreams w ON w.id = t.workstream_id",
+        "lib/redwright/task_store.rb:88:            JOIN workstreams w ON w.id = t.workstream_id",
+        "lib/redwright/alignment_persistence_hygiene.rb:26:          JOIN workstreams w ON w.id = i.workstream_id",
+        "lib/redwright/alignment_persistence_hygiene.rb:48:          LEFT JOIN workstreams w ON w.id = q.workstream_id",
+        "lib/redwright/alignment_persistence_hygiene.rb:60:          LEFT JOIN workstreams w ON w.id = i.workstream_id",
+        "lib/redwright/clarification_persistence_hygiene.rb:49:              FROM workstreams w",
+        "lib/redwright/clarification_persistence_hygiene.rb:66:                FROM workstreams w",
+        "lib/redwright/clarification_persistence_hygiene.rb:71:                FROM workstreams w2",
+        "lib/redwright/clarification_persistence_hygiene.rb:85:          LEFT JOIN workstreams w ON w.id = s.workstream_id",
+        "lib/redwright/clarification_persistence_hygiene.rb:94:          LEFT JOIN workstreams w ON w.id = c.workstream_id"
+      ],
+      "writers": [
+        "lib/redwright/workstream_store.rb:33:            INSERT INTO workstreams (id, project_id, intent, state, branch, worktree_path, created_at, updated_at)",
+        "lib/redwright/workstream_store.rb:108:        db.execute(\"UPDATE workstreams SET state = ?, updated_at = ? WHERE id = ?\", [state, now, id])",
+        "lib/redwright/workstream_store.rb:118:          \"UPDATE workstreams SET branch = ?, worktree_path = ?, updated_at = ? WHERE id = ?\",",
+        "lib/redwright/workstream_store.rb:129:        db.execute(\"UPDATE workstreams SET branch = NULL, worktree_path = NULL, updated_at = ? WHERE id = ?\", [now, id])",
+        "lib/redwright/alignment_persistence_hygiene.rb:35:        db.execute(\"UPDATE workstreams SET state = ?, updated_at = datetime('now') WHERE id = ?\", [target_state, workstream_id])"
+      ]
+    },
+    {
+      "table": "tasks",
+      "classification": "active",
+      "proposed_action": "keep",
+      "lib_callsite_count": 18,
+      "test_callsite_count": 35,
+      "reader_count": 5,
+      "writer_count": 1,
+      "readers": [
+        "lib/redwright/task_store.rb:42:                   \"SELECT id, workstream_id, trace_id, description, status, created_at, updated_at FROM tasks WHERE workstream_id = ? ORDER BY updated_at DESC, rowid DESC\",",
+        "lib/redwright/task_store.rb:47:                   \"SELECT id, workstream_id, trace_id, description, status, created_at, updated_at FROM tasks ORDER BY updated_at DESC, rowid DESC\"",
+        "lib/redwright/task_store.rb:58:          \"SELECT id, workstream_id, trace_id, description, status, created_at, updated_at FROM tasks WHERE id = ?\",",
+        "lib/redwright/task_store.rb:70:            FROM tasks t",
+        "lib/redwright/task_store.rb:87:            FROM tasks t"
+      ],
+      "writers": [
+        "lib/redwright/task_store.rb:27:            INSERT INTO tasks (id, workstream_id, trace_id, description, status, created_at, updated_at)"
+      ]
+    },
+    {
+      "table": "task_commits",
+      "classification": "active",
+      "proposed_action": "keep",
+      "lib_callsite_count": 3,
+      "test_callsite_count": 0,
+      "reader_count": 1,
+      "writer_count": 1,
+      "readers": [
+        "lib/redwright/task_commit_store.rb:30:          \"SELECT commit_sha, created_at FROM task_commits WHERE task_id = ? ORDER BY created_at ASC, rowid ASC\","
+      ],
+      "writers": [
+        "lib/redwright/task_commit_store.rb:17:            INSERT INTO task_commits (task_id, commit_sha, created_at)"
+      ]
+    },
+    {
+      "table": "alignments",
+      "classification": "active",
+      "proposed_action": "keep",
+      "lib_callsite_count": 6,
+      "test_callsite_count": 5,
+      "reader_count": 1,
+      "writer_count": 4,
+      "readers": [
+        "lib/redwright/alignment_store.rb:27:          \"SELECT workstream_id, status, step_index, pending_question, unresolved_count, decisions_stable, updated_at FROM alignments WHERE workstream_id = ?\","
+      ],
+      "writers": [
+        "lib/redwright/alignment_store.rb:39:            INSERT INTO alignments (workstream_id, status, step_index, pending_question, unresolved_count, decisions_stable, updated_at)",
+        "lib/redwright/alignment_store.rb:52:          \"UPDATE alignments SET status = 'collecting_context', pending_question = ?, unresolved_count = ?, decisions_stable = 0, updated_at = ? WHERE workstream_id = ?\",",
+        "lib/redwright/alignment_store.rb:75:          \"UPDATE alignments SET status = ?, step_index = ?, pending_question = ?, unresolved_count = ?, decisions_stable = ?, updated_at = ? WHERE workstream_id = ?\",",
+        "lib/redwright/alignment_store.rb:91:          \"UPDATE alignments SET status = 'ready', pending_question = NULL, unresolved_count = 0, decisions_stable = 1, updated_at = ? WHERE workstream_id = ?\","
+      ]
+    },
+    {
+      "table": "alignment_turns",
+      "classification": "active",
+      "proposed_action": "keep",
+      "lib_callsite_count": 3,
+      "test_callsite_count": 0,
+      "reader_count": 1,
+      "writer_count": 1,
+      "readers": [
+        "lib/redwright/alignment_store.rb:101:          \"SELECT step_index, question, answer, created_at FROM alignment_turns WHERE workstream_id = ? ORDER BY step_index ASC, created_at ASC\","
+      ],
+      "writers": [
+        "lib/redwright/alignment_store.rb:70:          \"INSERT INTO alignment_turns (id, workstream_id, step_index, question, answer, created_at) VALUES (?, ?, ?, ?, ?, ?)\","
+      ]
+    },
+    {
+      "table": "alignment_questions",
+      "classification": "active",
+      "proposed_action": "keep",
+      "lib_callsite_count": 14,
+      "test_callsite_count": 1,
+      "reader_count": 4,
+      "writer_count": 1,
+      "readers": [
+        "lib/redwright/alignment_persistence_hygiene.rb:47:          FROM alignment_questions q",
+        "lib/redwright/alignment_persistence_hygiene.rb:54:          LEFT JOIN alignment_questions q ON q.id = a.question_id",
+        "lib/redwright/psam_store.rb:76:          \"SELECT id, workstream_id, step_index, question FROM alignment_questions WHERE workstream_id = ? AND step_index = ?\",",
+        "lib/redwright/psam_store.rb:106:          FROM alignment_questions q"
+      ],
+      "writers": [
+        "lib/redwright/psam_store.rb:19:            INSERT INTO alignment_questions ("
+      ]
+    },
+    {
+      "table": "alignment_answers",
+      "classification": "active",
+      "proposed_action": "keep",
+      "lib_callsite_count": 8,
+      "test_callsite_count": 0,
+      "reader_count": 3,
+      "writer_count": 1,
+      "readers": [
+        "lib/redwright/alignment_persistence_hygiene.rb:53:          FROM alignment_answers a",
+        "lib/redwright/psam_store.rb:87:        row = db.get_first_row(\"SELECT 1 FROM alignment_answers WHERE question_id = ? LIMIT 1\", [question_id])",
+        "lib/redwright/psam_store.rb:108:          LEFT JOIN alignment_answers a ON a.question_id = q.id"
+      ],
+      "writers": [
+        "lib/redwright/psam_store.rb:34:          \"INSERT INTO alignment_answers (id, question_id, answer, created_at) VALUES (?, ?, ?, ?)\","
+      ]
+    },
+    {
+      "table": "alignment_question_tags",
+      "classification": "active",
+      "proposed_action": "keep",
+      "lib_callsite_count": 5,
+      "test_callsite_count": 0,
+      "reader_count": 2,
+      "writer_count": 1,
+      "readers": [
+        "lib/redwright/psam_store.rb:109:          LEFT JOIN alignment_question_tags qt ON qt.question_id = q.id",
+        "lib/redwright/psam_store.rb:118:          sql += \" AND EXISTS (SELECT 1 FROM alignment_question_tags t WHERE t.question_id = q.id AND t.tag = ?)\""
+      ],
+      "writers": [
+        "lib/redwright/psam_store.rb:44:          \"INSERT INTO alignment_question_tags (question_id, tag, created_at) VALUES (?, ?, ?)\","
+      ]
+    },
+    {
+      "table": "alignment_question_dependencies",
+      "classification": "write_only_candidate",
+      "proposed_action": "verify_runtime_consumer_or_remove",
+      "lib_callsite_count": 3,
+      "test_callsite_count": 0,
+      "reader_count": 0,
+      "writer_count": 1,
+      "readers": [],
+      "writers": [
+        "lib/redwright/psam_store.rb:53:          \"INSERT INTO alignment_question_dependencies (question_id, depends_on_question_id, created_at) VALUES (?, ?, ?)\","
+      ]
+    },
+    {
+      "table": "alignment_artifact_links",
+      "classification": "write_only_candidate",
+      "proposed_action": "verify_runtime_consumer_or_remove",
+      "lib_callsite_count": 3,
+      "test_callsite_count": 0,
+      "reader_count": 0,
+      "writer_count": 1,
+      "readers": [],
+      "writers": [
+        "lib/redwright/psam_store.rb:64:            INSERT INTO alignment_artifact_links (id, workstream_id, task_id, question_id, artifact_kind, artifact_path, created_at)"
+      ]
+    },
+    {
+      "table": "alignment_interruptions",
+      "classification": "active",
+      "proposed_action": "keep",
+      "lib_callsite_count": 8,
+      "test_callsite_count": 1,
+      "reader_count": 4,
+      "writer_count": 3,
+      "readers": [
+        "lib/redwright/alignment_persistence_hygiene.rb:25:          FROM alignment_interruptions i",
+        "lib/redwright/alignment_persistence_hygiene.rb:40:      db.execute(\"DELETE FROM alignment_interruptions WHERE resumed_at IS NOT NULL\")",
+        "lib/redwright/alignment_persistence_hygiene.rb:59:          FROM alignment_interruptions i",
+        "lib/redwright/alignment_interruption_store.rb:55:          \"SELECT workstream_id, interruption_type, reason, previous_state, open_question_count, risk_acknowledged, open_branch_snapshot, created_at, resumed_at FROM alignment_interruptions WHERE workstream_id = ?\","
+      ],
+      "writers": [
+        "lib/redwright/alignment_persistence_hygiene.rb:40:      db.execute(\"DELETE FROM alignment_interruptions WHERE resumed_at IS NOT NULL\")",
+        "lib/redwright/alignment_interruption_store.rb:29:            INSERT INTO alignment_interruptions (",
+        "lib/redwright/alignment_interruption_store.rb:65:          \"UPDATE alignment_interruptions SET resumed_at = ? WHERE workstream_id = ?\","
+      ]
+    },
+    {
+      "table": "chat_contexts",
+      "classification": "active",
+      "proposed_action": "keep",
+      "lib_callsite_count": 11,
+      "test_callsite_count": 2,
+      "reader_count": 2,
+      "writer_count": 3,
+      "readers": [
+        "lib/redwright/chat_context_store.rb:18:          \"SELECT chat_id, project_id, workstream_id, updated_at FROM chat_contexts WHERE chat_id = ?\",",
+        "lib/redwright/clarification_persistence_hygiene.rb:93:          FROM chat_contexts c"
+      ],
+      "writers": [
+        "lib/redwright/clarification_persistence_hygiene.rb:59:          UPDATE chat_contexts",
+        "lib/redwright/chat_context_store.rb:36:          \"UPDATE chat_contexts SET project_id = ?, workstream_id = ?, updated_at = ? WHERE chat_id = ?\",",
+        "lib/redwright/chat_context_store.rb:41:            \"INSERT INTO chat_contexts (chat_id, project_id, workstream_id, updated_at) VALUES (?, ?, ?, ?)\","
+      ]
+    },
+    {
+      "table": "clarification_sessions",
+      "classification": "active",
+      "proposed_action": "keep",
+      "lib_callsite_count": 23,
+      "test_callsite_count": 5,
+      "reader_count": 5,
+      "writer_count": 7,
+      "readers": [
+        "lib/redwright/clarification_persistence_hygiene.rb:84:          FROM clarification_sessions s",
+        "lib/redwright/clarification_session_store.rb:36:                  \"SELECT id, chat_id, workstream_id, status, gap_type, payload_json, resolved_fields_json, last_question_id, turn_counter, created_at, updated_at FROM clarification_sessions WHERE chat_id = ? AND status = 'open' ORDER BY updated_at DESC, rowid DESC LIMIT 1\",",
+        "lib/redwright/clarification_session_store.rb:41:                  \"SELECT id, chat_id, workstream_id, status, gap_type, payload_json, resolved_fields_json, last_question_id, turn_counter, created_at, updated_at FROM clarification_sessions WHERE chat_id = ? AND workstream_id = ? AND status = 'open' ORDER BY updated_at DESC, rowid DESC LIMIT 1\",",
+        "lib/redwright/clarification_session_store.rb:102:          \"SELECT turn_counter, resolved_fields_json FROM clarification_sessions WHERE id = ? AND chat_id = ?\",",
+        "lib/redwright/clarification_session_store.rb:156:          \"SELECT id, chat_id, workstream_id, status, gap_type, payload_json, resolved_fields_json, last_question_id, turn_counter, created_at, updated_at FROM clarification_sessions WHERE id = ?\","
+      ],
+      "writers": [
+        "lib/redwright/clarification_session_store.rb:58:          \"INSERT INTO clarification_sessions (id, chat_id, workstream_id, status, gap_type, payload_json, resolved_fields_json, last_question_id, turn_counter, created_at, updated_at) VALUES (?, ?, ?, 'open', ?, ?, ?, ?, 0, ?, ?)\",",
+        "lib/redwright/clarification_session_store.rb:83:          \"INSERT INTO clarification_sessions (id, chat_id, workstream_id, status, gap_type, payload_json, resolved_fields_json, last_question_id, turn_counter, created_at, updated_at) VALUES (?, ?, ?, 'open', ?, ?, ?, ?, 0, ?, ?)\",",
+        "lib/redwright/clarification_session_store.rb:112:          \"UPDATE clarification_sessions SET status = ?, resolved_fields_json = ?, last_question_id = ?, turn_counter = ?, updated_at = ? WHERE id = ?\",",
+        "lib/redwright/clarification_session_store.rb:134:        query = \"UPDATE clarification_sessions SET status = ?, updated_at = ? WHERE chat_id = ? AND status = 'open'\"",
+        "lib/redwright/clarification_session_store.rb:148:        \"UPDATE clarification_sessions SET status = 'closed', updated_at = ? WHERE chat_id = ? AND status = 'open'\",",
+        "lib/redwright/clarification_persistence_hygiene.rb:28:          UPDATE clarification_sessions",
+        "lib/redwright/clarification_persistence_hygiene.rb:41:          UPDATE clarification_sessions"
+      ]
+    },
+    {
+      "table": "action_executions",
+      "classification": "active",
+      "proposed_action": "keep",
+      "lib_callsite_count": 7,
+      "test_callsite_count": 0,
+      "reader_count": 3,
+      "writer_count": 1,
+      "readers": [
+        "lib/redwright/action_execution_store.rb:37:          \"SELECT id, task_id, trace_id, action_id, action_type, status, stdout, stderr, error_message, created_at FROM action_executions WHERE task_id = ? ORDER BY created_at ASC, rowid ASC\",",
+        "lib/redwright/action_execution_store.rb:47:          \"SELECT id, task_id, trace_id, action_id, action_type, status, stdout, stderr, error_message, created_at FROM action_executions WHERE trace_id = ? ORDER BY created_at ASC, rowid ASC LIMIT ?\",",
+        "lib/redwright/action_execution_store.rb:57:          \"SELECT id, task_id, trace_id, action_id, action_type, status, stdout, stderr, error_message, created_at FROM action_executions WHERE id = ?\","
+      ],
+      "writers": [
+        "lib/redwright/action_execution_store.rb:24:            INSERT INTO action_executions (id, task_id, trace_id, action_id, action_type, status, stdout, stderr, error_message, created_at)"
+      ]
+    },
+    {
+      "table": "planner_rejections",
+      "classification": "active",
+      "proposed_action": "keep",
+      "lib_callsite_count": 4,
+      "test_callsite_count": 0,
+      "reader_count": 1,
+      "writer_count": 1,
+      "readers": [
+        "lib/redwright/planner_rejection_store.rb:38:          \"SELECT id, trace_id, project_id, project_ref, reason, raw_output, user_text, created_at FROM planner_rejections WHERE id = ?\","
+      ],
+      "writers": [
+        "lib/redwright/planner_rejection_store.rb:25:            INSERT INTO planner_rejections (id, trace_id, project_id, project_ref, reason, raw_output, user_text, created_at)"
+      ]
+    },
+    {
+      "table": "execution_feedbacks",
+      "classification": "active",
+      "proposed_action": "keep",
+      "lib_callsite_count": 4,
+      "test_callsite_count": 0,
+      "reader_count": 1,
+      "writer_count": 1,
+      "readers": [
+        "lib/redwright/execution_feedback_store.rb:37:            FROM execution_feedbacks"
+      ],
+      "writers": [
+        "lib/redwright/execution_feedback_store.rb:21:            INSERT INTO execution_feedbacks ("
+      ]
+    }
+  ]
+}
