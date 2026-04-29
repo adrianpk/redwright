@@ -21,7 +21,7 @@
 
 ### Slice 2: Extract Telegram Runtime Message Rendering and Summary Logic
 
-- status: `pending`
+- status: `completed`
 - branch: `feat/slice-2-telegram-message-renderer-extraction`
 - [ ] `T2.1 extract human message rendering from telegram handler into dedicated component`
 - [ ] `T2.2 extract execution summary formatting into dedicated formatter with deterministic counters`

@@ -4,7 +4,7 @@
 
 - owner: `adrianpk`
 - status: `in_progress`
-- active_slice: `slice_2`
+- active_slice: `slice_3`
 - plan: `ops/plans/2026-04-29-redwright-runtime-architecture-hardening-cycle-plan.md`
 
 ## Slice Progress
@@ -19,11 +19,11 @@
 
 ### Slice 2: Extract Telegram Runtime Message Rendering and Summary Logic
 
-- status: `pending`
+- status: `completed`
 - branch: `feat/slice-2-telegram-message-renderer-extraction`
 - PR: `tbd`
-- commits: `pending`
-- validation: `renderer/formatter unit tests + telegram handler regression suite`
+- commits: `9aa1df3, 0900c78`
+- validation: `bundle exec ruby -Itest test/redwright/telegram_runtime_handler_test.rb && bundle exec ruby -Itest test/redwright/telegram_execution_summary_test.rb && bundle exec ruby -Itest test/redwright/telegram_message_renderer_test.rb`
 
 ### Slice 3: Extract Telegram Runtime Control and Clarification Routing
 
@@ -53,3 +53,4 @@
 
 - `2026-04-29 18:45` state=`planned` note=`cycle created to harden runtime architecture with strict regression-first slices and max 5-slice scope`
 - `2026-04-29 19:15` state=`slice_1_completed` note=`added guardrail clarify for /project new without name, normalized integer action counters, and expanded parity/error-path regression coverage`
+- `2026-04-29 19:42` state=`slice_2_completed` note=`extracted telegram message rendering and execution summary into dedicated components with focused regression and contract tests`
