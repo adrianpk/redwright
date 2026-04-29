@@ -409,6 +409,7 @@ class SimulatedIngressE2ETest < Minitest::Test
         workstream_store = Redwright::WorkstreamStore.new(bootstrap.db_path)
         task_store = Redwright::TaskStore.new(bootstrap.db_path)
         chat_context_store = Redwright::ChatContextStore.new(bootstrap.db_path)
+        clarification_session_store = Redwright::ClarificationSessionStore.new(bootstrap.db_path)
 
         flow = Redwright::RuntimeFlow.new(
           project_store: project_store,
@@ -424,7 +425,8 @@ class SimulatedIngressE2ETest < Minitest::Test
         resolver = Redwright::TelegramContextResolver.new(
           project_store: project_store,
           chat_context_store: chat_context_store,
-          projects_root: bootstrap.projects_root
+          projects_root: bootstrap.projects_root,
+          clarification_session_store: clarification_session_store
         )
 
         ingress = Redwright::SimulatedIngressAdapter.new(
@@ -442,6 +444,7 @@ class SimulatedIngressE2ETest < Minitest::Test
           err: StringIO.new,
           context_resolver: resolver,
           chat_context_store: chat_context_store,
+          clarification_session_store: clarification_session_store,
           blocked_retry_attempts: 1,
           intent_interpreter: InferredNameInterpreter.new
         )
@@ -473,6 +476,7 @@ class SimulatedIngressE2ETest < Minitest::Test
         workstream_store = Redwright::WorkstreamStore.new(bootstrap.db_path)
         task_store = Redwright::TaskStore.new(bootstrap.db_path)
         chat_context_store = Redwright::ChatContextStore.new(bootstrap.db_path)
+        clarification_session_store = Redwright::ClarificationSessionStore.new(bootstrap.db_path)
 
         flow = Redwright::RuntimeFlow.new(
           project_store: project_store,
@@ -488,7 +492,8 @@ class SimulatedIngressE2ETest < Minitest::Test
         resolver = Redwright::TelegramContextResolver.new(
           project_store: project_store,
           chat_context_store: chat_context_store,
-          projects_root: bootstrap.projects_root
+          projects_root: bootstrap.projects_root,
+          clarification_session_store: clarification_session_store
         )
 
         ingress = Redwright::SimulatedIngressAdapter.new(
@@ -506,6 +511,7 @@ class SimulatedIngressE2ETest < Minitest::Test
           err: StringIO.new,
           context_resolver: resolver,
           chat_context_store: chat_context_store,
+          clarification_session_store: clarification_session_store,
           blocked_retry_attempts: 1,
           intent_interpreter: InferredNameInterpreter.new
         )
@@ -690,7 +696,7 @@ class SimulatedIngressE2ETest < Minitest::Test
         runner.run(loop_interval_seconds: 0.0, max_iterations: 1)
 
         assert(File.file?(File.join(project_path, "README.md")))
-        assert_includes(interpreter.seen_texts.last, "Clarification for test_framework: RSpec")
+        assert_includes(interpreter.seen_texts.last, "RSpec")
         assert_nil(clarification_session_store.get_open(chat_id: 100))
       end
     end

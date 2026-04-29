@@ -31,20 +31,13 @@ module Redwright
       if explicit_matches.size == 1
         project = explicit_matches.first
         context = @chat_context_store.get(chat_id)
-        if context && context.project_id != project.id
-          return Resolution.new(
-            resolved: false,
-            project_ref: nil,
-            project_path: nil,
-            workstream_id: nil,
-            question: "Session is bound to another active project. Use '/project switch #{project.name}' to switch explicitly before mutating requests."
-          )
-        end
+        switched = context && context.project_id != project.id
+        @chat_context_store.upsert(chat_id: chat_id, project_id: project.id, workstream_id: nil) if switched
         return Resolution.new(
           resolved: true,
           project_ref: project.id,
           project_path: project.path,
-          workstream_id: context&.project_id == project.id ? context.workstream_id : nil,
+          workstream_id: switched ? nil : context&.workstream_id,
           question: nil
         )
       end
@@ -68,6 +61,17 @@ module Redwright
 
       inferred_name = infer_project_name(text.to_s)
       if inferred_name
+        unless @clarification_session_store
+          project = register_or_get_project_by_name(inferred_name)
+          @chat_context_store.upsert(chat_id: chat_id, project_id: project.id, workstream_id: nil)
+          return Resolution.new(
+            resolved: true,
+            project_ref: project.id,
+            project_path: project.path,
+            workstream_id: nil,
+            question: nil
+          )
+        end
         @clarification_session_store&.open_project_name_confirm(
           chat_id: chat_id,
           workstream_id: context&.workstream_id,

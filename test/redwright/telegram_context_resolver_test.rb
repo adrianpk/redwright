@@ -238,7 +238,7 @@ class TelegramContextResolverTest < Minitest::Test
     end
   end
 
-  def test_resolve_blocks_implicit_cross_project_switch_when_session_has_active_project
+  def test_resolve_allows_explicit_cross_project_switch_when_session_has_active_project
     Dir.mktmpdir("redwright-context-resolver-session-continuity-") do |dir|
       Dir.chdir(dir) do
         bootstrap = Redwright::Bootstrap.new(mode: :dev).call
@@ -259,8 +259,9 @@ class TelegramContextResolverTest < Minitest::Test
         contexts.upsert(chat_id: 501, project_id: alpha.id, workstream_id: ws_alpha.id)
 
         result = resolver.resolve(chat_id: 501, text: "beta implement parser fix")
-        assert_equal(false, result.resolved)
-        assert_match("/project switch #{beta.name}", result.question)
+        assert_equal(true, result.resolved)
+        assert_equal(beta.id, result.project_ref)
+        assert_nil(result.workstream_id)
       end
     end
   end
