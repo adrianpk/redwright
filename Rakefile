@@ -29,6 +29,40 @@ task :telegram do
   sh "bundle exec ruby bin/redwright daemon run --dev --ingress telegram --once"
 end
 
+desc "Run server + telegram adapter + tui client in one command (dev mode)"
+task "daemon:all" do
+  commands = [
+    "bundle exec ruby bin/redwright server run --dev",
+    "bundle exec ruby bin/redwright daemon run --dev --ingress telegram",
+    "bundle exec ruby bin/redwright daemon run --dev --ingress tui"
+  ]
+  pids = []
+
+  begin
+    pids << Process.spawn(commands[0], out: $stdout, err: $stderr)
+    sleep 0.8
+    pids << Process.spawn(commands[1], out: $stdout, err: $stderr)
+    sleep 0.8
+    pids << Process.spawn(commands[2], in: $stdin, out: $stdout, err: $stderr)
+    Process.wait(pids[2])
+  ensure
+    pids.each do |pid|
+      begin
+        Process.kill("TERM", pid)
+      rescue StandardError
+        nil
+      end
+    end
+    pids.each do |pid|
+      begin
+        Process.wait(pid)
+      rescue StandardError
+        nil
+      end
+    end
+  end
+end
+
 desc "Run daemon in foreground (dev mode) with trace banners enabled"
 task "daemon:trace" do
   sh "REDWRIGHT_TRACE=1 bundle exec ruby bin/redwright daemon run --dev"
