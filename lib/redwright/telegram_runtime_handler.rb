@@ -87,10 +87,46 @@ module Redwright
 
           prompt_context = load_prompt_context(project_path: resolution.project_path)
           stop_typing = start_typing_keepalive(event.chat_id)
+          slash = parse_slash_command(event.text)
+          if slash && slash[:kind] == "control"
+            cancel_open_clarifications(
+              chat_id: event.chat_id,
+              workstream_id: resolution.workstream_id,
+              scope: slash[:command] == "stop" ? "chat" : "task"
+            )
+            control_result = @flow.control(
+              project_ref: resolution.project_ref,
+              command: slash[:command],
+              reason: slash[:reason],
+              workstream_id: resolution.workstream_id
+            )
+            envelope = RuntimeResultEnvelope.success(
+              trace_id: Trace.current_trace_id || "none",
+              project_id: control_result.project.id,
+              workstream_id: control_result.workstream.id,
+              task_id: control_result.task.id,
+              state: control_result.workstream.state,
+              terminal_reason: "control_#{slash[:command]}"
+            )
+            @telegram_client.send_message(
+              chat_id: event.chat_id,
+              text: human_success_message(
+                result: control_result,
+                trace_id: Trace.current_trace_id || "none",
+                quality_summary: nil,
+                attempts: 1,
+                terminal_reason: "control_#{slash[:command]}",
+                mode: "direct"
+              )
+            )
+            send_json_envelope_if_enabled(chat_id: event.chat_id, envelope: envelope)
+            @out.puts("telegram control chat=#{event.chat_id} command=#{slash[:command]} task=#{control_result.task.id}")
+            return
+          end
           decision_input = consume_pending_planner_gap_answer(
             chat_id: event.chat_id,
             workstream_id: resolution.workstream_id,
-            user_text: event.text
+            user_text: slash && slash[:kind] == "planner_hint" ? slash[:planner_text] : event.text
           )
           decision = interpret_with_trace(
             action: decision_input[:action],
@@ -724,6 +760,37 @@ module Redwright
       )
 
       { text: merged, action: "intent_interpret_with_gap_answer" }
+    end
+
+    def parse_slash_command(text)
+      raw = text.to_s.strip
+      return nil unless raw.start_with?("/")
+
+      command, *rest = raw.split(/\s+/, 2)
+      arg = rest.first.to_s.strip
+
+      case command.downcase
+      when "/pause"
+        { kind: "control", command: "pause", reason: raw }
+      when "/resume"
+        { kind: "control", command: "resume", reason: raw }
+      when "/cancel"
+        { kind: "control", command: "stop", reason: raw }
+      when "/continue"
+        { kind: "planner_hint", planner_text: "Continue with current context and execute using existing assumptions." }
+      when "/status"
+        { kind: "planner_hint", planner_text: "Show runtime status for the current active project and workstream." }
+      when "/project"
+        return { kind: "planner_hint", planner_text: "Switch active project to '#{arg.sub(/^switch\s+/i, "")}'." } if arg.match?(/^switch\s+/i)
+        return { kind: "planner_hint", planner_text: "Create a new project named '#{arg.sub(/^new\s+/i, "")}' and set it active." } if arg.match?(/^new\s+/i)
+        nil
+      when "/skill"
+        return nil if arg.empty?
+
+        { kind: "planner_hint", planner_text: "Activate skill '#{arg}' in explicit mode for this turn." }
+      else
+        nil
+      end
     end
 
     def send_json_envelope_if_enabled(chat_id:, envelope:)
