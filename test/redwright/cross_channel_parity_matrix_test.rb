@@ -138,6 +138,17 @@ class CrossChannelParityMatrixTest < Minitest::Test
     end
   end
 
+  def test_cross_channel_parity_for_cancel_control
+    telegram = run_sequence_scenario(channel: :telegram, messages: ["alpha do work", "/cancel"])
+    console = run_sequence_scenario(channel: :console, messages: ["alpha do work", "/cancel"])
+    tui = run_sequence_scenario(channel: :tui, messages: ["alpha do work", "/cancel"])
+
+    [telegram, console, tui].each do |result|
+      assert_includes(result[:terminal_text], "terminal: control_stop")
+      assert_equal("blocked", result[:latest_workstream_state])
+    end
+  end
+
   def test_cross_channel_parity_for_skill_stop_and_apply_control_marker
     telegram = run_sequence_scenario(channel: :telegram, messages: ["alpha do work", "/skill stop-and-apply"])
     console = run_sequence_scenario(channel: :console, messages: ["alpha do work", "/skill stop-and-apply"])
