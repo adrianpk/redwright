@@ -128,7 +128,7 @@ Validation:
 Tasks:
 
 - [x] `T5.1 define ticket/board command-query endpoints and error contract`
-- [ ] `T5.2 define assignment-plus-label authorization evaluation order`
+- [x] `T5.2 define assignment-plus-label authorization evaluation order`
 - [ ] `T5.3 define dual-bot and dual-runtime ingress policy contract`
 
 Commits:
@@ -161,3 +161,4 @@ Validation:
 - `2026-04-30 02:19` state=`executing_slice` note=`completed T4.2 with runtime session transfer contract and validation for interactive/factory continuity`
 - `2026-04-30 02:27` state=`awaiting_review` note=`completed T4.3 with runtime-specific observability envelope contract; slice 4 implementation is ready for single PR review`
 - `2026-04-30 02:48` state=`executing_slice` note=`completed T5.1 with kanban integration endpoint and error-envelope contract v1`
+- `2026-04-30 03:20` state=`executing_slice` note=`completed T5.2 with assignment-plus-label visibility policy and explicit reason codes`
