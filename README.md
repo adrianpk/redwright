@@ -2,7 +2,7 @@
 
 <!-- REDWRIGHT_LOCAL_BADGES:START -->
 [![CI](https://img.shields.io/badge/CI-failing-red)](https://codeberg.org/adrianpk/redwright)
-[![coverage](https://img.shields.io/badge/coverage-28.45%-brightgreen)](badges/coverage.svg)
+[![coverage](https://img.shields.io/badge/coverage-28.36%-brightgreen)](badges/coverage.svg)
 <!-- REDWRIGHT_LOCAL_BADGES:END -->
 
 RedWright is a **black-box software factory platform** with a shared semantic core and dual execution modes.
