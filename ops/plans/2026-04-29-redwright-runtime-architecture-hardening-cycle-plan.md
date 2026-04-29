@@ -3,7 +3,7 @@
 ## Metadata
 
 - owner: `adrianpk`
-- status: `planned`
+- status: `completed`
 - scope: `runtime`
 - objective: `reduce architectural concentration in telegram handler and CLI wiring, tighten operational structure, and preserve runtime behavior through intensive regression testing`
 - tracker: `ops/trackers/2026-04-29-redwright-runtime-architecture-hardening-cycle-tracker.md`

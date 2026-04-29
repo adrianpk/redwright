@@ -3,8 +3,8 @@
 ## Metadata
 
 - owner: `adrianpk`
-- status: `in_progress`
-- active_slice: `slice_7`
+- status: `completed`
+- active_slice: `none`
 - plan: `ops/plans/2026-04-29-redwright-runtime-architecture-hardening-cycle-plan.md`
 
 ## Slice Progress
@@ -61,8 +61,8 @@
 
 - status: `completed`
 - branch: `fix/slice-7-runtime-control-taxonomy-closure`
-- PR: `tbd`
-- commits: `pending`
+- PR: `#163`
+- commits: `06366a5, d22109b, 18999cb`
 - validation: `bundle exec ruby -Itest test/redwright/telegram_control_router_test.rb && bundle exec ruby -Itest test/redwright/telegram_runtime_handler_test.rb -n "/direct_control_slash_bypasses_llm|operational_slash_through_dispatcher_without_llm/" && bundle exec ruby -Itest test/redwright/cross_channel_parity_matrix_test.rb`
 
 ## Event Log
@@ -75,3 +75,4 @@
 - `2026-04-29 22:33` state=`slice_5_completed` note=`merged ops/runtime hygiene and deterministic mutating operational slash dispatch via PR #161`
 - `2026-04-29 22:58` state=`slice_6_completed` note=`added deterministic read-only operational slash routing for /project list|where and /repo status with dispatcher and regression tests`
 - `2026-04-29 23:18` state=`slice_7_completed` note=`closed control taxonomy ambiguity by enforcing explicit-control precedence and added deterministic control precedence tests`
+- `2026-04-29 23:50` state=`cycle_completed` note=`slice 7 merged via PR #163; runtime architecture hardening cycle closed`
