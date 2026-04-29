@@ -124,6 +124,7 @@ class DaemonCliTest < Minitest::Test
         assert_match("ingress: tui", out.string)
         assert_match("once: true", out.string)
         assert_match("queue_drain_mode: all", out.string)
+        assert_match("tui ingress skipped: socket not available", out.string)
         assert_match("daemon stopped", out.string)
       ensure
         $stdin = original_stdin
