@@ -12,6 +12,8 @@ require_relative "skill_subloop_executor"
 require_relative "feedback_normalizer"
 require_relative "telegram_execution_summary"
 require_relative "telegram_message_renderer"
+require_relative "telegram_control_router"
+require_relative "telegram_clarification_policy"
 
 module Redwright
   class TelegramRuntimeHandler
@@ -48,7 +50,9 @@ module Redwright
       feedback_normalizer: FeedbackNormalizer.new,
       execution_feedback_store: nil,
       execution_summary_builder: TelegramExecutionSummary.new,
-      message_renderer: nil
+      message_renderer: nil,
+      control_router: TelegramControlRouter.new,
+      clarification_policy: nil
     )
       @flow = flow
       @telegram_client = telegram_client
@@ -81,6 +85,11 @@ module Redwright
       @execution_feedback_store = execution_feedback_store
       @execution_summary_builder = execution_summary_builder
       @message_renderer = message_renderer || TelegramMessageRenderer.new(execution_summary: @execution_summary_builder)
+      @control_router = control_router
+      @clarification_policy = clarification_policy || TelegramClarificationPolicy.new(
+        clarification_session_store: @clarification_session_store,
+        err: @err
+      )
     end
 
     def handle(event)
@@ -865,68 +874,15 @@ module Redwright
     end
 
     def control_from_decision(decision, raw_text:)
-      return nil unless decision.respond_to?(:intent) && decision.intent.to_s.strip == "meta"
-
-      intent = if decision.respond_to?(:control_intent)
-                 decision.control_intent.to_s.strip
-               else
-                 "none"
-               end
-      command = control_intent_command_map[intent]
-      command ||= inferred_control_command(raw_text) if intent == "none"
-      return nil if command.nil?
-
-      { command: command, reason: raw_text.to_s.strip }
+      @control_router.control_from_decision(decision, raw_text: raw_text)
     end
 
     def control_from_operational(decision, raw_text:)
-      return nil unless decision.respond_to?(:operational_intent)
-
-      intent = decision.operational_intent.to_s.strip
-      return nil if intent.empty? || intent == "none"
-
-      map = {
-        "task_pause" => "pause",
-        "task_resume" => "resume",
-        "task_cancel" => "stop",
-        "plan_continue" => "resume",
-        "plan_stop_and_apply" => "resume"
-      }
-      command = map[intent]
-      return nil if command.nil?
-
-      { command: command, reason: raw_text.to_s.strip }
-    end
-
-    def control_intent_command_map
-      {
-        "proceed_with_current_context" => "resume",
-        "cancel_task" => "stop",
-        "cancel_all" => "stop"
-      }
-    end
-
-    def inferred_control_command(raw_text)
-      text = raw_text.to_s.strip.downcase
-      return nil if text.empty?
-
-      return "stop" if text.match?(/\A(cancel|cancelar|cancela|annulla|annullare|stop|deten|detener|parar|para)\b/)
-      return "pause" if text.match?(/\A(pause|pausa|pausar)\b/)
-      return "resume" if text.match?(/\A(resume|resumir|continua|continuar|continue|proceed|segui|seguir)\b/)
-
-      nil
+      @control_router.control_from_operational(decision, raw_text: raw_text)
     end
 
     def cancel_open_clarifications(chat_id:, workstream_id:, scope:)
-      return unless @clarification_session_store
-
-      if scope == "chat"
-        @clarification_session_store.cancel_open(chat_id: chat_id)
-      else
-        @clarification_session_store.cancel_open(chat_id: chat_id, workstream_id: workstream_id)
-      end
-    rescue StandardError => e
-      @err.puts("clarification cancel failed chat=#{chat_id}: #{e.message}")
+      @clarification_policy.cancel_open(chat_id: chat_id, workstream_id: workstream_id, scope: scope)
     end
 
     def select_change_mode(event_text:, decision:)
@@ -1031,107 +987,19 @@ module Redwright
     end
 
     def active_planner_gap(chat_id:, workstream_id:)
-      pending = @clarification_session_store&.get_open(chat_id: chat_id, workstream_id: workstream_id)
-      pending ||= @clarification_session_store&.get_open(chat_id: chat_id)
-      pending
+      @clarification_policy.active_planner_gap(chat_id: chat_id, workstream_id: workstream_id)
     end
 
     def confirmation_reply_only?(text)
-      normalized = text.to_s.strip.downcase
-      return false if normalized.empty?
-
-      %w[yes y si sí no n nope].include?(normalized)
+      @clarification_policy.confirmation_reply_only?(text)
     end
 
     def continue_with_current_context_semantic?(text)
-      normalized = text.to_s.strip.downcase
-      return false if normalized.empty?
-
-      phrases = [
-        "continue",
-        "continue with current context",
-        "continue with what you have",
-        "proceed with current context",
-        "no more questions continue",
-        "no more questions. continue",
-        "no more questions, continue",
-        "stop asking and continue",
-        "stop asking questions and continue",
-        "continua",
-        "continua con lo que tengas",
-        "no mas preguntas continua",
-        "no más preguntas continua",
-        "no mas preguntas. continua",
-        "no más preguntas. continua",
-        "para con las preguntas y continua",
-        "para con las preguntas y continua implementando",
-        "segui con lo que tenes",
-        "sigue con lo que tengas"
-      ]
-      phrases.any? { |phrase| normalized == phrase }
+      @clarification_policy.continue_with_current_context_semantic?(text)
     end
 
     def parse_slash_command(text)
-      raw = text.to_s.strip
-      return nil unless raw.start_with?("/")
-
-      command, *rest = raw.split(/\s+/, 2)
-      arg = rest.first.to_s.strip
-
-      case command.downcase
-      when "/pause"
-        { kind: "control", command: "pause", reason: raw }
-      when "/resume"
-        { kind: "control", command: "resume", reason: raw }
-      when "/cancel"
-        { kind: "control", command: "stop", reason: raw }
-      when "/continue"
-        { kind: "planner_hint", planner_text: "Continue with current context and execute using existing assumptions." }
-      when "/status"
-        { kind: "planner_hint", planner_text: "Show runtime status for the current active project and workstream." }
-      when "/project"
-        return { kind: "clarify", question: "Please provide a project name: /project new <name>." } if arg.match?(/^new$/i)
-        return { kind: "planner_hint", planner_text: "Switch active project to #{arg.sub(/^switch\s+/i, "")}." } if arg.match?(/^switch\s+/i)
-        return { kind: "planner_hint", planner_text: "Create a new project named #{arg.sub(/^new\s+/i, "")} and set it active." } if arg.match?(/^new\s+/i)
-        return { kind: "planner_hint", planner_text: "List known projects and show aliases." } if arg.match?(/^list$/i)
-        return { kind: "planner_hint", planner_text: "Show the current active project id, alias, and workspace path." } if arg.match?(/^where$/i)
-        nil
-      when "/repo"
-        return { kind: "planner_hint", planner_text: "Clone repository #{arg.sub(/^clone\s+/i, "")} into the workspace and register it as a project." } if arg.match?(/^clone\s+/i)
-        return { kind: "planner_hint", planner_text: "Show repository status for the active project, including branch and dirty files." } if arg.match?(/^status$/i)
-        return { kind: "planner_hint", planner_text: "Undo the latest safe repository changes in the active project using runtime guardrails." } if arg.match?(/^undo$/i)
-        nil
-      when "/task"
-        return { kind: "control", command: "pause", reason: raw } if arg.match?(/^pause$/i)
-        return { kind: "control", command: "resume", reason: raw } if arg.match?(/^resume$/i)
-        return { kind: "control", command: "stop", reason: raw } if arg.match?(/^cancel$/i)
-        nil
-      when "/plan"
-        return { kind: "planner_hint", planner_text: "Start an explicit planning and slicing workflow for the current request." } if arg.match?(/^start$/i)
-        return { kind: "planner_hint", planner_text: "Continue with current context and execute using existing assumptions." } if arg.match?(/^continue$/i)
-        return { kind: "planner_hint", planner_text: "Stop asking clarification questions and continue implementation with the current accepted assumptions." } if arg.match?(/^stop-and-apply$/i)
-        nil
-      when "/trace"
-        return { kind: "planner_hint", planner_text: "Enable runtime trace output for this session." } if arg.match?(/^on$/i)
-        return { kind: "planner_hint", planner_text: "Disable runtime trace output for this session." } if arg.match?(/^off$/i)
-        return { kind: "planner_hint", planner_text: "Show current runtime trace status for this session." } if arg.match?(/^status$/i)
-        nil
-      when "/help"
-        { kind: "planner_hint", planner_text: "Show help for runtime commands: /project, /repo, /task, /plan, /trace, /skill." }
-      when "/skills"
-        { kind: "planner_hint", planner_text: "List available skills and how to trigger each one." }
-      when "/skill"
-        return { kind: "skill_control_stop", reason: raw } if arg.match?(/^stop-and-apply$/i)
-        return nil if arg.empty?
-
-        {
-          kind: "skill",
-          skill_name: arg,
-          planner_text: "Activate skill '#{arg}' in explicit mode for this turn."
-        }
-      else
-        nil
-      end
+      @control_router.parse_slash_command(text)
     end
 
     def apply_skill_activation(decision:, activation:)
