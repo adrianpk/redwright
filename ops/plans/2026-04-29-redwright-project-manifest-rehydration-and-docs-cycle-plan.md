@@ -3,7 +3,7 @@
 ## Metadata
 
 - owner: `adrianpk`
-- status: `in_progress`
+- status: `completed`
 - scope: `runtime`
 - objective: `make .redwright/manifest.yml canonical and rehydratable, then document behavior with Diataxis-aligned technical docs`
 - tracker: `ops/trackers/2026-04-29-redwright-project-manifest-rehydration-and-docs-cycle-tracker.md`
@@ -72,11 +72,11 @@
 
 ### Slice 8: Docs Explanation Set
 
-- status: `pending`
+- status: `completed`
 - branch: `feat/slice-8-docs-explanation-set`
-- [ ] `T8.1 add docs/explanation/manifest-vs-sqlite-state-model.md`
-- [ ] `T8.2 add docs/explanation/operational-vs-task-intent-model.md`
-- [ ] `T8.3 add docs/explanation/determinism-boundaries-with-llm-routing.md`
+- [x] `T8.1 add docs/explanation/manifest-vs-sqlite-state-model.md`
+- [x] `T8.2 add docs/explanation/operational-vs-task-intent-model.md`
+- [x] `T8.3 add docs/explanation/determinism-boundaries-with-llm-routing.md`
 
 ## Exit Criteria
 

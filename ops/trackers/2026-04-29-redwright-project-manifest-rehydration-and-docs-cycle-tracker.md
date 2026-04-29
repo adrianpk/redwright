@@ -3,8 +3,8 @@
 ## Metadata
 
 - owner: `adrianpk`
-- status: `in_progress`
-- active_slice: `slice_8`
+- status: `completed`
+- active_slice: `none`
 - plan: `ops/plans/2026-04-29-redwright-project-manifest-rehydration-and-docs-cycle-plan.md`
 
 ## Slice Progress
@@ -61,15 +61,15 @@
 
 - status: `completed`
 - branch: `feat/slice-7-docs-howto-set`
-- PR: `pending`
-- commits: `pending`
+- PR: `#139`
+- commits: `docs(how-to): add bootstrap, clone, and db reset guides`
 - validation: `docs/how-to procedure walkthrough review`
 
 ### Slice 8: Docs Explanation Set
 
-- status: `pending`
+- status: `completed`
 - branch: `feat/slice-8-docs-explanation-set`
-- PR: `tbd`
+- PR: `pending`
 - commits: `pending`
 - validation: `docs/explanation rationale consistency review`
 
@@ -83,3 +83,4 @@
 - `2026-04-29 19:44` state=`slice_5_completed` note=`prompt context now includes manifest identity/provenance fields while preserving architecture fallback and context packet quality checks`
 - `2026-04-29 20:02` state=`slice_6_completed` note=`added reference docs for manifest contract, slash command forms, and runtime persistence semantics`
 - `2026-04-29 20:18` state=`slice_7_completed` note=`added how-to docs for bootstrap context, clone/register flow, and db reset recovery workflow`
+- `2026-04-29 20:33` state=`slice_8_completed` note=`added explanation docs for persistence model split, operational vs task intent, and determinism boundaries with llm routing`
