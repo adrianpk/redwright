@@ -27,6 +27,14 @@
 - [x] `T2.2 align telegram context resolver tests with workstream persistence contract`
 - [x] `T2.3 validate paths and resolver test suites for this scope`
 
+### Slice 3: TUI Once-Ingress Socket Guard
+
+- status: `completed`
+- branch: `fix/slice-3-daemon-tui-once-socket-guard`
+- [x] `T3.1 guard daemon tui --once path when runtime socket is unavailable`
+- [x] `T3.2 add regression assertion for tui once-ingress skip behavior`
+- [x] `T3.3 validate daemon cli tui/console once-ingress scenarios`
+
 ## Validation
 
 - `/project new` returns clarify and creates no project

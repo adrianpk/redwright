@@ -25,8 +25,17 @@
 - commits: `tbd`
 - validation: `bundle exec ruby -Itest test/redwright/paths_test.rb && bundle exec ruby -Itest test/redwright/telegram_context_resolver_test.rb`
 
+### Slice 3: TUI Once-Ingress Socket Guard
+
+- status: `completed`
+- branch: `fix/slice-3-daemon-tui-once-socket-guard`
+- PR: `tbd`
+- commits: `tbd`
+- validation: `bundle exec ruby -Itest test/redwright/daemon_cli_test.rb -n "/tui_ingress_starts_and_stops_cleanly/" && bundle exec ruby -Itest test/redwright/daemon_cli_test.rb -n "/console_ingress_starts_and_stops_cleanly/"`
+
 ## Event Log
 
 - `2026-04-29 20:00` state=`planned` note=`hotfix slice created to fix /project new missing-name regression and action summary counter formatting`
 - `2026-04-29 23:20` state=`completed` note=`slice closed with guardrail and summary regression coverage validated in dispatcher and telegram runtime handler tests`
 - `2026-04-29 23:35` state=`completed` note=`slice 2 closed with test-mode path support and resolver fixture consistency updates`
+- `2026-04-29 23:55` state=`completed` note=`slice 3 closed with tui once-ingress socket guard and daemon cli regression coverage`
