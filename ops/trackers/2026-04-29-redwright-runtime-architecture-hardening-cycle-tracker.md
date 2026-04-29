@@ -4,7 +4,7 @@
 
 - owner: `adrianpk`
 - status: `in_progress`
-- active_slice: `slice_3`
+- active_slice: `slice_4`
 - plan: `ops/plans/2026-04-29-redwright-runtime-architecture-hardening-cycle-plan.md`
 
 ## Slice Progress
@@ -27,11 +27,11 @@
 
 ### Slice 3: Extract Telegram Runtime Control and Clarification Routing
 
-- status: `pending`
+- status: `completed`
 - branch: `feat/slice-3-telegram-control-routing-extraction`
 - PR: `tbd`
-- commits: `pending`
-- validation: `control routing integration tests + parity checks`
+- commits: `93027a7, fe7baa7`
+- validation: `bundle exec ruby -Itest test/redwright/telegram_runtime_handler_test.rb && bundle exec ruby -Itest test/redwright/cross_channel_parity_matrix_test.rb && bundle exec ruby -Itest test/redwright/telegram_control_router_test.rb && bundle exec ruby -Itest test/redwright/telegram_clarification_policy_test.rb`
 
 ### Slice 4: Decompose CLI Command Wiring from lib/redwright.rb
 
@@ -54,3 +54,4 @@
 - `2026-04-29 18:45` state=`planned` note=`cycle created to harden runtime architecture with strict regression-first slices and max 5-slice scope`
 - `2026-04-29 19:15` state=`slice_1_completed` note=`added guardrail clarify for /project new without name, normalized integer action counters, and expanded parity/error-path regression coverage`
 - `2026-04-29 19:42` state=`slice_2_completed` note=`extracted telegram message rendering and execution summary into dedicated components with focused regression and contract tests`
+- `2026-04-29 20:00` state=`slice_3_completed` note=`extracted slash/control routing and clarification cancellation/semantic policy into dedicated components with parity-preserving integration tests`

@@ -30,7 +30,7 @@
 
 ### Slice 3: Extract Telegram Runtime Control and Clarification Routing
 
-- status: `pending`
+- status: `completed`
 - branch: `feat/slice-3-telegram-control-routing-extraction`
 - [ ] `T3.1 extract slash/control parsing and intent-to-control mapping from telegram handler`
 - [ ] `T3.2 extract clarification cancellation policy and scope resolution`
