@@ -262,6 +262,35 @@ class TelegramContextResolverTest < Minitest::Test
         assert_equal(true, result.resolved)
         assert_equal(beta.id, result.project_ref)
         assert_nil(result.workstream_id)
+        updated_context = contexts.get(501)
+        refute_nil(updated_context)
+        assert_equal(beta.id, updated_context.project_id)
+        assert_nil(updated_context.workstream_id)
+      end
+    end
+  end
+
+  def test_resolve_infers_and_registers_project_without_clarification_store
+    Dir.mktmpdir("redwright-context-resolver-infer-no-clarification-store-") do |dir|
+      Dir.chdir(dir) do
+        bootstrap = Redwright::Bootstrap.new(mode: :dev).call
+        projects = Redwright::ProjectStore.new(bootstrap.db_path)
+        contexts = Redwright::ChatContextStore.new(bootstrap.db_path)
+        resolver = Redwright::TelegramContextResolver.new(
+          project_store: projects,
+          chat_context_store: contexts,
+          projects_root: bootstrap.projects_root,
+          clarification_session_store: nil
+        )
+
+        result = resolver.resolve(chat_id: 610, text: "Create a tiny project named solo-cli and build starter")
+        assert_equal(true, result.resolved)
+        assert_equal(File.join(bootstrap.projects_root, "solo-cli"), result.project_path)
+
+        context = contexts.get(610)
+        refute_nil(context)
+        assert_equal(result.project_ref, context.project_id)
+        assert_nil(context.workstream_id)
       end
     end
   end
