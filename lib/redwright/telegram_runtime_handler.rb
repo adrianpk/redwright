@@ -8,6 +8,7 @@ require_relative "iteration_context_packet_builder"
 require_relative "bootstrap_minimum_gate"
 require_relative "hint_normalizer"
 require_relative "skill_router"
+require_relative "skill_subloop_executor"
 
 module Redwright
   class TelegramRuntimeHandler
@@ -37,7 +38,8 @@ module Redwright
       typing_sleeper: ->(seconds) { sleep(seconds) },
       bootstrap_minimum_gate: BootstrapMinimumGate.new,
       hint_normalizer: HintNormalizer.new,
-      skill_router: SkillRouter.new
+      skill_router: SkillRouter.new,
+      skill_subloop_executor: SkillSubloopExecutor.new
     )
       @flow = flow
       @telegram_client = telegram_client
@@ -63,6 +65,7 @@ module Redwright
       @bootstrap_minimum_gate = bootstrap_minimum_gate
       @hint_normalizer = hint_normalizer
       @skill_router = skill_router
+      @skill_subloop_executor = skill_subloop_executor
     end
 
     def handle(event)
@@ -206,6 +209,12 @@ module Redwright
           )
           apply_skill_activation(decision: decision, activation: skill_activation)
           emit_skill_activation_telemetry(chat_id: event.chat_id, activation: skill_activation)
+          run_skill_subloop_if_needed(
+            decision: decision,
+            activation: skill_activation,
+            chat_id: event.chat_id,
+            workstream_id: resolution.workstream_id
+          )
 
           gate_result = evaluate_bootstrap_gate(decision: decision, suppress_gap_clarify: suppress_gap_clarify)
           gap = gate_result[:technical_blocking_gap]
@@ -836,6 +845,36 @@ module Redwright
       @out.puts(
         "telegram skill chat=#{chat_id} name=#{activation.name} mode=#{activation.mode} " \
         "confidence=#{activation.confidence} reason=#{activation.reason}"
+      )
+    end
+
+    def run_skill_subloop_if_needed(decision:, activation:, chat_id:, workstream_id:)
+      return unless activation
+      return unless decision.respond_to?(:skill_actions)
+
+      actions = decision.skill_actions
+      return unless actions.is_a?(Array) && !actions.empty?
+
+      result = @skill_subloop_executor.run(
+        actions: actions,
+        cancel_requested: lambda {
+          pending = @clarification_session_store&.get_open(chat_id: chat_id, workstream_id: workstream_id)
+          pending && pending.gap_type == "control_stop"
+        }
+      ) do |_action|
+        { status: "ok" }
+      end
+
+      Trace.runtime(
+        trace_id: Trace.current_trace_id || "none",
+        skill_subloop_status: result.status,
+        skill_subloop_terminal_reason: result.terminal_reason,
+        skill_subloop_attempts: result.attempts,
+        skill_subloop_executed_actions: result.executed_actions
+      )
+      @out.puts(
+        "telegram skill_subloop chat=#{chat_id} status=#{result.status} " \
+        "reason=#{result.terminal_reason} attempts=#{result.attempts} executed_actions=#{result.executed_actions}"
       )
     end
 

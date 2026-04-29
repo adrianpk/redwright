@@ -60,11 +60,11 @@
 
 ### Slice 7: Skill Sub-loop Runtime
 
-- status: `pending`
+- status: `completed`
 - branch: `feat/slice-7-skill-subloop-runtime`
 - PR: `tbd`
-- commits: `tbd`
-- validation: `tbd`
+- commits: `pending-push`
+- validation: `bundle exec ruby -Itest test/redwright/skill_subloop_executor_test.rb && bundle exec ruby -Itest test/redwright/telegram_runtime_handler_test.rb`
 
 ### Slice 8: Clarification Session V2
 

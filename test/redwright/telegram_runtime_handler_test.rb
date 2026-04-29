@@ -844,6 +844,73 @@ class TelegramRuntimeHandlerTest < Minitest::Test
     assert_equal("", err.string)
   end
 
+  def test_handle_runs_skill_subloop_and_handoffs_back_to_main_loop
+    fake_flow = Object.new
+    processed = 0
+    fake_flow.define_singleton_method(:process) do |**_kwargs|
+      processed += 1
+      TelegramRuntimeHandlerTest::FakeResult.new(
+        project: TelegramRuntimeHandlerTest::FakeProject.new(id: "project-1"),
+        workstream: TelegramRuntimeHandlerTest::FakeWorkstream.new(id: "ws-1", state: "executing"),
+        task: TelegramRuntimeHandlerTest::FakeTask.new(id: "task-subloop"),
+        alignment: nil,
+        action_results: []
+      )
+    end
+
+    fake_interpreter = Object.new
+    fake_interpreter.define_singleton_method(:interpret) do |text:, model:|
+      TelegramRuntimeHandlerTest::FakeDecision.new(
+        intent: "change",
+        message: text,
+        skill_requested: "repo-bootstrap",
+        skill_mode: "inferred",
+        source: "llm",
+        finish_reason: "stop",
+        raw_output: "{}"
+      ).tap do |decision|
+        decision.define_singleton_method(:skill_actions) do
+          [{ "id" => "s1", "type" => "analyze", "args" => {} }]
+        end
+      end
+    end
+
+    fake_subloop = Object.new
+    fake_subloop.define_singleton_method(:run) do |actions:, cancel_requested:|
+      TelegramRuntimeHandlerTest::FakeWorkstream.new(
+        id: "subloop",
+        state: "ok"
+      )
+      Redwright::SkillSubloopExecutor::Result.new(
+        status: "ok",
+        attempts: actions.size,
+        terminal_reason: "success",
+        executed_actions: actions.size,
+        last_error: ""
+      )
+    end
+
+    client = FakeTelegramClient.new([])
+    out = StringIO.new
+    err = StringIO.new
+    handler = Redwright::TelegramRuntimeHandler.new(
+      flow: fake_flow,
+      telegram_client: client,
+      out: out,
+      err: err,
+      blocked_retry_attempts: 1,
+      model_name: "gpt-5-mini",
+      intent_interpreter: fake_interpreter,
+      skill_subloop_executor: fake_subloop
+    )
+
+    handler.handle(Redwright::TelegramEvent.new(update_id: 94, chat_id: 49, user_id: nil, username: nil, text: "bootstrap repo"))
+
+    assert_equal(1, processed)
+    assert_match("telegram skill_subloop chat=49 status=ok reason=success attempts=1 executed_actions=1", out.string)
+    assert_equal("", err.string)
+  end
+
   def test_handle_keeps_slash_precedence_over_hints
     fake_flow = Object.new
     captured = {}
