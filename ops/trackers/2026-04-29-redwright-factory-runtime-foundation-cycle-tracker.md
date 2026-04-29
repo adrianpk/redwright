@@ -4,20 +4,20 @@
 
 - cycle_id: `rw-2026-04-29-factory-runtime-foundation`
 - status: `in_progress`
-- state: `executing_slice`
+- state: `next_slice`
 - updated: `2026-04-29`
-- active_slice: `slice_1`
-- active_task: `T1.3`
+- active_slice: `slice_2`
+- active_task: `T2.1`
 
 ## Slice Progress
 
 ### Slice 1: Repository Structure and Layer Boundaries
 
-- status: `pending`
+- status: `completed`
 - branch: `feat/slice-1-factory-repo-structure-boundaries`
-- PR: `tbd`
+- PR: `#152`
 - merge_target: `dev`
-- last_sync_commit: `tbd`
+- last_sync_commit: `be89dcb`
 
 Tasks:
 
@@ -143,3 +143,4 @@ Validation:
 - `2026-04-29 22:40` state=`executing_slice` note=`started slice 1 task T1.1 and documented target repository structure and ownership map`
 - `2026-04-29 22:58` state=`executing_slice` note=`completed T1.1 and started T1.2 with dependency-direction contract and automated boundary check`
 - `2026-04-29 23:12` state=`executing_slice` note=`completed T1.2 and T1.3 by adding runtime entrypoint shim preserving CLI behavior for existing ingress entrypaths`
+- `2026-04-29 23:28` state=`next_slice` note=`slice 1 merged to dev via PR #152; moved cycle focus to slice 2 task T2.1`

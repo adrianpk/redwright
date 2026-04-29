@@ -14,7 +14,7 @@
 
 ### Slice 1: Repository Structure and Layer Boundaries
 
-- status: `pending`
+- status: `completed`
 - branch: `feat/slice-1-factory-repo-structure-boundaries`
 - objective: `introduce a clear monorepo layout for core/domain/adapters/runtimes without breaking current runtime paths`
 - tasks:
