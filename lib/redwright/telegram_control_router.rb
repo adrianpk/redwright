@@ -3,15 +3,16 @@
 module Redwright
   class TelegramControlRouter
     def control_from_decision(decision, raw_text:)
-      return nil unless decision.respond_to?(:intent) && decision.intent.to_s.strip == "meta"
-
       intent = if decision.respond_to?(:control_intent)
                  decision.control_intent.to_s.strip
                else
                  "none"
                end
       command = control_intent_command_map[intent]
-      command ||= inferred_control_command(raw_text) if intent == "none"
+      # Keep inferred natural-language control strictly scoped to meta intent.
+      if command.nil? && intent == "none" && decision.respond_to?(:intent) && decision.intent.to_s.strip == "meta"
+        command = inferred_control_command(raw_text)
+      end
       return nil if command.nil?
 
       { command: command, reason: raw_text.to_s.strip }
@@ -19,6 +20,9 @@ module Redwright
 
     def control_from_operational(decision, raw_text:)
       return nil unless decision.respond_to?(:operational_intent)
+      if decision.respond_to?(:control_intent) && decision.control_intent.to_s.strip != "" && decision.control_intent.to_s.strip != "none"
+        return nil
+      end
 
       intent = decision.operational_intent.to_s.strip
       return nil if intent.empty? || intent == "none"
