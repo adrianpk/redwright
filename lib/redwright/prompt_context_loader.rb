@@ -2,12 +2,14 @@
 
 require "yaml"
 require_relative "workspace_snapshot_builder"
+require_relative "project_manifest"
 
 module Redwright
   class PromptContextLoader
-    def initialize(repo_root: Dir.pwd, workspace_snapshot_builder: WorkspaceSnapshotBuilder.new)
+    def initialize(repo_root: Dir.pwd, workspace_snapshot_builder: WorkspaceSnapshotBuilder.new, project_manifest: ProjectManifest.new)
       @repo_root = repo_root
       @workspace_snapshot_builder = workspace_snapshot_builder
+      @project_manifest = project_manifest
     end
 
     def build(project_path:)
@@ -28,8 +30,8 @@ module Redwright
       path = File.join(project_path, ".redwright", "manifest.yml")
       return {} unless File.file?(path)
 
-      data = YAML.safe_load(File.read(path), permitted_classes: [], permitted_symbols: [], aliases: false)
-      data.is_a?(Hash) ? data : {}
+      result = @project_manifest.load(path)
+      result.valid? ? result.data : {}
     rescue StandardError
       {}
     end

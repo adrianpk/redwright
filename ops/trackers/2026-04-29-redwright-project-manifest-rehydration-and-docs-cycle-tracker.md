@@ -3,19 +3,19 @@
 ## Metadata
 
 - owner: `adrianpk`
-- status: `draft`
-- active_slice: `none`
+- status: `in_progress`
+- active_slice: `slice_2`
 - plan: `ops/plans/2026-04-29-redwright-project-manifest-rehydration-and-docs-cycle-plan.md`
 
 ## Slice Progress
 
 ### Slice 1: Manifest Schema V1
 
-- status: `pending`
+- status: `completed`
 - branch: `feat/slice-1-manifest-schema-v1`
-- PR: `tbd`
+- PR: `pending`
 - commits: `pending`
-- validation: `manifest schema validation tests`
+- validation: `bundle exec ruby -Itest test/redwright/project_manifest_test.rb && bundle exec ruby -Itest test/redwright/prompt_context_loader_test.rb`
 
 ### Slice 2: Manifest Writer on Project New
 
@@ -76,3 +76,4 @@
 ## Event Log
 
 - `2026-04-29 14:10` state=`planned` note=`cycle created to formalize project manifest lifecycle, runtime rehydration, and Diataxis docs rollout`
+- `2026-04-29 17:35` state=`slice_1_completed` note=`manifest schema v1 validator added with provenance and compatibility rules; prompt loader now uses schema validation`

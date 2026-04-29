@@ -12,12 +12,12 @@
 
 ### Slice 1: Manifest Schema V1
 
-- status: `pending`
+- status: `completed`
 - branch: `feat/slice-1-manifest-schema-v1`
-- [ ] `T1.1 define manifest keys and required fields`
-- [ ] `T1.2 add schema_version and migration compatibility rules`
-- [ ] `T1.3 define project provenance fields for clone/new flows`
-- [ ] `T1.4 add parser/validator tests`
+- [x] `T1.1 define manifest keys and required fields`
+- [x] `T1.2 add schema_version and migration compatibility rules`
+- [x] `T1.3 define project provenance fields for clone/new flows`
+- [x] `T1.4 add parser/validator tests`
 
 ### Slice 2: Manifest Writer on Project New
 

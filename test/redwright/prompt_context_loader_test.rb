@@ -15,9 +15,14 @@ class PromptContextLoaderTest < Minitest::Test
       File.write(
         File.join(project_root, ".redwright", "manifest.yml"),
         <<~YAML
+          schema_version: 1
           project:
+            id: "rw-project-id"
             name: "rw-project"
+            slug: "rw-project"
             stack: "ruby"
+            created_via: "new"
+            created_at: "2026-04-29T10:00:00Z"
             summary: "agent runtime"
           architecture:
             context: "Use strict module boundaries."
