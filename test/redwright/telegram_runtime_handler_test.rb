@@ -704,6 +704,43 @@ class TelegramRuntimeHandlerTest < Minitest::Test
     assert_equal("", err.string)
   end
 
+  def test_handle_routes_task_pause_resume_cancel_slash_to_flow_control
+    fake_flow = Object.new
+    commands = []
+    fake_flow.define_singleton_method(:control) do |**kwargs|
+      commands << kwargs[:command]
+      TelegramRuntimeHandlerTest::FakeResult.new(
+        project: TelegramRuntimeHandlerTest::FakeProject.new(id: "project-1"),
+        workstream: TelegramRuntimeHandlerTest::FakeWorkstream.new(id: "ws-1", state: "executing"),
+        task: TelegramRuntimeHandlerTest::FakeTask.new(id: "task-control"),
+        alignment: nil,
+        action_results: []
+      )
+    end
+    fake_flow.define_singleton_method(:process) do |**_kwargs|
+      raise "process should not run for /task pause|resume|cancel"
+    end
+
+    client = FakeTelegramClient.new([])
+    out = StringIO.new
+    handler = Redwright::TelegramRuntimeHandler.new(
+      flow: fake_flow,
+      telegram_client: client,
+      out: out,
+      err: StringIO.new,
+      blocked_retry_attempts: 1
+    )
+
+    handler.handle(Redwright::TelegramEvent.new(update_id: 801, chat_id: 45, user_id: nil, username: nil, text: "/task pause"))
+    handler.handle(Redwright::TelegramEvent.new(update_id: 802, chat_id: 45, user_id: nil, username: nil, text: "/task resume"))
+    handler.handle(Redwright::TelegramEvent.new(update_id: 803, chat_id: 45, user_id: nil, username: nil, text: "/task cancel"))
+
+    assert_equal(%w[pause resume stop], commands)
+    assert_match("telegram control chat=45 command=pause", out.string)
+    assert_match("telegram control chat=45 command=resume", out.string)
+    assert_match("telegram control chat=45 command=stop", out.string)
+  end
+
   def test_handle_rewrites_continue_slash_to_planner_hint
     fake_flow = Object.new
     captured = {}
@@ -798,6 +835,71 @@ class TelegramRuntimeHandlerTest < Minitest::Test
     assert(seen.any? { |t| t.include?("Activate skill 'grill-me' in explicit mode") })
     assert_match("telegram skill chat=46 name=grill-me mode=explicit confidence=1.0 reason=explicit_slash_skill", out.string)
     assert_equal("", err.string)
+  end
+
+  def test_handle_rewrites_operational_slashes_to_explicit_planner_hints
+    fake_flow = Object.new
+    captured = []
+    fake_flow.define_singleton_method(:process) do |**kwargs|
+      captured << kwargs
+      TelegramRuntimeHandlerTest::FakeResult.new(
+        project: TelegramRuntimeHandlerTest::FakeProject.new(id: "project-1"),
+        workstream: TelegramRuntimeHandlerTest::FakeWorkstream.new(id: "ws-1", state: "executing"),
+        task: TelegramRuntimeHandlerTest::FakeTask.new(id: "task-op-hint"),
+        alignment: nil,
+        action_results: []
+      )
+    end
+
+    seen = []
+    fake_interpreter = Object.new
+    fake_interpreter.define_singleton_method(:interpret) do |text:, model:|
+      seen << text
+      TelegramRuntimeHandlerTest::FakeDecision.new(
+        intent: "change",
+        message: text,
+        source: "llm",
+        finish_reason: "stop",
+        raw_output: "{}"
+      )
+    end
+
+    handler = Redwright::TelegramRuntimeHandler.new(
+      flow: fake_flow,
+      telegram_client: FakeTelegramClient.new([]),
+      out: StringIO.new,
+      err: StringIO.new,
+      blocked_retry_attempts: 1,
+      model_name: "gpt-5-mini",
+      intent_interpreter: fake_interpreter
+    )
+
+    handler.handle(Redwright::TelegramEvent.new(update_id: 804, chat_id: 46, user_id: nil, username: nil, text: "/project list"))
+    handler.handle(Redwright::TelegramEvent.new(update_id: 805, chat_id: 46, user_id: nil, username: nil, text: "/project where"))
+    handler.handle(Redwright::TelegramEvent.new(update_id: 806, chat_id: 46, user_id: nil, username: nil, text: "/repo clone https://example.com/acme/repo.git"))
+    handler.handle(Redwright::TelegramEvent.new(update_id: 807, chat_id: 46, user_id: nil, username: nil, text: "/repo status"))
+    handler.handle(Redwright::TelegramEvent.new(update_id: 808, chat_id: 46, user_id: nil, username: nil, text: "/repo undo"))
+    handler.handle(Redwright::TelegramEvent.new(update_id: 809, chat_id: 46, user_id: nil, username: nil, text: "/plan start"))
+    handler.handle(Redwright::TelegramEvent.new(update_id: 810, chat_id: 46, user_id: nil, username: nil, text: "/plan continue"))
+    handler.handle(Redwright::TelegramEvent.new(update_id: 811, chat_id: 46, user_id: nil, username: nil, text: "/plan stop-and-apply"))
+    handler.handle(Redwright::TelegramEvent.new(update_id: 812, chat_id: 46, user_id: nil, username: nil, text: "/trace on"))
+    handler.handle(Redwright::TelegramEvent.new(update_id: 813, chat_id: 46, user_id: nil, username: nil, text: "/trace off"))
+    handler.handle(Redwright::TelegramEvent.new(update_id: 814, chat_id: 46, user_id: nil, username: nil, text: "/trace status"))
+    handler.handle(Redwright::TelegramEvent.new(update_id: 815, chat_id: 46, user_id: nil, username: nil, text: "/help"))
+
+    assert(seen.any? { |t| t.include?("List known projects") })
+    assert(seen.any? { |t| t.include?("Show the current active project") })
+    assert(seen.any? { |t| t.include?("Clone repository https://example.com/acme/repo.git") })
+    assert(seen.any? { |t| t.include?("Show repository status") })
+    assert(seen.any? { |t| t.include?("Undo the latest safe repository changes") })
+    assert(seen.any? { |t| t.include?("Start an explicit planning and slicing workflow") })
+    assert(seen.any? { |t| t.include?("Continue with current context") })
+    assert(seen.any? { |t| t.include?("Stop asking clarification questions") })
+    assert(seen.any? { |t| t.include?("Enable runtime trace output") })
+    assert(seen.any? { |t| t.include?("Disable runtime trace output") })
+    assert(seen.any? { |t| t.include?("Show current runtime trace status") })
+    assert(seen.any? { |t| t.include?("Show help for runtime commands") })
+    assert_equal(12, captured.size)
   end
 
   def test_handle_emits_inferred_skill_activation_telemetry

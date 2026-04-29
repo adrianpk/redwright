@@ -1053,7 +1053,33 @@ module Redwright
       when "/project"
         return { kind: "planner_hint", planner_text: "Switch active project to #{arg.sub(/^switch\s+/i, "")}." } if arg.match?(/^switch\s+/i)
         return { kind: "planner_hint", planner_text: "Create a new project named #{arg.sub(/^new\s+/i, "")} and set it active." } if arg.match?(/^new\s+/i)
+        return { kind: "planner_hint", planner_text: "List known projects and show aliases." } if arg.match?(/^list$/i)
+        return { kind: "planner_hint", planner_text: "Show the current active project id, alias, and workspace path." } if arg.match?(/^where$/i)
         nil
+      when "/repo"
+        return { kind: "planner_hint", planner_text: "Clone repository #{arg.sub(/^clone\s+/i, "")} into the workspace and register it as a project." } if arg.match?(/^clone\s+/i)
+        return { kind: "planner_hint", planner_text: "Show repository status for the active project, including branch and dirty files." } if arg.match?(/^status$/i)
+        return { kind: "planner_hint", planner_text: "Undo the latest safe repository changes in the active project using runtime guardrails." } if arg.match?(/^undo$/i)
+        nil
+      when "/task"
+        return { kind: "control", command: "pause", reason: raw } if arg.match?(/^pause$/i)
+        return { kind: "control", command: "resume", reason: raw } if arg.match?(/^resume$/i)
+        return { kind: "control", command: "stop", reason: raw } if arg.match?(/^cancel$/i)
+        nil
+      when "/plan"
+        return { kind: "planner_hint", planner_text: "Start an explicit planning and slicing workflow for the current request." } if arg.match?(/^start$/i)
+        return { kind: "planner_hint", planner_text: "Continue with current context and execute using existing assumptions." } if arg.match?(/^continue$/i)
+        return { kind: "planner_hint", planner_text: "Stop asking clarification questions and continue implementation with the current accepted assumptions." } if arg.match?(/^stop-and-apply$/i)
+        nil
+      when "/trace"
+        return { kind: "planner_hint", planner_text: "Enable runtime trace output for this session." } if arg.match?(/^on$/i)
+        return { kind: "planner_hint", planner_text: "Disable runtime trace output for this session." } if arg.match?(/^off$/i)
+        return { kind: "planner_hint", planner_text: "Show current runtime trace status for this session." } if arg.match?(/^status$/i)
+        nil
+      when "/help"
+        { kind: "planner_hint", planner_text: "Show help for runtime commands: /project, /repo, /task, /plan, /trace, /skill." }
+      when "/skills"
+        { kind: "planner_hint", planner_text: "List available skills and how to trigger each one." }
       when "/skill"
         return nil if arg.empty?
 
