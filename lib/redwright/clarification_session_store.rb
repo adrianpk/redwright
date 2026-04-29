@@ -5,6 +5,7 @@ require "json"
 require "digest"
 require "time"
 require_relative "trace"
+require_relative "persistence_contract_error"
 
 module Redwright
   ClarificationSessionRecord = Struct.new(
@@ -52,7 +53,10 @@ module Redwright
       payload = { "suggested_project_name" => suggested_project_name.to_s }
 
       with_db do |db|
+        ensure_workstream_exists!(db, workstream_id: workstream_id)
+        tx_started = false
         db.transaction
+        tx_started = true
         close_open_for_chat!(db, chat_id: chat_id)
         db.execute(
           "INSERT INTO clarification_sessions (id, chat_id, workstream_id, status, gap_type, payload_json, resolved_fields_json, last_question_id, turn_counter, created_at, updated_at) VALUES (?, ?, ?, 'open', ?, ?, ?, ?, 0, ?, ?)",
@@ -61,7 +65,7 @@ module Redwright
         db.commit
         Trace.sqlite(op: "insert", table: "clarification_sessions", detail: "id=#{session_id} status=open")
       rescue StandardError
-        db.rollback
+        db.rollback if tx_started
         raise
       end
 
@@ -77,7 +81,10 @@ module Redwright
       }
 
       with_db do |db|
+        ensure_workstream_exists!(db, workstream_id: workstream_id)
+        tx_started = false
         db.transaction
+        tx_started = true
         close_open_for_chat!(db, chat_id: chat_id)
         db.execute(
           "INSERT INTO clarification_sessions (id, chat_id, workstream_id, status, gap_type, payload_json, resolved_fields_json, last_question_id, turn_counter, created_at, updated_at) VALUES (?, ?, ?, 'open', ?, ?, ?, ?, 0, ?, ?)",
@@ -86,7 +93,7 @@ module Redwright
         db.commit
         Trace.sqlite(op: "insert", table: "clarification_sessions", detail: "id=#{session_id} status=open")
       rescue StandardError
-        db.rollback
+        db.rollback if tx_started
         raise
       end
 
@@ -203,6 +210,15 @@ module Redwright
     def build_id(chat_id:, workstream_id:, now:)
       suffix = Digest::SHA256.hexdigest("#{chat_id}:#{workstream_id}:#{now}")[0, 8]
       "cls-#{suffix}"
+    end
+
+    def ensure_workstream_exists!(db, workstream_id:)
+      return if workstream_id.nil? || workstream_id.to_s.strip.empty?
+
+      exists = db.get_first_value("SELECT 1 FROM workstreams WHERE id = ? LIMIT 1", [workstream_id]).to_i == 1
+      return if exists
+
+      raise PersistenceContractError, "invalid_workstream_reference: #{workstream_id}"
     end
 
     def utc_now
