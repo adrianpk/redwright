@@ -32,7 +32,7 @@
 
 ### Slice 2: Command-Query Application Core Skeleton
 
-- status: `pending`
+- status: `completed`
 - branch: `feat/slice-2-command-query-core-skeleton`
 - objective: `create the executable command-query application skeleton used by all ingress adapters`
 - tasks:

@@ -38,11 +38,11 @@ Validation:
 
 ### Slice 2: Command-Query Application Core Skeleton
 
-- status: `pending`
+- status: `completed`
 - branch: `feat/slice-2-command-query-core-skeleton`
-- PR: `tbd`
+- PR: `#155`
 - merge_target: `dev`
-- last_sync_commit: `tbd`
+- last_sync_commit: `3b65c8e`
 
 Tasks:
 
@@ -147,3 +147,4 @@ Validation:
 - `2026-04-29 23:39` state=`executing_slice` note=`implemented T2.1 command-query envelope validation primitives with unit coverage`
 - `2026-04-29 23:54` state=`executing_slice` note=`implemented T2.2 handler registry with typed execution context and dispatch error contract`
 - `2026-04-30 00:06` state=`executing_slice` note=`completed T2.3 by wiring telegram ingress through semantic compatibility adapter with unit and handler integration tests`
+- `2026-04-30 00:24` state=`next_slice` note=`slice 2 merged to dev via PR #155; moved cycle focus to slice 3 task T3.1`
