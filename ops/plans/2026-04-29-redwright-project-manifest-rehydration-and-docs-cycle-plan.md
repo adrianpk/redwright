@@ -39,12 +39,12 @@
 
 ### Slice 4: Runtime Rehydration Precedence Model
 
-- status: `pending`
+- status: `completed`
 - branch: `feat/slice-4-runtime-rehydration-precedence`
-- [ ] `T4.1 define precedence: manifest -> sqlite context -> fallback`
-- [ ] `T4.2 implement deterministic startup rehydration routine`
-- [ ] `T4.3 handle missing/invalid manifest with explicit recovery path`
-- [ ] `T4.4 add tests for cold-start and reset-db scenarios`
+- [x] `T4.1 define precedence: manifest -> sqlite context -> fallback`
+- [x] `T4.2 implement deterministic startup rehydration routine`
+- [x] `T4.3 handle missing/invalid manifest with explicit recovery path`
+- [x] `T4.4 add tests for cold-start and reset-db scenarios`
 
 ### Slice 5: Prompt Context Integration from Manifest
 

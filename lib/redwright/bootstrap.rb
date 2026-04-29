@@ -7,6 +7,7 @@ require_relative "alignment_persistence_hygiene"
 require_relative "clarification_persistence_hygiene"
 require_relative "runtime_persistence_integrity_hygiene"
 require_relative "schema_migrator"
+require_relative "runtime_project_rehydrator"
 
 module Redwright
   BootstrapResult = Struct.new(:state_dir, :config_dir, :projects_root, :worktrees_root, :db_path, keyword_init: true)
@@ -29,6 +30,7 @@ module Redwright
       AlignmentPersistenceHygiene.new(paths.db_path).run!
       ClarificationPersistenceHygiene.new(paths.db_path).run!
       RuntimePersistenceIntegrityHygiene.new(paths.db_path).run!
+      RuntimeProjectRehydrator.new(db_path: paths.db_path, projects_root: paths.projects_root).run!
 
       BootstrapResult.new(
         state_dir: paths.state_dir,

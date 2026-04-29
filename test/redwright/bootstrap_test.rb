@@ -4,9 +4,11 @@ require "tmpdir"
 require "fileutils"
 require "minitest/autorun"
 require "sqlite3"
+require "yaml"
 
 $LOAD_PATH.unshift(File.expand_path("../../lib", __dir__))
 require "redwright/bootstrap"
+require "redwright/project_store"
 
 class BootstrapTest < Minitest::Test
   def test_bootstrap_creates_dev_workspace_directories_and_db
@@ -50,6 +52,67 @@ class BootstrapTest < Minitest::Test
         assert_includes(tables, "alignment_interruptions")
       ensure
         db&.close
+      end
+    end
+  end
+
+  def test_bootstrap_rehydrates_projects_from_manifest_after_db_reset
+    Dir.mktmpdir("redwright-test-rehydrate-manifest-") do |dir|
+      Dir.chdir(dir) do
+        first = Redwright::Bootstrap.new(mode: :dev).call
+        project_path = File.join(first.projects_root, "alpha")
+        FileUtils.mkdir_p(File.join(project_path, ".redwright"))
+        File.write(
+          File.join(project_path, ".redwright", "manifest.yml"),
+          YAML.dump(
+            {
+              "schema_version" => 1,
+              "project" => {
+                "id" => "alpha-123456",
+                "name" => "alpha",
+                "slug" => "alpha",
+                "stack" => "ruby",
+                "created_via" => "clone",
+                "created_at" => "2026-04-29T00:00:00Z"
+              },
+              "provenance" => {
+                "remote_url" => "https://example.com/acme/alpha.git",
+                "provider" => "example",
+                "ref" => "main"
+              }
+            }
+          )
+        )
+
+        FileUtils.rm_f(first.db_path)
+        second = Redwright::Bootstrap.new(mode: :dev).call
+
+        store = Redwright::ProjectStore.new(second.db_path)
+        project = store.resolve("alpha")
+        refute_nil(project)
+        assert_equal("alpha", project.name)
+        assert_equal("remote_clone", project.source_type)
+        assert_equal("https://example.com/acme/alpha.git", project.source_ref)
+      end
+    end
+  end
+
+  def test_bootstrap_uses_fallback_registration_when_manifest_is_invalid
+    Dir.mktmpdir("redwright-test-rehydrate-fallback-") do |dir|
+      Dir.chdir(dir) do
+        first = Redwright::Bootstrap.new(mode: :dev).call
+        project_path = File.join(first.projects_root, "broken")
+        FileUtils.mkdir_p(File.join(project_path, ".redwright"))
+        File.write(File.join(project_path, ".redwright", "manifest.yml"), "invalid: [")
+
+        FileUtils.rm_f(first.db_path)
+        second = Redwright::Bootstrap.new(mode: :dev).call
+
+        store = Redwright::ProjectStore.new(second.db_path)
+        project = store.resolve("broken")
+        refute_nil(project)
+        assert_equal("local_new", project.source_type)
+        assert_equal("", project.source_ref)
       end
     end
   end
