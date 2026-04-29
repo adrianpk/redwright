@@ -258,6 +258,15 @@ namespace :badges do
     @quality_helper ||= Redwright::LocalQuality.new
   end
 
+  def run_quality_task(task_name)
+    task = Rake::Task[task_name]
+    task.reenable
+    task.invoke
+    true
+  rescue SystemExit
+    false
+  end
+
   desc "Build README local badges from tmp/quality artifacts"
   task :build do
     lint = quality_helper.read_artifact(path: "tmp/quality/lint-status.json")
@@ -275,5 +284,37 @@ namespace :badges do
   end
 
   desc "Run quality checks and refresh README local badges"
-  task refresh: ["quality:all", :build]
+  task :refresh do
+    lint_ok = run_quality_task("quality:lint")
+    test_ok = run_quality_task("quality:test")
+    coverage_ok = run_quality_task("quality:coverage")
+
+    lint = quality_helper.read_artifact(path: "tmp/quality/lint-status.json")
+    test = quality_helper.read_artifact(path: "tmp/quality/test-status.json")
+    summary = quality_helper.build_summary(lint: lint, test: test)
+    quality_helper.write_artifact(path: "tmp/quality/summary.json", payload: summary)
+
+    Rake::Task["badges:build"].reenable
+    Rake::Task["badges:build"].invoke
+
+    abort("badges:refresh failed") unless lint_ok && test_ok && coverage_ok
+  end
+end
+
+namespace :pr do
+  namespace :dev_to_main do
+    desc "Poor-man local CI gate for dev->main PRs (tests + badge freshness)"
+    task :gate do
+      sh "bundle exec rake badges:refresh"
+
+      tracked_badge_targets = "README.md badges"
+      diff_output, = Open3.capture2("git diff --name-only -- #{tracked_badge_targets}")
+      changed_targets = diff_output.lines.map(&:strip).reject(&:empty?)
+      next if changed_targets.empty?
+
+      puts "pr:dev_to_main:gate detected stale tracked badge targets:"
+      changed_targets.each { |path| puts "  - #{path}" }
+      abort("Commit refreshed badge outputs before opening PR dev->main.")
+    end
+  end
 end

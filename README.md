@@ -1,8 +1,8 @@
 # RedWright
 
 <!-- REDWRIGHT_LOCAL_BADGES:START -->
-[![CI](https://img.shields.io/badge/CI-passing-brightgreen)](https://codeberg.org/adrianpk/redwright)
-[![coverage](https://img.shields.io/badge/coverage-31.12%-brightgreen)](badges/coverage.svg)
+[![CI](https://img.shields.io/badge/CI-failing-red)](https://codeberg.org/adrianpk/redwright)
+[![coverage](https://img.shields.io/badge/coverage-28.45%-brightgreen)](badges/coverage.svg)
 <!-- REDWRIGHT_LOCAL_BADGES:END -->
 
 RedWright is an **agent harness** for software development, built around messaging-first workflows.
