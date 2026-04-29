@@ -34,6 +34,8 @@ module Redwright
       quality_gate_runner: nil,
       send_json_envelope: false,
       max_change_turn_seconds: 180,
+      max_no_progress_attempts: 2,
+      max_repeated_fingerprint_attempts: 2,
       iteration_context_packet_builder: IterationContextPacketBuilder.new,
       typing_interval_seconds: 4.0,
       typing_sleeper: ->(seconds) { sleep(seconds) },
@@ -62,6 +64,8 @@ module Redwright
       @quality_gate_runner = quality_gate_runner
       @send_json_envelope = send_json_envelope
       @max_change_turn_seconds = max_change_turn_seconds
+      @max_no_progress_attempts = [max_no_progress_attempts.to_i, 1].max
+      @max_repeated_fingerprint_attempts = [max_repeated_fingerprint_attempts.to_i, 1].max
       @iteration_context_packet_builder = iteration_context_packet_builder
       @typing_interval_seconds = typing_interval_seconds
       @typing_sleeper = typing_sleeper
@@ -509,6 +513,9 @@ module Redwright
       attempts = 0
       last_outcome = nil
       terminal_reason = "success"
+      no_progress_streak = 0
+      repeated_fingerprint_streak = 0
+      last_fingerprints = nil
 
       while attempts < max_attempts
         attempts += 1
@@ -524,6 +531,24 @@ module Redwright
           attempt: attempts,
           feedback: feedback
         )
+        fingerprint_list = feedback.fingerprints.map { |entry| entry["fingerprint"].to_s }.sort
+        no_progress_streak = fingerprint_list.empty? ? no_progress_streak + 1 : 0
+        if !fingerprint_list.empty? && last_fingerprints == fingerprint_list
+          repeated_fingerprint_streak += 1
+        else
+          repeated_fingerprint_streak = 0
+        end
+        last_fingerprints = fingerprint_list
+
+        if no_progress_streak >= @max_no_progress_attempts
+          terminal_reason = "no_progress"
+          break
+        end
+        if repeated_fingerprint_streak >= @max_repeated_fingerprint_attempts
+          terminal_reason = "repeated_fingerprint"
+          break
+        end
+
         if quality_failed?(quality_summary)
           terminal_reason = "quality_failed"
           break if attempts >= max_attempts
@@ -569,7 +594,7 @@ module Redwright
         terminal_reason: terminal_reason,
         attempts: attempts,
         max_attempts: max_attempts,
-        deadline: deadline
+        deadline_reached: Process.clock_gettime(Process::CLOCK_MONOTONIC) >= deadline
       )
       last_outcome.merge(attempts: attempts, terminal_reason: terminal_reason)
     end
@@ -580,8 +605,8 @@ module Redwright
       [value, MAX_CHANGE_LOOP_ATTEMPTS].min
     end
 
-    def classify_change_loop_exit(terminal_reason:, attempts:, max_attempts:, deadline:)
-      return "timeout" if terminal_reason == "quality_failed" && Process.clock_gettime(Process::CLOCK_MONOTONIC) >= deadline
+    def classify_change_loop_exit(terminal_reason:, attempts:, max_attempts:, deadline_reached:)
+      return "timeout" if terminal_reason == "quality_failed" && deadline_reached
       return "max_attempts" if terminal_reason == "quality_failed" && attempts >= max_attempts
 
       terminal_reason

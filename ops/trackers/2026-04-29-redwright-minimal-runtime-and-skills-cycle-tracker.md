@@ -84,11 +84,11 @@
 
 ### Slice 10: Bounded Convergence Policy V1
 
-- status: `pending`
+- status: `completed`
 - branch: `feat/slice-10-bounded-convergence-policy-v1`
 - PR: `tbd`
-- commits: `tbd`
-- validation: `tbd`
+- commits: `pending-push`
+- validation: `bundle exec ruby -Itest test/redwright/telegram_runtime_handler_test.rb`
 
 ### Slice 11: Bootstrap Skills (Repo + Docs)
 
