@@ -3,8 +3,8 @@
 ## Metadata
 
 - owner: `adrianpk`
-- status: `in_progress`
-- active_slice: `slice-8`
+- status: `completed`
+- active_slice: `none`
 - plan: `ops/plans/2026-04-29-redwright-operational-command-model-cycle-plan.md`
 
 ## Slice Progress
