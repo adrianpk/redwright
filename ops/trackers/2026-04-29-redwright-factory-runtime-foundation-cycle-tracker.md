@@ -73,7 +73,7 @@ Tasks:
 
 - [x] `T3.1 add step-scoped timeout policy with step-specific errors`
 - [x] `T3.2 add worktree locking with stale lock recovery`
-- [ ] `T3.3 add abort/cancel contract and preserved recovery state`
+- [x] `T3.3 add abort/cancel contract and preserved recovery state`
 - [ ] `T3.4 enforce inline-prompt literal mode and template-only expansion`
 
 Commits:
@@ -150,3 +150,4 @@ Validation:
 - `2026-04-30 00:24` state=`next_slice` note=`slice 2 merged to dev via PR #155; moved cycle focus to slice 3 task T3.1`
 - `2026-04-30 00:53` state=`executing_slice` note=`completed T3.1 by adding step-scoped timeout wrappers and step-specific timeout errors in daemon runtime flow`
 - `2026-04-30 01:16` state=`executing_slice` note=`completed T3.2 with lock-file based worktree locking, stale lock recovery, and fail-fast contention behavior`
+- `2026-04-30 01:27` state=`executing_slice` note=`completed T3.3 by adding daemon cancel contract with explicit stop reasons and preserved pending-event count`

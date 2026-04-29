@@ -27,10 +27,11 @@ class DaemonRunnerTest < Minitest::Test
       trap_handler: ->(_signal, &_block) {}
     )
 
-    runner.run(loop_interval_seconds: 0.001)
+    result = runner.run(loop_interval_seconds: 0.001)
 
     assert_equal(2, polled)
     assert_equal(["event-1", "event-2"], handled)
+    assert_equal("stop_requested", result.stopped_reason)
   end
 
   def test_signal_handlers_request_stop
@@ -48,11 +49,12 @@ class DaemonRunnerTest < Minitest::Test
       trap_handler: ->(signal, &block) { handlers[signal] = block }
     )
 
-    runner.run(loop_interval_seconds: 0.001)
+    result = runner.run(loop_interval_seconds: 0.001)
 
     assert_equal(1, polled)
     assert(handlers.key?("INT"))
     assert(handlers.key?("TERM"))
+    assert_equal("stop_requested", result.stopped_reason)
   end
 
   def test_run_stops_after_max_iterations
@@ -67,9 +69,10 @@ class DaemonRunnerTest < Minitest::Test
       trap_handler: ->(_signal, &_block) {}
     )
 
-    runner.run(loop_interval_seconds: 0.001, max_iterations: 1)
+    result = runner.run(loop_interval_seconds: 0.001, max_iterations: 1)
 
     assert_equal(1, polled)
+    assert_equal("max_iterations", result.stopped_reason)
   end
 
   def test_run_with_turn_queue_drains_one_per_iteration
@@ -88,10 +91,12 @@ class DaemonRunnerTest < Minitest::Test
       queue_drain_mode: "one"
     )
 
-    runner.run(loop_interval_seconds: 0.001, max_iterations: 2)
+    result = runner.run(loop_interval_seconds: 0.001, max_iterations: 2)
 
     assert_equal(%w[e1 e2], handled)
     assert_equal(1, queue.size)
+    assert_equal("max_iterations", result.stopped_reason)
+    assert_equal(1, result.pending_events_count)
   end
 
   def test_run_with_turn_queue_drains_all_per_iteration
@@ -110,10 +115,12 @@ class DaemonRunnerTest < Minitest::Test
       queue_drain_mode: "all"
     )
 
-    runner.run(loop_interval_seconds: 0.001, max_iterations: 1)
+    result = runner.run(loop_interval_seconds: 0.001, max_iterations: 1)
 
     assert_equal(%w[e1 e2 e3], handled)
     assert_equal(0, queue.size)
+    assert_equal("max_iterations", result.stopped_reason)
+    assert_equal(0, result.pending_events_count)
   end
 
   def test_run_raises_ingress_poll_timeout_error
@@ -162,5 +169,30 @@ class DaemonRunnerTest < Minitest::Test
       runner.run(loop_interval_seconds: 0.001, max_iterations: 2)
     end
     assert_equal("loop_sleep", error.step)
+  end
+
+  def test_run_stops_on_cancel_request_and_preserves_pending_queue
+    queue = Redwright::TurnMessageQueue.new
+    cancel = false
+    handled = 0
+    runner = Redwright::DaemonRunner.new(
+      ingress_poller: -> { %w[e1 e2 e3] },
+      event_handler: lambda { |_event|
+        handled += 1
+        cancel = true if handled >= 1
+      },
+      sleeper: ->(_seconds) {},
+      trap_handler: ->(_signal, &_block) {},
+      turn_queue: queue,
+      queue_drain_mode: "one"
+    )
+
+    result = runner.run(
+      loop_interval_seconds: 0.001,
+      cancel_requested: -> { cancel }
+    )
+
+    assert_equal("cancel_requested", result.stopped_reason)
+    assert_equal(2, result.pending_events_count)
   end
 end
