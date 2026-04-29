@@ -189,17 +189,32 @@ module Redwright
                 }
               })
               if operational["status"] == "ok"
+                runtime_project_id = operational["project_id"] || resolution.project_ref.to_s
+                runtime_workstream_id = operational["workstream_id"] || "none"
+                runtime_task_id = operational["task_id"] || "none"
+                runtime_state = operational["state"] || "executing"
+                reply_text = if operational["command"] == "project_list"
+                               names = (operational["projects"] || []).map { |p| p["name"] }.join(", ")
+                               names = "none" if names.empty?
+                               "Projects: #{names}\nTrace: #{Trace.current_trace_id || 'none'}"
+                             elsif operational["command"] == "project_where"
+                               "Active project: #{operational['project_name']} (#{operational['project_id']})\nPath: #{operational['project_path']}\nTrace: #{Trace.current_trace_id || 'none'}"
+                             elsif operational["command"] == "repo_status"
+                               "Repo status for #{operational['project_name']}:\n#{operational['git_status']}\nTrace: #{Trace.current_trace_id || 'none'}"
+                             else
+                               "Operational command applied.\nproject=#{runtime_project_id} workstream=#{runtime_workstream_id} task=#{runtime_task_id} state=#{runtime_state}\nTrace: #{Trace.current_trace_id || 'none'}"
+                             end
                 envelope = RuntimeResultEnvelope.success(
                   trace_id: Trace.current_trace_id || "none",
-                  project_id: operational["project_id"].to_s,
-                  workstream_id: operational["workstream_id"].to_s,
-                  task_id: operational["task_id"].to_s,
-                  state: operational["state"].to_s,
+                  project_id: runtime_project_id.to_s,
+                  workstream_id: runtime_workstream_id.to_s,
+                  task_id: runtime_task_id.to_s,
+                  state: runtime_state.to_s,
                   terminal_reason: operational["terminal_reason"].to_s
                 )
                 @telegram_client.send_message(
                   chat_id: event.chat_id,
-                  text: "Operational command applied.\nproject=#{operational['project_id']} workstream=#{operational['workstream_id']} task=#{operational['task_id']} state=#{operational['state']}\nTrace: #{Trace.current_trace_id || 'none'}"
+                  text: reply_text
                 )
                 send_json_envelope_if_enabled(chat_id: event.chat_id, envelope: envelope)
                 @out.puts("telegram operational chat=#{event.chat_id} command=#{slash[:command]} task=#{operational['task_id']}")

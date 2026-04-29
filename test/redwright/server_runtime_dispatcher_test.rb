@@ -424,6 +424,96 @@ class ServerRuntimeDispatcherTest < Minitest::Test
     end
   end
 
+  def test_send_dispatch_project_list_returns_registered_projects_without_flow_execution
+    Dir.mktmpdir("redwright-server-dispatcher-project-list-") do |dir|
+      Dir.chdir(dir) do
+        bootstrap = Redwright::Bootstrap.new(mode: :dev).call
+        project_store = Redwright::ProjectStore.new(bootstrap.db_path)
+        alpha_path = File.join(bootstrap.projects_root, "alpha")
+        beta_path = File.join(bootstrap.projects_root, "beta")
+        FileUtils.mkdir_p(alpha_path)
+        FileUtils.mkdir_p(beta_path)
+        project_store.register(path: alpha_path, aliases: ["alpha"])
+        project_store.register(path: beta_path, aliases: ["beta"])
+
+        flow = Object.new
+        flow.define_singleton_method(:process) do |**_kwargs|
+          raise "flow should not run for /project list"
+        end
+        dispatcher = Redwright::ServerRuntimeDispatcher.new(
+          flow: flow,
+          blocked_retry_attempts: 1,
+          project_store: project_store,
+          projects_root: bootstrap.projects_root
+        )
+
+        response = dispatcher.call(
+          "type" => "send",
+          "session_id" => "telegram-88",
+          "payload" => {
+            "channel" => "telegram",
+            "project_ref" => "",
+            "intent" => "change",
+            "message" => "/project list",
+            "actions" => []
+          }
+        )
+
+        assert_equal("ok", response["status"])
+        assert_equal("project_list", response["command"])
+        names = response.fetch("projects").map { |p| p.fetch("name") }.sort
+        assert_equal(%w[alpha beta], names)
+      end
+    end
+  end
+
+  def test_send_dispatch_repo_status_returns_git_status_for_active_project_without_flow_execution
+    Dir.mktmpdir("redwright-server-dispatcher-repo-status-") do |dir|
+      Dir.chdir(dir) do
+        bootstrap = Redwright::Bootstrap.new(mode: :dev).call
+        project_store = Redwright::ProjectStore.new(bootstrap.db_path)
+        path = File.join(bootstrap.projects_root, "alpha")
+        FileUtils.mkdir_p(path)
+        run_cmd!("git -C #{path} init .")
+        run_cmd!("git -C #{path} config user.name 'rw-test'")
+        run_cmd!("git -C #{path} config user.email 'rw-test@example.com'")
+        File.write(File.join(path, "README.md"), "v1\n")
+        run_cmd!("git -C #{path} add README.md")
+        run_cmd!("git -C #{path} commit -m 'init'")
+        project = project_store.register(path: path, aliases: ["alpha"])
+        project_store.mark_active(project.id)
+
+        flow = Object.new
+        flow.define_singleton_method(:process) do |**_kwargs|
+          raise "flow should not run for /repo status"
+        end
+        dispatcher = Redwright::ServerRuntimeDispatcher.new(
+          flow: flow,
+          blocked_retry_attempts: 1,
+          project_store: project_store,
+          projects_root: bootstrap.projects_root
+        )
+
+        response = dispatcher.call(
+          "type" => "send",
+          "session_id" => "telegram-89",
+          "payload" => {
+            "channel" => "telegram",
+            "project_ref" => "",
+            "intent" => "change",
+            "message" => "/repo status",
+            "actions" => []
+          }
+        )
+
+        assert_equal("ok", response["status"])
+        assert_equal("repo_status", response["command"])
+        assert_equal(project.id, response["project_id"])
+        assert_match("##", response["git_status"])
+      end
+    end
+  end
+
   def test_send_dispatch_repo_undo_executes_git_undo_when_last_task_is_git_only
     Dir.mktmpdir("redwright-server-dispatcher-repo-undo-ok-") do |dir|
       Dir.chdir(dir) do

@@ -63,6 +63,10 @@ module Redwright
       message = payload.fetch("message").to_s
       project_ref = payload.fetch("project_ref", "").to_s.strip
       project_ref, message, operational = resolve_project_ref_for_send(session_id: session_id, project_ref: project_ref, message: message)
+      if operational
+        read_only = dispatch_read_only_operational(session_id: session_id, project_ref: project_ref, operational: operational)
+        return read_only if read_only
+      end
       raise ArgumentError, "missing_project_ref" if project_ref.to_s.strip.empty?
 
       intent = payload.fetch("intent", "change").to_s
@@ -111,6 +115,52 @@ module Redwright
       }
     end
 
+    def dispatch_read_only_operational(session_id:, project_ref:, operational:)
+      case operational[:command]
+      when "list"
+        projects = @project_store ? @project_store.list : []
+        return {
+          "status" => "ok",
+          "command" => "project_list",
+          "projects" => projects.map do |project|
+            {
+              "id" => project.id,
+              "name" => project.name,
+              "aliases" => project.aliases,
+              "path" => project.path
+            }
+          end
+        }
+      when "where"
+        active = resolve_active_project(session_id: session_id, project_ref: project_ref)
+        raise ArgumentError, "missing_project_ref" unless active
+
+        return {
+          "status" => "ok",
+          "command" => "project_where",
+          "project_id" => active.id,
+          "project_name" => active.name,
+          "project_path" => active.path
+        }
+      when "status"
+        active = resolve_active_project(session_id: session_id, project_ref: project_ref)
+        raise ArgumentError, "missing_project_ref" unless active
+
+        output, status = Open3.capture2e("git", "-C", active.path.to_s, "status", "--short", "--branch")
+        raise ArgumentError, "git status failed for active project" unless status.success?
+
+        return {
+          "status" => "ok",
+          "command" => "repo_status",
+          "project_id" => active.id,
+          "project_name" => active.name,
+          "git_status" => output.to_s.strip
+        }
+      end
+
+      nil
+    end
+
     def resolve_project_ref_for_send(session_id:, project_ref:, message:)
       return [project_ref, message, nil] unless @project_store
 
@@ -134,6 +184,11 @@ module Redwright
         when "undo"
           active = resolve_active_project(session_id: session_id, project_ref: project_ref)
           return [active.id, "Undo the latest safe repository changes for the active project.", parsed] if active
+        when "list"
+          return [project_ref, message, parsed]
+        when "where", "status"
+          active = resolve_active_project(session_id: session_id, project_ref: project_ref)
+          return [active.id, message, parsed] if active
         end
       end
 
@@ -156,6 +211,8 @@ module Redwright
       raw = message.to_s.strip
       if raw.start_with?("/project ")
         project_match = raw.match(%r{\A/project\s+(new|switch)\s+([a-zA-Z0-9._\-]+)\s*\z}i)
+        return { command: "list" } if raw.match?(%r{\A/project\s+list\s*\z}i)
+        return { command: "where" } if raw.match?(%r{\A/project\s+where\s*\z}i)
         return nil unless project_match
 
         return { command: project_match[1].downcase, name: project_match[2] }
@@ -163,6 +220,7 @@ module Redwright
 
       if raw.start_with?("/repo ")
         return { command: "undo" } if raw.match?(%r{\A/repo\s+undo\s*\z}i)
+        return { command: "status" } if raw.match?(%r{\A/repo\s+status\s*\z}i)
         clone_match = raw.match(%r{\A/repo\s+clone\s+(\S+)(?:\s+as\s+([a-zA-Z0-9._\-]+))?\s*\z}i)
         if clone_match
           url = clone_match[1]
