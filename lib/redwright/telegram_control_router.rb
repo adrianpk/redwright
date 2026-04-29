@@ -73,11 +73,10 @@ module Redwright
           }
         end
         if arg.match?(/^new\s+/i)
-          name = arg.sub(/^new\s+/i, "")
+          name_or_request = arg.sub(/^new\s+/i, "")
           return {
-            kind: "operational",
-            command: "project_new",
-            planner_text_fallback: "Create a new project named #{name} and set it active."
+            kind: "planner_hint",
+            planner_text: "Create a new project. User request: #{name_or_request}"
           }
         end
         if arg.match?(/^list$/i)

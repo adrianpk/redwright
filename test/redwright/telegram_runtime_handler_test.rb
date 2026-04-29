@@ -1151,6 +1151,57 @@ class TelegramRuntimeHandlerTest < Minitest::Test
     assert_equal(12, captured.size)
   end
 
+  def test_handle_rewrites_project_new_with_description_to_planner_hint
+    fake_flow = Object.new
+    captured = []
+    fake_flow.define_singleton_method(:process) do |**kwargs|
+      captured << kwargs
+      TelegramRuntimeHandlerTest::FakeResult.new(
+        project: TelegramRuntimeHandlerTest::FakeProject.new(id: "project-1"),
+        workstream: TelegramRuntimeHandlerTest::FakeWorkstream.new(id: "ws-1", state: "executing"),
+        task: TelegramRuntimeHandlerTest::FakeTask.new(id: "task-op-hint"),
+        alignment: nil,
+        action_results: []
+      )
+    end
+
+    seen = []
+    fake_interpreter = Object.new
+    fake_interpreter.define_singleton_method(:interpret) do |text:, model:|
+      seen << text
+      TelegramRuntimeHandlerTest::FakeDecision.new(
+        intent: "change",
+        message: text,
+        source: "llm",
+        finish_reason: "stop",
+        raw_output: "{}"
+      )
+    end
+
+    handler = Redwright::TelegramRuntimeHandler.new(
+      flow: fake_flow,
+      telegram_client: FakeTelegramClient.new([]),
+      out: StringIO.new,
+      err: StringIO.new,
+      blocked_retry_attempts: 1,
+      model_name: "gpt-5-mini",
+      intent_interpreter: fake_interpreter
+    )
+
+    handler.handle(
+      Redwright::TelegramEvent.new(
+        update_id: 920,
+        chat_id: 46,
+        user_id: nil,
+        username: nil,
+        text: "/project new create a Go app named cubix with ascii art"
+      )
+    )
+
+    assert_equal(1, captured.size)
+    assert(seen.any? { |t| t.include?("Create a new project. User request: create a Go app named cubix with ascii art") })
+  end
+
   def test_handle_emits_inferred_skill_activation_telemetry
     fake_flow = Object.new
     fake_flow.define_singleton_method(:process) do |**_kwargs|

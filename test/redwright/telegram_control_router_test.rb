@@ -26,6 +26,13 @@ class TelegramControlRouterTest < Minitest::Test
     assert_equal("project_switch", parsed[:command])
   end
 
+  def test_parse_slash_command_routes_project_new_with_text_to_planner_hint
+    parsed = Redwright::TelegramControlRouter.new.parse_slash_command("/project new create a go app")
+    assert_equal("planner_hint", parsed[:kind])
+    assert_includes(parsed[:planner_text], "Create a new project.")
+    assert_includes(parsed[:planner_text], "create a go app")
+  end
+
   def test_parse_slash_command_routes_repo_clone_as_operational
     parsed = Redwright::TelegramControlRouter.new.parse_slash_command("/repo clone https://example.com/acme/repo.git")
     assert_equal("operational", parsed[:kind])
