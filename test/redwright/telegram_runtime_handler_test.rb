@@ -1126,6 +1126,63 @@ class TelegramRuntimeHandlerTest < Minitest::Test
     assert_equal("", err.string)
   end
 
+  def test_handle_treats_yes_without_active_gap_as_clarify_not_meta
+    fake_flow = Object.new
+    processed = 0
+    fake_flow.define_singleton_method(:process) do |**_kwargs|
+      processed += 1
+      TelegramRuntimeHandlerTest::FakeResult.new(
+        project: TelegramRuntimeHandlerTest::FakeProject.new(id: "project-1"),
+        workstream: TelegramRuntimeHandlerTest::FakeWorkstream.new(id: "ws-1", state: "executing"),
+        task: TelegramRuntimeHandlerTest::FakeTask.new(id: "task-yes"),
+        alignment: nil,
+        action_results: []
+      )
+    end
+
+    fake_clarification_store = Object.new
+    fake_clarification_store.define_singleton_method(:get_open) do |**_kwargs|
+      nil
+    end
+    fake_clarification_store.define_singleton_method(:advance) do |**_kwargs|
+      nil
+    end
+    fake_clarification_store.define_singleton_method(:cancel_open) do |**_kwargs|
+      nil
+    end
+
+    fake_interpreter = Object.new
+    fake_interpreter.define_singleton_method(:interpret) do |text:, model:|
+      TelegramRuntimeHandlerTest::FakeDecision.new(
+        intent: "meta",
+        message: "unexpected planner path",
+        source: "llm",
+        finish_reason: "stop",
+        raw_output: "{}"
+      )
+    end
+
+    client = FakeTelegramClient.new([])
+    out = StringIO.new
+    err = StringIO.new
+    handler = Redwright::TelegramRuntimeHandler.new(
+      flow: fake_flow,
+      telegram_client: client,
+      out: out,
+      err: err,
+      blocked_retry_attempts: 1,
+      model_name: "gpt-5-mini",
+      intent_interpreter: fake_interpreter,
+      clarification_session_store: fake_clarification_store
+    )
+
+    handler.handle(Redwright::TelegramEvent.new(update_id: 201, chat_id: 61, user_id: nil, username: nil, text: "yes"))
+
+    assert_equal(0, processed)
+    assert_match("No active question to confirm", client.messages.last[:text])
+    assert_equal("", err.string)
+  end
+
   def test_handle_includes_execution_summary_and_passes_actions_to_flow
     fake_flow = Object.new
     captured = {}

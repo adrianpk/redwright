@@ -142,6 +142,24 @@ module Redwright
             @out.puts("telegram control chat=#{event.chat_id} command=#{slash[:command]} task=#{control_result.task.id}")
             return
           end
+
+          if confirmation_reply_only?(event.text) && active_planner_gap(chat_id: event.chat_id, workstream_id: resolution.workstream_id).nil?
+            clarify = RuntimeResultEnvelope.clarify(
+              trace_id: Trace.current_trace_id || "none",
+              message: "No active question to confirm. Send a concrete request or ask for status."
+            )
+            @telegram_client.send_message(
+              chat_id: event.chat_id,
+              text: human_clarify_message(
+                question: "No active question to confirm. Send a concrete request or ask for status.",
+                trace_id: Trace.current_trace_id || "none"
+              )
+            )
+            send_json_envelope_if_enabled(chat_id: event.chat_id, envelope: clarify)
+            @out.puts("telegram clarify chat=#{event.chat_id}")
+            return
+          end
+
           normalized_text = if slash && (slash[:kind] == "planner_hint" || slash[:kind] == "skill")
                               slash[:planner_text]
                             else
@@ -834,8 +852,7 @@ module Redwright
     end
 
     def consume_pending_planner_gap_answer(chat_id:, workstream_id:, user_text:)
-      pending = @clarification_session_store&.get_open(chat_id: chat_id, workstream_id: workstream_id)
-      pending ||= @clarification_session_store&.get_open(chat_id: chat_id)
+      pending = active_planner_gap(chat_id: chat_id, workstream_id: workstream_id)
       return { text: user_text, action: "intent_interpret" } unless pending && pending.gap_type == "planner_gap"
 
       base = pending.payload.fetch("base_message", "").to_s.strip
@@ -865,6 +882,19 @@ module Redwright
         text: merged,
         action: continue_semantic ? "intent_interpret_with_current_context" : "intent_interpret_with_gap_answer"
       }
+    end
+
+    def active_planner_gap(chat_id:, workstream_id:)
+      pending = @clarification_session_store&.get_open(chat_id: chat_id, workstream_id: workstream_id)
+      pending ||= @clarification_session_store&.get_open(chat_id: chat_id)
+      pending
+    end
+
+    def confirmation_reply_only?(text)
+      normalized = text.to_s.strip.downcase
+      return false if normalized.empty?
+
+      %w[yes y si sí no n nope].include?(normalized)
     end
 
     def continue_with_current_context_semantic?(text)
