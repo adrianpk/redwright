@@ -4,7 +4,7 @@
 
 - owner: `adrianpk`
 - status: `in_progress`
-- active_slice: `slice-7`
+- active_slice: `slice-8`
 - plan: `ops/plans/2026-04-29-redwright-operational-command-model-cycle-plan.md`
 
 ## Slice Progress
@@ -67,7 +67,7 @@
 
 ### Slice 8: Cross-Channel Operational Parity Matrix
 
-- status: `pending`
+- status: `completed`
 - branch: `feat/slice-8-cross-channel-operational-parity-matrix`
 - PR: `tbd`
 - commits: `pending`
@@ -90,3 +90,5 @@
 - `2026-04-29 16:52` validation=`bundle exec ruby -Itest test/redwright/primitive_executor_test.rb && bundle exec ruby -Itest test/redwright/server_runtime_dispatcher_test.rb`
 - `2026-04-29 17:06` state=`implementation` slice=`slice-7` note=`added explicit /skill stop-and-apply control path, persisted accepted-partial stop marker, and closed stop sessions deterministically after canceled sub-loop handoff`
 - `2026-04-29 17:06` validation=`bundle exec ruby -Itest test/redwright/clarification_session_store_test.rb && bundle exec ruby -Itest test/redwright/skill_subloop_executor_test.rb && bundle exec ruby -Itest test/redwright/telegram_runtime_handler_test.rb`
+- `2026-04-29 17:20` state=`implementation` slice=`slice-8` note=`extended cross-channel parity matrix to assert operational control parity for /skill stop-and-apply and matching persistence side effects for pause/control marker scenarios`
+- `2026-04-29 17:20` validation=`bundle exec ruby -Itest test/redwright/cross_channel_parity_matrix_test.rb && bundle exec ruby -Itest test/redwright/simulated_ingress_matrix_test.rb`

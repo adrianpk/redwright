@@ -134,6 +134,18 @@ class CrossChannelParityMatrixTest < Minitest::Test
 
     [telegram, console, tui].each do |result|
       assert_includes(result[:terminal_text], "terminal: control_pause")
+      assert_equal("suspended", result[:latest_workstream_state])
+    end
+  end
+
+  def test_cross_channel_parity_for_skill_stop_and_apply_control_marker
+    telegram = run_sequence_scenario(channel: :telegram, messages: ["alpha do work", "/skill stop-and-apply"])
+    console = run_sequence_scenario(channel: :console, messages: ["alpha do work", "/skill stop-and-apply"])
+    tui = run_sequence_scenario(channel: :tui, messages: ["alpha do work", "/skill stop-and-apply"])
+
+    [telegram, console, tui].each do |result|
+      assert_includes(result[:terminal_text], "Skill sub-loop stop accepted")
+      assert_equal("control_stop", result[:open_clarification_gap_type])
     end
   end
 
@@ -323,7 +335,13 @@ class CrossChannelParityMatrixTest < Minitest::Test
                         else
                           output_text.string
                         end
-        { terminal_text: terminal_text }
+        latest_ws = workstream_store.find_latest_for_project(project_id: project_store.resolve("alpha").id)
+        open_cls = clarification_session_store.get_open(chat_id: 700)
+        {
+          terminal_text: terminal_text,
+          latest_workstream_state: latest_ws&.state,
+          open_clarification_gap_type: open_cls&.gap_type
+        }
       end
     end
   end
