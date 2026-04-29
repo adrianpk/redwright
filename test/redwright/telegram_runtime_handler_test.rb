@@ -38,6 +38,11 @@ class TelegramRuntimeHandlerTest < Minitest::Test
     :gaps,
     :control_intent,
     :control_scope,
+    :operational_intent,
+    :operational_scope,
+    :operational_args,
+    :operational_requires_project,
+    :operational_requires_confirmation,
     :skill_requested,
     :skill_mode,
     :source,
@@ -739,6 +744,119 @@ class TelegramRuntimeHandlerTest < Minitest::Test
     assert_match("telegram control chat=45 command=pause", out.string)
     assert_match("telegram control chat=45 command=resume", out.string)
     assert_match("telegram control chat=45 command=stop", out.string)
+  end
+
+  def test_handle_routes_operational_intent_controls_to_flow_control
+    fake_flow = Object.new
+    commands = []
+    fake_flow.define_singleton_method(:control) do |**kwargs|
+      commands << kwargs[:command]
+      TelegramRuntimeHandlerTest::FakeResult.new(
+        project: TelegramRuntimeHandlerTest::FakeProject.new(id: "project-1"),
+        workstream: TelegramRuntimeHandlerTest::FakeWorkstream.new(id: "ws-1", state: "executing"),
+        task: TelegramRuntimeHandlerTest::FakeTask.new(id: "task-operational-control"),
+        alignment: nil,
+        action_results: []
+      )
+    end
+    fake_flow.define_singleton_method(:process) do |**_kwargs|
+      raise "process should not run for operational control intents"
+    end
+
+    intents = %w[task_pause task_resume task_cancel plan_continue plan_stop_and_apply]
+    fake_interpreter = Object.new
+    idx = 0
+    fake_interpreter.define_singleton_method(:interpret) do |text:, model:|
+      intent = intents[idx]
+      idx += 1
+      TelegramRuntimeHandlerTest::FakeDecision.new(
+        intent: "meta",
+        message: "operational #{intent}",
+        actions: [],
+        gaps: [],
+        control_intent: "none",
+        control_scope: "none",
+        operational_intent: intent,
+        operational_scope: "runtime",
+        operational_args: {},
+        operational_requires_project: false,
+        operational_requires_confirmation: false,
+        source: "llm",
+        finish_reason: "stop",
+        raw_output: "{}"
+      )
+    end
+
+    handler = Redwright::TelegramRuntimeHandler.new(
+      flow: fake_flow,
+      telegram_client: FakeTelegramClient.new([]),
+      out: StringIO.new,
+      err: StringIO.new,
+      blocked_retry_attempts: 1,
+      model_name: "gpt-5-mini",
+      intent_interpreter: fake_interpreter
+    )
+
+    intents.each_with_index do |_intent, i|
+      handler.handle(Redwright::TelegramEvent.new(update_id: 820 + i, chat_id: 71, user_id: nil, username: nil, text: "meta op #{i}"))
+    end
+
+    assert_equal(%w[pause resume stop resume resume], commands)
+  end
+
+  def test_handle_infers_multilingual_control_when_planner_returns_meta_without_control_intent
+    fake_flow = Object.new
+    commands = []
+    fake_flow.define_singleton_method(:control) do |**kwargs|
+      commands << kwargs[:command]
+      TelegramRuntimeHandlerTest::FakeResult.new(
+        project: TelegramRuntimeHandlerTest::FakeProject.new(id: "project-1"),
+        workstream: TelegramRuntimeHandlerTest::FakeWorkstream.new(id: "ws-1", state: "executing"),
+        task: TelegramRuntimeHandlerTest::FakeTask.new(id: "task-inferred-control"),
+        alignment: nil,
+        action_results: []
+      )
+    end
+    fake_flow.define_singleton_method(:process) do |**_kwargs|
+      raise "process should not run for inferred control commands"
+    end
+
+    fake_interpreter = Object.new
+    fake_interpreter.define_singleton_method(:interpret) do |text:, model:|
+      TelegramRuntimeHandlerTest::FakeDecision.new(
+        intent: "meta",
+        message: "meta drift",
+        actions: [],
+        gaps: [],
+        control_intent: "none",
+        control_scope: "none",
+        operational_intent: "none",
+        operational_scope: "none",
+        operational_args: {},
+        operational_requires_project: false,
+        operational_requires_confirmation: false,
+        source: "llm",
+        finish_reason: "stop",
+        raw_output: "{}"
+      )
+    end
+
+    handler = Redwright::TelegramRuntimeHandler.new(
+      flow: fake_flow,
+      telegram_client: FakeTelegramClient.new([]),
+      out: StringIO.new,
+      err: StringIO.new,
+      blocked_retry_attempts: 1,
+      model_name: "gpt-5-mini",
+      intent_interpreter: fake_interpreter
+    )
+
+    handler.handle(Redwright::TelegramEvent.new(update_id: 830, chat_id: 72, user_id: nil, username: nil, text: "pausa"))
+    handler.handle(Redwright::TelegramEvent.new(update_id: 831, chat_id: 72, user_id: nil, username: nil, text: "continua"))
+    handler.handle(Redwright::TelegramEvent.new(update_id: 832, chat_id: 72, user_id: nil, username: nil, text: "cancelar"))
+    handler.handle(Redwright::TelegramEvent.new(update_id: 833, chat_id: 72, user_id: nil, username: nil, text: "continue"))
+
+    assert_equal(%w[pause resume stop resume], commands)
   end
 
   def test_handle_rewrites_continue_slash_to_planner_hint

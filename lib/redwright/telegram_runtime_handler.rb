@@ -195,6 +195,7 @@ module Redwright
             suppress_gap_clarify = true
           end
           control = control_from_decision(decision, raw_text: event.text)
+          control ||= control_from_operational(decision, raw_text: event.text)
           if control
             cancel_open_clarifications(
               chat_id: event.chat_id,
@@ -865,6 +866,26 @@ module Redwright
                  "none"
                end
       command = control_intent_command_map[intent]
+      command ||= inferred_control_command(raw_text) if intent == "none"
+      return nil if command.nil?
+
+      { command: command, reason: raw_text.to_s.strip }
+    end
+
+    def control_from_operational(decision, raw_text:)
+      return nil unless decision.respond_to?(:operational_intent)
+
+      intent = decision.operational_intent.to_s.strip
+      return nil if intent.empty? || intent == "none"
+
+      map = {
+        "task_pause" => "pause",
+        "task_resume" => "resume",
+        "task_cancel" => "stop",
+        "plan_continue" => "resume",
+        "plan_stop_and_apply" => "resume"
+      }
+      command = map[intent]
       return nil if command.nil?
 
       { command: command, reason: raw_text.to_s.strip }
@@ -876,6 +897,17 @@ module Redwright
         "cancel_task" => "stop",
         "cancel_all" => "stop"
       }
+    end
+
+    def inferred_control_command(raw_text)
+      text = raw_text.to_s.strip.downcase
+      return nil if text.empty?
+
+      return "stop" if text.match?(/\A(cancel|cancelar|cancela|annulla|annullare|stop|deten|detener|parar|para)\b/)
+      return "pause" if text.match?(/\A(pause|pausa|pausar)\b/)
+      return "resume" if text.match?(/\A(resume|resumir|continua|continuar|continue|proceed|segui|seguir)\b/)
+
+      nil
     end
 
     def cancel_open_clarifications(chat_id:, workstream_id:, scope:)

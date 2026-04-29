@@ -4,7 +4,7 @@
 
 - owner: `adrianpk`
 - status: `in_progress`
-- active_slice: `slice-3`
+- active_slice: `slice-4`
 - plan: `ops/plans/2026-04-29-redwright-operational-command-model-cycle-plan.md`
 
 ## Slice Progress
@@ -35,7 +35,7 @@
 
 ### Slice 4: Natural-Language Parity Router
 
-- status: `pending`
+- status: `completed`
 - branch: `feat/slice-4-natural-language-parity-router`
 - PR: `tbd`
 - commits: `pending`
@@ -82,3 +82,5 @@
 - `2026-04-29 15:53` validation=`bundle exec ruby -Itest test/redwright/planner_payload_validator_test.rb && bundle exec ruby -Itest test/redwright/llm_intent_interpreter_test.rb`
 - `2026-04-29 16:05` state=`implementation` slice=`slice-3` note=`expanded deterministic slash parser coverage for project/repo/task/plan/trace/help commands and mapped each to explicit control or planner hints`
 - `2026-04-29 16:05` validation=`bundle exec ruby -Itest test/redwright/telegram_runtime_handler_test.rb`
+- `2026-04-29 16:18` state=`implementation` slice=`slice-4` note=`added control precedence fallback from explicit operational intents and multilingual natural-language control inference to reduce meta drift on short control utterances`
+- `2026-04-29 16:18` validation=`bundle exec ruby -Itest test/redwright/telegram_runtime_handler_test.rb`
