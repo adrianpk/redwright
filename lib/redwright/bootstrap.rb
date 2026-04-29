@@ -246,8 +246,22 @@ module Redwright
           created_at TEXT NOT NULL
         );
 
+        CREATE TABLE IF NOT EXISTS execution_feedbacks (
+          id TEXT PRIMARY KEY,
+          trace_id TEXT,
+          workstream_id TEXT,
+          task_id TEXT,
+          attempt INTEGER NOT NULL,
+          failure_class TEXT NOT NULL,
+          fingerprint TEXT NOT NULL,
+          details_json TEXT NOT NULL,
+          created_at TEXT NOT NULL,
+          FOREIGN KEY(workstream_id) REFERENCES workstreams(id) ON DELETE CASCADE,
+          FOREIGN KEY(task_id) REFERENCES tasks(id) ON DELETE CASCADE
+        );
+
         INSERT INTO runtime_metadata (key, value, updated_at)
-        VALUES ('schema_version', '9', datetime('now'))
+        VALUES ('schema_version', '10', datetime('now'))
         ON CONFLICT(key) DO UPDATE SET
           value = excluded.value,
           updated_at = excluded.updated_at;

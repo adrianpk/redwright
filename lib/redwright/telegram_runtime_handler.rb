@@ -9,6 +9,7 @@ require_relative "bootstrap_minimum_gate"
 require_relative "hint_normalizer"
 require_relative "skill_router"
 require_relative "skill_subloop_executor"
+require_relative "feedback_normalizer"
 
 module Redwright
   class TelegramRuntimeHandler
@@ -39,7 +40,9 @@ module Redwright
       bootstrap_minimum_gate: BootstrapMinimumGate.new,
       hint_normalizer: HintNormalizer.new,
       skill_router: SkillRouter.new,
-      skill_subloop_executor: SkillSubloopExecutor.new
+      skill_subloop_executor: SkillSubloopExecutor.new,
+      feedback_normalizer: FeedbackNormalizer.new,
+      execution_feedback_store: nil
     )
       @flow = flow
       @telegram_client = telegram_client
@@ -66,6 +69,8 @@ module Redwright
       @hint_normalizer = hint_normalizer
       @skill_router = skill_router
       @skill_subloop_executor = skill_subloop_executor
+      @feedback_normalizer = feedback_normalizer
+      @execution_feedback_store = execution_feedback_store
     end
 
     def handle(event)
@@ -510,6 +515,15 @@ module Redwright
         Trace.runtime(trace_id: Trace.current_trace_id || "none", micro_loop_attempt: attempts, micro_loop_max_attempts: max_attempts)
         last_outcome = process_single_turn(decision: decision, resolution: resolution, prompt_context: prompt_context)
         quality_summary = last_outcome[:quality_summary]
+        feedback = @feedback_normalizer.normalize(
+          quality_summary: quality_summary,
+          action_results: last_outcome[:result]&.action_results
+        )
+        persist_execution_feedback(
+          result: last_outcome[:result],
+          attempt: attempts,
+          feedback: feedback
+        )
         if quality_failed?(quality_summary)
           terminal_reason = "quality_failed"
           break if attempts >= max_attempts
@@ -519,7 +533,9 @@ module Redwright
             project_path: resolution.project_path,
             original_text: original_text,
             quality_summary: quality_summary,
-            previous_message: decision.message
+            previous_message: decision.message,
+            normalized_failures: feedback.normalized_failures,
+            last_execution_results: feedback.execution_results
           )
           Trace.runtime(
             trace_id: Trace.current_trace_id || "none",
@@ -577,7 +593,7 @@ module Redwright
       quality_summary[:failed_checks].to_i.positive?
     end
 
-    def build_refinement_context_packet(project_path:, original_text:, quality_summary:, previous_message:)
+    def build_refinement_context_packet(project_path:, original_text:, quality_summary:, previous_message:, normalized_failures:, last_execution_results:)
       failed = quality_summary[:failed_check_names] || []
       packet = @iteration_context_packet_builder.build(
         project_path: project_path,
@@ -586,7 +602,9 @@ module Redwright
         current_errors: [
           "Validation failed after execution.",
           "Failed checks: #{failed.join(', ')}"
-        ]
+        ],
+        normalized_failures: normalized_failures,
+        last_execution_results: last_execution_results
       )
       packet[:prompt_text] = [
         packet[:prompt_text],
@@ -594,6 +612,29 @@ module Redwright
         "Return a corrected execution plan that repairs the failures while preserving the original goal."
       ].join("\n")
       packet
+    end
+
+    def persist_execution_feedback(result:, attempt:, feedback:)
+      return unless @execution_feedback_store
+      return unless result&.respond_to?(:task) && result.task
+      return unless result.respond_to?(:workstream) && result.workstream
+
+      feedback.fingerprints.each do |entry|
+        @execution_feedback_store.create(
+          trace_id: Trace.current_trace_id || "none",
+          workstream_id: result.workstream.id,
+          task_id: result.task.id,
+          attempt: attempt,
+          failure_class: entry["failure_class"],
+          fingerprint: entry["fingerprint"],
+          details: {
+            normalized_failures: feedback.normalized_failures,
+            execution_results: feedback.execution_results
+          }
+        )
+      end
+    rescue StandardError => e
+      @err.puts("execution feedback persist failed: #{e.message}")
     end
 
     def build_execution_summary(result, quality_summary: nil, attempts: 1, terminal_reason: "single_pass", mode: nil)

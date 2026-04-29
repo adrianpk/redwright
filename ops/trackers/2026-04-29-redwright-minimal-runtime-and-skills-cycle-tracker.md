@@ -76,11 +76,11 @@
 
 ### Slice 9: Feedback Loop Integrator (Compile/Test/Lint)
 
-- status: `pending`
+- status: `completed`
 - branch: `feat/slice-9-feedback-loop-integrator`
 - PR: `tbd`
-- commits: `tbd`
-- validation: `tbd`
+- commits: `pending-push`
+- validation: `bundle exec ruby -Itest test/redwright/feedback_normalizer_test.rb && bundle exec ruby -Itest test/redwright/execution_feedback_store_test.rb && bundle exec ruby -Itest test/redwright/telegram_runtime_handler_test.rb`
 
 ### Slice 10: Bounded Convergence Policy V1
 
