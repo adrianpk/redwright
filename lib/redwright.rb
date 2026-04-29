@@ -483,17 +483,68 @@ module Redwright
             client: telegram_client,
             allowed_chat_ids: config.telegram.allowed_chat_ids
           )
-          tg_runner = TelegramSocketClientRunner.new(
-            ingress_port: ingress_port,
-            socket_path: socket_path,
-            out: @out,
-            poll_interval_seconds: config.telegram.poll_interval_seconds
+          project_store = ProjectStore.new(bootstrap.db_path)
+          workstream_store = WorkstreamStore.new(bootstrap.db_path)
+          task_store = TaskStore.new(bootstrap.db_path)
+          alignment_store = AlignmentStore.new(bootstrap.db_path)
+          alignment_interruption_store = AlignmentInterruptionStore.new(bootstrap.db_path)
+          action_execution_store = ActionExecutionStore.new(bootstrap.db_path)
+          chat_context_store = ChatContextStore.new(bootstrap.db_path)
+          clarification_session_store = ClarificationSessionStore.new(bootstrap.db_path)
+          planner_rejection_store = PlannerRejectionStore.new(bootstrap.db_path)
+          quality_gate_runner = QualityGateRunner.new
+          model_candidate = ModelResolver.new(config.models).resolve("non_coding")
+          intent_interpreter = LlmIntentInterpreter.new(
+            llm_client: llm_client_for(model_candidate.provider)
           )
+          context_resolver = TelegramContextResolver.new(
+            project_store: project_store,
+            chat_context_store: chat_context_store,
+            projects_root: bootstrap.projects_root,
+            clarification_session_store: clarification_session_store
+          )
+          prompt_context_loader = PromptContextLoader.new(repo_root: Dir.pwd)
+          flow = RuntimeFlow.new(
+            project_store: project_store,
+            workstream_store: workstream_store,
+            task_store: task_store,
+            alignment_store: alignment_store,
+            alignment_interruption_store: alignment_interruption_store,
+            primitive_executor: PrimitiveExecutor.new(
+              allowed_projects_root: bootstrap.projects_root,
+              enforce_mutating_projects_root: true
+            ),
+            action_execution_store: action_execution_store,
+            alignment_max_turns: config.alignment.max_turns
+          )
+          handler = TelegramRuntimeHandler.new(
+            flow: flow,
+            telegram_client: telegram_client,
+            out: @out,
+            err: @err,
+            context_resolver: context_resolver,
+            chat_context_store: chat_context_store,
+            blocked_retry_attempts: config.runtime.blocked_retry_attempts,
+            model_role: "non_coding",
+            model_provider: model_candidate.provider,
+            model_name: model_candidate.name,
+            intent_interpreter: intent_interpreter,
+            prompt_context_loader: prompt_context_loader,
+            planner_rejection_store: planner_rejection_store,
+            clarification_session_store: clarification_session_store,
+            quality_gate_runner: quality_gate_runner,
+            send_json_envelope: config.telegram.send_json_envelope,
+            max_change_turn_seconds: config.alignment.max_turn_seconds
+          )
+          cursor = nil
           if run_once
-            tg_runner.run_once
+            poll = ingress_port.poll(cursor: cursor, timeout_seconds: config.telegram.poll_interval_seconds)
+            poll.events.each { |event| handler.handle(event) }
           else
             loop do
-              tg_runner.run_once
+              poll = ingress_port.poll(cursor: cursor, timeout_seconds: config.telegram.poll_interval_seconds)
+              cursor = poll.next_cursor
+              poll.events.each { |event| handler.handle(event) }
               sleep(config.runtime.loop_interval_ms / 1000.0)
             end
           end
@@ -646,7 +697,12 @@ module Redwright
           action_execution_store: ActionExecutionStore.new(bootstrap.db_path),
           skill_dispatcher: SkillDispatcher.new
         )
-        runtime_dispatcher = ServerRuntimeDispatcher.new(flow: flow, blocked_retry_attempts: 1)
+        runtime_dispatcher = ServerRuntimeDispatcher.new(
+          flow: flow,
+          blocked_retry_attempts: 1,
+          project_store: ProjectStore.new(bootstrap.db_path),
+          projects_root: bootstrap.projects_root
+        )
         ipc_server = LocalIpcServer.new(
           socket_path: socket_path,
           dispatcher: lambda do |request|

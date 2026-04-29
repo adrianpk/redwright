@@ -65,7 +65,7 @@ class TelegramIngressTest < Minitest::Test
     assert_equal(22, result.next_offset)
   end
 
-  def test_ignores_telegram_system_commands_like_start
+  def test_keeps_slash_commands_as_regular_events
     client = FakeClient.new(
       [
         {
@@ -91,7 +91,8 @@ class TelegramIngressTest < Minitest::Test
     result = ingress.poll(offset: nil, timeout_seconds: 2)
 
     assert_equal(32, result.next_offset)
-    assert_equal(1, result.events.size)
-    assert_equal("real task message", result.events.first.text)
+    assert_equal(2, result.events.size)
+    assert_equal("/start", result.events[0].text)
+    assert_equal("real task message", result.events[1].text)
   end
 end

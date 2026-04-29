@@ -903,8 +903,8 @@ module Redwright
       when "/status"
         { kind: "planner_hint", planner_text: "Show runtime status for the current active project and workstream." }
       when "/project"
-        return { kind: "planner_hint", planner_text: "Switch active project to '#{arg.sub(/^switch\s+/i, "")}'." } if arg.match?(/^switch\s+/i)
-        return { kind: "planner_hint", planner_text: "Create a new project named '#{arg.sub(/^new\s+/i, "")}' and set it active." } if arg.match?(/^new\s+/i)
+        return { kind: "planner_hint", planner_text: "Switch active project to #{arg.sub(/^switch\s+/i, "")}." } if arg.match?(/^switch\s+/i)
+        return { kind: "planner_hint", planner_text: "Create a new project named #{arg.sub(/^new\s+/i, "")} and set it active." } if arg.match?(/^new\s+/i)
         nil
       when "/skill"
         return nil if arg.empty?

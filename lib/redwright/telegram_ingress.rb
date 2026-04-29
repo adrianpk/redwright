@@ -24,7 +24,6 @@ module Redwright
 
         text = message["text"]
         next unless text.is_a?(String) && !text.strip.empty?
-        next if telegram_system_command?(text)
 
         chat = message["chat"]
         from = message["from"]
@@ -58,11 +57,6 @@ module Redwright
       Integer(value)
     rescue ArgumentError, TypeError
       nil
-    end
-
-    def telegram_system_command?(text)
-      stripped = text.strip
-      stripped.start_with?("/")
     end
   end
 end

@@ -794,7 +794,7 @@ class TelegramRuntimeHandlerTest < Minitest::Test
     handler.handle(Redwright::TelegramEvent.new(update_id: 90, chat_id: 46, user_id: nil, username: nil, text: "/project switch rw"))
     handler.handle(Redwright::TelegramEvent.new(update_id: 91, chat_id: 46, user_id: nil, username: nil, text: "/skill grill-me"))
 
-    assert(seen.any? { |t| t.include?("Switch active project to 'rw'") })
+    assert(seen.any? { |t| t.include?("Switch active project to rw") })
     assert(seen.any? { |t| t.include?("Activate skill 'grill-me' in explicit mode") })
     assert_match("telegram skill chat=46 name=grill-me mode=explicit confidence=1.0 reason=explicit_slash_skill", out.string)
     assert_equal("", err.string)
