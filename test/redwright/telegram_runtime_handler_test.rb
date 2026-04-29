@@ -1183,6 +1183,62 @@ class TelegramRuntimeHandlerTest < Minitest::Test
     assert_equal("", err.string)
   end
 
+  def test_handle_retries_change_turn_after_recoverable_macro_shape_error
+    fake_flow = Object.new
+    process_calls = 0
+    fake_flow.define_singleton_method(:process) do |**_kwargs|
+      process_calls += 1
+      if process_calls == 1
+        raise RuntimeError, "action_failed id=a1 type=write_files: write_files_missing_files"
+      end
+
+      TelegramRuntimeHandlerTest::FakeResult.new(
+        project: TelegramRuntimeHandlerTest::FakeProject.new(id: "project-1"),
+        workstream: TelegramRuntimeHandlerTest::FakeWorkstream.new(id: "ws-1", state: "executing"),
+        task: TelegramRuntimeHandlerTest::FakeTask.new(id: "task-retry-ok"),
+        alignment: nil,
+        action_results: []
+      )
+    end
+
+    interpreter_calls = 0
+    fake_interpreter = Object.new
+    fake_interpreter.define_singleton_method(:interpret) do |text:, model:|
+      interpreter_calls += 1
+      TelegramRuntimeHandlerTest::FakeDecision.new(
+        intent: "change",
+        message: text,
+        actions: [],
+        gaps: [],
+        control_intent: "none",
+        control_scope: "none",
+        source: "llm",
+        finish_reason: "stop",
+        raw_output: "{}"
+      )
+    end
+
+    client = FakeTelegramClient.new([])
+    out = StringIO.new
+    err = StringIO.new
+    handler = Redwright::TelegramRuntimeHandler.new(
+      flow: fake_flow,
+      telegram_client: client,
+      out: out,
+      err: err,
+      blocked_retry_attempts: 2,
+      model_name: "gpt-5-mini",
+      intent_interpreter: fake_interpreter
+    )
+
+    handler.handle(Redwright::TelegramEvent.new(update_id: 202, chat_id: 62, user_id: nil, username: nil, text: "create project scaffold"))
+
+    assert_equal(2, process_calls)
+    assert_equal(2, interpreter_calls)
+    assert_match("Started task task-retry-ok in project project-1.", client.messages.last[:text])
+    assert_equal("", err.string)
+  end
+
   def test_handle_includes_execution_summary_and_passes_actions_to_flow
     fake_flow = Object.new
     captured = {}

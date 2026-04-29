@@ -539,7 +539,37 @@ module Redwright
       while attempts < max_attempts
         attempts += 1
         Trace.runtime(trace_id: Trace.current_trace_id || "none", micro_loop_attempt: attempts, micro_loop_max_attempts: max_attempts)
-        last_outcome = process_single_turn(decision: decision, resolution: resolution, prompt_context: prompt_context)
+        begin
+          last_outcome = process_single_turn(decision: decision, resolution: resolution, prompt_context: prompt_context)
+        rescue StandardError => e
+          if recoverable_runtime_error?(e.message) && attempts < max_attempts && Process.clock_gettime(Process::CLOCK_MONOTONIC) < deadline
+            refinement_packet = build_runtime_error_refinement_packet(
+              project_path: resolution.project_path,
+              original_text: original_text,
+              previous_message: decision.message,
+              runtime_error: e.message
+            )
+            decision = interpret_with_trace(
+              action: "intent_refine_with_errors",
+              text: refinement_packet[:prompt_text],
+              model: @model_name,
+              project_context: prompt_context[:project_context],
+              architecture_context: prompt_context[:architecture_context],
+              workspace_context: prompt_context[:workspace_context]
+            )
+            if highest_value_gap_question(decision)
+              terminal_reason = "clarify"
+              break
+            end
+            if decision.source == "fallback" && planner_decision_invalid?(decision)
+              terminal_reason = "planner_rejected_after_retry"
+              break
+            end
+            next
+          end
+
+          raise
+        end
         quality_summary = last_outcome[:quality_summary]
         feedback = @feedback_normalizer.normalize(
           quality_summary: quality_summary,
@@ -656,6 +686,52 @@ module Redwright
         "Return a corrected execution plan that repairs the failures while preserving the original goal."
       ].join("\n")
       packet
+    end
+
+    def build_runtime_error_refinement_packet(project_path:, original_text:, previous_message:, runtime_error:)
+      packet = @iteration_context_packet_builder.build(
+        project_path: project_path,
+        task_goal: original_text,
+        previous_message: previous_message,
+        current_errors: [
+          "Execution failed before validation.",
+          "Runtime error: #{runtime_error}"
+        ],
+        normalized_failures: [
+          {
+            "failure_class" => classify_runtime_error(runtime_error),
+            "fingerprint" => runtime_error.to_s[0, 180],
+            "summary" => runtime_error.to_s
+          }
+        ],
+        last_execution_results: []
+      )
+      packet[:prompt_text] = [
+        packet[:prompt_text],
+        "",
+        "Return a corrected execution plan that fixes the runtime error and keeps the original objective."
+      ].join("\n")
+      packet
+    end
+
+    def recoverable_runtime_error?(message)
+      msg = message.to_s
+      recoverable_macro_error?(msg) || msg.include?("action_failed id=")
+    end
+
+    def recoverable_macro_error?(message)
+      msg = message.to_s
+      msg.include?("write_files_missing_files") ||
+        msg.include?("write_files_invalid_content") ||
+        msg.include?("run_commands_missing_cmds") ||
+        msg.include?("run_commands_invalid_cmd") ||
+        msg.include?("run_command_missing_cmd")
+    end
+
+    def classify_runtime_error(message)
+      return "macro_shape_error" if recoverable_macro_error?(message)
+
+      "execution_error"
     end
 
     def persist_execution_feedback(result:, attempt:, feedback:)
