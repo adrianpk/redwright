@@ -54,6 +54,7 @@
 - [ ] `T5.2 decide and apply one canonical policy for handoff artifacts (tracked vs ignored)`
 - [ ] `T5.3 review and clean obvious non-runtime operational clutter while preserving auditability`
 - [ ] `T5.4 run full regression suite and parity/invariant gates before closure`
+- [ ] `T5.5 reduce slash-command fragility: route canonical operational slashes through deterministic runtime path and normalize planner control/operational taxonomy conflicts`
 
 ## Validation Matrix
 
