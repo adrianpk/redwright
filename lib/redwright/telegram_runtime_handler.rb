@@ -769,25 +769,53 @@ module Redwright
 
     def consume_pending_planner_gap_answer(chat_id:, workstream_id:, user_text:)
       pending = @clarification_session_store&.get_open(chat_id: chat_id, workstream_id: workstream_id)
+      pending ||= @clarification_session_store&.get_open(chat_id: chat_id)
       return { text: user_text, action: "intent_interpret" } unless pending && pending.gap_type == "planner_gap"
 
       base = pending.payload.fetch("base_message", "").to_s.strip
       gap_field = pending.payload.fetch("gap", {}).fetch("field", "").to_s.strip
-      merged = if base.empty?
-                 user_text.to_s
+      answer = user_text.to_s
+      continue_semantic = continue_with_current_context_semantic?(answer)
+      merged = if continue_semantic
+                 base.empty? ? "Continue with current context and execute using existing assumptions." : base
+               elsif base.empty?
+                 answer
                else
-                 [base, "Clarification#{gap_field.empty? ? '' : " for #{gap_field}"}: #{user_text}"].join("\n")
+                 [base, "Clarification#{gap_field.empty? ? '' : " for #{gap_field}"}: #{answer}"].join("\n")
                end
 
       @clarification_session_store&.advance(
         chat_id: chat_id,
         session_id: pending.id,
-        resolved_fields: { gap_field.empty? ? "clarification_answer" : gap_field => user_text.to_s },
+        resolved_fields: {
+          gap_field.empty? ? "clarification_answer" : gap_field => answer,
+          "continue_with_current_context" => continue_semantic
+        },
         status: "closed",
         last_question_id: pending.last_question_id
       )
 
-      { text: merged, action: "intent_interpret_with_gap_answer" }
+      {
+        text: merged,
+        action: continue_semantic ? "intent_interpret_with_current_context" : "intent_interpret_with_gap_answer"
+      }
+    end
+
+    def continue_with_current_context_semantic?(text)
+      normalized = text.to_s.strip.downcase
+      return false if normalized.empty?
+
+      phrases = [
+        "continue",
+        "continue with current context",
+        "continue with what you have",
+        "proceed with current context",
+        "continua",
+        "continua con lo que tengas",
+        "segui con lo que tenes",
+        "sigue con lo que tengas"
+      ]
+      phrases.any? { |phrase| normalized == phrase }
     end
 
     def parse_slash_command(text)

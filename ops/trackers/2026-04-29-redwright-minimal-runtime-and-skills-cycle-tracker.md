@@ -68,11 +68,11 @@
 
 ### Slice 8: Clarification Session V2
 
-- status: `pending`
+- status: `completed`
 - branch: `feat/slice-8-clarification-session-v2`
 - PR: `tbd`
-- commits: `tbd`
-- validation: `tbd`
+- commits: `pending-push`
+- validation: `bundle exec ruby -Itest test/redwright/clarification_session_store_test.rb && bundle exec ruby -Itest test/redwright/telegram_runtime_handler_test.rb`
 
 ### Slice 9: Feedback Loop Integrator (Compile/Test/Lint)
 

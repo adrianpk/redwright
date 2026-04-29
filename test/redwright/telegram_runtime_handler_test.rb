@@ -911,6 +911,166 @@ class TelegramRuntimeHandlerTest < Minitest::Test
     assert_equal("", err.string)
   end
 
+  def test_handle_uses_chat_level_pending_planner_gap_when_workstream_specific_lookup_misses
+    fake_flow = Object.new
+    captured = {}
+    fake_flow.define_singleton_method(:process) do |**kwargs|
+      captured.merge!(kwargs)
+      TelegramRuntimeHandlerTest::FakeResult.new(
+        project: TelegramRuntimeHandlerTest::FakeProject.new(id: "project-1"),
+        workstream: TelegramRuntimeHandlerTest::FakeWorkstream.new(id: "ws-1", state: "executing"),
+        task: TelegramRuntimeHandlerTest::FakeTask.new(id: "task-gap"),
+        alignment: nil,
+        action_results: []
+      )
+    end
+
+    fake_pending = Struct.new(:id, :gap_type, :payload, :last_question_id, keyword_init: true).new(
+      id: "cls-1",
+      gap_type: "planner_gap",
+      payload: {
+        "base_message" => "Create project",
+        "gap" => { "field" => "test_framework" }
+      },
+      last_question_id: "q1"
+    )
+    fake_clarification_store = Object.new
+    calls = []
+    advances = []
+    fake_clarification_store.define_singleton_method(:get_open) do |**kwargs|
+      calls << kwargs
+      kwargs[:workstream_id] ? nil : fake_pending
+    end
+    fake_clarification_store.define_singleton_method(:advance) do |**kwargs|
+      advances << kwargs
+      nil
+    end
+    fake_clarification_store.define_singleton_method(:cancel_open) do |**_kwargs|
+      nil
+    end
+
+    fake_interpreter = Object.new
+    fake_interpreter.define_singleton_method(:interpret) do |text:, model:|
+      TelegramRuntimeHandlerTest::FakeDecision.new(
+        intent: "change",
+        message: text,
+        source: "llm",
+        finish_reason: "stop",
+        raw_output: "{}"
+      )
+    end
+    fake_context_resolver = Object.new
+    fake_context_resolver.define_singleton_method(:resolve) do |chat_id:, text:|
+      Redwright::TelegramContextResolver::Resolution.new(
+        resolved: true,
+        project_ref: "project-1",
+        project_path: "/tmp/project-1",
+        workstream_id: "ws-1",
+        question: nil
+      )
+    end
+
+    client = FakeTelegramClient.new([])
+    out = StringIO.new
+    err = StringIO.new
+    handler = Redwright::TelegramRuntimeHandler.new(
+      flow: fake_flow,
+      telegram_client: client,
+      out: out,
+      err: err,
+      blocked_retry_attempts: 1,
+      model_name: "gpt-5-mini",
+      intent_interpreter: fake_interpreter,
+      clarification_session_store: fake_clarification_store,
+      context_resolver: fake_context_resolver
+    )
+
+    handler.handle(Redwright::TelegramEvent.new(update_id: 95, chat_id: 50, user_id: nil, username: nil, text: "RSpec"))
+
+    assert_equal(2, calls.size)
+    assert_equal(1, advances.size)
+    assert_includes(captured[:message], "Create project")
+    assert_includes(captured[:message], "Clarification for test_framework: RSpec")
+    assert_equal("", err.string)
+  end
+
+  def test_handle_closes_pending_gap_on_continue_with_current_context_semantic
+    fake_flow = Object.new
+    captured = {}
+    fake_flow.define_singleton_method(:process) do |**kwargs|
+      captured.merge!(kwargs)
+      TelegramRuntimeHandlerTest::FakeResult.new(
+        project: TelegramRuntimeHandlerTest::FakeProject.new(id: "project-1"),
+        workstream: TelegramRuntimeHandlerTest::FakeWorkstream.new(id: "ws-1", state: "executing"),
+        task: TelegramRuntimeHandlerTest::FakeTask.new(id: "task-continue-gap"),
+        alignment: nil,
+        action_results: []
+      )
+    end
+
+    fake_pending = Struct.new(:id, :gap_type, :payload, :last_question_id, keyword_init: true).new(
+      id: "cls-2",
+      gap_type: "planner_gap",
+      payload: {
+        "base_message" => "Implement the feature using current assumptions",
+        "gap" => { "field" => "project_name" }
+      },
+      last_question_id: "q2"
+    )
+    fake_clarification_store = Object.new
+    advances = []
+    fake_clarification_store.define_singleton_method(:get_open) do |**_kwargs|
+      fake_pending
+    end
+    fake_clarification_store.define_singleton_method(:advance) do |**kwargs|
+      advances << kwargs
+      nil
+    end
+    fake_clarification_store.define_singleton_method(:cancel_open) do |**_kwargs|
+      nil
+    end
+
+    fake_interpreter = Object.new
+    fake_interpreter.define_singleton_method(:interpret) do |text:, model:|
+      TelegramRuntimeHandlerTest::FakeDecision.new(
+        intent: "change",
+        message: text,
+        source: "llm",
+        finish_reason: "stop",
+        raw_output: "{}"
+      )
+    end
+
+    client = FakeTelegramClient.new([])
+    out = StringIO.new
+    err = StringIO.new
+    handler = Redwright::TelegramRuntimeHandler.new(
+      flow: fake_flow,
+      telegram_client: client,
+      out: out,
+      err: err,
+      blocked_retry_attempts: 1,
+      model_name: "gpt-5-mini",
+      intent_interpreter: fake_interpreter,
+      clarification_session_store: fake_clarification_store
+    )
+
+    handler.handle(
+      Redwright::TelegramEvent.new(
+        update_id: 96,
+        chat_id: 51,
+        user_id: nil,
+        username: nil,
+        text: "continua con lo que tengas"
+      )
+    )
+
+    assert_equal("Implement the feature using current assumptions", captured[:message])
+    assert_equal(1, advances.size)
+    assert_equal(true, advances.first.dig(:resolved_fields, "continue_with_current_context"))
+    assert_equal("", err.string)
+  end
+
   def test_handle_keeps_slash_precedence_over_hints
     fake_flow = Object.new
     captured = {}
