@@ -3,8 +3,8 @@
 ## Metadata
 
 - owner: `adrianpk`
-- status: `in_progress`
-- active_slice: `slice-5`
+- status: `completed`
+- active_slice: `none`
 - plan: `ops/plans/2026-04-29-redwright-persistence-audit-and-canonical-state-cycle-plan.md`
 
 ## Slice Progress
@@ -51,7 +51,7 @@
 
 ### Slice 6: Persistence Reference Documentation
 
-- status: `pending`
+- status: `completed`
 - branch: `feat/slice-6-persistence-reference-docs`
 - PR: `tbd`
 - commits: `pending`
@@ -68,3 +68,6 @@
 - `2026-04-29 15:18` validation=`bundle exec ruby -Itest test/redwright/chat_context_store_test.rb && bundle exec ruby -Itest test/redwright/clarification_session_store_test.rb && bundle exec ruby -Itest test/redwright/runtime_persistence_integrity_hygiene_test.rb`
 - `2026-04-29 15:35` state=`implementation` slice=`slice-5` note=`added idempotent schema migrator with transactional rollback safety and explicit reserve migration marker for current zombie candidates`
 - `2026-04-29 15:35` validation=`bundle exec ruby -Itest test/redwright/schema_migrator_test.rb && bundle exec ruby -Itest test/redwright/bootstrap_test.rb`
+- `2026-04-29 15:26` state=`implementation` slice=`slice-6` note=`published persistence reference model covering ownership, id contracts, lifecycle, guardrails, startup hygiene, migrations, and reserved candidates`
+- `2026-04-29 15:26` validation=`docs consistency review against runtime implementation and cycle artifacts`
+- `2026-04-29 15:26` state=`cycle_completed` note=`all six slices completed for persistence audit and canonical state cycle`
