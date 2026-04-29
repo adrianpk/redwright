@@ -13,6 +13,11 @@ module Redwright
       :gaps,
       :control_intent,
       :control_scope,
+      :operational_intent,
+      :operational_scope,
+      :operational_args,
+      :operational_requires_project,
+      :operational_requires_confirmation,
       :skill_requested,
       :skill_mode,
       :skill_actions,
@@ -24,8 +29,9 @@ module Redwright
     SCHEMA_PATH = File.expand_path("../../config/schemas/planner_output.schema.json", __dir__)
 
     def validate(raw_output)
-      parsed = JSON.parse(raw_output.to_s)
+      parsed = normalize_defaults(JSON.parse(raw_output.to_s))
       errors = schema_errors(parsed, schema)
+      errors.concat(taxonomy_errors(parsed))
       return invalid(errors) unless errors.empty?
 
       ValidationResult.new(
@@ -36,6 +42,11 @@ module Redwright
         gaps: parsed["gaps"],
         control_intent: parsed["control_intent"].to_s.strip,
         control_scope: parsed["control_scope"].to_s.strip,
+        operational_intent: parsed["operational_intent"].to_s.strip,
+        operational_scope: parsed["operational_scope"].to_s.strip,
+        operational_args: parsed["operational_args"].is_a?(Hash) ? parsed["operational_args"] : {},
+        operational_requires_project: parsed["operational_requires_project"] == true,
+        operational_requires_confirmation: parsed["operational_requires_confirmation"] == true,
         skill_requested: parsed["skill_requested"].to_s,
         skill_mode: parsed["skill_mode"].to_s.strip,
         skill_actions: parsed["skill_actions"],
@@ -153,12 +164,61 @@ module Redwright
         gaps: nil,
         control_intent: nil,
         control_scope: nil,
+        operational_intent: nil,
+        operational_scope: nil,
+        operational_args: nil,
+        operational_requires_project: nil,
+        operational_requires_confirmation: nil,
         skill_requested: nil,
         skill_mode: nil,
         skill_actions: nil,
         skill_exit_condition: nil,
         errors: errors
       )
+    end
+
+    def normalize_defaults(parsed)
+      return parsed unless parsed.is_a?(Hash)
+
+      normalized = parsed.dup
+      normalized["control_intent"] = "none" unless normalized.key?("control_intent")
+      normalized["control_scope"] = "none" unless normalized.key?("control_scope")
+      normalized["operational_intent"] = "none" unless normalized.key?("operational_intent")
+      normalized["operational_scope"] = "none" unless normalized.key?("operational_scope")
+      normalized["operational_args"] = {} unless normalized.key?("operational_args")
+      normalized["operational_requires_project"] = false unless normalized.key?("operational_requires_project")
+      normalized["operational_requires_confirmation"] = false unless normalized.key?("operational_requires_confirmation")
+      normalized["skill_requested"] = "" unless normalized.key?("skill_requested")
+      normalized["skill_mode"] = "none" unless normalized.key?("skill_mode")
+      normalized["skill_actions"] = [] unless normalized.key?("skill_actions")
+      normalized["skill_exit_condition"] = "" unless normalized.key?("skill_exit_condition")
+      normalized
+    end
+
+    def taxonomy_errors(parsed)
+      errors = []
+      control_intent = parsed["control_intent"].to_s
+      operational_intent = parsed["operational_intent"].to_s
+      operational_scope = parsed["operational_scope"].to_s
+      operational_args = parsed["operational_args"]
+      requires_project = parsed["operational_requires_project"] == true
+
+      if operational_intent != "none" && control_intent != "none"
+        errors << "taxonomy_conflict:control_and_operational_intents"
+      end
+      if control_intent != "none" && operational_intent != "none"
+        errors << "taxonomy_conflict:operational_and_control_intents"
+      end
+      if operational_intent != "none" && operational_scope == "none"
+        errors << "taxonomy_missing_scope_for_operational_intent"
+      end
+      if requires_project
+        unless operational_args.is_a?(Hash) && operational_args["project_ref"].to_s.strip != ""
+          errors << "taxonomy_missing_operational_project_ref"
+        end
+      end
+
+      errors
     end
   end
 end

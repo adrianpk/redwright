@@ -9,6 +9,11 @@
     "gaps",
     "control_intent",
     "control_scope",
+    "operational_intent",
+    "operational_scope",
+    "operational_args",
+    "operational_requires_project",
+    "operational_requires_confirmation",
     "skill_requested",
     "skill_mode",
     "skill_actions",
@@ -33,6 +38,36 @@
       "type": "string",
       "enum": ["none", "gap", "task", "workstream", "chat", "runtime"]
     },
+    "operational_intent": {
+      "type": "string",
+      "enum": [
+        "none",
+        "project_new",
+        "project_switch",
+        "project_list",
+        "project_where",
+        "repo_clone",
+        "repo_status",
+        "repo_undo",
+        "task_pause",
+        "task_resume",
+        "task_cancel",
+        "plan_start",
+        "plan_continue",
+        "plan_stop_and_apply",
+        "trace_on",
+        "trace_off",
+        "trace_status",
+        "help"
+      ]
+    },
+    "operational_scope": {
+      "type": "string",
+      "enum": ["none", "session", "project", "runtime"]
+    },
+    "operational_args": { "type": "object" },
+    "operational_requires_project": { "type": "boolean" },
+    "operational_requires_confirmation": { "type": "boolean" },
     "skill_requested": { "type": "string" },
     "skill_mode": { "type": "string", "enum": ["none", "explicit", "inferred"] },
     "skill_actions": {
@@ -41,6 +76,48 @@
     },
     "skill_exit_condition": { "type": "string" }
   },
+  "allOf": [
+    {
+      "if": {
+        "properties": { "operational_intent": { "type": "string", "not": { "const": "none" } } },
+        "required": ["operational_intent"]
+      },
+      "then": {
+        "properties": {
+          "operational_scope": { "type": "string", "not": { "const": "none" } },
+          "control_intent": { "const": "none" }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": { "control_intent": { "type": "string", "not": { "const": "none" } } },
+        "required": ["control_intent"]
+      },
+      "then": {
+        "properties": {
+          "operational_intent": { "const": "none" }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": { "operational_requires_project": { "const": true } },
+        "required": ["operational_requires_project"]
+      },
+      "then": {
+        "properties": {
+          "operational_args": {
+            "type": "object",
+            "required": ["project_ref"],
+            "properties": {
+              "project_ref": { "type": "string", "minLength": 1 }
+            }
+          }
+        }
+      }
+    }
+  ],
   "$defs": {
     "action": {
       "type": "object",

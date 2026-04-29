@@ -5,6 +5,27 @@ module Redwright
     INTENTS = %w[change meta].freeze
     CONTROL_INTENTS = %w[none proceed_with_current_context cancel_clarification_only cancel_task cancel_all].freeze
     CONTROL_SCOPES = %w[none gap task workstream chat runtime].freeze
+    OPERATIONAL_INTENTS = %w[
+      none
+      project_new
+      project_switch
+      project_list
+      project_where
+      repo_clone
+      repo_status
+      repo_undo
+      task_pause
+      task_resume
+      task_cancel
+      plan_start
+      plan_continue
+      plan_stop_and_apply
+      trace_on
+      trace_off
+      trace_status
+      help
+    ].freeze
+    OPERATIONAL_SCOPES = %w[none session project runtime].freeze
     SKILL_MODES = %w[none explicit inferred].freeze
     TOP_LEVEL_KEYS = %w[
       intent
@@ -13,6 +34,11 @@ module Redwright
       gaps
       control_intent
       control_scope
+      operational_intent
+      operational_scope
+      operational_args
+      operational_requires_project
+      operational_requires_confirmation
       skill_requested
       skill_mode
       skill_actions
@@ -66,6 +92,11 @@ module Redwright
       - gaps: array of unresolved clarification gaps (can be empty)
       - control_intent: one of "none", "proceed_with_current_context", "cancel_clarification_only", "cancel_task", "cancel_all"
       - control_scope: one of "none", "gap", "task", "workstream", "chat", "runtime"
+      - operational_intent: one of "none", "project_new", "project_switch", "project_list", "project_where", "repo_clone", "repo_status", "repo_undo", "task_pause", "task_resume", "task_cancel", "plan_start", "plan_continue", "plan_stop_and_apply", "trace_on", "trace_off", "trace_status", "help"
+      - operational_scope: one of "none", "session", "project", "runtime"
+      - operational_args: object with intent-specific arguments (can be empty)
+      - operational_requires_project: boolean
+      - operational_requires_confirmation: boolean
       - skill_requested: skill name or empty string
       - skill_mode: one of "none", "explicit", "inferred"
       - skill_actions: array of skill action objects (can be empty)

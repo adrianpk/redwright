@@ -4,7 +4,7 @@
 
 - owner: `adrianpk`
 - status: `in_progress`
-- active_slice: `slice-1`
+- active_slice: `slice-2`
 - plan: `ops/plans/2026-04-29-redwright-operational-command-model-cycle-plan.md`
 
 ## Slice Progress
@@ -19,7 +19,7 @@
 
 ### Slice 2: Operational Intent Taxonomy V1
 
-- status: `pending`
+- status: `completed`
 - branch: `feat/slice-2-operational-intent-taxonomy-v1`
 - PR: `tbd`
 - commits: `pending`
@@ -78,3 +78,5 @@
 - `2026-04-29 14:10` state=`planned` note=`cycle created to stabilize operational command semantics across slash and natural-language routing`
 - `2026-04-29 15:43` state=`implementation` slice=`slice-1` note=`fixed micro-loop nil-outcome crash path and added regression coverage for recoverable-error refine->clarify early-exit`
 - `2026-04-29 15:44` validation=`bundle exec ruby -Itest test/redwright/telegram_runtime_handler_test.rb`
+- `2026-04-29 15:53` state=`implementation` slice=`slice-2` note=`defined operational intent taxonomy fields in planner contract/schema, added backward-compatible validator defaults, and enforced separation rules between control and operational intents`
+- `2026-04-29 15:53` validation=`bundle exec ruby -Itest test/redwright/planner_payload_validator_test.rb && bundle exec ruby -Itest test/redwright/llm_intent_interpreter_test.rb`

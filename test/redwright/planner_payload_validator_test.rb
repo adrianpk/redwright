@@ -143,6 +143,73 @@ class PlannerPayloadValidatorTest < Minitest::Test
     assert(result.errors.any? { |e| e.start_with?("schema_enum_mismatch:$.control_intent") })
   end
 
+  def test_validate_rejects_operational_and_control_conflict
+    validator = Redwright::PlannerPayloadValidator.new
+    payload = JSON.generate(
+      base_payload.merge(
+        intent: "meta",
+        control_intent: "cancel_task",
+        control_scope: "task",
+        operational_intent: "project_switch",
+        operational_scope: "project",
+        operational_args: { project_ref: "rw" }
+      )
+    )
+
+    result = validator.validate(payload)
+    assert_equal(false, result.valid)
+    assert_includes(result.errors, "taxonomy_conflict:control_and_operational_intents")
+  end
+
+  def test_validate_rejects_operational_intent_without_scope
+    validator = Redwright::PlannerPayloadValidator.new
+    payload = JSON.generate(
+      base_payload.merge(
+        intent: "meta",
+        operational_intent: "project_list",
+        operational_scope: "none"
+      )
+    )
+
+    result = validator.validate(payload)
+    assert_equal(false, result.valid)
+    assert_includes(result.errors, "taxonomy_missing_scope_for_operational_intent")
+  end
+
+  def test_validate_rejects_missing_project_ref_when_operational_requires_project
+    validator = Redwright::PlannerPayloadValidator.new
+    payload = JSON.generate(
+      base_payload.merge(
+        intent: "meta",
+        operational_intent: "repo_status",
+        operational_scope: "project",
+        operational_requires_project: true,
+        operational_args: {}
+      )
+    )
+
+    result = validator.validate(payload)
+    assert_equal(false, result.valid)
+    assert_includes(result.errors, "taxonomy_missing_operational_project_ref")
+  end
+
+  def test_validate_accepts_legacy_payload_without_operational_fields
+    validator = Redwright::PlannerPayloadValidator.new
+    payload = JSON.generate(
+      {
+        intent: "change",
+        message: "legacy payload",
+        actions: [],
+        gaps: []
+      }
+    )
+
+    result = validator.validate(payload)
+    assert_equal(true, result.valid)
+    assert_equal("none", result.operational_intent)
+    assert_equal("none", result.control_intent)
+  end
+
   private
 
   def base_payload
@@ -153,6 +220,11 @@ class PlannerPayloadValidatorTest < Minitest::Test
       gaps: [],
       control_intent: "none",
       control_scope: "none",
+      operational_intent: "none",
+      operational_scope: "none",
+      operational_args: {},
+      operational_requires_project: false,
+      operational_requires_confirmation: false,
       skill_requested: "",
       skill_mode: "none",
       skill_actions: [],
