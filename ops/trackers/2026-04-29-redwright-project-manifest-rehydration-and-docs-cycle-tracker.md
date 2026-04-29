@@ -4,7 +4,7 @@
 
 - owner: `adrianpk`
 - status: `in_progress`
-- active_slice: `slice_7`
+- active_slice: `slice_8`
 - plan: `ops/plans/2026-04-29-redwright-project-manifest-rehydration-and-docs-cycle-plan.md`
 
 ## Slice Progress
@@ -53,17 +53,17 @@
 
 - status: `completed`
 - branch: `feat/slice-6-docs-reference-set`
-- PR: `pending`
-- commits: `pending`
+- PR: `#138`
+- commits: `docs(reference): add manifest, slash, and persistence contracts`
 - validation: `docs/reference review against runtime behavior`
 
 ### Slice 7: Docs How-To Set
 
-- status: `pending`
+- status: `completed`
 - branch: `feat/slice-7-docs-howto-set`
-- PR: `tbd`
+- PR: `pending`
 - commits: `pending`
-- validation: `docs-howto procedure walkthrough review`
+- validation: `docs/how-to procedure walkthrough review`
 
 ### Slice 8: Docs Explanation Set
 
@@ -71,7 +71,7 @@
 - branch: `feat/slice-8-docs-explanation-set`
 - PR: `tbd`
 - commits: `pending`
-- validation: `docs-explanation rationale consistency review`
+- validation: `docs/explanation rationale consistency review`
 
 ## Event Log
 
@@ -82,3 +82,4 @@
 - `2026-04-29 19:32` state=`slice_4_completed` note=`bootstrap startup now rehydrates project registry from manifest when sqlite is empty, with fallback registration for invalid/missing manifests`
 - `2026-04-29 19:44` state=`slice_5_completed` note=`prompt context now includes manifest identity/provenance fields while preserving architecture fallback and context packet quality checks`
 - `2026-04-29 20:02` state=`slice_6_completed` note=`added reference docs for manifest contract, slash command forms, and runtime persistence semantics`
+- `2026-04-29 20:18` state=`slice_7_completed` note=`added how-to docs for bootstrap context, clone/register flow, and db reset recovery workflow`

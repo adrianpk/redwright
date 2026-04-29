@@ -64,11 +64,11 @@
 
 ### Slice 7: Docs How-To Set
 
-- status: `pending`
+- status: `completed`
 - branch: `feat/slice-7-docs-howto-set`
-- [ ] `T7.1 add docs/how-to/bootstrap-project-context.md`
-- [ ] `T7.2 add docs/how-to/clone-and-register-project.md`
-- [ ] `T7.3 add docs/how-to/recover-runtime-state-after-db-reset.md`
+- [x] `T7.1 add docs/how-to/bootstrap-project-context.md`
+- [x] `T7.2 add docs/how-to/clone-and-register-project.md`
+- [x] `T7.3 add docs/how-to/recover-runtime-state-after-db-reset.md`
 
 ### Slice 8: Docs Explanation Set
 
