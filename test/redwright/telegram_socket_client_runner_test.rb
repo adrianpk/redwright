@@ -50,4 +50,82 @@ class TelegramSocketClientRunnerTest < Minitest::Test
       server&.close
     end
   end
+
+  def test_telegram_socket_client_maps_project_slash_new_to_safe_project_ref
+    Dir.mktmpdir("redwright-telegram-socket-client-project-new-") do |dir|
+      socket_path = File.join(dir, "rw.sock")
+      ingress = Redwright::SimulatedIngressAdapter.new(
+        events: [Redwright::SimulatedIngressAdapter.event(external_message_id: 1, external_chat_id: 9, text: "/project new happy-cli", transport: "telegram")]
+      )
+      out = StringIO.new
+      received = Queue.new
+      server = UNIXServer.new(socket_path)
+      thread = Thread.new do
+        2.times do
+          c = server.accept
+          line = c.gets
+          req = JSON.parse(line)
+          received << req
+          c.write("{\"type\":\"ack\",\"session_id\":\"ok\",\"payload\":{\"status\":\"ok\"}}\n")
+          c.close
+        end
+      end
+
+      runner = Redwright::TelegramSocketClientRunner.new(
+        ingress_port: ingress,
+        socket_path: socket_path,
+        out: out,
+        poll_interval_seconds: 0
+      )
+      runner.run_once
+      thread.join(1)
+
+      _first = received.pop
+      second = received.pop
+      assert_equal("send", second["type"])
+      assert_equal("rw", second.dig("payload", "project_ref"))
+      assert_includes(ingress.sent_messages.last[:text], "status=ok")
+    ensure
+      server&.close
+    end
+  end
+
+  def test_telegram_socket_client_uses_rw_project_ref_for_other_slash_commands
+    Dir.mktmpdir("redwright-telegram-socket-client-slash-default-") do |dir|
+      socket_path = File.join(dir, "rw.sock")
+      ingress = Redwright::SimulatedIngressAdapter.new(
+        events: [Redwright::SimulatedIngressAdapter.event(external_message_id: 1, external_chat_id: 9, text: "/continue", transport: "telegram")]
+      )
+      out = StringIO.new
+      received = Queue.new
+      server = UNIXServer.new(socket_path)
+      thread = Thread.new do
+        2.times do
+          c = server.accept
+          line = c.gets
+          req = JSON.parse(line)
+          received << req
+          c.write("{\"type\":\"ack\",\"session_id\":\"ok\",\"payload\":{\"status\":\"ok\"}}\n")
+          c.close
+        end
+      end
+
+      runner = Redwright::TelegramSocketClientRunner.new(
+        ingress_port: ingress,
+        socket_path: socket_path,
+        out: out,
+        poll_interval_seconds: 0
+      )
+      runner.run_once
+      thread.join(1)
+
+      _first = received.pop
+      second = received.pop
+      assert_equal("send", second["type"])
+      assert_equal("rw", second.dig("payload", "project_ref"))
+      assert_includes(ingress.sent_messages.last[:text], "status=ok")
+    ensure
+      server&.close
+    end
+  end
 end

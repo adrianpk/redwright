@@ -70,4 +70,137 @@ class ServerRuntimeDispatcherTest < Minitest::Test
       end
     end
   end
+
+  def test_send_dispatch_returns_error_payload_instead_of_raising
+    flow = Object.new
+    flow.define_singleton_method(:process) do |**_kwargs|
+      raise RuntimeError, "project not found"
+    end
+    dispatcher = Redwright::ServerRuntimeDispatcher.new(flow: flow, blocked_retry_attempts: 1)
+
+    response = dispatcher.call(
+      "type" => "send",
+      "session_id" => "s1",
+      "payload" => {
+        "channel" => "telegram",
+        "project_ref" => "missing",
+        "intent" => "change",
+        "message" => "do work",
+        "actions" => []
+      }
+    )
+
+    assert_equal("error", response["status"])
+    assert_equal("project not found", response["message"])
+    assert_equal("RuntimeError", response["error_class"])
+  end
+
+  def test_send_dispatch_creates_project_from_project_new_slash_command
+    Dir.mktmpdir("redwright-server-dispatcher-project-new-") do |dir|
+      Dir.chdir(dir) do
+        bootstrap = Redwright::Bootstrap.new(mode: :dev).call
+        project_store = Redwright::ProjectStore.new(bootstrap.db_path)
+        flow = Redwright::RuntimeFlow.new(
+          project_store: project_store,
+          workstream_store: Redwright::WorkstreamStore.new(bootstrap.db_path),
+          task_store: Redwright::TaskStore.new(bootstrap.db_path),
+          alignment_store: Redwright::AlignmentStore.new(bootstrap.db_path),
+          alignment_interruption_store: Redwright::AlignmentInterruptionStore.new(bootstrap.db_path),
+          primitive_executor: Redwright::PrimitiveExecutor.new(
+            allowed_projects_root: bootstrap.projects_root,
+            enforce_mutating_projects_root: true
+          ),
+          action_execution_store: Redwright::ActionExecutionStore.new(bootstrap.db_path)
+        )
+        dispatcher = Redwright::ServerRuntimeDispatcher.new(
+          flow: flow,
+          blocked_retry_attempts: 1,
+          project_store: project_store,
+          projects_root: bootstrap.projects_root
+        )
+
+        response = dispatcher.call(
+          "type" => "send",
+          "session_id" => "telegram-42",
+          "payload" => {
+            "channel" => "telegram",
+            "project_ref" => "rw",
+            "intent" => "change",
+            "message" => "/project new happy-cli",
+            "actions" => []
+          }
+        )
+
+        assert_equal("ok", response["status"])
+        project = project_store.resolve(response["project_id"])
+        refute_nil(project)
+        assert_equal("happy-cli", project.name)
+        assert_equal(true, File.directory?(File.join(bootstrap.projects_root, "happy-cli")))
+      end
+    end
+  end
+
+  def test_send_dispatch_switches_project_and_reuses_session_project_context
+    Dir.mktmpdir("redwright-server-dispatcher-project-switch-") do |dir|
+      Dir.chdir(dir) do
+        bootstrap = Redwright::Bootstrap.new(mode: :dev).call
+        project_store = Redwright::ProjectStore.new(bootstrap.db_path)
+        alpha_path = File.join(bootstrap.projects_root, "alpha")
+        beta_path = File.join(bootstrap.projects_root, "beta")
+        FileUtils.mkdir_p(alpha_path)
+        FileUtils.mkdir_p(beta_path)
+        alpha = project_store.register(path: alpha_path, aliases: ["alpha"])
+        beta = project_store.register(path: beta_path, aliases: ["beta"])
+
+        flow = Redwright::RuntimeFlow.new(
+          project_store: project_store,
+          workstream_store: Redwright::WorkstreamStore.new(bootstrap.db_path),
+          task_store: Redwright::TaskStore.new(bootstrap.db_path),
+          alignment_store: Redwright::AlignmentStore.new(bootstrap.db_path),
+          alignment_interruption_store: Redwright::AlignmentInterruptionStore.new(bootstrap.db_path),
+          primitive_executor: Redwright::PrimitiveExecutor.new(
+            allowed_projects_root: bootstrap.projects_root,
+            enforce_mutating_projects_root: true
+          ),
+          action_execution_store: Redwright::ActionExecutionStore.new(bootstrap.db_path)
+        )
+        dispatcher = Redwright::ServerRuntimeDispatcher.new(
+          flow: flow,
+          blocked_retry_attempts: 1,
+          project_store: project_store,
+          projects_root: bootstrap.projects_root
+        )
+
+        switch_response = dispatcher.call(
+          "type" => "send",
+          "session_id" => "telegram-77",
+          "payload" => {
+            "channel" => "telegram",
+            "project_ref" => "rw",
+            "intent" => "change",
+            "message" => "/project switch alpha",
+            "actions" => []
+          }
+        )
+        assert_equal("ok", switch_response["status"])
+        assert_equal(alpha.id, switch_response["project_id"])
+
+        # Unknown project_ref should fall back to the session-bound project.
+        follow_up = dispatcher.call(
+          "type" => "send",
+          "session_id" => "telegram-77",
+          "payload" => {
+            "channel" => "telegram",
+            "project_ref" => "non-existent",
+            "intent" => "change",
+            "message" => "continue implementation",
+            "actions" => []
+          }
+        )
+        assert_equal("ok", follow_up["status"])
+        assert_equal(alpha.id, follow_up["project_id"])
+        refute_equal(beta.id, follow_up["project_id"])
+      end
+    end
+  end
 end
