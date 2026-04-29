@@ -4,7 +4,7 @@
 
 - owner: `adrianpk`
 - status: `in_progress`
-- active_slice: `slice-2`
+- active_slice: `slice-3`
 - plan: `ops/plans/2026-04-29-redwright-persistence-audit-and-canonical-state-cycle-plan.md`
 
 ## Slice Progress
@@ -27,7 +27,7 @@
 
 ### Slice 3: Canonical State Ownership Contract
 
-- status: `pending`
+- status: `completed`
 - branch: `feat/slice-3-canonical-state-ownership-contract`
 - PR: `tbd`
 - commits: `pending`
@@ -63,3 +63,4 @@
 - `2026-04-29 14:23` state=`implementation` slice=`slice-1` note=`generated machine-readable persistence inventory from bootstrap schema and mapped runtime callsites`
 - `2026-04-29 14:24` validation=`bundle exec ruby -Itest test/redwright/bootstrap_test.rb`
 - `2026-04-29 14:33` state=`implementation` slice=`slice-2` note=`generated static read/write zombie-detection matrix and flagged write-only candidates for dependency/artifact link tables`
+- `2026-04-29 15:02` state=`implementation` slice=`slice-3` note=`defined canonical persistence ownership, lifecycle states, id contracts, and idempotency boundaries; recorded keep decisions for slice-2 candidates`
