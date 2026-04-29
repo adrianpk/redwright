@@ -4,7 +4,7 @@
 
 - owner: `adrianpk`
 - status: `in_progress`
-- active_slice: `slice_4`
+- active_slice: `slice_5`
 - plan: `ops/plans/2026-04-29-redwright-runtime-architecture-hardening-cycle-plan.md`
 
 ## Slice Progress
@@ -35,11 +35,11 @@
 
 ### Slice 4: Decompose CLI Command Wiring from lib/redwright.rb
 
-- status: `pending`
+- status: `completed`
 - branch: `feat/slice-4-cli-command-decomposition`
 - PR: `tbd`
-- commits: `pending`
-- validation: `CLI command behavior tests + daemon/server command smoke checks`
+- commits: `b9163a7, 9143513`
+- validation: `bundle exec ruby -Itest test/redwright/cli_commands_test.rb && bundle exec ruby -Itest test/redwright/server_cli_test.rb && bundle exec ruby -Itest test/redwright/daemon_cli_test.rb -n \"/none_ingress|console_ingress/\"`
 
 ### Slice 5: Ops and Repo Hygiene Consolidation
 
@@ -55,3 +55,4 @@
 - `2026-04-29 19:15` state=`slice_1_completed` note=`added guardrail clarify for /project new without name, normalized integer action counters, and expanded parity/error-path regression coverage`
 - `2026-04-29 19:42` state=`slice_2_completed` note=`extracted telegram message rendering and execution summary into dedicated components with focused regression and contract tests`
 - `2026-04-29 20:00` state=`slice_3_completed` note=`extracted slash/control routing and clarification cancellation/semantic policy into dedicated components with parity-preserving integration tests`
+- `2026-04-29 20:25` state=`slice_4_completed` note=`extracted project/workstream/task CLI handlers; command-level tests and server/daemon smoke checks passed (tui ingress daemon test remains flaky on socket startup race)`

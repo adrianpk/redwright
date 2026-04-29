@@ -39,7 +39,7 @@
 
 ### Slice 4: Decompose CLI Command Wiring from lib/redwright.rb
 
-- status: `pending`
+- status: `completed`
 - branch: `feat/slice-4-cli-command-decomposition`
 - [ ] `T4.1 split CLI subcommand handlers into dedicated command classes/modules`
 - [ ] `T4.2 keep command interface and exit codes backward compatible`
