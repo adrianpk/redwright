@@ -8,6 +8,7 @@ $LOAD_PATH.unshift(File.expand_path("../../lib", __dir__))
 require "redwright/bootstrap"
 require "redwright/project_store"
 require "redwright/chat_context_store"
+require "redwright/workstream_store"
 require "redwright/clarification_session_store"
 require "redwright/telegram_context_resolver"
 
@@ -18,6 +19,7 @@ class TelegramContextResolverTest < Minitest::Test
         bootstrap = Redwright::Bootstrap.new(mode: :dev).call
         projects = Redwright::ProjectStore.new(bootstrap.db_path)
         contexts = Redwright::ChatContextStore.new(bootstrap.db_path)
+        workstreams = Redwright::WorkstreamStore.new(bootstrap.db_path)
         clarifications = Redwright::ClarificationSessionStore.new(bootstrap.db_path)
         resolver = Redwright::TelegramContextResolver.new(project_store: projects, chat_context_store: contexts, clarification_session_store: clarifications)
 
@@ -38,17 +40,19 @@ class TelegramContextResolverTest < Minitest::Test
         bootstrap = Redwright::Bootstrap.new(mode: :dev).call
         projects = Redwright::ProjectStore.new(bootstrap.db_path)
         contexts = Redwright::ChatContextStore.new(bootstrap.db_path)
+        workstreams = Redwright::WorkstreamStore.new(bootstrap.db_path)
         clarifications = Redwright::ClarificationSessionStore.new(bootstrap.db_path)
         resolver = Redwright::TelegramContextResolver.new(project_store: projects, chat_context_store: contexts, clarification_session_store: clarifications)
 
         project = projects.register(path: "#{dir}/apps/core", aliases: ["rw"])
-        contexts.upsert(chat_id: 42, project_id: project.id, workstream_id: "ws-1")
+        workstream = workstreams.create(project_id: project.id, intent: "change", state: "executing")
+        contexts.upsert(chat_id: 42, project_id: project.id, workstream_id: workstream.id)
 
         result = resolver.resolve(chat_id: 42, text: "continue with next step")
         assert_equal(true, result.resolved)
         assert_equal(project.id, result.project_ref)
         assert_equal(project.path, result.project_path)
-        assert_equal("ws-1", result.workstream_id)
+        assert_equal(workstream.id, result.workstream_id)
       end
     end
   end
@@ -59,6 +63,7 @@ class TelegramContextResolverTest < Minitest::Test
         bootstrap = Redwright::Bootstrap.new(mode: :dev).call
         projects = Redwright::ProjectStore.new(bootstrap.db_path)
         contexts = Redwright::ChatContextStore.new(bootstrap.db_path)
+        workstreams = Redwright::WorkstreamStore.new(bootstrap.db_path)
         clarifications = Redwright::ClarificationSessionStore.new(bootstrap.db_path)
         resolver = Redwright::TelegramContextResolver.new(project_store: projects, chat_context_store: contexts, clarification_session_store: clarifications)
 
@@ -78,6 +83,7 @@ class TelegramContextResolverTest < Minitest::Test
         bootstrap = Redwright::Bootstrap.new(mode: :dev).call
         projects = Redwright::ProjectStore.new(bootstrap.db_path)
         contexts = Redwright::ChatContextStore.new(bootstrap.db_path)
+        workstreams = Redwright::WorkstreamStore.new(bootstrap.db_path)
         clarifications = Redwright::ClarificationSessionStore.new(bootstrap.db_path)
         FileUtils.mkdir_p(File.join(bootstrap.projects_root, "hello-cli"))
         resolver = Redwright::TelegramContextResolver.new(
@@ -238,6 +244,7 @@ class TelegramContextResolverTest < Minitest::Test
         bootstrap = Redwright::Bootstrap.new(mode: :dev).call
         projects = Redwright::ProjectStore.new(bootstrap.db_path)
         contexts = Redwright::ChatContextStore.new(bootstrap.db_path)
+        workstreams = Redwright::WorkstreamStore.new(bootstrap.db_path)
         clarifications = Redwright::ClarificationSessionStore.new(bootstrap.db_path)
         resolver = Redwright::TelegramContextResolver.new(
           project_store: projects,
@@ -248,7 +255,8 @@ class TelegramContextResolverTest < Minitest::Test
 
         alpha = projects.register(path: File.join(bootstrap.projects_root, "alpha"), aliases: ["alpha"])
         beta = projects.register(path: File.join(bootstrap.projects_root, "beta"), aliases: ["beta"])
-        contexts.upsert(chat_id: 501, project_id: alpha.id, workstream_id: "ws-1")
+        ws_alpha = workstreams.create(project_id: alpha.id, intent: "change", state: "executing")
+        contexts.upsert(chat_id: 501, project_id: alpha.id, workstream_id: ws_alpha.id)
 
         result = resolver.resolve(chat_id: 501, text: "beta implement parser fix")
         assert_equal(false, result.resolved)
@@ -263,6 +271,7 @@ class TelegramContextResolverTest < Minitest::Test
         bootstrap = Redwright::Bootstrap.new(mode: :dev).call
         projects = Redwright::ProjectStore.new(bootstrap.db_path)
         contexts = Redwright::ChatContextStore.new(bootstrap.db_path)
+        workstreams = Redwright::WorkstreamStore.new(bootstrap.db_path)
         clarifications = Redwright::ClarificationSessionStore.new(bootstrap.db_path)
         resolver = Redwright::TelegramContextResolver.new(
           project_store: projects,
@@ -273,7 +282,8 @@ class TelegramContextResolverTest < Minitest::Test
 
         alpha = projects.register(path: File.join(bootstrap.projects_root, "alpha"), aliases: ["alpha"])
         beta = projects.register(path: File.join(bootstrap.projects_root, "beta"), aliases: ["beta"])
-        contexts.upsert(chat_id: 502, project_id: alpha.id, workstream_id: "ws-1")
+        ws_alpha = workstreams.create(project_id: alpha.id, intent: "change", state: "executing")
+        contexts.upsert(chat_id: 502, project_id: alpha.id, workstream_id: ws_alpha.id)
 
         contexts.upsert(chat_id: 502, project_id: beta.id, workstream_id: nil)
         result = resolver.resolve(chat_id: 502, text: "beta implement parser fix")
