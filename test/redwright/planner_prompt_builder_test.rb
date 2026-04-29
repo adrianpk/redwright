@@ -16,6 +16,9 @@ class PlannerPromptBuilderTest < Minitest::Test
     assert_includes(prompt, "[Precedence Rule]")
     assert_includes(prompt, "[Injection Guardrails]")
     assert_includes(prompt, "[Planner Output Contract]")
+    assert_includes(prompt, "Canonical JSON example:")
+    assert_includes(prompt, "Output only a single JSON object.")
+    assert_includes(prompt, "if uncertain between multiple plausible interpretations, prefer gaps over guessing")
   end
 
   def test_build_accepts_explicit_context_overrides
