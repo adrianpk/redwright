@@ -67,3 +67,14 @@ When closing a slice, update tracker tasks, commits, and validation checklist in
 2. Relevant checks run.
 3. Tracker/plan status updated.
 4. Final status reported with concrete outcomes.
+
+## 7. Slice Execution Workflow (Mandatory)
+
+1. Execute one slice at a time.
+2. Implement slice tasks in order.
+3. Create one conventional commit per task.
+4. Open one PR per slice.
+5. Complete PR review using manual review and/or automated review tooling.
+6. Integrate with fast-forward policy to `main` after approval.
+7. Report implementation and validation status.
+8. Start the next slice only after the previous one is fully closed.
