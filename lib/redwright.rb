@@ -353,8 +353,12 @@ module Redwright
         @out.puts("socket_path: #{socket_path}")
 
         if ingress == "tui"
-          tui_runner = Tui::SocketClientRunner.new(input: $stdin, output: @out, socket_path: socket_path)
-          tui_runner.run_once
+          if run_once && !File.exist?(socket_path)
+            @out.puts("tui ingress skipped: socket not available at #{socket_path}")
+          else
+            tui_runner = Tui::SocketClientRunner.new(input: $stdin, output: @out, socket_path: socket_path)
+            tui_runner.run_once
+          end
         elsif ingress == "telegram"
           telegram_client = TelegramClient.new(bot_token: config.telegram.bot_token)
           ingress_port = TelegramIngressAdapter.new(
