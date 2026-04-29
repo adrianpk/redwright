@@ -185,7 +185,8 @@ module Redwright
                            end
           suppress_gap_clarify = false
           if %w[cancel_clarification_only proceed_with_current_context].include?(control_intent)
-            cancel_scope = control_intent == "cancel_clarification_only" ? "task" : "chat"
+            # Keep cancellation scoped to the active task/workstream clarification.
+            cancel_scope = "task"
             cancel_open_clarifications(
               chat_id: event.chat_id,
               workstream_id: resolution.workstream_id,
@@ -906,8 +907,19 @@ module Redwright
         "continue with current context",
         "continue with what you have",
         "proceed with current context",
+        "no more questions continue",
+        "no more questions. continue",
+        "no more questions, continue",
+        "stop asking and continue",
+        "stop asking questions and continue",
         "continua",
         "continua con lo que tengas",
+        "no mas preguntas continua",
+        "no más preguntas continua",
+        "no mas preguntas. continua",
+        "no más preguntas. continua",
+        "para con las preguntas y continua",
+        "para con las preguntas y continua implementando",
         "segui con lo que tenes",
         "sigue con lo que tengas"
       ]

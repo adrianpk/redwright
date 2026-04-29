@@ -594,7 +594,7 @@ class TelegramRuntimeHandlerTest < Minitest::Test
     assert_equal("resume", captured[:command])
     assert_equal("rw", captured[:project_ref])
     assert_equal("ws-1", captured[:workstream_id])
-    assert_equal([{ chat_id: 90 }, { chat_id: 90, workstream_id: "ws-1" }], cancellations)
+    assert_equal([{ chat_id: 90, workstream_id: "ws-1" }, { chat_id: 90, workstream_id: "ws-1" }], cancellations)
   end
 
   def test_handle_does_not_route_resume_control_when_intent_is_change
