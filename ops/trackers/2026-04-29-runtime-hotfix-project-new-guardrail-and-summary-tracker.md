@@ -3,7 +3,7 @@
 ## Metadata
 
 - owner: `adrianpk`
-- status: `planned`
+- status: `completed`
 - active_slice: `slice_1`
 - plan: `ops/plans/2026-04-29-runtime-hotfix-project-new-guardrail-and-summary-plan.md`
 
@@ -11,12 +11,13 @@
 
 ### Slice 1: Guardrail + Summary Formatting
 
-- status: `pending`
-- branch: `fix/project-new-missing-name-and-actions-summary`
+- status: `completed`
+- branch: `fix/slice-1-project-new-guardrail-and-summary`
 - PR: `tbd`
-- commits: `pending`
-- validation: `runtime parser/dispatcher/summary tests`
+- commits: `tbd`
+- validation: `bundle exec ruby -Itest test/redwright/server_runtime_dispatcher_test.rb -n "/project_new_without_name|project_new/" && bundle exec ruby -Itest test/redwright/telegram_runtime_handler_test.rb -n "/missing a name|execution_summary|Actions:/"`
 
 ## Event Log
 
 - `2026-04-29 20:00` state=`planned` note=`hotfix slice created to fix /project new missing-name regression and action summary counter formatting`
+- `2026-04-29 23:20` state=`completed` note=`slice closed with guardrail and summary regression coverage validated in dispatcher and telegram runtime handler tests`
