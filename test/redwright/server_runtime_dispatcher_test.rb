@@ -156,6 +156,43 @@ class ServerRuntimeDispatcherTest < Minitest::Test
     end
   end
 
+  def test_send_dispatch_project_new_without_name_does_not_create_project_or_directory
+    Dir.mktmpdir("redwright-server-dispatcher-project-new-missing-name-") do |dir|
+      Dir.chdir(dir) do
+        bootstrap = Redwright::Bootstrap.new(mode: :dev).call
+        project_store = Redwright::ProjectStore.new(bootstrap.db_path)
+        flow = Object.new
+        flow.define_singleton_method(:process) do |**_kwargs|
+          raise "flow should not run without a resolved project"
+        end
+        dispatcher = Redwright::ServerRuntimeDispatcher.new(
+          flow: flow,
+          blocked_retry_attempts: 1,
+          project_store: project_store,
+          projects_root: bootstrap.projects_root
+        )
+
+        response = dispatcher.call(
+          "type" => "send",
+          "session_id" => "telegram-42",
+          "payload" => {
+            "channel" => "telegram",
+            "project_ref" => "",
+            "intent" => "change",
+            "message" => "/project new",
+            "actions" => []
+          }
+        )
+
+        assert_equal("error", response["status"])
+        assert_equal("missing_project_ref", response["message"])
+        assert_equal([], project_store.list)
+        created_entries = Dir.children(bootstrap.projects_root).sort
+        assert_equal([".worktrees"], created_entries)
+      end
+    end
+  end
+
   def test_project_new_is_idempotent_and_does_not_overwrite_existing_manifest
     Dir.mktmpdir("redwright-server-dispatcher-project-new-idempotent-") do |dir|
       Dir.chdir(dir) do
