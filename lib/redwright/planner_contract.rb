@@ -5,7 +5,19 @@ module Redwright
     INTENTS = %w[change meta].freeze
     CONTROL_INTENTS = %w[none proceed_with_current_context cancel_clarification_only cancel_task cancel_all].freeze
     CONTROL_SCOPES = %w[none gap task workstream chat runtime].freeze
-    TOP_LEVEL_KEYS = %w[intent message actions gaps control_intent control_scope].freeze
+    SKILL_MODES = %w[none explicit inferred].freeze
+    TOP_LEVEL_KEYS = %w[
+      intent
+      message
+      actions
+      gaps
+      control_intent
+      control_scope
+      skill_requested
+      skill_mode
+      skill_actions
+      skill_exit_condition
+    ].freeze
     ACTION_KEYS = %w[id type args requires_confirmation timeout_ms on_failure].freeze
     ACTION_ON_FAILURE = %w[abort continue].freeze
     ACTION_PRIMITIVE_TYPES = %w[
@@ -54,6 +66,10 @@ module Redwright
       - gaps: array of unresolved clarification gaps (can be empty)
       - control_intent: one of "none", "proceed_with_current_context", "cancel_clarification_only", "cancel_task", "cancel_all"
       - control_scope: one of "none", "gap", "task", "workstream", "chat", "runtime"
+      - skill_requested: skill name or empty string
+      - skill_mode: one of "none", "explicit", "inferred"
+      - skill_actions: array of skill action objects (can be empty)
+      - skill_exit_condition: one-line bounded exit condition or empty string
       Gap object keys:
       - id: stable gap id
       - question: one high-value clarification question
@@ -64,6 +80,13 @@ module Redwright
       Action object keys:
       - id: stable action id
       - type: action type string
+      - args: JSON object
+      - requires_confirmation: boolean
+      - timeout_ms: positive integer
+      - on_failure: one of "abort" or "continue"
+      Skill action object keys:
+      - id: stable skill action id
+      - type: skill action type string
       - args: JSON object
       - requires_confirmation: boolean
       - timeout_ms: positive integer

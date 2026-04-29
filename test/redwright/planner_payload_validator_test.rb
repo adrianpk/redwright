@@ -32,6 +32,10 @@ class PlannerPayloadValidatorTest < Minitest::Test
     assert_equal([], result.gaps)
     assert_equal("none", result.control_intent)
     assert_equal("none", result.control_scope)
+    assert_equal("", result.skill_requested)
+    assert_equal("none", result.skill_mode)
+    assert_equal([], result.skill_actions)
+    assert_equal("", result.skill_exit_condition)
     assert_empty(result.errors)
   end
 
@@ -186,5 +190,52 @@ class PlannerPayloadValidatorTest < Minitest::Test
     result = validator.validate(payload)
     assert_equal(false, result.valid)
     assert_includes(result.errors, "control_intent_not_allowed")
+  end
+
+  def test_validate_accepts_skill_fields
+    validator = Redwright::PlannerPayloadValidator.new
+    payload = JSON.generate(
+      {
+        intent: "change",
+        message: "use grill mode first",
+        actions: [],
+        skill_requested: "grill-me",
+        skill_mode: "explicit",
+        skill_actions: [
+          {
+            id: "sa1",
+            type: "read_file",
+            args: { path: "README.md" },
+            requires_confirmation: false,
+            timeout_ms: 10_000,
+            on_failure: "abort"
+          }
+        ],
+        skill_exit_condition: "stop when no open critical gaps"
+      }
+    )
+
+    result = validator.validate(payload)
+    assert_equal(true, result.valid)
+    assert_equal("grill-me", result.skill_requested)
+    assert_equal("explicit", result.skill_mode)
+    assert_equal(1, result.skill_actions.size)
+    assert_equal("stop when no open critical gaps", result.skill_exit_condition)
+  end
+
+  def test_validate_rejects_invalid_skill_mode
+    validator = Redwright::PlannerPayloadValidator.new
+    payload = JSON.generate(
+      {
+        intent: "change",
+        message: "use skill",
+        actions: [],
+        skill_mode: "auto-magic"
+      }
+    )
+
+    result = validator.validate(payload)
+    assert_equal(false, result.valid)
+    assert_includes(result.errors, "skill_mode_not_allowed")
   end
 end
