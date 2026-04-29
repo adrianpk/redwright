@@ -8,9 +8,13 @@ module Redwright
                else
                  "none"
                end
+      decision_intent = decision.respond_to?(:intent) ? decision.intent.to_s.strip : "none"
+      # "proceed_with_current_context" is not a runtime control command on change turns.
+      return nil if intent == "proceed_with_current_context" && decision_intent != "meta"
+
       command = control_intent_command_map[intent]
       # Keep inferred natural-language control strictly scoped to meta intent.
-      if command.nil? && intent == "none" && decision.respond_to?(:intent) && decision.intent.to_s.strip == "meta"
+      if command.nil? && intent == "none" && decision_intent == "meta"
         command = inferred_control_command(raw_text)
       end
       return nil if command.nil?
