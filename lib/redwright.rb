@@ -54,6 +54,7 @@ require_relative "redwright/telegram_socket_client_runner"
 require_relative "redwright/cli/project_command"
 require_relative "redwright/cli/workstream_command"
 require_relative "redwright/cli/task_command"
+require_relative "redwright/runtime_entrypoint_shim"
 
 module Redwright
   class CLI
