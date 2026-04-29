@@ -4,7 +4,7 @@
 
 - owner: `adrianpk`
 - status: `in_progress`
-- active_slice: `slice-5`
+- active_slice: `slice-6`
 - plan: `ops/plans/2026-04-29-redwright-operational-command-model-cycle-plan.md`
 
 ## Slice Progress
@@ -51,7 +51,7 @@
 
 ### Slice 6: Undo Semantics V1
 
-- status: `pending`
+- status: `completed`
 - branch: `feat/slice-6-undo-semantics-v1`
 - PR: `tbd`
 - commits: `pending`
@@ -86,3 +86,5 @@
 - `2026-04-29 16:18` validation=`bundle exec ruby -Itest test/redwright/telegram_runtime_handler_test.rb`
 - `2026-04-29 16:30` state=`implementation` slice=`slice-5` note=`unified project-new and repo-clone registration in dispatcher, persisted project provenance (local_new/remote_clone), and kept deterministic session-bound active project continuity`
 - `2026-04-29 16:30` validation=`bundle exec ruby -Itest test/redwright/project_store_test.rb && bundle exec ruby -Itest test/redwright/server_runtime_dispatcher_test.rb`
+- `2026-04-29 16:52` state=`implementation` slice=`slice-6` note=`introduced deterministic repo-undo execution contract with git-only guardrails, blocked mixed/non-git last-task undo paths, and added explicit git_undo primitive behavior`
+- `2026-04-29 16:52` validation=`bundle exec ruby -Itest test/redwright/primitive_executor_test.rb && bundle exec ruby -Itest test/redwright/server_runtime_dispatcher_test.rb`

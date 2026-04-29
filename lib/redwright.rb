@@ -701,7 +701,9 @@ module Redwright
           flow: flow,
           blocked_retry_attempts: 1,
           project_store: ProjectStore.new(bootstrap.db_path),
-          projects_root: bootstrap.projects_root
+          projects_root: bootstrap.projects_root,
+          task_store: TaskStore.new(bootstrap.db_path),
+          action_execution_store: ActionExecutionStore.new(bootstrap.db_path)
         )
         ipc_server = LocalIpcServer.new(
           socket_path: socket_path,

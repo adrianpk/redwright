@@ -13,7 +13,7 @@ module Redwright
 
   class PrimitiveExecutor
     DEFAULT_TIMEOUT_MS = 10_000
-    MUTATING_ACTION_TYPES = %w[run write_file apply_patch git_branch git_commit git_push].freeze
+    MUTATING_ACTION_TYPES = %w[run write_file apply_patch git_branch git_commit git_push git_undo].freeze
 
     def initialize(allowed_projects_root: nil, enforce_mutating_projects_root: false)
       @allowed_projects_root = normalize_root(allowed_projects_root)
@@ -74,6 +74,10 @@ module Redwright
         when "git_push"
           enforce_confirmation!(action: action, args: args)
           result = execute_git_push(project_root: project_root, args: args, timeout_ms: timeout_ms)
+          stdout = result[:stdout]
+          stderr = result[:stderr]
+        when "git_undo"
+          result = execute_git_undo(project_root: project_root, timeout_ms: timeout_ms)
           stdout = result[:stdout]
           stderr = result[:stderr]
         else
@@ -210,6 +214,22 @@ module Redwright
       command << remote unless remote.empty?
       command << branch unless branch.empty?
       run_git_with_timeout(project_root: project_root, timeout_ms: timeout_ms, args: command)
+    end
+
+    def execute_git_undo(project_root:, timeout_ms:)
+      ensure_git_repo!(project_root)
+      status = run_git_with_timeout(project_root: project_root, timeout_ms: timeout_ms, args: %w[status --porcelain])
+      lines = status[:stdout].to_s.split("\n")
+      untracked = lines.select { |line| line.start_with?("?? ") }
+      unless untracked.empty?
+        raise RuntimeError, "undo_blocked_untracked_files"
+      end
+      if lines.empty?
+        return { stdout: "nothing_to_undo\n", stderr: "" }
+      end
+
+      restore = run_git_with_timeout(project_root: project_root, timeout_ms: timeout_ms, args: %w[restore --staged --worktree :/])
+      { stdout: restore[:stdout], stderr: restore[:stderr] }
     end
 
     def run_git_with_timeout(project_root:, timeout_ms:, args:)

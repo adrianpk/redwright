@@ -4,11 +4,13 @@ require "uri"
 
 module Redwright
   class ServerRuntimeDispatcher
-    def initialize(flow:, blocked_retry_attempts: 1, project_store: nil, projects_root: nil)
+    def initialize(flow:, blocked_retry_attempts: 1, project_store: nil, projects_root: nil, task_store: nil, action_execution_store: nil)
       @flow = flow
       @blocked_retry_attempts = blocked_retry_attempts
       @project_store = project_store
       @projects_root = projects_root
+      @task_store = task_store
+      @action_execution_store = action_execution_store
       @session_project_refs = {}
     end
 
@@ -57,11 +59,22 @@ module Redwright
       session_id = request.fetch("session_id", "").to_s
       message = payload.fetch("message").to_s
       project_ref = payload.fetch("project_ref", "").to_s.strip
-      project_ref, message = resolve_project_ref_for_send(session_id: session_id, project_ref: project_ref, message: message)
+      project_ref, message, operational = resolve_project_ref_for_send(session_id: session_id, project_ref: project_ref, message: message)
       raise ArgumentError, "missing_project_ref" if project_ref.to_s.strip.empty?
 
       intent = payload.fetch("intent", "change").to_s
       actions = payload.fetch("actions", [])
+      if operational && operational[:command] == "undo"
+        enforce_repo_undo_contract!(project_ref)
+        actions = [{
+          "id" => "repo_undo_last_safe_change",
+          "type" => "git_undo",
+          "args" => {},
+          "requires_confirmation" => false,
+          "timeout_ms" => 20_000,
+          "on_failure" => "abort"
+        }]
+      end
       result = @flow.process(
         project_ref: project_ref,
         intent: intent,
@@ -96,7 +109,7 @@ module Redwright
     end
 
     def resolve_project_ref_for_send(session_id:, project_ref:, message:)
-      return [project_ref, message] unless @project_store
+      return [project_ref, message, nil] unless @project_store
 
       parsed = parse_operational_slash(message)
       if parsed
@@ -104,33 +117,36 @@ module Redwright
         when "new"
           created = create_project(parsed[:name], source_type: "local_new", source_ref: "")
           @session_project_refs[session_id] = created.id unless session_id.empty?
-          return [created.id, "Create a new project named '#{parsed[:name]}' and set it active."]
+          return [created.id, "Create a new project named '#{parsed[:name]}' and set it active.", parsed]
         when "switch"
           target = @project_store.resolve(parsed[:name]) || @project_store.resolve("project:#{parsed[:name]}")
           raise ArgumentError, "project not found: #{parsed[:name]}" unless target
 
           @session_project_refs[session_id] = target.id unless session_id.empty?
-          return [target.id, "Switch active project to '#{parsed[:name]}'."]
+          return [target.id, "Switch active project to '#{parsed[:name]}'.", parsed]
         when "clone"
           cloned = clone_project(parsed[:url], parsed[:name])
           @session_project_refs[session_id] = cloned.id unless session_id.empty?
-          return [cloned.id, "Clone repository '#{parsed[:url]}' and set project '#{cloned.name}' active."]
+          return [cloned.id, "Clone repository '#{parsed[:url]}' and set project '#{cloned.name}' active.", parsed]
+        when "undo"
+          active = resolve_active_project(session_id: session_id, project_ref: project_ref)
+          return [active.id, "Undo the latest safe repository changes for the active project.", parsed] if active
         end
       end
 
       resolved = @project_store.resolve(project_ref)
-      return [resolved.id, message] if resolved
+      return [resolved.id, message, nil] if resolved
 
       session_project_ref = session_id.empty? ? nil : @session_project_refs[session_id]
       if session_project_ref
         session_project = @project_store.resolve(session_project_ref)
-        return [session_project.id, message] if session_project
+        return [session_project.id, message, nil] if session_project
       end
 
       active = @project_store.resolve(nil)
-      return [active.id, message] if active
+      return [active.id, message, nil] if active
 
-      [project_ref, message]
+      [project_ref, message, nil]
     end
 
     def parse_operational_slash(message)
@@ -143,6 +159,7 @@ module Redwright
       end
 
       if raw.start_with?("/repo ")
+        return { command: "undo" } if raw.match?(%r{\A/repo\s+undo\s*\z}i)
         clone_match = raw.match(%r{\A/repo\s+clone\s+(\S+)(?:\s+as\s+([a-zA-Z0-9._\-]+))?\s*\z}i)
         if clone_match
           url = clone_match[1]
@@ -152,6 +169,39 @@ module Redwright
       end
 
       nil
+    end
+
+    def resolve_active_project(session_id:, project_ref:)
+      resolved = @project_store.resolve(project_ref)
+      return resolved if resolved
+
+      session_project_ref = session_id.empty? ? nil : @session_project_refs[session_id]
+      return @project_store.resolve(session_project_ref) if session_project_ref
+
+      @project_store.resolve(nil)
+    end
+
+    def enforce_repo_undo_contract!(project_ref)
+      return unless @task_store && @action_execution_store
+
+      project = @project_store.resolve(project_ref)
+      return unless project
+
+      latest = @task_store.list_recent_with_trace(limit: 200).find { |row| row.project_id == project.id }
+      return unless latest
+
+      action_types = @action_execution_store.list(task_id: latest.task_id).map(&:action_type)
+      return if action_types.empty?
+
+      has_git = action_types.any? { |type| type.to_s.start_with?("git_") }
+      has_non_git = action_types.any? { |type| !type.to_s.start_with?("git_") }
+
+      if has_git && has_non_git
+        raise ArgumentError, "undo_blocked_mixed_git_and_non_git_actions"
+      end
+      if has_non_git
+        raise ArgumentError, "undo_not_supported_for_non_git_actions"
+      end
     end
 
     def create_project(name, source_type:, source_ref:)

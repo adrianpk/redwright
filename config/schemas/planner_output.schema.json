@@ -128,7 +128,7 @@
         "type": {
           "type": "string",
           "enum": [
-            "list_files", "read_file", "search", "write_file", "apply_patch", "run", "git_status", "git_branch", "git_commit", "git_push",
+            "list_files", "read_file", "search", "write_file", "apply_patch", "run", "git_status", "git_branch", "git_commit", "git_push", "git_undo",
             "write_files", "run_command", "run_commands"
           ]
         },

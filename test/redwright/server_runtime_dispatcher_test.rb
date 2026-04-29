@@ -117,7 +117,9 @@ class ServerRuntimeDispatcherTest < Minitest::Test
           flow: flow,
           blocked_retry_attempts: 1,
           project_store: project_store,
-          projects_root: bootstrap.projects_root
+          projects_root: bootstrap.projects_root,
+          task_store: Redwright::TaskStore.new(bootstrap.db_path),
+          action_execution_store: Redwright::ActionExecutionStore.new(bootstrap.db_path)
         )
 
         response = dispatcher.call(
@@ -180,7 +182,9 @@ class ServerRuntimeDispatcherTest < Minitest::Test
           flow: flow,
           blocked_retry_attempts: 1,
           project_store: project_store,
-          projects_root: bootstrap.projects_root
+          projects_root: bootstrap.projects_root,
+          task_store: Redwright::TaskStore.new(bootstrap.db_path),
+          action_execution_store: Redwright::ActionExecutionStore.new(bootstrap.db_path)
         )
 
         clone_response = dispatcher.call(
@@ -248,7 +252,9 @@ class ServerRuntimeDispatcherTest < Minitest::Test
           flow: flow,
           blocked_retry_attempts: 1,
           project_store: project_store,
-          projects_root: bootstrap.projects_root
+          projects_root: bootstrap.projects_root,
+          task_store: Redwright::TaskStore.new(bootstrap.db_path),
+          action_execution_store: Redwright::ActionExecutionStore.new(bootstrap.db_path)
         )
 
         switch_response = dispatcher.call(
@@ -280,6 +286,170 @@ class ServerRuntimeDispatcherTest < Minitest::Test
         assert_equal("ok", follow_up["status"])
         assert_equal(alpha.id, follow_up["project_id"])
         refute_equal(beta.id, follow_up["project_id"])
+      end
+    end
+  end
+
+  def test_send_dispatch_repo_undo_executes_git_undo_when_last_task_is_git_only
+    Dir.mktmpdir("redwright-server-dispatcher-repo-undo-ok-") do |dir|
+      Dir.chdir(dir) do
+        bootstrap = Redwright::Bootstrap.new(mode: :dev).call
+        project_store = Redwright::ProjectStore.new(bootstrap.db_path)
+        task_store = Redwright::TaskStore.new(bootstrap.db_path)
+        action_store = Redwright::ActionExecutionStore.new(bootstrap.db_path)
+        path = File.join(bootstrap.projects_root, "alpha")
+        FileUtils.mkdir_p(path)
+        run_cmd!("git -C #{path} init .")
+        run_cmd!("git -C #{path} config user.name 'rw-test'")
+        run_cmd!("git -C #{path} config user.email 'rw-test@example.com'")
+        File.write(File.join(path, "README.md"), "v1\n")
+        run_cmd!("git -C #{path} add README.md")
+        run_cmd!("git -C #{path} commit -m 'init'")
+        project = project_store.register(path: path, aliases: ["alpha"])
+
+        flow = Redwright::RuntimeFlow.new(
+          project_store: project_store,
+          workstream_store: Redwright::WorkstreamStore.new(bootstrap.db_path),
+          task_store: task_store,
+          alignment_store: Redwright::AlignmentStore.new(bootstrap.db_path),
+          alignment_interruption_store: Redwright::AlignmentInterruptionStore.new(bootstrap.db_path),
+          primitive_executor: Redwright::PrimitiveExecutor.new(
+            allowed_projects_root: bootstrap.projects_root,
+            enforce_mutating_projects_root: true
+          ),
+          action_execution_store: action_store
+        )
+        dispatcher = Redwright::ServerRuntimeDispatcher.new(
+          flow: flow,
+          blocked_retry_attempts: 1,
+          project_store: project_store,
+          projects_root: bootstrap.projects_root,
+          task_store: task_store,
+          action_execution_store: action_store
+        )
+
+        dispatcher.call(
+          "type" => "send",
+          "session_id" => "telegram-undo-1",
+          "payload" => {
+            "channel" => "telegram",
+            "project_ref" => "alpha",
+            "intent" => "change",
+            "message" => "create git commit",
+            "actions" => [
+              {
+                "id" => "c1",
+                "type" => "git_commit",
+                "args" => { "message" => "tracked", "add_all" => true, "confirmed" => true },
+                "requires_confirmation" => true,
+                "timeout_ms" => 10_000,
+                "on_failure" => "abort"
+              }
+            ]
+          }
+        )
+
+        File.write(File.join(path, "README.md"), "v2\n")
+        undo = dispatcher.call(
+          "type" => "send",
+          "session_id" => "telegram-undo-1",
+          "payload" => {
+            "channel" => "telegram",
+            "project_ref" => project.id,
+            "intent" => "change",
+            "message" => "/repo undo",
+            "actions" => []
+          }
+        )
+
+        assert_equal("ok", undo["status"])
+        assert_equal(project.id, undo["project_id"])
+        assert_equal("v1\n", File.read(File.join(path, "README.md")))
+      end
+    end
+  end
+
+  def test_send_dispatch_repo_undo_blocks_mixed_git_and_non_git_last_task
+    Dir.mktmpdir("redwright-server-dispatcher-repo-undo-mixed-") do |dir|
+      Dir.chdir(dir) do
+        bootstrap = Redwright::Bootstrap.new(mode: :dev).call
+        project_store = Redwright::ProjectStore.new(bootstrap.db_path)
+        task_store = Redwright::TaskStore.new(bootstrap.db_path)
+        action_store = Redwright::ActionExecutionStore.new(bootstrap.db_path)
+        path = File.join(bootstrap.projects_root, "alpha")
+        FileUtils.mkdir_p(path)
+        run_cmd!("git -C #{path} init .")
+        run_cmd!("git -C #{path} config user.name 'rw-test'")
+        run_cmd!("git -C #{path} config user.email 'rw-test@example.com'")
+        File.write(File.join(path, "README.md"), "v1\n")
+        run_cmd!("git -C #{path} add README.md")
+        run_cmd!("git -C #{path} commit -m 'init'")
+        project_store.register(path: path, aliases: ["alpha"])
+
+        flow = Redwright::RuntimeFlow.new(
+          project_store: project_store,
+          workstream_store: Redwright::WorkstreamStore.new(bootstrap.db_path),
+          task_store: task_store,
+          alignment_store: Redwright::AlignmentStore.new(bootstrap.db_path),
+          alignment_interruption_store: Redwright::AlignmentInterruptionStore.new(bootstrap.db_path),
+          primitive_executor: Redwright::PrimitiveExecutor.new(
+            allowed_projects_root: bootstrap.projects_root,
+            enforce_mutating_projects_root: true
+          ),
+          action_execution_store: action_store
+        )
+        dispatcher = Redwright::ServerRuntimeDispatcher.new(
+          flow: flow,
+          blocked_retry_attempts: 1,
+          project_store: project_store,
+          projects_root: bootstrap.projects_root,
+          task_store: task_store,
+          action_execution_store: action_store
+        )
+
+        dispatcher.call(
+          "type" => "send",
+          "session_id" => "telegram-undo-2",
+          "payload" => {
+            "channel" => "telegram",
+            "project_ref" => "alpha",
+            "intent" => "change",
+            "message" => "mixed task",
+            "actions" => [
+              {
+                "id" => "w1",
+                "type" => "write_file",
+                "args" => { "path" => "notes.txt", "content" => "x\n" },
+                "requires_confirmation" => false,
+                "timeout_ms" => 10_000,
+                "on_failure" => "abort"
+              },
+              {
+                "id" => "g1",
+                "type" => "git_status",
+                "args" => {},
+                "requires_confirmation" => false,
+                "timeout_ms" => 10_000,
+                "on_failure" => "abort"
+              }
+            ]
+          }
+        )
+
+        undo = dispatcher.call(
+          "type" => "send",
+          "session_id" => "telegram-undo-2",
+          "payload" => {
+            "channel" => "telegram",
+            "project_ref" => "alpha",
+            "intent" => "change",
+            "message" => "/repo undo",
+            "actions" => []
+          }
+        )
+
+        assert_equal("error", undo["status"])
+        assert_equal("undo_blocked_mixed_git_and_non_git_actions", undo["message"])
       end
     end
   end

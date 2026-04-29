@@ -57,6 +57,7 @@ module Redwright
       git_branch
       git_commit
       git_push
+      git_undo
     ].freeze
     ACTION_MACRO_TYPES = %w[
       write_files

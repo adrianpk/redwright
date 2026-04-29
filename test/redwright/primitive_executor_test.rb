@@ -177,6 +177,56 @@ class PrimitiveExecutorTest < Minitest::Test
     end
   end
 
+  def test_git_undo_reverts_tracked_changes
+    Dir.mktmpdir("redwright-primitive-executor-git-undo-") do |dir|
+      setup_git_repo(dir)
+      File.write(File.join(dir, "README.md"), "v1\n")
+      system("git -C #{dir} add README.md")
+      system("git -C #{dir} commit -m 'init' >/dev/null 2>&1")
+      File.write(File.join(dir, "README.md"), "v2\n")
+
+      executor = Redwright::PrimitiveExecutor.new
+      result = executor.execute(
+        project_root: dir,
+        action: {
+          "id" => "g6",
+          "type" => "git_undo",
+          "args" => {},
+          "timeout_ms" => 2_000,
+          "on_failure" => "abort"
+        }
+      )
+
+      assert_equal("ok", result.status)
+      assert_equal("v1\n", File.read(File.join(dir, "README.md")))
+    end
+  end
+
+  def test_git_undo_blocks_when_untracked_files_exist
+    Dir.mktmpdir("redwright-primitive-executor-git-undo-untracked-") do |dir|
+      setup_git_repo(dir)
+      File.write(File.join(dir, "README.md"), "v1\n")
+      system("git -C #{dir} add README.md")
+      system("git -C #{dir} commit -m 'init' >/dev/null 2>&1")
+      File.write(File.join(dir, "new.txt"), "new\n")
+
+      executor = Redwright::PrimitiveExecutor.new
+      result = executor.execute(
+        project_root: dir,
+        action: {
+          "id" => "g7",
+          "type" => "git_undo",
+          "args" => {},
+          "timeout_ms" => 2_000,
+          "on_failure" => "abort"
+        }
+      )
+
+      assert_equal("error", result.status)
+      assert_match("undo_blocked_untracked_files", result.error_message)
+    end
+  end
+
   def test_rejects_mutating_actions_outside_allowed_projects_root
     Dir.mktmpdir("redwright-primitive-executor-allowed-root-") do |dir|
       allowed_root = File.join(dir, "_workspace", "Projects")
