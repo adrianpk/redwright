@@ -39,10 +39,13 @@ module Redwright
         end
 
         aliases.each do |a|
-          db.execute(
-            "INSERT INTO project_aliases (alias, project_id, created_at) VALUES (?, ?, ?) ON CONFLICT(alias) DO UPDATE SET project_id = excluded.project_id",
-            [a, project_id, now]
-          )
+          db.execute("UPDATE project_aliases SET project_id = ?, created_at = ? WHERE alias = ?", [project_id, now, a])
+          if db.changes.zero?
+            db.execute(
+              "INSERT INTO project_aliases (alias, project_id, created_at) VALUES (?, ?, ?)",
+              [a, project_id, now]
+            )
+          end
           Trace.sqlite(op: "upsert", table: "project_aliases", detail: "alias=#{a}")
         end
 

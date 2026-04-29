@@ -260,11 +260,15 @@ module Redwright
           FOREIGN KEY(task_id) REFERENCES tasks(id) ON DELETE CASCADE
         );
 
+        UPDATE runtime_metadata
+        SET value = '10', updated_at = datetime('now')
+        WHERE key = 'schema_version';
+
         INSERT INTO runtime_metadata (key, value, updated_at)
-        VALUES ('schema_version', '10', datetime('now'))
-        ON CONFLICT(key) DO UPDATE SET
-          value = excluded.value,
-          updated_at = excluded.updated_at;
+        SELECT 'schema_version', '10', datetime('now')
+        WHERE NOT EXISTS (
+          SELECT 1 FROM runtime_metadata WHERE key = 'schema_version'
+        );
       SQL
 
       ensure_column(db, table: "tasks", column: "trace_id", column_sql: "TEXT")

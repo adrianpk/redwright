@@ -33,16 +33,15 @@ module Redwright
       now = Time.now.utc.iso8601(6)
       with_db do |db|
         db.execute(
-          <<~SQL,
-            INSERT INTO chat_contexts (chat_id, project_id, workstream_id, updated_at)
-            VALUES (?, ?, ?, ?)
-            ON CONFLICT(chat_id) DO UPDATE SET
-              project_id = excluded.project_id,
-              workstream_id = excluded.workstream_id,
-              updated_at = excluded.updated_at
-          SQL
-          [chat_id, project_id, workstream_id, now]
+          "UPDATE chat_contexts SET project_id = ?, workstream_id = ?, updated_at = ? WHERE chat_id = ?",
+          [project_id, workstream_id, now, chat_id]
         )
+        if db.changes.zero?
+          db.execute(
+            "INSERT INTO chat_contexts (chat_id, project_id, workstream_id, updated_at) VALUES (?, ?, ?, ?)",
+            [chat_id, project_id, workstream_id, now]
+          )
+        end
         Trace.sqlite(op: "upsert", table: "chat_contexts", detail: "chat_id=#{chat_id}")
       end
       get(chat_id)

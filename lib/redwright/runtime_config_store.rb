@@ -44,10 +44,15 @@ module Redwright
       now = Time.now.utc.iso8601(6)
       with_db do |db|
         db.execute(
+          "UPDATE runtime_metadata SET value = ?, updated_at = ? WHERE key = ?",
+          [value, now, key]
+        )
+        return if db.changes.positive?
+
+        db.execute(
           <<~SQL,
             INSERT INTO runtime_metadata (key, value, updated_at)
             VALUES (?, ?, ?)
-            ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at
           SQL
           [key, value, now]
         )

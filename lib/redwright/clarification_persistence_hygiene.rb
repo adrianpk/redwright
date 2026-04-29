@@ -111,6 +111,7 @@ module Redwright
     def with_db
       db = SQLite3::Database.new(@db_path)
       db.results_as_hash = false
+      db.busy_timeout = 5000
       db.execute("PRAGMA foreign_keys = ON")
       yield db
     ensure
