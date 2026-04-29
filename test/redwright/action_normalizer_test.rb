@@ -35,6 +35,35 @@ class ActionNormalizerTest < Minitest::Test
     assert_equal("B", normalized[1].dig("args", "content"))
   end
 
+  def test_expand_write_files_array_format_into_write_file_actions
+    normalizer = Redwright::ActionNormalizer.new
+    actions = [
+      {
+        "id" => "wf",
+        "type" => "write_files",
+        "args" => {
+          "files" => [
+            { "path" => "b.txt", "content" => "B" },
+            { "path" => "a.txt", "content" => "A" }
+          ]
+        },
+        "requires_confirmation" => false,
+        "timeout_ms" => 10_000,
+        "on_failure" => "abort"
+      }
+    ]
+
+    normalized = normalizer.normalize(actions)
+    assert_equal(2, normalized.size)
+    assert_equal("wf.1", normalized[0]["id"])
+    assert_equal("wf.2", normalized[1]["id"])
+    assert_equal("write_file", normalized[0]["type"])
+    assert_equal("a.txt", normalized[0].dig("args", "path"))
+    assert_equal("A", normalized[0].dig("args", "content"))
+    assert_equal("b.txt", normalized[1].dig("args", "path"))
+    assert_equal("B", normalized[1].dig("args", "content"))
+  end
+
   def test_expand_run_command_into_single_run
     normalizer = Redwright::ActionNormalizer.new
     normalized = normalizer.normalize(

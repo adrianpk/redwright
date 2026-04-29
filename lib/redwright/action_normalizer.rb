@@ -38,10 +38,12 @@ module Redwright
     def expand_write_files(action)
       args = action.fetch("args", {})
       files = args["files"]
-      raise ArgumentError, "write_files_missing_files" unless files.is_a?(Hash) && !files.empty?
+      normalized_files = normalize_write_files(files)
+      raise ArgumentError, "write_files_missing_files" if normalized_files.empty?
 
-      files.keys.sort.map.with_index do |path, idx|
-        content = files[path]
+      normalized_files.sort_by { |entry| entry["path"] }.map.with_index do |entry, idx|
+        path = entry["path"]
+        content = entry["content"]
         raise ArgumentError, "write_files_invalid_content" unless content.is_a?(String)
 
         build_action(
@@ -50,6 +52,27 @@ module Redwright
           type: "write_file",
           args: { "path" => path, "content" => content }
         )
+      end
+    end
+
+    def normalize_write_files(files)
+      case files
+      when Hash
+        files.map do |path, content|
+          { "path" => path.to_s, "content" => content }
+        end
+      when Array
+        files.filter_map do |entry|
+          next unless entry.is_a?(Hash)
+
+          path = entry["path"]
+          content = entry["content"]
+          next unless path.is_a?(String) && !path.strip.empty?
+
+          { "path" => path, "content" => content }
+        end
+      else
+        []
       end
     end
 
