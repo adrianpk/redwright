@@ -61,4 +61,22 @@ class TelegramControlRouterTest < Minitest::Test
     )
     assert_equal("resume", control[:command])
   end
+
+  def test_control_from_decision_accepts_explicit_control_even_without_meta_intent
+    router = Redwright::TelegramControlRouter.new
+    control = router.control_from_decision(
+      FakeDecision.new(intent: "change", control_intent: "cancel_task"),
+      raw_text: "continue coding but cancel current task"
+    )
+    assert_equal("stop", control[:command])
+  end
+
+  def test_control_from_operational_is_ignored_when_control_intent_is_present
+    router = Redwright::TelegramControlRouter.new
+    control = router.control_from_operational(
+      FakeDecision.new(control_intent: "cancel_task", operational_intent: "task_resume"),
+      raw_text: "resume"
+    )
+    assert_nil(control)
+  end
 end

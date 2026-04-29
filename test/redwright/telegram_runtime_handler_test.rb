@@ -229,6 +229,57 @@ class TelegramRuntimeHandlerTest < Minitest::Test
     assert_equal("", err.string)
   end
 
+  def test_handle_direct_control_slash_bypasses_llm_and_uses_flow_control
+    captured = {}
+    fake_flow = Object.new
+    fake_flow.define_singleton_method(:control) do |**kwargs|
+      captured.merge!(kwargs)
+      FakeResult.new(
+        project: FakeProject.new(id: "project-ctrl"),
+        workstream: FakeWorkstream.new(id: "ws-ctrl", state: "paused"),
+        task: FakeTask.new(id: "task-ctrl"),
+        alignment: nil,
+        action_results: nil
+      )
+    end
+    fake_flow.define_singleton_method(:process) do |**_kwargs|
+      raise "flow.process should not run for direct control slash"
+    end
+
+    fake_interpreter = Object.new
+    fake_interpreter.define_singleton_method(:interpret) do |**_kwargs|
+      raise "interpreter should not run for direct control slash"
+    end
+
+    client = FakeTelegramClient.new([])
+    out = StringIO.new
+    err = StringIO.new
+    handler = Redwright::TelegramRuntimeHandler.new(
+      flow: fake_flow,
+      telegram_client: client,
+      out: out,
+      err: err,
+      blocked_retry_attempts: 1,
+      model_name: "gpt-5-mini",
+      intent_interpreter: fake_interpreter
+    )
+
+    handler.handle(
+      Redwright::TelegramEvent.new(
+        update_id: 402,
+        chat_id: 92,
+        user_id: nil,
+        username: nil,
+        text: "/pause"
+      )
+    )
+
+    assert_equal("pause", captured[:command])
+    assert_equal("/pause", captured[:reason])
+    assert_match("telegram control chat=92 command=pause task=task-ctrl", out.string)
+    assert_equal("", err.string)
+  end
+
   def test_handle_keeps_typing_while_processing_longer_than_interval
     fake_flow = Object.new
     fake_flow.define_singleton_method(:process) do |**_kwargs|
