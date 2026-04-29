@@ -9,7 +9,7 @@ module Redwright
     def initialize(mode: :dev, pwd: Dir.pwd, home: Dir.home)
       @mode = mode
       case mode
-      when :dev
+      when :dev, :test
         workspace_root = File.join(pwd, "_workspace")
         @root = workspace_root
         @state_dir = File.join(workspace_root, "redwright")
