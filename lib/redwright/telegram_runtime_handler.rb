@@ -311,6 +311,25 @@ module Redwright
                         end
           result = loop_result[:result]
           quality_summary = loop_result[:quality_summary]
+          if result.nil?
+            if loop_result[:terminal_reason].to_s == "clarify"
+              question = loop_result[:clarify_question].to_s.strip
+              question = "Clarification needed before execution can continue." if question.empty?
+              clarify = RuntimeResultEnvelope.clarify(
+                trace_id: Trace.current_trace_id || "none",
+                message: question
+              )
+              @telegram_client.send_message(
+                chat_id: event.chat_id,
+                text: human_clarify_message(question: question, trace_id: Trace.current_trace_id || "none")
+              )
+              send_json_envelope_if_enabled(chat_id: event.chat_id, envelope: clarify)
+              @out.puts("telegram clarify chat=#{event.chat_id}")
+              return
+            end
+
+            raise "runtime_result_missing: terminal_reason=#{loop_result[:terminal_reason]}"
+          end
           @chat_context_store&.upsert(
             chat_id: event.chat_id,
             project_id: result.project.id,
@@ -532,6 +551,7 @@ module Redwright
       attempts = 0
       last_outcome = nil
       terminal_reason = "success"
+      terminal_clarify_question = nil
       no_progress_streak = 0
       repeated_fingerprint_streak = 0
       last_fingerprints = nil
@@ -559,6 +579,7 @@ module Redwright
             )
             if highest_value_gap_question(decision)
               terminal_reason = "clarify"
+              terminal_clarify_question = highest_value_gap_question(decision)
               break
             end
             if decision.source == "fallback" && planner_decision_invalid?(decision)
@@ -626,6 +647,7 @@ module Redwright
           )
           if highest_value_gap_question(decision)
             terminal_reason = "clarify"
+            terminal_clarify_question = highest_value_gap_question(decision)
             break
           end
           if decision.source == "fallback" && planner_decision_invalid?(decision)
@@ -645,7 +667,15 @@ module Redwright
         max_attempts: max_attempts,
         deadline_reached: Process.clock_gettime(Process::CLOCK_MONOTONIC) >= deadline
       )
-      last_outcome.merge(attempts: attempts, terminal_reason: terminal_reason)
+      outcome = last_outcome || {
+        result: nil,
+        quality_summary: nil
+      }
+      outcome.merge(
+        attempts: attempts,
+        terminal_reason: terminal_reason,
+        clarify_question: terminal_clarify_question
+      )
     end
 
     def normalized_change_loop_attempts(raw)

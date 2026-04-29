@@ -1952,6 +1952,75 @@ class TelegramRuntimeHandlerTest < Minitest::Test
     assert_match("Attempts: 1 (terminal: clarify).", client.messages.last[:text])
   end
 
+  def test_handle_does_not_crash_when_recoverable_runtime_error_refinement_exits_with_clarify
+    fake_flow = Object.new
+    fake_flow.define_singleton_method(:process) do |**_kwargs|
+      raise "write_files_missing_files"
+    end
+
+    call = 0
+    fake_interpreter = Object.new
+    fake_interpreter.define_singleton_method(:interpret) do |**_kwargs|
+      call += 1
+      if call == 1
+        FakeDecision.new(
+          intent: "change",
+          message: "apply change",
+          actions: [],
+          gaps: [],
+          source: "llm",
+          finish_reason: "stop",
+          raw_output: "{}"
+        )
+      else
+        FakeDecision.new(
+          intent: "change",
+          message: "need clarification",
+          actions: [],
+          gaps: [
+            { "id" => "g1", "question" => "Which target file should be created?", "field" => "target_file", "resolved" => false, "priority" => 1 }
+          ],
+          source: "llm",
+          finish_reason: "stop",
+          raw_output: "{}"
+        )
+      end
+    end
+
+    fake_resolver = Object.new
+    fake_resolver.define_singleton_method(:resolve) do |**_kwargs|
+      Redwright::TelegramContextResolver::Resolution.new(
+        resolved: true,
+        project_ref: "p1",
+        project_path: "/tmp/project",
+        workstream_id: nil,
+        question: nil
+      )
+    end
+
+    fake_prompt_loader = Object.new
+    fake_prompt_loader.define_singleton_method(:build) do |**_kwargs|
+      { quality: { auto_validate: true, lint_command: nil, test_command: "bundle exec rake test" } }
+    end
+
+    client = FakeTelegramClient.new([])
+    handler = Redwright::TelegramRuntimeHandler.new(
+      flow: fake_flow,
+      telegram_client: client,
+      out: StringIO.new,
+      err: StringIO.new,
+      context_resolver: fake_resolver,
+      blocked_retry_attempts: 2,
+      model_name: "gpt-5-mini",
+      intent_interpreter: fake_interpreter,
+      prompt_context_loader: fake_prompt_loader
+    )
+
+    handler.handle(Redwright::TelegramEvent.new(update_id: 26, chat_id: 9, user_id: nil, username: nil, text: "do work"))
+
+    assert_match("Which target file should be created?", client.messages.last[:text])
+  end
+
   def test_handle_includes_actionable_confirmation_hint_when_commit_is_blocked
     fake_flow = Object.new
     fake_flow.define_singleton_method(:process) do |**_kwargs|
