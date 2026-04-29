@@ -3,15 +3,15 @@
 ## Metadata
 
 - owner: `adrianpk`
-- status: `draft`
-- active_slice: `none`
+- status: `in_progress`
+- active_slice: `slice-1`
 - plan: `ops/plans/2026-04-29-redwright-persistence-audit-and-canonical-state-cycle-plan.md`
 
 ## Slice Progress
 
 ### Slice 1: Persistence Inventory Snapshot
 
-- status: `pending`
+- status: `completed`
 - branch: `feat/slice-1-persistence-inventory-snapshot`
 - PR: `tbd`
 - commits: `pending`
@@ -60,3 +60,5 @@
 ## Event Log
 
 - `2026-04-29 14:10` state=`planned` note=`cycle created to audit persistence, remove zombies, and lock canonical state ownership`
+- `2026-04-29 14:23` state=`implementation` slice=`slice-1` note=`generated machine-readable persistence inventory from bootstrap schema and mapped runtime callsites`
+- `2026-04-29 14:24` validation=`bundle exec ruby -Itest test/redwright/bootstrap_test.rb`
