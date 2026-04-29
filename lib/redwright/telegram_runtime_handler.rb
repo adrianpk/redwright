@@ -10,6 +10,8 @@ require_relative "hint_normalizer"
 require_relative "skill_router"
 require_relative "skill_subloop_executor"
 require_relative "feedback_normalizer"
+require_relative "telegram_execution_summary"
+require_relative "telegram_message_renderer"
 
 module Redwright
   class TelegramRuntimeHandler
@@ -44,7 +46,9 @@ module Redwright
       skill_router: SkillRouter.new,
       skill_subloop_executor: SkillSubloopExecutor.new,
       feedback_normalizer: FeedbackNormalizer.new,
-      execution_feedback_store: nil
+      execution_feedback_store: nil,
+      execution_summary_builder: TelegramExecutionSummary.new,
+      message_renderer: nil
     )
       @flow = flow
       @telegram_client = telegram_client
@@ -75,6 +79,8 @@ module Redwright
       @skill_subloop_executor = skill_subloop_executor
       @feedback_normalizer = feedback_normalizer
       @execution_feedback_store = execution_feedback_store
+      @execution_summary_builder = execution_summary_builder
+      @message_renderer = message_renderer || TelegramMessageRenderer.new(execution_summary: @execution_summary_builder)
     end
 
     def handle(event)
@@ -96,7 +102,7 @@ module Redwright
             )
             @telegram_client.send_message(
               chat_id: event.chat_id,
-              text: human_clarify_message(question: resolution.question, trace_id: Trace.current_trace_id || "none")
+              text: @message_renderer.clarify(question: resolution.question, trace_id: Trace.current_trace_id || "none")
             )
             send_json_envelope_if_enabled(chat_id: event.chat_id, envelope: clarify)
             @out.puts("telegram clarify chat=#{event.chat_id}")
@@ -114,7 +120,7 @@ module Redwright
             )
             @telegram_client.send_message(
               chat_id: event.chat_id,
-              text: human_clarify_message(question: slash[:question], trace_id: Trace.current_trace_id || "none")
+              text: @message_renderer.clarify(question: slash[:question], trace_id: Trace.current_trace_id || "none")
             )
             send_json_envelope_if_enabled(chat_id: event.chat_id, envelope: clarify)
             @out.puts("telegram clarify chat=#{event.chat_id}")
@@ -166,7 +172,7 @@ module Redwright
             )
             @telegram_client.send_message(
               chat_id: event.chat_id,
-              text: human_success_message(
+              text: @message_renderer.success(
                 result: control_result,
                 trace_id: Trace.current_trace_id || "none",
                 quality_summary: nil,
@@ -187,7 +193,7 @@ module Redwright
             )
             @telegram_client.send_message(
               chat_id: event.chat_id,
-              text: human_clarify_message(
+              text: @message_renderer.clarify(
                 question: "No active question to confirm. Send a concrete request or ask for status.",
                 trace_id: Trace.current_trace_id || "none"
               )
@@ -255,7 +261,7 @@ module Redwright
             )
             @telegram_client.send_message(
               chat_id: event.chat_id,
-              text: human_success_message(
+              text: @message_renderer.success(
                 result: control_result,
                 trace_id: Trace.current_trace_id || "none",
                 quality_summary: nil,
@@ -299,7 +305,7 @@ module Redwright
             )
             @telegram_client.send_message(
               chat_id: event.chat_id,
-              text: human_clarify_message(question: gap_question, trace_id: Trace.current_trace_id || "none")
+              text: @message_renderer.clarify(question: gap_question, trace_id: Trace.current_trace_id || "none")
             )
             send_json_envelope_if_enabled(chat_id: event.chat_id, envelope: clarify)
             @out.puts("telegram clarify chat=#{event.chat_id}")
@@ -320,7 +326,7 @@ module Redwright
             })
             @telegram_client.send_message(
               chat_id: event.chat_id,
-              text: human_planner_rejection_message(reason: decision.finish_reason, trace_id: Trace.current_trace_id || "none")
+              text: @message_renderer.planner_rejection(reason: decision.finish_reason, trace_id: Trace.current_trace_id || "none")
             )
             @out.puts("telegram planner_reject chat=#{event.chat_id}")
             return
@@ -359,7 +365,7 @@ module Redwright
               )
               @telegram_client.send_message(
                 chat_id: event.chat_id,
-                text: human_clarify_message(question: question, trace_id: Trace.current_trace_id || "none")
+                text: @message_renderer.clarify(question: question, trace_id: Trace.current_trace_id || "none")
               )
               send_json_envelope_if_enabled(chat_id: event.chat_id, envelope: clarify)
               @out.puts("telegram clarify chat=#{event.chat_id}")
@@ -380,7 +386,7 @@ module Redwright
             workstream_id: result.workstream.id,
             task_id: result.task.id,
             state: result.workstream.state,
-            execution: build_execution_summary(
+            execution: @execution_summary_builder.build(
               result,
               quality_summary: quality_summary,
               attempts: loop_result[:attempts],
@@ -391,7 +397,7 @@ module Redwright
           )
           @telegram_client.send_message(
             chat_id: event.chat_id,
-            text: human_success_message(
+            text: @message_renderer.success(
               result: result,
               trace_id: Trace.current_trace_id || "none",
               quality_summary: quality_summary,
@@ -409,7 +415,7 @@ module Redwright
           )
           @telegram_client.send_message(
             chat_id: event.chat_id,
-            text: human_error_message(message: e.message, trace_id: Trace.current_trace_id || "none")
+            text: @message_renderer.error(message: e.message, trace_id: Trace.current_trace_id || "none")
           )
           send_json_envelope_if_enabled(chat_id: event.chat_id, envelope: error_envelope)
           @err.puts("telegram processing error chat=#{event.chat_id}: #{e.message}")
@@ -826,81 +832,36 @@ module Redwright
     end
 
     def build_execution_summary(result, quality_summary: nil, attempts: 1, terminal_reason: "single_pass", mode: nil)
-      action_results = if result.respond_to?(:action_results)
-                         result.action_results || []
-                       else
-                         []
-                       end
-      if action_results.empty? && quality_summary.nil?
-        resolved_terminal_reason = if result.respond_to?(:terminal_reason) && result.terminal_reason
-                                     result.terminal_reason
-                                   else
-                                     terminal_reason
-                                   end
-        return {
-          total_actions: 0,
-          succeeded_actions: 0,
-          failed_actions: 0,
-          failed_action_ids: [],
-          attempts: attempts,
-          terminal_reason: resolved_terminal_reason
-        }
-      end
-
-      total = action_results.size
-      failed = action_results.count { |r| r.status != "ok" }
-      succeeded = total - failed
-      failed_action_ids = action_results.select { |r| r.status != "ok" }.map(&:action_id)
-      summary = {
-        total_actions: total,
-        succeeded_actions: succeeded,
-        failed_actions: failed,
-        failed_action_ids: failed_action_ids,
+      @execution_summary_builder.build(
+        result,
+        quality_summary: quality_summary,
         attempts: attempts,
-        terminal_reason: terminal_reason
-      }
-      summary[:mode] = mode if mode
-      summary[:quality] = quality_summary if quality_summary
-      summary
+        terminal_reason: terminal_reason,
+        mode: mode
+      )
     end
 
     def human_success_message(result:, trace_id:, quality_summary:, attempts:, terminal_reason:, mode:)
-      parts = []
-      parts << "Started task #{result.task.id} in project #{result.project.id}."
-      parts << "Workstream: #{result.workstream.id} (state: #{result.workstream.state})."
-      execution = build_execution_summary(result, quality_summary: nil, attempts: attempts, terminal_reason: terminal_reason, mode: mode)
-      if execution
-        parts << "Actions: #{execution[:succeeded_actions]} succeeded, #{execution[:failed_actions]} failed."
-      end
-      parts << "Mode: #{mode}."
-      parts << "Attempts: #{attempts} (terminal: #{terminal_reason})."
-      if quality_summary
-        parts << "Quality checks: #{quality_summary[:passed_checks]}/#{quality_summary[:total_checks]} passed, #{quality_summary[:failed_checks]} failed."
-      end
-      confirmation_hint = confirmation_required_hint(result)
-      parts << confirmation_hint if confirmation_hint
-      parts << "Trace: #{trace_id}"
-      parts.join("\n")
+      @message_renderer.success(
+        result: result,
+        trace_id: trace_id,
+        quality_summary: quality_summary,
+        attempts: attempts,
+        terminal_reason: terminal_reason,
+        mode: mode
+      )
     end
 
     def human_error_message(message:, trace_id:)
-      "Error: #{message}\nTrace: #{trace_id}"
+      @message_renderer.error(message: message, trace_id: trace_id)
     end
 
     def human_clarify_message(question:, trace_id:)
-      [
-        question.to_s,
-        "Trace: #{trace_id}"
-      ].join("\n")
+      @message_renderer.clarify(question: question, trace_id: trace_id)
     end
 
     def human_planner_rejection_message(reason:, trace_id:)
-      [
-        "Planner output was rejected before execution.",
-        "Reason: #{reason}",
-        "No actions were executed for this turn.",
-        "Trace: #{trace_id}"
-      ].join("\n")
+      @message_renderer.planner_rejection(reason: reason, trace_id: trace_id)
     end
 
     def control_from_decision(decision, raw_text:)
@@ -1259,25 +1220,7 @@ module Redwright
     end
 
     def confirmation_required_hint(result)
-      action_results = if result.respond_to?(:action_results)
-                         result.action_results || []
-                       else
-                         []
-                       end
-      blocked = action_results.select do |r|
-        next false unless r.respond_to?(:status) && r.status != "ok"
-        next false unless r.respond_to?(:error_message) && r.error_message.to_s == "confirmation_required"
-
-        if r.respond_to?(:action_type)
-          %w[git_commit git_push].include?(r.action_type.to_s)
-        else
-          true
-        end
-      end
-      return nil if blocked.empty?
-
-      ids = blocked.map { |r| r.respond_to?(:action_id) ? r.action_id : "unknown" }.join(", ")
-      "Commit/push actions were blocked by confirmation policy (#{ids}). Ask to retry with explicit confirmation."
+      @message_renderer.send(:confirmation_required_hint, result)
     end
 
     def call_with_supported_keywords(method_obj, kwargs)
