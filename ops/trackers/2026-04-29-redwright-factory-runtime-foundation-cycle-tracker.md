@@ -7,7 +7,7 @@
 - state: `next_slice`
 - updated: `2026-04-29`
 - active_slice: `slice_2`
-- active_task: `T2.2`
+- active_task: `T2.3`
 
 ## Slice Progress
 
@@ -46,9 +46,9 @@ Validation:
 
 Tasks:
 
-- [ ] `T2.1 implement command/query envelope validation primitives`
-- [ ] `T2.2 implement handler registry with typed execution context`
-- [ ] `T2.3 wire telegram/tui ingress through compatibility adapter to semantic core`
+- [x] `T2.1 implement command/query envelope validation primitives`
+- [x] `T2.2 implement handler registry with typed execution context`
+- [x] `T2.3 wire telegram/tui ingress through compatibility adapter to semantic core`
 
 Commits:
 
@@ -146,3 +146,4 @@ Validation:
 - `2026-04-29 23:28` state=`next_slice` note=`slice 1 merged to dev via PR #152; moved cycle focus to slice 2 task T2.1`
 - `2026-04-29 23:39` state=`executing_slice` note=`implemented T2.1 command-query envelope validation primitives with unit coverage`
 - `2026-04-29 23:54` state=`executing_slice` note=`implemented T2.2 handler registry with typed execution context and dispatch error contract`
+- `2026-04-30 00:06` state=`executing_slice` note=`completed T2.3 by wiring telegram ingress through semantic compatibility adapter with unit and handler integration tests`

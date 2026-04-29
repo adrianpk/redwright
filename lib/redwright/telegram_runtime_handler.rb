@@ -14,6 +14,7 @@ require_relative "telegram_execution_summary"
 require_relative "telegram_message_renderer"
 require_relative "telegram_control_router"
 require_relative "telegram_clarification_policy"
+require_relative "ingress_semantic_compatibility_adapter"
 
 module Redwright
   class TelegramRuntimeHandler
@@ -52,7 +53,8 @@ module Redwright
       execution_summary_builder: TelegramExecutionSummary.new,
       message_renderer: nil,
       control_router: TelegramControlRouter.new,
-      clarification_policy: nil
+      clarification_policy: nil,
+      semantic_adapter: nil
     )
       @flow = flow
       @telegram_client = telegram_client
@@ -90,6 +92,7 @@ module Redwright
         clarification_session_store: @clarification_session_store,
         err: @err
       )
+      @semantic_adapter = semantic_adapter || IngressSemanticCompatibilityAdapter.new
     end
 
     def handle(event)
@@ -120,6 +123,16 @@ module Redwright
 
           prompt_context = load_prompt_context(project_path: resolution.project_path)
           stop_typing = start_typing_keepalive(event.chat_id)
+          semantic = @semantic_adapter.dispatch(
+            text: event.text,
+            runtime: "interactive",
+            actor_id: "chat-#{event.chat_id}"
+          )
+          if semantic.handled
+            @telegram_client.send_message(chat_id: event.chat_id, text: semantic.message.to_s)
+            @out.puts("telegram semantic chat=#{event.chat_id} status=#{semantic.status}")
+            return
+          end
           slash = parse_slash_command(event.text)
           explicit_skill_name = slash && slash[:kind] == "skill" ? slash[:skill_name] : ""
           if slash && slash[:kind] == "clarify"
