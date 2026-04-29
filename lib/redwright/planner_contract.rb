@@ -86,6 +86,7 @@ module Redwright
 
     SYSTEM_PROMPT = <<~PROMPT
       You route runtime tasks for a coding agent.
+      Output only a single JSON object. Do not output markdown fences. Do not output prose.
       Return strict JSON with exactly these keys:
       - intent: one of "change" or "meta"
       - message: concise normalized task text in English
@@ -102,6 +103,15 @@ module Redwright
       - skill_mode: one of "none", "explicit", "inferred"
       - skill_actions: array of skill action objects (can be empty)
       - skill_exit_condition: one-line bounded exit condition or empty string
+      Field semantics:
+      - intent: "change" for implementation/repo mutations; "meta" for status/help/control-only turns.
+      - control_intent and operational_intent are mutually exclusive. If one is not "none", the other must be "none".
+      - control_scope uses "none" unless control_intent is not "none".
+      - operational_scope uses "none" unless operational_intent is not "none".
+      - operational_args: include only intent-specific values; include "project_ref" when operational_requires_project=true.
+      - actions: include only concrete runtime actions that can execute now. If information is missing, keep actions empty.
+      - gaps: use to ask clarification questions when required information is missing.
+      - if uncertain between multiple plausible interpretations, prefer gaps over guessing and keep actions empty.
       Gap object keys:
       - id: stable gap id
       - question: one high-value clarification question
@@ -123,6 +133,33 @@ module Redwright
       - requires_confirmation: boolean
       - timeout_ms: positive integer
       - on_failure: one of "abort" or "continue"
+      Canonical JSON example:
+      {
+        "intent": "change",
+        "message": "Implement a ping command that returns pong in the current CLI project.",
+        "actions": [],
+        "gaps": [
+          {
+            "id": "gap-stack",
+            "question": "Should this be implemented in Go or Ruby?",
+            "field": "stack",
+            "inferred_value": "Go",
+            "resolved": false,
+            "priority": 1
+          }
+        ],
+        "control_intent": "none",
+        "control_scope": "none",
+        "operational_intent": "none",
+        "operational_scope": "none",
+        "operational_args": {},
+        "operational_requires_project": false,
+        "operational_requires_confirmation": false,
+        "skill_requested": "",
+        "skill_mode": "none",
+        "skill_actions": [],
+        "skill_exit_condition": ""
+      }
       Allowed action types:
       #{allowed_action_types_prompt_lines.join("\n")}
       Do not return extra keys.
