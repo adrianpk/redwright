@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 require "fileutils"
+require "time"
 require "uri"
+require "yaml"
 
 module Redwright
   class ServerRuntimeDispatcher
@@ -210,7 +212,9 @@ module Redwright
 
       path = File.join(@projects_root, name)
       FileUtils.mkdir_p(path)
-      @project_store.register(path: path, aliases: [name], source_type: source_type, source_ref: source_ref)
+      project = @project_store.register(path: path, aliases: [name], source_type: source_type, source_ref: source_ref)
+      write_project_manifest_if_missing(project: project, created_via: source_type == "local_new" ? "new" : "clone")
+      project
     end
 
     def clone_project(url, name)
@@ -245,6 +249,31 @@ module Redwright
       raise ArgumentError, "could not infer repository name from url: #{url}" if slug.empty?
 
       slug
+    end
+
+    def write_project_manifest_if_missing(project:, created_via:)
+      manifest_dir = File.join(project.path, ".redwright")
+      manifest_path = File.join(manifest_dir, "manifest.yml")
+      return if File.file?(manifest_path)
+
+      FileUtils.mkdir_p(manifest_dir)
+      manifest = {
+        "schema_version" => 1,
+        "project" => {
+          "id" => project.id,
+          "name" => project.name,
+          "slug" => normalize_slug(project.name),
+          "stack" => "unknown",
+          "created_via" => created_via,
+          "created_at" => Time.now.utc.iso8601
+        }
+      }
+      File.write(manifest_path, YAML.dump(manifest))
+    end
+
+    def normalize_slug(name)
+      slug = name.to_s.downcase.gsub(/[^a-z0-9._\-]+/, "-").gsub(/\A-+|-+\z/, "")
+      slug.empty? ? "project" : slug
     end
   end
 end

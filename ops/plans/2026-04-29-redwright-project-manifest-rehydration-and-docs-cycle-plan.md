@@ -3,7 +3,7 @@
 ## Metadata
 
 - owner: `adrianpk`
-- status: `draft`
+- status: `in_progress`
 - scope: `runtime`
 - objective: `make .redwright/manifest.yml canonical and rehydratable, then document behavior with Diataxis-aligned technical docs`
 - tracker: `ops/trackers/2026-04-29-redwright-project-manifest-rehydration-and-docs-cycle-tracker.md`
@@ -21,12 +21,12 @@
 
 ### Slice 2: Manifest Writer on Project New
 
-- status: `pending`
+- status: `completed`
 - branch: `feat/slice-2-manifest-writer-project-new`
-- [ ] `T2.1 create .redwright/manifest.yml on project creation`
-- [ ] `T2.2 write deterministic defaults and normalized identifiers`
-- [ ] `T2.3 ensure idempotent re-runs do not corrupt manifest`
-- [ ] `T2.4 add tests for creation/update behavior`
+- [x] `T2.1 create .redwright/manifest.yml on project creation`
+- [x] `T2.2 write deterministic defaults and normalized identifiers`
+- [x] `T2.3 ensure idempotent re-runs do not corrupt manifest`
+- [x] `T2.4 add tests for creation/update behavior`
 
 ### Slice 3: Manifest Writer on Repo Clone
 

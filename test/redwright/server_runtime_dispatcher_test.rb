@@ -3,6 +3,7 @@
 require "tmpdir"
 require "fileutils"
 require "open3"
+require "yaml"
 require "minitest/autorun"
 
 $LOAD_PATH.unshift(File.expand_path("../../lib", __dir__))
@@ -141,6 +142,91 @@ class ServerRuntimeDispatcherTest < Minitest::Test
         assert_equal("local_new", project.source_type)
         assert_equal("", project.source_ref)
         assert_equal(true, File.directory?(File.join(bootstrap.projects_root, "happy-cli")))
+        manifest_path = File.join(project.path, ".redwright", "manifest.yml")
+        assert_equal(true, File.file?(manifest_path))
+        manifest = YAML.safe_load(File.read(manifest_path))
+        assert_equal(1, manifest["schema_version"])
+        assert_equal(project.id, manifest.dig("project", "id"))
+        assert_equal("happy-cli", manifest.dig("project", "name"))
+        assert_equal("happy-cli", manifest.dig("project", "slug"))
+        assert_equal("unknown", manifest.dig("project", "stack"))
+        assert_equal("new", manifest.dig("project", "created_via"))
+        refute_nil(manifest.dig("project", "created_at"))
+      end
+    end
+  end
+
+  def test_project_new_is_idempotent_and_does_not_overwrite_existing_manifest
+    Dir.mktmpdir("redwright-server-dispatcher-project-new-idempotent-") do |dir|
+      Dir.chdir(dir) do
+        bootstrap = Redwright::Bootstrap.new(mode: :dev).call
+        project_store = Redwright::ProjectStore.new(bootstrap.db_path)
+        flow = Redwright::RuntimeFlow.new(
+          project_store: project_store,
+          workstream_store: Redwright::WorkstreamStore.new(bootstrap.db_path),
+          task_store: Redwright::TaskStore.new(bootstrap.db_path),
+          alignment_store: Redwright::AlignmentStore.new(bootstrap.db_path),
+          alignment_interruption_store: Redwright::AlignmentInterruptionStore.new(bootstrap.db_path),
+          primitive_executor: Redwright::PrimitiveExecutor.new(
+            allowed_projects_root: bootstrap.projects_root,
+            enforce_mutating_projects_root: true
+          ),
+          action_execution_store: Redwright::ActionExecutionStore.new(bootstrap.db_path)
+        )
+        dispatcher = Redwright::ServerRuntimeDispatcher.new(
+          flow: flow,
+          blocked_retry_attempts: 1,
+          project_store: project_store,
+          projects_root: bootstrap.projects_root,
+          task_store: Redwright::TaskStore.new(bootstrap.db_path),
+          action_execution_store: Redwright::ActionExecutionStore.new(bootstrap.db_path)
+        )
+
+        first = dispatcher.call(
+          "type" => "send",
+          "session_id" => "telegram-42",
+          "payload" => {
+            "channel" => "telegram",
+            "project_ref" => "rw",
+            "intent" => "change",
+            "message" => "/project new happy-cli",
+            "actions" => []
+          }
+        )
+        project = project_store.resolve(first["project_id"])
+        manifest_path = File.join(project.path, ".redwright", "manifest.yml")
+        original_manifest = File.read(manifest_path)
+
+        custom_manifest = {
+          "schema_version" => 1,
+          "project" => {
+            "id" => project.id,
+            "name" => "happy-cli",
+            "slug" => "happy-cli",
+            "stack" => "ruby",
+            "created_via" => "new",
+            "created_at" => "2026-04-29T00:00:00Z"
+          }
+        }
+        File.write(manifest_path, YAML.dump(custom_manifest))
+
+        second = dispatcher.call(
+          "type" => "send",
+          "session_id" => "telegram-42",
+          "payload" => {
+            "channel" => "telegram",
+            "project_ref" => "rw",
+            "intent" => "change",
+            "message" => "/project new happy-cli",
+            "actions" => []
+          }
+        )
+        assert_equal("ok", second["status"])
+        assert_equal(project.id, second["project_id"])
+        manifest_after = YAML.safe_load(File.read(manifest_path))
+        assert_equal("ruby", manifest_after.dig("project", "stack"))
+        assert_equal("2026-04-29T00:00:00Z", manifest_after.dig("project", "created_at"))
+        refute_equal("", original_manifest)
       end
     end
   end
