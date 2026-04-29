@@ -22,4 +22,27 @@ class PathsTest < Minitest::Test
       assert_equal("invalid config key: default_projects_root must be absolute in real mode", err.message)
     end
   end
+
+  def test_runtime_state_root_is_partitioned_by_runtime
+    Dir.mktmpdir("redwright-paths-runtime-") do |dir|
+      paths = Redwright::Paths.new(mode: :dev, pwd: dir)
+
+      assert_equal(
+        File.join(dir, "_workspace", "redwright", "runtimes", "interactive"),
+        paths.runtime_state_root("interactive")
+      )
+      assert_equal(
+        File.join(dir, "_workspace", "redwright", "runtimes", "factory"),
+        paths.runtime_state_root("factory")
+      )
+    end
+  end
+
+  def test_runtime_state_root_rejects_unknown_runtime
+    Dir.mktmpdir("redwright-paths-runtime-invalid-") do |dir|
+      paths = Redwright::Paths.new(mode: :dev, pwd: dir)
+      err = assert_raises(ArgumentError) { paths.runtime_state_root("other") }
+      assert_equal("unsupported runtime: other", err.message)
+    end
+  end
 end

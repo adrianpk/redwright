@@ -4,6 +4,7 @@ require "pathname"
 module Redwright
   class Paths
     attr_reader :root, :state_dir, :config_dir, :projects_root, :worktrees_root, :db_path
+    RUNTIMES = %w[interactive factory].freeze
 
     def initialize(mode: :dev, pwd: Dir.pwd, home: Dir.home)
       @mode = mode
@@ -39,6 +40,15 @@ module Redwright
       end
 
       File.expand_path(raw, @root)
+    end
+
+    def runtime_state_root(runtime)
+      runtime_name = runtime.to_s
+      unless RUNTIMES.include?(runtime_name)
+        raise ArgumentError, "unsupported runtime: #{runtime_name}"
+      end
+
+      File.join(@state_dir, "runtimes", runtime_name)
     end
 
     private
