@@ -51,6 +51,9 @@ require_relative "redwright/local_ipc_session_registry"
 require_relative "redwright/server_runtime_dispatcher"
 require_relative "redwright/local_ipc_client"
 require_relative "redwright/telegram_socket_client_runner"
+require_relative "redwright/cli/project_command"
+require_relative "redwright/cli/workstream_command"
+require_relative "redwright/cli/task_command"
 
 module Redwright
   class CLI
@@ -118,158 +121,32 @@ module Redwright
     end
 
     def run_project
-      mode = :dev
-      sub = @argv.shift
-      path = nil
-      aliases = []
-
-      parser = OptionParser.new do |opts|
-        opts.on("--dev", "Use ./_workspace") { mode = :dev }
-        opts.on("--real", "Use $HOME paths") { mode = :real }
-        opts.on("--path PATH", "Project path") { |v| path = v }
-        opts.on("--alias VALUE", "Project alias (repeatable)") { |v| aliases << v }
-      end
-
-      parser.parse!(@argv)
-      bootstrap = Bootstrap.new(mode: mode).call
-      store = ProjectStore.new(bootstrap.db_path)
-
-      case sub
-      when "register"
-        raise OptionParser::MissingArgument, "--path" if path.nil? || path.empty?
-
-        record = store.register(path: path, aliases: aliases)
-        print_project_record(record)
-        0
-      when "resolve"
-        ref = @argv.shift
-        record = store.resolve(ref)
-        if record
-          print_project_record(record)
-          0
-        else
-          @err.puts("project not found")
-          2
-        end
-      else
-        @err.puts("usage: redwright project <register|resolve> [--dev|--real] ...")
-        1
-      end
-    rescue OptionParser::ParseError => e
-      @err.puts(e.message)
-      1
+      CLI::ProjectCommand.new(
+        argv: @argv,
+        out: @out,
+        err: @err,
+        print_project_record: method(:print_project_record)
+      ).run
     end
 
     def run_workstream
-      mode = :dev
-      sub = @argv.shift
-      project = nil
-      intent = nil
-      state = "ready"
-      branch = nil
-      worktree_path = nil
-
-      parser = OptionParser.new do |opts|
-        opts.on("--dev", "Use ./_workspace") { mode = :dev }
-        opts.on("--real", "Use $HOME paths") { mode = :real }
-        opts.on("--project VALUE", "Project id/path/alias") { |v| project = v }
-        opts.on("--intent VALUE", "Workstream intent") { |v| intent = v }
-        opts.on("--state VALUE", "Workstream state") { |v| state = v }
-        opts.on("--branch VALUE", "Branch name") { |v| branch = v }
-        opts.on("--worktree-path VALUE", "Worktree path") { |v| worktree_path = v }
-      end
-
-      parser.parse!(@argv)
-      bootstrap = Bootstrap.new(mode: mode).call
-      project_store = ProjectStore.new(bootstrap.db_path)
-      ws_store = WorkstreamStore.new(bootstrap.db_path)
-
-      case sub
-      when "create"
-        project_record = project_store.resolve(project)
-        return not_found("project not found") unless project_record
-        raise OptionParser::MissingArgument, "--intent" if intent.nil? || intent.empty?
-
-        record = ws_store.create(
-          project_id: project_record.id,
-          intent: intent,
-          state: state,
-          branch: branch,
-          worktree_path: worktree_path
-        )
-        print_workstream_record(record)
-        0
-      when "list"
-        project_record = project ? project_store.resolve(project) : nil
-        return not_found("project not found") if project && !project_record
-
-        rows = ws_store.list(project_id: project_record&.id)
-        rows.each { |row| print_workstream_record(row) }
-        0
-      else
-        @err.puts("usage: redwright workstream <create|list> [--dev|--real] ...")
-        1
-      end
-    rescue OptionParser::ParseError => e
-      @err.puts(e.message)
-      1
+      CLI::WorkstreamCommand.new(
+        argv: @argv,
+        out: @out,
+        err: @err,
+        print_workstream_record: method(:print_workstream_record),
+        not_found: method(:not_found)
+      ).run
     end
 
     def run_task
-      mode = :dev
-      sub = @argv.shift
-      workstream_id = nil
-      description = nil
-      status = "pending"
-
-      parser = OptionParser.new do |opts|
-        opts.on("--dev", "Use ./_workspace") { mode = :dev }
-        opts.on("--real", "Use $HOME paths") { mode = :real }
-        opts.on("--workstream VALUE", "Workstream id") { |v| workstream_id = v }
-        opts.on("--description VALUE", "Task description") { |v| description = v }
-        opts.on("--status VALUE", "Task status") { |v| status = v }
-      end
-
-      parser.parse!(@argv)
-      bootstrap = Bootstrap.new(mode: mode).call
-      task_store = TaskStore.new(bootstrap.db_path)
-      commit_store = TaskCommitStore.new(bootstrap.db_path)
-
-      case sub
-      when "create"
-        raise OptionParser::MissingArgument, "--workstream" if workstream_id.nil? || workstream_id.empty?
-        raise OptionParser::MissingArgument, "--description" if description.nil? || description.empty?
-
-        record = task_store.create(workstream_id: workstream_id, description: description, status: status)
-        print_task_record(record)
-        0
-      when "list"
-        rows = task_store.list(workstream_id: workstream_id)
-        rows.each { |row| print_task_record(row) }
-        0
-      when "commit-add"
-        task_id = @argv.shift
-        commit_sha = @argv.shift
-        raise OptionParser::MissingArgument, "<task_id>" if task_id.nil? || task_id.empty?
-        raise OptionParser::MissingArgument, "<commit_sha>" if commit_sha.nil? || commit_sha.empty?
-
-        rows = commit_store.add(task_id: task_id, commit_sha: commit_sha)
-        rows.each { |row| print_task_commit(row) }
-        0
-      when "commit-list"
-        task_id = @argv.shift
-        raise OptionParser::MissingArgument, "<task_id>" if task_id.nil? || task_id.empty?
-
-        rows = commit_store.list(task_id: task_id)
-        rows.each { |row| print_task_commit(row) }
-        0
-      else
-        @err.puts("usage: redwright task <create|list|commit-add|commit-list> [--dev|--real] ...")
-        1
-      end
-    rescue OptionParser::ParseError => e
-      @err.puts(e.message)
-      1
+      CLI::TaskCommand.new(
+        argv: @argv,
+        out: @out,
+        err: @err,
+        print_task_record: method(:print_task_record),
+        print_task_commit: method(:print_task_commit)
+      ).run
     end
 
     def run_flow
