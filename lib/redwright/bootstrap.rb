@@ -265,11 +265,11 @@ module Redwright
         );
 
         UPDATE runtime_metadata
-        SET value = '10', updated_at = datetime('now')
+        SET value = '11', updated_at = datetime('now')
         WHERE key = 'schema_version';
 
         INSERT INTO runtime_metadata (key, value, updated_at)
-        SELECT 'schema_version', '10', datetime('now')
+        SELECT 'schema_version', '11', datetime('now')
         WHERE NOT EXISTS (
           SELECT 1 FROM runtime_metadata WHERE key = 'schema_version'
         );
@@ -277,6 +277,8 @@ module Redwright
 
       ensure_column(db, table: "tasks", column: "trace_id", column_sql: "TEXT")
       ensure_column(db, table: "action_executions", column: "trace_id", column_sql: "TEXT")
+      ensure_column(db, table: "projects", column: "source_type", column_sql: "TEXT")
+      ensure_column(db, table: "projects", column: "source_ref", column_sql: "TEXT")
     ensure
       db&.close
     end

@@ -4,7 +4,7 @@
 
 - owner: `adrianpk`
 - status: `in_progress`
-- active_slice: `slice-4`
+- active_slice: `slice-5`
 - plan: `ops/plans/2026-04-29-redwright-operational-command-model-cycle-plan.md`
 
 ## Slice Progress
@@ -43,7 +43,7 @@
 
 ### Slice 5: Project and Repo Lifecycle Integration
 
-- status: `pending`
+- status: `completed`
 - branch: `feat/slice-5-project-repo-lifecycle-integration`
 - PR: `tbd`
 - commits: `pending`
@@ -84,3 +84,5 @@
 - `2026-04-29 16:05` validation=`bundle exec ruby -Itest test/redwright/telegram_runtime_handler_test.rb`
 - `2026-04-29 16:18` state=`implementation` slice=`slice-4` note=`added control precedence fallback from explicit operational intents and multilingual natural-language control inference to reduce meta drift on short control utterances`
 - `2026-04-29 16:18` validation=`bundle exec ruby -Itest test/redwright/telegram_runtime_handler_test.rb`
+- `2026-04-29 16:30` state=`implementation` slice=`slice-5` note=`unified project-new and repo-clone registration in dispatcher, persisted project provenance (local_new/remote_clone), and kept deterministic session-bound active project continuity`
+- `2026-04-29 16:30` validation=`bundle exec ruby -Itest test/redwright/project_store_test.rb && bundle exec ruby -Itest test/redwright/server_runtime_dispatcher_test.rb`

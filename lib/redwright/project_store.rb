@@ -6,14 +6,14 @@ require "time"
 require_relative "trace"
 
 module Redwright
-  ProjectRecord = Struct.new(:id, :name, :path, :aliases, :last_active_at, keyword_init: true)
+  ProjectRecord = Struct.new(:id, :name, :path, :aliases, :last_active_at, :source_type, :source_ref, keyword_init: true)
 
   class ProjectStore
     def initialize(db_path)
       @db_path = db_path
     end
 
-    def register(path:, aliases: [])
+    def register(path:, aliases: [], source_type: "local_new", source_ref: "")
       normalized_path = File.expand_path(path)
       name = File.basename(normalized_path)
       project_id = build_project_id(name, normalized_path)
@@ -26,14 +26,14 @@ module Redwright
         if row
           project_id = row[0]
           db.execute(
-            "UPDATE projects SET name = ?, updated_at = ?, last_active_at = ? WHERE id = ?",
-            [name, now, now, project_id]
+            "UPDATE projects SET name = ?, updated_at = ?, last_active_at = ?, source_type = ?, source_ref = ? WHERE id = ?",
+            [name, now, now, source_type.to_s, source_ref.to_s, project_id]
           )
           Trace.sqlite(op: "update", table: "projects", detail: "id=#{project_id}")
         else
           db.execute(
-            "INSERT INTO projects (id, name, path, created_at, updated_at, last_active_at) VALUES (?, ?, ?, ?, ?, ?)",
-            [project_id, name, normalized_path, now, now, now]
+            "INSERT INTO projects (id, name, path, created_at, updated_at, last_active_at, source_type, source_ref) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            [project_id, name, normalized_path, now, now, now, source_type.to_s, source_ref.to_s]
           )
           Trace.sqlite(op: "insert", table: "projects", detail: "id=#{project_id}")
         end
@@ -68,36 +68,36 @@ module Redwright
         end
 
         ref = reference.strip
-        row = db.get_first_row("SELECT id, name, path, last_active_at FROM projects WHERE id = ? OR path = ?", [ref, File.expand_path(ref)])
+        row = db.get_first_row("SELECT id, name, path, last_active_at, source_type, source_ref FROM projects WHERE id = ? OR path = ?", [ref, File.expand_path(ref)])
         unless row
           row = db.get_first_row(
-            "SELECT p.id, p.name, p.path, p.last_active_at FROM projects p JOIN project_aliases a ON a.project_id = p.id WHERE a.alias = ?",
+            "SELECT p.id, p.name, p.path, p.last_active_at, p.source_type, p.source_ref FROM projects p JOIN project_aliases a ON a.project_id = p.id WHERE a.alias = ?",
             [ref]
           )
         end
         return nil unless row
 
         aliases = db.execute("SELECT alias FROM project_aliases WHERE project_id = ? ORDER BY alias", [row[0]]).map(&:first)
-        ProjectRecord.new(id: row[0], name: row[1], path: row[2], aliases: aliases, last_active_at: row[3])
+        ProjectRecord.new(id: row[0], name: row[1], path: row[2], aliases: aliases, last_active_at: row[3], source_type: row[4].to_s, source_ref: row[5].to_s)
       end
     end
 
     def get(id)
       with_db do |db|
-        row = db.get_first_row("SELECT id, name, path, last_active_at FROM projects WHERE id = ?", [id])
+        row = db.get_first_row("SELECT id, name, path, last_active_at, source_type, source_ref FROM projects WHERE id = ?", [id])
         return nil unless row
 
         aliases = db.execute("SELECT alias FROM project_aliases WHERE project_id = ? ORDER BY alias", [row[0]]).map(&:first)
-        ProjectRecord.new(id: row[0], name: row[1], path: row[2], aliases: aliases, last_active_at: row[3])
+        ProjectRecord.new(id: row[0], name: row[1], path: row[2], aliases: aliases, last_active_at: row[3], source_type: row[4].to_s, source_ref: row[5].to_s)
       end
     end
 
     def list
       with_db do |db|
-        rows = db.execute("SELECT id, name, path, last_active_at FROM projects ORDER BY last_active_at DESC, updated_at DESC, rowid DESC")
+        rows = db.execute("SELECT id, name, path, last_active_at, source_type, source_ref FROM projects ORDER BY last_active_at DESC, updated_at DESC, rowid DESC")
         rows.map do |row|
           aliases = db.execute("SELECT alias FROM project_aliases WHERE project_id = ? ORDER BY alias", [row[0]]).map(&:first)
-          ProjectRecord.new(id: row[0], name: row[1], path: row[2], aliases: aliases, last_active_at: row[3])
+          ProjectRecord.new(id: row[0], name: row[1], path: row[2], aliases: aliases, last_active_at: row[3], source_type: row[4].to_s, source_ref: row[5].to_s)
         end
       end
     end

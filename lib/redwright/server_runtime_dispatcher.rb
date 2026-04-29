@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 require "fileutils"
+require "uri"
 
 module Redwright
   class ServerRuntimeDispatcher
@@ -97,11 +98,11 @@ module Redwright
     def resolve_project_ref_for_send(session_id:, project_ref:, message:)
       return [project_ref, message] unless @project_store
 
-      parsed = parse_project_slash(message)
+      parsed = parse_operational_slash(message)
       if parsed
         case parsed[:command]
         when "new"
-          created = create_project(parsed[:name])
+          created = create_project(parsed[:name], source_type: "local_new", source_ref: "")
           @session_project_refs[session_id] = created.id unless session_id.empty?
           return [created.id, "Create a new project named '#{parsed[:name]}' and set it active."]
         when "switch"
@@ -110,6 +111,10 @@ module Redwright
 
           @session_project_refs[session_id] = target.id unless session_id.empty?
           return [target.id, "Switch active project to '#{parsed[:name]}'."]
+        when "clone"
+          cloned = clone_project(parsed[:url], parsed[:name])
+          @session_project_refs[session_id] = cloned.id unless session_id.empty?
+          return [cloned.id, "Clone repository '#{parsed[:url]}' and set project '#{cloned.name}' active."]
         end
       end
 
@@ -128,23 +133,68 @@ module Redwright
       [project_ref, message]
     end
 
-    def parse_project_slash(message)
+    def parse_operational_slash(message)
       raw = message.to_s.strip
-      return nil unless raw.start_with?("/project ")
+      if raw.start_with?("/project ")
+        project_match = raw.match(%r{\A/project\s+(new|switch)\s+([a-zA-Z0-9._\-]+)\s*\z}i)
+        return nil unless project_match
 
-      match = raw.match(%r{\A/project\s+(new|switch)\s+([a-zA-Z0-9._\-]+)\s*\z}i)
-      return nil unless match
+        return { command: project_match[1].downcase, name: project_match[2] }
+      end
 
-      { command: match[1].downcase, name: match[2] }
+      if raw.start_with?("/repo ")
+        clone_match = raw.match(%r{\A/repo\s+clone\s+(\S+)(?:\s+as\s+([a-zA-Z0-9._\-]+))?\s*\z}i)
+        if clone_match
+          url = clone_match[1]
+          explicit_name = clone_match[2].to_s.strip
+          return { command: "clone", url: url, name: explicit_name.empty? ? infer_repo_name(url) : explicit_name }
+        end
+      end
+
+      nil
     end
 
-    def create_project(name)
+    def create_project(name, source_type:, source_ref:)
       raise ArgumentError, "missing project name" if name.to_s.strip.empty?
       raise ArgumentError, "missing projects root" if @projects_root.to_s.strip.empty?
 
       path = File.join(@projects_root, name)
       FileUtils.mkdir_p(path)
-      @project_store.register(path: path, aliases: [name])
+      @project_store.register(path: path, aliases: [name], source_type: source_type, source_ref: source_ref)
+    end
+
+    def clone_project(url, name)
+      raise ArgumentError, "missing repository url" if url.to_s.strip.empty?
+      raise ArgumentError, "missing project name" if name.to_s.strip.empty?
+      raise ArgumentError, "missing projects root" if @projects_root.to_s.strip.empty?
+
+      path = File.join(@projects_root, name)
+      FileUtils.mkdir_p(@projects_root)
+      unless File.directory?(File.join(path, ".git"))
+        raise ArgumentError, "target path already exists and is not a git repository: #{path}" if File.exist?(path)
+
+        system("git", "clone", url.to_s, path.to_s, out: File::NULL, err: File::NULL)
+        raise ArgumentError, "git clone failed: #{url}" unless $?.success?
+      end
+
+      @project_store.register(path: path, aliases: [name], source_type: "remote_clone", source_ref: url.to_s)
+    end
+
+    def infer_repo_name(url)
+      parsed = URI.parse(url.to_s)
+      base = File.basename(parsed.path.to_s)
+      base = base.sub(/\.git\z/i, "")
+      slug = base.downcase.gsub(/[^a-z0-9._\-]+/, "-").gsub(/\A-+|-+\z/, "")
+      raise ArgumentError, "could not infer repository name from url: #{url}" if slug.empty?
+
+      slug
+    rescue URI::InvalidURIError
+      base = File.basename(url.to_s)
+      base = base.sub(/\.git\z/i, "")
+      slug = base.downcase.gsub(/[^a-z0-9._\-]+/, "-").gsub(/\A-+|-+\z/, "")
+      raise ArgumentError, "could not infer repository name from url: #{url}" if slug.empty?
+
+      slug
     end
   end
 end

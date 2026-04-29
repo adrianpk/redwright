@@ -2,6 +2,7 @@
 
 require "tmpdir"
 require "fileutils"
+require "open3"
 require "minitest/autorun"
 
 $LOAD_PATH.unshift(File.expand_path("../../lib", __dir__))
@@ -135,7 +136,86 @@ class ServerRuntimeDispatcherTest < Minitest::Test
         project = project_store.resolve(response["project_id"])
         refute_nil(project)
         assert_equal("happy-cli", project.name)
+        assert_equal("local_new", project.source_type)
+        assert_equal("", project.source_ref)
         assert_equal(true, File.directory?(File.join(bootstrap.projects_root, "happy-cli")))
+      end
+    end
+  end
+
+  def test_send_dispatch_clones_repo_from_repo_clone_slash_and_binds_session_context
+    Dir.mktmpdir("redwright-server-dispatcher-repo-clone-") do |dir|
+      Dir.chdir(dir) do
+        bootstrap = Redwright::Bootstrap.new(mode: :dev).call
+        project_store = Redwright::ProjectStore.new(bootstrap.db_path)
+
+        remote_repo = File.join(dir, "remote.git")
+        work_repo = File.join(dir, "work")
+        FileUtils.mkdir_p(work_repo)
+        run_cmd!("git init --bare #{remote_repo}")
+        Dir.chdir(work_repo) do
+          run_cmd!("git init .")
+          run_cmd!("git config user.name 'rw-test'")
+          run_cmd!("git config user.email 'rw-test@example.com'")
+          File.write("README.md", "# sample\n")
+          run_cmd!("git add README.md")
+          run_cmd!("git commit -m 'init'")
+          run_cmd!("git remote add origin #{remote_repo}")
+          run_cmd!("git push -u origin HEAD")
+        end
+
+        flow = Redwright::RuntimeFlow.new(
+          project_store: project_store,
+          workstream_store: Redwright::WorkstreamStore.new(bootstrap.db_path),
+          task_store: Redwright::TaskStore.new(bootstrap.db_path),
+          alignment_store: Redwright::AlignmentStore.new(bootstrap.db_path),
+          alignment_interruption_store: Redwright::AlignmentInterruptionStore.new(bootstrap.db_path),
+          primitive_executor: Redwright::PrimitiveExecutor.new(
+            allowed_projects_root: bootstrap.projects_root,
+            enforce_mutating_projects_root: true
+          ),
+          action_execution_store: Redwright::ActionExecutionStore.new(bootstrap.db_path)
+        )
+        dispatcher = Redwright::ServerRuntimeDispatcher.new(
+          flow: flow,
+          blocked_retry_attempts: 1,
+          project_store: project_store,
+          projects_root: bootstrap.projects_root
+        )
+
+        clone_response = dispatcher.call(
+          "type" => "send",
+          "session_id" => "telegram-99",
+          "payload" => {
+            "channel" => "telegram",
+            "project_ref" => "rw",
+            "intent" => "change",
+            "message" => "/repo clone #{remote_repo}",
+            "actions" => []
+          }
+        )
+
+        assert_equal("ok", clone_response["status"])
+        project = project_store.resolve(clone_response["project_id"])
+        refute_nil(project)
+        assert_equal("remote_clone", project.source_type)
+        assert_equal(remote_repo, project.source_ref)
+        assert_equal(true, File.directory?(File.join(project.path, ".git")))
+
+        follow_up = dispatcher.call(
+          "type" => "send",
+          "session_id" => "telegram-99",
+          "payload" => {
+            "channel" => "telegram",
+            "project_ref" => "does-not-exist",
+            "intent" => "change",
+            "message" => "continue implementation",
+            "actions" => []
+          }
+        )
+
+        assert_equal("ok", follow_up["status"])
+        assert_equal(project.id, follow_up["project_id"])
       end
     end
   end
@@ -202,5 +282,14 @@ class ServerRuntimeDispatcherTest < Minitest::Test
         refute_equal(beta.id, follow_up["project_id"])
       end
     end
+  end
+
+  private
+
+  def run_cmd!(cmd)
+    out, err, status = Open3.capture3(cmd)
+    return if status.success?
+
+    raise "command failed: #{cmd}\nstdout: #{out}\nstderr: #{err}"
   end
 end
