@@ -63,7 +63,7 @@ Validation:
 
 ### Slice 3: Factory Reliability Guardrails
 
-- status: `pending`
+- status: `completed`
 - branch: `feat/slice-3-factory-reliability-guardrails`
 - PR: `tbd`
 - merge_target: `dev`
@@ -74,7 +74,7 @@ Tasks:
 - [x] `T3.1 add step-scoped timeout policy with step-specific errors`
 - [x] `T3.2 add worktree locking with stale lock recovery`
 - [x] `T3.3 add abort/cancel contract and preserved recovery state`
-- [ ] `T3.4 enforce inline-prompt literal mode and template-only expansion`
+- [x] `T3.4 enforce inline-prompt literal mode and template-only expansion`
 
 Commits:
 
@@ -151,3 +151,4 @@ Validation:
 - `2026-04-30 00:53` state=`executing_slice` note=`completed T3.1 by adding step-scoped timeout wrappers and step-specific timeout errors in daemon runtime flow`
 - `2026-04-30 01:16` state=`executing_slice` note=`completed T3.2 with lock-file based worktree locking, stale lock recovery, and fail-fast contention behavior`
 - `2026-04-30 01:27` state=`executing_slice` note=`completed T3.3 by adding daemon cancel contract with explicit stop reasons and preserved pending-event count`
+- `2026-04-30 01:43` state=`next_slice` note=`completed T3.4 and closed slice 3 reliability guardrails; next active slice set to slice 4`
