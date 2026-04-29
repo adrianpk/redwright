@@ -12,7 +12,7 @@
 
 ### Slice 1: Freeze Runtime Behavior with Coverage Expansion
 
-- status: `pending`
+- status: `completed`
 - branch: `feat/slice-1-runtime-hardening-test-baseline`
 - [ ] `T1.1 add characterization tests for /project new missing-name guardrail and no-side-effects`
 - [ ] `T1.2 add characterization tests for action summary format and counters across success/failure mixes`

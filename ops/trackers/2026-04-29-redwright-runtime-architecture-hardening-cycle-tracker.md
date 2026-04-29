@@ -3,19 +3,19 @@
 ## Metadata
 
 - owner: `adrianpk`
-- status: `planned`
-- active_slice: `none`
+- status: `in_progress`
+- active_slice: `slice_2`
 - plan: `ops/plans/2026-04-29-redwright-runtime-architecture-hardening-cycle-plan.md`
 
 ## Slice Progress
 
 ### Slice 1: Freeze Runtime Behavior with Coverage Expansion
 
-- status: `pending`
+- status: `completed`
 - branch: `feat/slice-1-runtime-hardening-test-baseline`
 - PR: `tbd`
-- commits: `pending`
-- validation: `runtime guardrail + summary + parity characterization tests`
+- commits: `dd5dbff, 900a5c6, 8698bfc, 3489d12`
+- validation: `bundle exec ruby -Itest test/redwright/telegram_runtime_handler_test.rb && bundle exec ruby -Itest test/redwright/server_runtime_dispatcher_test.rb && bundle exec ruby -Itest test/redwright/cross_channel_parity_matrix_test.rb && bundle exec ruby -Itest test/redwright/telegram_runtime_handler_error_classification_test.rb`
 
 ### Slice 2: Extract Telegram Runtime Message Rendering and Summary Logic
 
@@ -52,3 +52,4 @@
 ## Event Log
 
 - `2026-04-29 18:45` state=`planned` note=`cycle created to harden runtime architecture with strict regression-first slices and max 5-slice scope`
+- `2026-04-29 19:15` state=`slice_1_completed` note=`added guardrail clarify for /project new without name, normalized integer action counters, and expanded parity/error-path regression coverage`
