@@ -3,10 +3,10 @@
 ## Metadata
 
 - cycle_id: `rw-2026-04-29-factory-runtime-foundation`
-- status: `planned`
+- status: `completed`
 - owner: `adrianpk`
 - created: `2026-04-29`
-- updated: `2026-04-29`
+- updated: `2026-04-30`
 - goal: `establish a test-first architectural foundation for factory-mode execution with a shared command-query core and strong runtime reliability guarantees`
 - scope: `feature`
 
@@ -88,7 +88,7 @@
 ### Slice 5: Kanban Application Integration Contract
 
 - status: `completed`
-- branch: `feat/slice-5-kanban-integration-contract`
+- branch: `fix/slice-5-kanban-integration-contract`
 - objective: `formalize rails-backed board/ticket integration while preserving harness execution ownership`
 - tasks:
 - [ ] `T5.1 define ticket/board command-query endpoints and error contract`
@@ -101,7 +101,7 @@
 - `docs(reference): define kanban integration contract v1`
 - `feat(runtime): enforce role and visibility policy checks in handlers`
 - PR:
-- `tbd`
+- `#160`
 
 ## Global Exit Criteria
 

@@ -3,15 +3,11 @@
 ## Metadata
 
 - cycle_id: `rw-2026-04-29-factory-runtime-foundation`
-- status: `in_progress`
-- state: `awaiting_review`
+- status: `completed`
+- state: `completed`
 - updated: `2026-04-30`
-- active_slice: `slice_5`
+- active_slice: `none`
 - active_task: `none`
-- state: `awaiting_review`
-- updated: `2026-04-30`
-- active_slice: `slice_5`
-- active_task: `T5.2`
 
 ## Slice Progress
 
@@ -120,10 +116,10 @@ Validation:
 ### Slice 5: Kanban Application Integration Contract
 
 - status: `completed`
-- branch: `feat/slice-5-kanban-integration-contract`
-- PR: `tbd`
+- branch: `fix/slice-5-kanban-integration-contract`
+- PR: `#160`
 - merge_target: `dev`
-- last_sync_commit: `tbd`
+- last_sync_commit: `3acb464`
 
 Tasks:
 
@@ -133,14 +129,16 @@ Tasks:
 
 Commits:
 
-- [ ] `<sha> docs(reference): define kanban integration contract v1`
-- [ ] `<sha> feat(runtime): enforce role and visibility policy checks in handlers`
+- [x] `ebc109b docs(reference): define kanban command-query integration contract v1`
+- [x] `1b8284b feat(runtime): add assignment-and-label ticket visibility policy`
+- [x] `69b4ed3 docs(reference): define dual-bot dual-runtime ingress policy contract`
+- [x] `3acb464 docs(agents): forbid per-task and per-commit PRs in slice workflow`
 
 Validation:
 
-- [ ] `bundle exec ruby -Itest test/redwright/ticket_visibility_policy_test.rb`
-- [ ] `bundle exec ruby -Itest test/redwright/runtime_flow_test.rb`
-- [ ] `bundle exec rake test:invariants`
+- [x] `bundle exec ruby -Itest test/redwright/ticket_visibility_policy_test.rb`
+- [x] `bundle exec ruby -Itest test/redwright/runtime_flow_test.rb`
+- [x] `bundle exec rake test:invariants`
 
 ## Event Log
 
@@ -163,3 +161,4 @@ Validation:
 - `2026-04-30 02:48` state=`executing_slice` note=`completed T5.1 with kanban integration endpoint and error-envelope contract v1`
 - `2026-04-30 03:20` state=`executing_slice` note=`completed T5.2 with assignment-plus-label visibility policy and explicit reason codes`
 - `2026-04-30 04:09` state=`awaiting_review` note=`completed T5.3 and closed slice 5 implementation; ready for single slice PR review`
+- `2026-04-30 04:35` state=`completed` note=`slice 5 merged via PR #160; cycle closed with one-PR-per-slice flow`
