@@ -100,11 +100,11 @@
 
 ### Slice 12: Channel Parity and Simulated E2E Matrix
 
-- status: `pending`
+- status: `completed`
 - branch: `feat/slice-12-channel-parity-e2e-matrix`
 - PR: `tbd`
-- commits: `tbd`
-- validation: `tbd`
+- commits: `pending-push`
+- validation: `bundle exec ruby -Itest test/redwright/cross_channel_parity_matrix_test.rb && bundle exec ruby -Itest test/redwright/simulated_ingress_matrix_test.rb`
 
 ### Slice 13: Session-Project Continuity Policy
 
