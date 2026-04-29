@@ -172,6 +172,63 @@ class TelegramRuntimeHandlerTest < Minitest::Test
     assert_match("telegram processed chat=9 task=task-1", out.string)
   end
 
+  def test_handle_routes_operational_slash_through_dispatcher_without_llm
+    fake_flow = Object.new
+    fake_flow.define_singleton_method(:process) do |**_kwargs|
+      raise "flow.process should not run for deterministic operational slash"
+    end
+
+    fake_interpreter = Object.new
+    fake_interpreter.define_singleton_method(:interpret) do |**_kwargs|
+      raise "interpreter should not run for deterministic operational slash"
+    end
+
+    fake_dispatcher = Object.new
+    captured = nil
+    fake_dispatcher.define_singleton_method(:call) do |request|
+      captured = request
+      {
+        "status" => "ok",
+        "project_id" => "project-ops",
+        "workstream_id" => "ws-ops",
+        "task_id" => "task-ops",
+        "state" => "executing",
+        "terminal_reason" => "executing"
+      }
+    end
+
+    client = FakeTelegramClient.new([])
+    out = StringIO.new
+    err = StringIO.new
+    handler = Redwright::TelegramRuntimeHandler.new(
+      flow: fake_flow,
+      telegram_client: client,
+      out: out,
+      err: err,
+      blocked_retry_attempts: 1,
+      model_name: "gpt-5-mini",
+      intent_interpreter: fake_interpreter,
+      operational_dispatcher: fake_dispatcher
+    )
+
+    handler.handle(
+      Redwright::TelegramEvent.new(
+        update_id: 301,
+        chat_id: 77,
+        user_id: nil,
+        username: nil,
+        text: "/project switch alpha"
+      )
+    )
+
+    refute_nil(captured)
+    assert_equal("send", captured["type"])
+    assert_equal("telegram-77", captured["session_id"])
+    assert_equal("/project switch alpha", captured["payload"]["message"])
+    assert_match("telegram operational chat=77 command=project_switch task=task-ops", out.string)
+    assert_equal("", err.string)
+  end
+
   def test_handle_keeps_typing_while_processing_longer_than_interval
     fake_flow = Object.new
     fake_flow.define_singleton_method(:process) do |**_kwargs|

@@ -56,15 +56,42 @@ module Redwright
         { kind: "planner_hint", planner_text: "Show runtime status for the current active project and workstream." }
       when "/project"
         return { kind: "clarify", question: "Please provide a project name: /project new <name>." } if arg.match?(/^new$/i)
-        return { kind: "planner_hint", planner_text: "Switch active project to #{arg.sub(/^switch\s+/i, "")}." } if arg.match?(/^switch\s+/i)
-        return { kind: "planner_hint", planner_text: "Create a new project named #{arg.sub(/^new\s+/i, "")} and set it active." } if arg.match?(/^new\s+/i)
+        if arg.match?(/^switch\s+/i)
+          name = arg.sub(/^switch\s+/i, "")
+          return {
+            kind: "operational",
+            command: "project_switch",
+            planner_text_fallback: "Switch active project to #{name}."
+          }
+        end
+        if arg.match?(/^new\s+/i)
+          name = arg.sub(/^new\s+/i, "")
+          return {
+            kind: "operational",
+            command: "project_new",
+            planner_text_fallback: "Create a new project named #{name} and set it active."
+          }
+        end
         return { kind: "planner_hint", planner_text: "List known projects and show aliases." } if arg.match?(/^list$/i)
         return { kind: "planner_hint", planner_text: "Show the current active project id, alias, and workspace path." } if arg.match?(/^where$/i)
         nil
       when "/repo"
-        return { kind: "planner_hint", planner_text: "Clone repository #{arg.sub(/^clone\s+/i, "")} into the workspace and register it as a project." } if arg.match?(/^clone\s+/i)
+        if arg.match?(/^clone\s+/i)
+          repo = arg.sub(/^clone\s+/i, "")
+          return {
+            kind: "operational",
+            command: "repo_clone",
+            planner_text_fallback: "Clone repository #{repo} into the workspace and register it as a project."
+          }
+        end
         return { kind: "planner_hint", planner_text: "Show repository status for the active project, including branch and dirty files." } if arg.match?(/^status$/i)
-        return { kind: "planner_hint", planner_text: "Undo the latest safe repository changes in the active project using runtime guardrails." } if arg.match?(/^undo$/i)
+        if arg.match?(/^undo$/i)
+          return {
+            kind: "operational",
+            command: "repo_undo",
+            planner_text_fallback: "Undo the latest safe repository changes in the active project using runtime guardrails."
+          }
+        end
         nil
       when "/task"
         return { kind: "control", command: "pause", reason: raw } if arg.match?(/^pause$/i)

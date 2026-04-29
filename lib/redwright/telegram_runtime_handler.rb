@@ -54,7 +54,8 @@ module Redwright
       message_renderer: nil,
       control_router: TelegramControlRouter.new,
       clarification_policy: nil,
-      semantic_adapter: nil
+      semantic_adapter: nil,
+      operational_dispatcher: nil
     )
       @flow = flow
       @telegram_client = telegram_client
@@ -93,6 +94,7 @@ module Redwright
         err: @err
       )
       @semantic_adapter = semantic_adapter || IngressSemanticCompatibilityAdapter.new
+      @operational_dispatcher = operational_dispatcher
     end
 
     def handle(event)
@@ -171,6 +173,52 @@ module Redwright
             send_json_envelope_if_enabled(chat_id: event.chat_id, envelope: envelope)
             @out.puts("telegram skill_control chat=#{event.chat_id} command=stop-and-apply")
             return
+          end
+          if slash && slash[:kind] == "operational"
+            if @operational_dispatcher
+              operational = @operational_dispatcher.call({
+                "type" => "send",
+                "session_id" => "telegram-#{event.chat_id}",
+                "payload" => {
+                  "channel" => "telegram",
+                  "project_ref" => resolution.project_ref.to_s,
+                  "intent" => "change",
+                  "message" => event.text.to_s,
+                  "actions" => [],
+                  "confirm_new_workstream" => true
+                }
+              })
+              if operational["status"] == "ok"
+                envelope = RuntimeResultEnvelope.success(
+                  trace_id: Trace.current_trace_id || "none",
+                  project_id: operational["project_id"].to_s,
+                  workstream_id: operational["workstream_id"].to_s,
+                  task_id: operational["task_id"].to_s,
+                  state: operational["state"].to_s,
+                  terminal_reason: operational["terminal_reason"].to_s
+                )
+                @telegram_client.send_message(
+                  chat_id: event.chat_id,
+                  text: "Operational command applied.\nproject=#{operational['project_id']} workstream=#{operational['workstream_id']} task=#{operational['task_id']} state=#{operational['state']}\nTrace: #{Trace.current_trace_id || 'none'}"
+                )
+                send_json_envelope_if_enabled(chat_id: event.chat_id, envelope: envelope)
+                @out.puts("telegram operational chat=#{event.chat_id} command=#{slash[:command]} task=#{operational['task_id']}")
+              else
+                error_message = operational["message"].to_s.empty? ? "operational command failed" : operational["message"].to_s
+                error_envelope = RuntimeResultEnvelope.error(
+                  trace_id: Trace.current_trace_id || "none",
+                  message: error_message
+                )
+                @telegram_client.send_message(
+                  chat_id: event.chat_id,
+                  text: @message_renderer.error(message: error_message, trace_id: Trace.current_trace_id || "none")
+                )
+                send_json_envelope_if_enabled(chat_id: event.chat_id, envelope: error_envelope)
+                @out.puts("telegram operational_error chat=#{event.chat_id} command=#{slash[:command]}")
+              end
+              return
+            end
+            slash = { kind: "planner_hint", planner_text: slash[:planner_text_fallback].to_s }
           end
           if slash && slash[:kind] == "control"
             cancel_open_clarifications(

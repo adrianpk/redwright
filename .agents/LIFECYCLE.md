@@ -29,3 +29,8 @@ If blocked:
 - report blocker precisely
 - include command/error context
 - stop without speculative side changes
+
+## 5. Handoff artifact policy
+
+- `ops/handovers/` is runtime scratch space and is not versioned.
+- durable delivery records must live in `ops/plans/*`, `ops/trackers/*`, and `ops/artifacts/*`.

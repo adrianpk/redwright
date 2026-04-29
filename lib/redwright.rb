@@ -395,6 +395,14 @@ module Redwright
             action_execution_store: action_execution_store,
             alignment_max_turns: config.alignment.max_turns
           )
+          runtime_dispatcher = ServerRuntimeDispatcher.new(
+            flow: flow,
+            blocked_retry_attempts: config.runtime.blocked_retry_attempts,
+            project_store: project_store,
+            projects_root: bootstrap.projects_root,
+            task_store: task_store,
+            action_execution_store: action_execution_store
+          )
           handler = TelegramRuntimeHandler.new(
             flow: flow,
             telegram_client: telegram_client,
@@ -412,7 +420,8 @@ module Redwright
             clarification_session_store: clarification_session_store,
             quality_gate_runner: quality_gate_runner,
             send_json_envelope: config.telegram.send_json_envelope,
-            max_change_turn_seconds: config.alignment.max_turn_seconds
+            max_change_turn_seconds: config.alignment.max_turn_seconds,
+            operational_dispatcher: runtime_dispatcher
           )
           cursor = nil
           if run_once

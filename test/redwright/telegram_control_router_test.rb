@@ -20,6 +20,18 @@ class TelegramControlRouterTest < Minitest::Test
     assert_match("/project new <name>", parsed[:question])
   end
 
+  def test_parse_slash_command_routes_project_switch_as_operational
+    parsed = Redwright::TelegramControlRouter.new.parse_slash_command("/project switch alpha")
+    assert_equal("operational", parsed[:kind])
+    assert_equal("project_switch", parsed[:command])
+  end
+
+  def test_parse_slash_command_routes_repo_clone_as_operational
+    parsed = Redwright::TelegramControlRouter.new.parse_slash_command("/repo clone https://example.com/acme/repo.git")
+    assert_equal("operational", parsed[:kind])
+    assert_equal("repo_clone", parsed[:command])
+  end
+
   def test_control_from_decision_maps_meta_cancel
     router = Redwright::TelegramControlRouter.new
     control = router.control_from_decision(
