@@ -955,6 +955,29 @@ class TelegramRuntimeHandlerTest < Minitest::Test
     assert_equal("", err.string)
   end
 
+  def test_handle_clarifies_on_project_new_without_name_and_does_not_run_flow
+    fake_flow = Object.new
+    fake_flow.define_singleton_method(:process) do |**_kwargs|
+      raise "flow should not run when /project new is missing a name"
+    end
+
+    client = FakeTelegramClient.new([])
+    out = StringIO.new
+    handler = Redwright::TelegramRuntimeHandler.new(
+      flow: fake_flow,
+      telegram_client: client,
+      out: out,
+      err: StringIO.new,
+      blocked_retry_attempts: 1
+    )
+
+    handler.handle(Redwright::TelegramEvent.new(update_id: 910, chat_id: 46, user_id: nil, username: nil, text: "/project new"))
+
+    assert_equal(1, client.messages.size)
+    assert_match("Please provide a project name: /project new <name>.", client.messages.last[:text])
+    assert_match("telegram clarify chat=46", out.string)
+  end
+
   def test_handle_rewrites_operational_slashes_to_explicit_planner_hints
     fake_flow = Object.new
     captured = []
@@ -1655,9 +1678,35 @@ class TelegramRuntimeHandlerTest < Minitest::Test
     assert_equal(1, captured[:actions].size)
 
     assert_match("Started task task-x in project project-x.", client.messages.last[:text])
-    assert_match("Actions: 1/2 succeeded, 1 failed.", client.messages.last[:text])
+    assert_match("Actions: 1 succeeded, 1 failed.", client.messages.last[:text])
     assert_match("telegram processed chat=9 task=task-x", out.string)
     assert_equal("", err.string)
+  end
+
+  def test_handle_renders_zero_action_counters_as_integers
+    fake_flow = Object.new
+    fake_flow.define_singleton_method(:process) do |**_kwargs|
+      FakeResult.new(
+        project: FakeProject.new(id: "project-zero"),
+        workstream: FakeWorkstream.new(id: "ws-zero", state: "executing"),
+        task: FakeTask.new(id: "task-zero"),
+        alignment: nil,
+        action_results: []
+      )
+    end
+
+    client = FakeTelegramClient.new([])
+    handler = Redwright::TelegramRuntimeHandler.new(
+      flow: fake_flow,
+      telegram_client: client,
+      out: StringIO.new,
+      err: StringIO.new,
+      blocked_retry_attempts: 1
+    )
+
+    handler.handle(Redwright::TelegramEvent.new(update_id: 911, chat_id: 9, user_id: nil, username: nil, text: "do stuff"))
+
+    assert_match("Actions: 0 succeeded, 0 failed.", client.messages.last[:text])
   end
 
   def test_handle_sends_json_envelope_in_code_block_when_enabled
@@ -2670,4 +2719,5 @@ class TelegramRuntimeHandlerTest < Minitest::Test
     assert_equal(2, flow_calls)
     assert_match("Attempts: 2 (terminal: no_progress).", client.messages.last[:text])
   end
+
 end

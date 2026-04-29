@@ -107,6 +107,19 @@ module Redwright
           stop_typing = start_typing_keepalive(event.chat_id)
           slash = parse_slash_command(event.text)
           explicit_skill_name = slash && slash[:kind] == "skill" ? slash[:skill_name] : ""
+          if slash && slash[:kind] == "clarify"
+            clarify = RuntimeResultEnvelope.clarify(
+              trace_id: Trace.current_trace_id || "none",
+              message: slash[:question]
+            )
+            @telegram_client.send_message(
+              chat_id: event.chat_id,
+              text: human_clarify_message(question: slash[:question], trace_id: Trace.current_trace_id || "none")
+            )
+            send_json_envelope_if_enabled(chat_id: event.chat_id, envelope: clarify)
+            @out.puts("telegram clarify chat=#{event.chat_id}")
+            return
+          end
           if slash && slash[:kind] == "skill_control_stop"
             @clarification_session_store&.open_control_stop(
               chat_id: event.chat_id,
@@ -819,10 +832,19 @@ module Redwright
                          []
                        end
       if action_results.empty? && quality_summary.nil?
-        if result.respond_to?(:terminal_reason) && result.terminal_reason
-          return { terminal_reason: result.terminal_reason }
-        end
-        return nil
+        resolved_terminal_reason = if result.respond_to?(:terminal_reason) && result.terminal_reason
+                                     result.terminal_reason
+                                   else
+                                     terminal_reason
+                                   end
+        return {
+          total_actions: 0,
+          succeeded_actions: 0,
+          failed_actions: 0,
+          failed_action_ids: [],
+          attempts: attempts,
+          terminal_reason: resolved_terminal_reason
+        }
       end
 
       total = action_results.size
@@ -848,7 +870,7 @@ module Redwright
       parts << "Workstream: #{result.workstream.id} (state: #{result.workstream.state})."
       execution = build_execution_summary(result, quality_summary: nil, attempts: attempts, terminal_reason: terminal_reason, mode: mode)
       if execution
-        parts << "Actions: #{execution[:succeeded_actions]}/#{execution[:total_actions]} succeeded, #{execution[:failed_actions]} failed."
+        parts << "Actions: #{execution[:succeeded_actions]} succeeded, #{execution[:failed_actions]} failed."
       end
       parts << "Mode: #{mode}."
       parts << "Attempts: #{attempts} (terminal: #{terminal_reason})."
@@ -1107,6 +1129,7 @@ module Redwright
       when "/status"
         { kind: "planner_hint", planner_text: "Show runtime status for the current active project and workstream." }
       when "/project"
+        return { kind: "clarify", question: "Please provide a project name: /project new <name>." } if arg.match?(/^new$/i)
         return { kind: "planner_hint", planner_text: "Switch active project to #{arg.sub(/^switch\s+/i, "")}." } if arg.match?(/^switch\s+/i)
         return { kind: "planner_hint", planner_text: "Create a new project named #{arg.sub(/^new\s+/i, "")} and set it active." } if arg.match?(/^new\s+/i)
         return { kind: "planner_hint", planner_text: "List known projects and show aliases." } if arg.match?(/^list$/i)
