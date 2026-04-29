@@ -4,7 +4,7 @@
 
 - owner: `adrianpk`
 - status: `in_progress`
-- active_slice: `slice-6`
+- active_slice: `slice-7`
 - plan: `ops/plans/2026-04-29-redwright-operational-command-model-cycle-plan.md`
 
 ## Slice Progress
@@ -59,7 +59,7 @@
 
 ### Slice 7: Skill Loop Control Commands
 
-- status: `pending`
+- status: `completed`
 - branch: `feat/slice-7-skill-loop-control-commands`
 - PR: `tbd`
 - commits: `pending`
@@ -88,3 +88,5 @@
 - `2026-04-29 16:30` validation=`bundle exec ruby -Itest test/redwright/project_store_test.rb && bundle exec ruby -Itest test/redwright/server_runtime_dispatcher_test.rb`
 - `2026-04-29 16:52` state=`implementation` slice=`slice-6` note=`introduced deterministic repo-undo execution contract with git-only guardrails, blocked mixed/non-git last-task undo paths, and added explicit git_undo primitive behavior`
 - `2026-04-29 16:52` validation=`bundle exec ruby -Itest test/redwright/primitive_executor_test.rb && bundle exec ruby -Itest test/redwright/server_runtime_dispatcher_test.rb`
+- `2026-04-29 17:06` state=`implementation` slice=`slice-7` note=`added explicit /skill stop-and-apply control path, persisted accepted-partial stop marker, and closed stop sessions deterministically after canceled sub-loop handoff`
+- `2026-04-29 17:06` validation=`bundle exec ruby -Itest test/redwright/clarification_session_store_test.rb && bundle exec ruby -Itest test/redwright/skill_subloop_executor_test.rb && bundle exec ruby -Itest test/redwright/telegram_runtime_handler_test.rb`

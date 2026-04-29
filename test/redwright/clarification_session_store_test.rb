@@ -94,4 +94,29 @@ class ClarificationSessionStoreTest < Minitest::Test
       end
     end
   end
+
+  def test_open_control_stop_persists_accept_partial_payload
+    Dir.mktmpdir("redwright-clarification-store-control-stop-") do |dir|
+      Dir.chdir(dir) do
+        bootstrap = Redwright::Bootstrap.new(mode: :dev).call
+        store = Redwright::ClarificationSessionStore.new(bootstrap.db_path)
+        project = Redwright::ProjectStore.new(bootstrap.db_path).register(path: "#{dir}/apps/core", aliases: ["rw"])
+        workstreams = Redwright::WorkstreamStore.new(bootstrap.db_path)
+        ws = workstreams.create(project_id: project.id, intent: "change", state: "executing")
+
+        opened = store.open_control_stop(
+          chat_id: 14,
+          workstream_id: ws.id,
+          reason: "/skill stop-and-apply",
+          accepted_partial: true,
+          terminal_reason: "skill_stop_and_apply"
+        )
+
+        assert_equal("open", opened.status)
+        assert_equal("control_stop", opened.gap_type)
+        assert_equal(true, opened.payload["accepted_partial"])
+        assert_equal("skill_stop_and_apply", opened.payload["terminal_reason"])
+      end
+    end
+  end
 end

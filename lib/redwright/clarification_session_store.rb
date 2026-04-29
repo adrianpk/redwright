@@ -100,6 +100,35 @@ module Redwright
       get_open(chat_id: chat_id, workstream_id: workstream_id)
     end
 
+    def open_control_stop(chat_id:, workstream_id:, reason:, accepted_partial: true, terminal_reason: "skill_stop_and_apply")
+      now = utc_now
+      session_id = build_id(chat_id: chat_id, workstream_id: workstream_id, now: now)
+      payload = {
+        "reason" => reason.to_s,
+        "accepted_partial" => accepted_partial == true,
+        "terminal_reason" => terminal_reason.to_s
+      }
+
+      with_db do |db|
+        ensure_workstream_exists!(db, workstream_id: workstream_id)
+        tx_started = false
+        db.transaction
+        tx_started = true
+        close_open_for_chat!(db, chat_id: chat_id)
+        db.execute(
+          "INSERT INTO clarification_sessions (id, chat_id, workstream_id, status, gap_type, payload_json, resolved_fields_json, last_question_id, turn_counter, created_at, updated_at) VALUES (?, ?, ?, 'open', ?, ?, ?, ?, 0, ?, ?)",
+          [session_id, chat_id, workstream_id, "control_stop", JSON.generate(payload), JSON.generate({}), nil, now, now]
+        )
+        db.commit
+        Trace.sqlite(op: "insert", table: "clarification_sessions", detail: "id=#{session_id} status=open gap_type=control_stop")
+      rescue StandardError
+        db.rollback if tx_started
+        raise
+      end
+
+      get_open(chat_id: chat_id, workstream_id: workstream_id)
+    end
+
     def advance(chat_id:, session_id:, resolved_fields:, status:, last_question_id: nil)
       raise ArgumentError, "invalid status" unless STATUSES.include?(status)
 

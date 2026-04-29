@@ -107,6 +107,30 @@ module Redwright
           stop_typing = start_typing_keepalive(event.chat_id)
           slash = parse_slash_command(event.text)
           explicit_skill_name = slash && slash[:kind] == "skill" ? slash[:skill_name] : ""
+          if slash && slash[:kind] == "skill_control_stop"
+            @clarification_session_store&.open_control_stop(
+              chat_id: event.chat_id,
+              workstream_id: resolution.workstream_id,
+              reason: slash[:reason],
+              accepted_partial: true,
+              terminal_reason: "skill_stop_and_apply"
+            )
+            envelope = RuntimeResultEnvelope.success(
+              trace_id: Trace.current_trace_id || "none",
+              project_id: resolution.project_ref.to_s,
+              workstream_id: resolution.workstream_id.to_s,
+              task_id: "none",
+              state: "executing",
+              terminal_reason: "skill_stop_and_apply"
+            )
+            @telegram_client.send_message(
+              chat_id: event.chat_id,
+              text: "Skill sub-loop stop accepted. Partial progress retained.\nTrace: #{Trace.current_trace_id || 'none'}"
+            )
+            send_json_envelope_if_enabled(chat_id: event.chat_id, envelope: envelope)
+            @out.puts("telegram skill_control chat=#{event.chat_id} command=stop-and-apply")
+            return
+          end
           if slash && slash[:kind] == "control"
             cancel_open_clarifications(
               chat_id: event.chat_id,
@@ -1113,6 +1137,7 @@ module Redwright
       when "/skills"
         { kind: "planner_hint", planner_text: "List available skills and how to trigger each one." }
       when "/skill"
+        return { kind: "skill_control_stop", reason: raw } if arg.match?(/^stop-and-apply$/i)
         return nil if arg.empty?
 
         {
@@ -1155,14 +1180,31 @@ module Redwright
       actions = decision.skill_actions
       return unless actions.is_a?(Array) && !actions.empty?
 
+      control_stop_session_id = nil
       result = @skill_subloop_executor.run(
         actions: actions,
         cancel_requested: lambda {
           pending = @clarification_session_store&.get_open(chat_id: chat_id, workstream_id: workstream_id)
-          pending && pending.gap_type == "control_stop"
+          if pending && pending.gap_type == "control_stop"
+            control_stop_session_id = pending.id
+            true
+          else
+            false
+          end
         }
       ) do |_action|
         { status: "ok" }
+      end
+      if result.terminal_reason == "canceled" && control_stop_session_id
+        @clarification_session_store&.advance(
+          chat_id: chat_id,
+          session_id: control_stop_session_id,
+          resolved_fields: {
+            "accepted_partial" => true,
+            "skill_subloop_terminal_reason" => "skill_stop_and_apply"
+          },
+          status: "closed"
+        )
       end
 
       Trace.runtime(
