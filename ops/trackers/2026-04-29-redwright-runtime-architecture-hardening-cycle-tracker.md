@@ -4,7 +4,7 @@
 
 - owner: `adrianpk`
 - status: `in_progress`
-- active_slice: `slice_5`
+- active_slice: `slice_6`
 - plan: `ops/plans/2026-04-29-redwright-runtime-architecture-hardening-cycle-plan.md`
 
 ## Slice Progress
@@ -43,11 +43,27 @@
 
 ### Slice 5: Ops and Repo Hygiene Consolidation
 
-- status: `pending`
-- branch: `feat/slice-5-ops-structure-hygiene`
+- status: `completed`
+- branch: `fix/slice-5-ops-structure-hygiene`
+- PR: `#161`
+- commits: `de25d56`
+- validation: `bundle exec ruby -Itest test/redwright/telegram_control_router_test.rb && bundle exec ruby -Itest test/redwright/telegram_runtime_handler_test.rb -n "/operational_slash_through_dispatcher_without_llm|rewrites_operational_slashes_to_explicit_planner_hints/"`
+
+### Slice 6: Deterministic Read-Only Operational Slash Routing
+
+- status: `completed`
+- branch: `fix/slice-6-deterministic-readonly-operational-routing`
 - PR: `tbd`
 - commits: `pending`
-- validation: `reference consistency checks + full regression gate`
+- validation: `bundle exec ruby -Itest test/redwright/server_runtime_dispatcher_test.rb && bundle exec ruby -Itest test/redwright/telegram_control_router_test.rb && bundle exec ruby -Itest test/redwright/telegram_runtime_handler_test.rb -n "/operational_slash_through_dispatcher_without_llm|rewrites_operational_slashes_to_explicit_planner_hints/"`
+
+### Slice 7: Runtime Control Taxonomy Closure
+
+- status: `pending`
+- branch: `fix/slice-7-runtime-control-taxonomy-closure`
+- PR: `tbd`
+- commits: `pending`
+- validation: `pending`
 
 ## Event Log
 
@@ -56,3 +72,5 @@
 - `2026-04-29 19:42` state=`slice_2_completed` note=`extracted telegram message rendering and execution summary into dedicated components with focused regression and contract tests`
 - `2026-04-29 20:00` state=`slice_3_completed` note=`extracted slash/control routing and clarification cancellation/semantic policy into dedicated components with parity-preserving integration tests`
 - `2026-04-29 20:25` state=`slice_4_completed` note=`extracted project/workstream/task CLI handlers; command-level tests and server/daemon smoke checks passed (tui ingress daemon test remains flaky on socket startup race)`
+- `2026-04-29 22:33` state=`slice_5_completed` note=`merged ops/runtime hygiene and deterministic mutating operational slash dispatch via PR #161`
+- `2026-04-29 22:58` state=`slice_6_completed` note=`added deterministic read-only operational slash routing for /project list|where and /repo status with dispatcher and regression tests`

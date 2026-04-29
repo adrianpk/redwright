@@ -48,13 +48,29 @@
 
 ### Slice 5: Ops and Repo Hygiene Consolidation
 
+- status: `completed`
+- branch: `fix/slice-5-ops-structure-hygiene`
+- [x] `T5.1 normalize docs/spec references and remove stale reference mismatches`
+- [x] `T5.2 decide and apply one canonical policy for handoff artifacts (tracked vs ignored)`
+- [x] `T5.3 review and clean obvious non-runtime operational clutter while preserving auditability`
+- [x] `T5.4 run full regression suite and parity/invariant gates before closure`
+- [x] `T5.5 reduce slash-command fragility: route canonical operational slashes through deterministic runtime path and normalize planner control/operational taxonomy conflicts`
+
+### Slice 6: Deterministic Read-Only Operational Slash Routing
+
+- status: `completed`
+- branch: `fix/slice-6-deterministic-readonly-operational-routing`
+- [x] `T6.1 route /project list|where and /repo status as operational slash kinds`
+- [x] `T6.2 execute read-only operational slash commands via server dispatcher without planner/flow execution`
+- [x] `T6.3 add regression tests for router classification and dispatcher read-only command behavior`
+
+### Slice 7: Runtime Control Taxonomy Closure
+
 - status: `pending`
-- branch: `feat/slice-5-ops-structure-hygiene`
-- [ ] `T5.1 normalize docs/spec references and remove stale reference mismatches`
-- [ ] `T5.2 decide and apply one canonical policy for handoff artifacts (tracked vs ignored)`
-- [ ] `T5.3 review and clean obvious non-runtime operational clutter while preserving auditability`
-- [ ] `T5.4 run full regression suite and parity/invariant gates before closure`
-- [ ] `T5.5 reduce slash-command fragility: route canonical operational slashes through deterministic runtime path and normalize planner control/operational taxonomy conflicts`
+- branch: `fix/slice-7-runtime-control-taxonomy-closure`
+- [ ] `T7.1 close remaining control vs operational taxonomy ambiguity paths in interpreter handoff`
+- [ ] `T7.2 add parity tests for direct slash and inferred control precedence with deterministic outcomes`
+- [ ] `T7.3 update runtime docs/contracts for final control routing invariants`
 
 ## Validation Matrix
 
