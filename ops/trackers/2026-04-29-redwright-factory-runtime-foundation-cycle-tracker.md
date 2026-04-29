@@ -7,7 +7,7 @@
 - state: `next_slice`
 - updated: `2026-04-29`
 - active_slice: `slice_2`
-- active_task: `T2.1`
+- active_task: `T2.2`
 
 ## Slice Progress
 
@@ -145,3 +145,4 @@ Validation:
 - `2026-04-29 23:12` state=`executing_slice` note=`completed T1.2 and T1.3 by adding runtime entrypoint shim preserving CLI behavior for existing ingress entrypaths`
 - `2026-04-29 23:28` state=`next_slice` note=`slice 1 merged to dev via PR #152; moved cycle focus to slice 2 task T2.1`
 - `2026-04-29 23:39` state=`executing_slice` note=`implemented T2.1 command-query envelope validation primitives with unit coverage`
+- `2026-04-29 23:54` state=`executing_slice` note=`implemented T2.2 handler registry with typed execution context and dispatch error contract`
