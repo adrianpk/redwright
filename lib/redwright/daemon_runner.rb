@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require_relative "runtime_step_timeout"
+
 module Redwright
   class DaemonRunner
     def initialize(
@@ -8,7 +10,10 @@ module Redwright
       sleeper: ->(seconds) { sleep(seconds) },
       trap_handler: nil,
       turn_queue: nil,
-      queue_drain_mode: "all"
+      queue_drain_mode: "all",
+      ingress_poll_timeout_seconds: 30,
+      event_handle_timeout_seconds: 120,
+      sleep_step_timeout_seconds: 30
     )
       @ingress_poller = ingress_poller
       @event_handler = event_handler
@@ -16,6 +21,9 @@ module Redwright
       @trap_handler = trap_handler || ->(signal, &block) { Signal.trap(signal, &block) }
       @turn_queue = turn_queue
       @queue_drain_mode = queue_drain_mode
+      @ingress_poll_timeout_seconds = ingress_poll_timeout_seconds
+      @event_handle_timeout_seconds = event_handle_timeout_seconds
+      @sleep_step_timeout_seconds = sleep_step_timeout_seconds
       @stop_requested = false
     end
 
@@ -25,15 +33,28 @@ module Redwright
 
       until @stop_requested
         iterations += 1
-        enqueue_events(@ingress_poller.call)
+        events = RuntimeStepTimeout.with_timeout(
+          step: "ingress_poll",
+          timeout_seconds: @ingress_poll_timeout_seconds,
+          error_class: IngressPollTimeoutError
+        ) { @ingress_poller.call }
+        enqueue_events(events)
         dequeue_events.each do |event|
-          @event_handler.call(event)
+          RuntimeStepTimeout.with_timeout(
+            step: "event_handle",
+            timeout_seconds: @event_handle_timeout_seconds,
+            error_class: EventHandleTimeoutError
+          ) { @event_handler.call(event) }
           break if @stop_requested
         end
         break if @stop_requested
         break if !max_iterations.nil? && iterations >= max_iterations
 
-        @sleeper.call(loop_interval_seconds)
+        RuntimeStepTimeout.with_timeout(
+          step: "loop_sleep",
+          timeout_seconds: @sleep_step_timeout_seconds,
+          error_class: SleepStepTimeoutError
+        ) { @sleeper.call(loop_interval_seconds) }
       end
     end
 

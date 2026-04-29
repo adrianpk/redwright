@@ -71,7 +71,7 @@ Validation:
 
 Tasks:
 
-- [ ] `T3.1 add step-scoped timeout policy with step-specific errors`
+- [x] `T3.1 add step-scoped timeout policy with step-specific errors`
 - [ ] `T3.2 add worktree locking with stale lock recovery`
 - [ ] `T3.3 add abort/cancel contract and preserved recovery state`
 - [ ] `T3.4 enforce inline-prompt literal mode and template-only expansion`
@@ -148,3 +148,4 @@ Validation:
 - `2026-04-29 23:54` state=`executing_slice` note=`implemented T2.2 handler registry with typed execution context and dispatch error contract`
 - `2026-04-30 00:06` state=`executing_slice` note=`completed T2.3 by wiring telegram ingress through semantic compatibility adapter with unit and handler integration tests`
 - `2026-04-30 00:24` state=`next_slice` note=`slice 2 merged to dev via PR #155; moved cycle focus to slice 3 task T3.1`
+- `2026-04-30 00:53` state=`executing_slice` note=`completed T3.1 by adding step-scoped timeout wrappers and step-specific timeout errors in daemon runtime flow`

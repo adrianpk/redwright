@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "minitest/autorun"
+require "timeout"
 
 $LOAD_PATH.unshift(File.expand_path("../../lib", __dir__))
 require "redwright/daemon_runner"
@@ -113,5 +114,53 @@ class DaemonRunnerTest < Minitest::Test
 
     assert_equal(%w[e1 e2 e3], handled)
     assert_equal(0, queue.size)
+  end
+
+  def test_run_raises_ingress_poll_timeout_error
+    runner = Redwright::DaemonRunner.new(
+      ingress_poller: lambda {
+        sleep 0.05
+        []
+      },
+      event_handler: ->(_event) {},
+      sleeper: ->(_seconds) {},
+      trap_handler: ->(_signal, &_block) {},
+      ingress_poll_timeout_seconds: 0.01
+    )
+
+    error = assert_raises(Redwright::IngressPollTimeoutError) do
+      runner.run(loop_interval_seconds: 0.001, max_iterations: 1)
+    end
+    assert_equal("ingress_poll", error.step)
+  end
+
+  def test_run_raises_event_handle_timeout_error
+    runner = Redwright::DaemonRunner.new(
+      ingress_poller: -> { ["e1"] },
+      event_handler: ->(_event) { sleep 0.05 },
+      sleeper: ->(_seconds) {},
+      trap_handler: ->(_signal, &_block) {},
+      event_handle_timeout_seconds: 0.01
+    )
+
+    error = assert_raises(Redwright::EventHandleTimeoutError) do
+      runner.run(loop_interval_seconds: 0.001, max_iterations: 1)
+    end
+    assert_equal("event_handle", error.step)
+  end
+
+  def test_run_raises_sleep_step_timeout_error
+    runner = Redwright::DaemonRunner.new(
+      ingress_poller: -> { [] },
+      event_handler: ->(_event) {},
+      sleeper: ->(_seconds) { sleep 0.05 },
+      trap_handler: ->(_signal, &_block) {},
+      sleep_step_timeout_seconds: 0.01
+    )
+
+    error = assert_raises(Redwright::SleepStepTimeoutError) do
+      runner.run(loop_interval_seconds: 0.001, max_iterations: 2)
+    end
+    assert_equal("loop_sleep", error.step)
   end
 end
