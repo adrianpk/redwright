@@ -16,6 +16,10 @@ module Redwright
       task_goal:,
       current_errors:,
       previous_message:,
+      active_clarification: nil,
+      last_execution_results: [],
+      normalized_failures: [],
+      last_patch_summary: "",
       top_k_files: DEFAULT_TOP_K_FILES,
       snippet_lines: DEFAULT_SNIPPET_LINES,
       max_tree_entries: DEFAULT_MAX_TREE_ENTRIES,
@@ -48,8 +52,12 @@ module Redwright
         version: "v2",
         task_goal: task_goal.to_s,
         previous_message: previous_message.to_s,
+        active_clarification: active_clarification.to_s,
+        last_patch_summary: last_patch_summary.to_s,
         stack_hints: detect_stack_hints(project_path: project_path),
         errors: Array(current_errors).map(&:to_s),
+        normalized_failures: Array(normalized_failures).map(&:to_s),
+        last_execution_results: normalize_execution_results(last_execution_results),
         tree: {
           entries: tree_entries,
           total_entries: tree_entries.size
@@ -81,18 +89,38 @@ module Redwright
         }
       }
     rescue StandardError
-      fallback_packet(task_goal: task_goal, current_errors: current_errors, previous_message: previous_message)
+      fallback_packet(
+        task_goal: task_goal,
+        current_errors: current_errors,
+        previous_message: previous_message,
+        active_clarification: active_clarification,
+        last_execution_results: last_execution_results,
+        normalized_failures: normalized_failures,
+        last_patch_summary: last_patch_summary
+      )
     end
 
     private
 
-    def fallback_packet(task_goal:, current_errors:, previous_message:)
+    def fallback_packet(
+      task_goal:,
+      current_errors:,
+      previous_message:,
+      active_clarification: nil,
+      last_execution_results: [],
+      normalized_failures: [],
+      last_patch_summary: ""
+    )
       packet = {
         version: "v2",
         task_goal: task_goal.to_s,
         previous_message: previous_message.to_s,
+        active_clarification: active_clarification.to_s,
+        last_patch_summary: last_patch_summary.to_s,
         stack_hints: { ecosystem: "unknown", primary_language: "unknown", toolchains: [] },
         errors: Array(current_errors).map(&:to_s),
+        normalized_failures: Array(normalized_failures).map(&:to_s),
+        last_execution_results: normalize_execution_results(last_execution_results),
         tree: { entries: [], total_entries: 0 },
         files: [],
         bounds: {
@@ -187,12 +215,23 @@ module Redwright
       lines << "- version: #{packet[:version]}"
       lines << "- task_goal: #{packet[:task_goal]}"
       lines << "- previous_message: #{packet[:previous_message]}"
+      lines << "- active_clarification: #{packet[:active_clarification]}"
+      lines << "- last_patch_summary: #{packet[:last_patch_summary]}"
       lines << "- stack_hints:"
       lines << "  - ecosystem: #{packet.dig(:stack_hints, :ecosystem)}"
       lines << "  - primary_language: #{packet.dig(:stack_hints, :primary_language)}"
       lines << "  - toolchains: #{Array(packet.dig(:stack_hints, :toolchains)).join(', ')}"
       lines << "- errors:"
       packet[:errors].each { |err| lines << "  - #{err}" }
+      lines << "- normalized_failures:"
+      packet[:normalized_failures].each { |failure| lines << "  - #{failure}" }
+      lines << "- last_execution_results:"
+      packet[:last_execution_results].each do |result|
+        lines << "  - command: #{result[:command]}"
+        lines << "    status: #{result[:status]}"
+        lines << "    exit_code: #{result[:exit_code]}"
+        lines << "    summary: #{result[:summary]}"
+      end
       lines << "- tree_entries_count: #{packet.dig(:tree, :entries).size}"
       lines << "- tree_entries:"
       packet.dig(:tree, :entries).each { |entry| lines << "  - #{entry}" }
@@ -222,6 +261,18 @@ module Redwright
         break
       end
       trimmed
+    end
+
+    def normalize_execution_results(results)
+      Array(results).map do |entry|
+        hash = entry.is_a?(Hash) ? entry : {}
+        {
+          command: hash[:command].to_s,
+          status: hash[:status].to_s,
+          exit_code: hash[:exit_code].to_s,
+          summary: hash[:summary].to_s
+        }
+      end
     end
 
     def normalize_tree_view(tree_view)

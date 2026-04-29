@@ -21,6 +21,12 @@ class IterationContextPacketBuilderTest < Minitest::Test
         task_goal: "fix failing test",
         previous_message: "update parser",
         current_errors: ["Validation failed", "Failed checks: test"],
+        active_clarification: "Need project name",
+        normalized_failures: ["test_failure"],
+        last_execution_results: [
+          { command: "bundle exec ruby -Itest test/x_test.rb", status: "error", exit_code: 1, summary: "1 failing test" }
+        ],
+        last_patch_summary: "Updated parser normalization branch",
         top_k_files: 2
       )
 
@@ -30,6 +36,11 @@ class IterationContextPacketBuilderTest < Minitest::Test
       assert_equal("unknown", packet.dig(:packet, :stack_hints, :ecosystem))
       assert_includes(packet[:prompt_text], "Semantic Context Packet v2")
       assert_includes(packet[:prompt_text], "task_goal: fix failing test")
+      assert_includes(packet[:prompt_text], "active_clarification: Need project name")
+      assert_includes(packet[:prompt_text], "last_patch_summary: Updated parser normalization branch")
+      assert_includes(packet[:prompt_text], "normalized_failures:")
+      assert_includes(packet[:prompt_text], "last_execution_results:")
+      assert_includes(packet[:prompt_text], "bundle exec ruby -Itest test/x_test.rb")
       assert_includes(packet[:prompt_text], "content: |")
       assert_operator(packet[:summary][:packet_bytes], :>, 0)
     end
@@ -76,6 +87,50 @@ class IterationContextPacketBuilderTest < Minitest::Test
       assert_operator(packet[:prompt_text].bytesize, :<=, 1500)
       assert_operator(packet.dig(:packet, :files).size, :<=, 5)
       assert_operator(packet.dig(:packet, :tree, :entries).size, :<=, 5)
+    end
+  end
+
+  def test_trim_order_is_deterministic_files_then_tree
+    Dir.mktmpdir("redwright-iter-packet-trim-order-") do |dir|
+      FileUtils.mkdir_p(File.join(dir, "lib"))
+      File.write(File.join(dir, "README.md"), "# demo\n")
+      6.times do |idx|
+        File.write(File.join(dir, "lib", "f#{idx}.rb"), ("line #{idx}\n" * 200))
+      end
+
+      builder = Redwright::IterationContextPacketBuilder.new
+      baseline = builder.build(
+        project_path: dir,
+        task_goal: "trim test",
+        previous_message: "prev",
+        current_errors: ["Validation failed", "lint failed", "test failed"],
+        top_k_files: 5,
+        max_tree_entries: 20,
+        max_snippet_bytes: 1500,
+        max_packet_bytes: 50_000
+      )
+      packet = builder.build(
+        project_path: dir,
+        task_goal: "trim test",
+        previous_message: "prev",
+        current_errors: ["Validation failed", "lint failed", "test failed"],
+        top_k_files: 5,
+        max_tree_entries: 20,
+        max_snippet_bytes: 1500,
+        max_packet_bytes: 1200
+      )
+
+      baseline_files = baseline.dig(:packet, :files).size
+      baseline_tree = baseline.dig(:packet, :tree, :entries).size
+      trimmed_files = packet.dig(:packet, :files).size
+      trimmed_tree = packet.dig(:packet, :tree, :entries).size
+
+      assert_operator(trimmed_files, :<=, baseline_files)
+      assert_operator(trimmed_tree, :<=, baseline_tree)
+      if trimmed_tree < baseline_tree
+        assert_equal(1, trimmed_files)
+      end
+      assert_operator(packet[:prompt_text].bytesize, :<=, 1200)
     end
   end
 
