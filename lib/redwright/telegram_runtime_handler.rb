@@ -6,6 +6,7 @@ require_relative "llm_intent_interpreter"
 require_relative "telegram_context_resolver"
 require_relative "iteration_context_packet_builder"
 require_relative "bootstrap_minimum_gate"
+require_relative "hint_normalizer"
 
 module Redwright
   class TelegramRuntimeHandler
@@ -33,7 +34,8 @@ module Redwright
       iteration_context_packet_builder: IterationContextPacketBuilder.new,
       typing_interval_seconds: 4.0,
       typing_sleeper: ->(seconds) { sleep(seconds) },
-      bootstrap_minimum_gate: BootstrapMinimumGate.new
+      bootstrap_minimum_gate: BootstrapMinimumGate.new,
+      hint_normalizer: HintNormalizer.new
     )
       @flow = flow
       @telegram_client = telegram_client
@@ -57,6 +59,7 @@ module Redwright
       @typing_interval_seconds = typing_interval_seconds
       @typing_sleeper = typing_sleeper
       @bootstrap_minimum_gate = bootstrap_minimum_gate
+      @hint_normalizer = hint_normalizer
     end
 
     def handle(event)
@@ -123,10 +126,15 @@ module Redwright
             @out.puts("telegram control chat=#{event.chat_id} command=#{slash[:command]} task=#{control_result.task.id}")
             return
           end
+          normalized_text = if slash && slash[:kind] == "planner_hint"
+                              slash[:planner_text]
+                            else
+                              normalize_hint_text(event.text)
+                            end
           decision_input = consume_pending_planner_gap_answer(
             chat_id: event.chat_id,
             workstream_id: resolution.workstream_id,
-            user_text: slash && slash[:kind] == "planner_hint" ? slash[:planner_text] : event.text
+            user_text: normalized_text
           )
           decision = interpret_with_trace(
             action: decision_input[:action],
@@ -791,6 +799,15 @@ module Redwright
       else
         nil
       end
+    end
+
+    def normalize_hint_text(text)
+      return text.to_s unless @hint_normalizer
+
+      result = @hint_normalizer.normalize(text.to_s)
+      result.normalized_text.to_s
+    rescue StandardError
+      text.to_s
     end
 
     def send_json_envelope_if_enabled(chat_id:, envelope:)

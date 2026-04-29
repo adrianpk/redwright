@@ -44,11 +44,11 @@
 
 ### Slice 5: Hint Normalizer and Merge Policy
 
-- status: `pending`
+- status: `completed`
 - branch: `feat/slice-5-hint-normalizer-merge-policy`
 - PR: `tbd`
-- commits: `tbd`
-- validation: `tbd`
+- commits: `pending-push`
+- validation: `bundle exec ruby -Itest test/redwright/hint_normalizer_test.rb && bundle exec ruby -Itest test/redwright/telegram_runtime_handler_test.rb`
 
 ### Slice 6: Skill Router V1 (Explicit + Inferred)
 
@@ -117,6 +117,7 @@
 ## Event Log
 
 - `2026-04-29 00:00` state=`planned` note=`initialized full-cycle planning for minimal runtime evolution with bounded loops, skills activation, and channel parity`
+- `2026-04-29 00:00` state=`implementation` slice=`slice-5` note=`added hint normalizer for @hints, merged hint context deterministically into planner input, and enforced slash-over-hint precedence with handler-level tests`
 - `2026-04-29 00:00` state=`implementation` slice=`slice-4` note=`added deterministic slash control-plane parsing with precedence before interpretation, mapped slash control commands directly to runtime control flow, and added tests for slash routing and planner-hint rewrites`
 - `2026-04-29 00:00` state=`implementation` slice=`slice-3` note=`extended planner payload schema with optional skill contract fields, preserved backward compatibility defaults, and validated strict parser behavior for allowed/invalid skill payload shapes`
 - `2026-04-29 00:00` state=`implementation` slice=`slice-2` note=`extended context packet contract with active clarification, normalized failures, last execution results, and patch summary, then validated deterministic bounded truncation behavior`

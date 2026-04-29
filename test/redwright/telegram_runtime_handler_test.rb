@@ -786,6 +786,61 @@ class TelegramRuntimeHandlerTest < Minitest::Test
     assert_equal("", err.string)
   end
 
+  def test_handle_keeps_slash_precedence_over_hints
+    fake_flow = Object.new
+    captured = {}
+    fake_flow.define_singleton_method(:process) do |**kwargs|
+      captured.merge!(kwargs)
+      TelegramRuntimeHandlerTest::FakeResult.new(
+        project: TelegramRuntimeHandlerTest::FakeProject.new(id: "project-1"),
+        workstream: TelegramRuntimeHandlerTest::FakeWorkstream.new(id: "ws-1", state: "executing"),
+        task: TelegramRuntimeHandlerTest::FakeTask.new(id: "task-priority"),
+        alignment: nil,
+        action_results: []
+      )
+    end
+
+    fake_interpreter = Object.new
+    fake_interpreter.define_singleton_method(:interpret) do |text:, model:|
+      raise "slash should take precedence over hints" unless text.start_with?("Switch active project to")
+      raise "hints should not override slash command" if text.include?("Hint context:")
+
+      TelegramRuntimeHandlerTest::FakeDecision.new(
+        intent: "change",
+        message: text,
+        source: "llm",
+        finish_reason: "stop",
+        raw_output: "{}"
+      )
+    end
+
+    client = FakeTelegramClient.new([])
+    out = StringIO.new
+    err = StringIO.new
+    handler = Redwright::TelegramRuntimeHandler.new(
+      flow: fake_flow,
+      telegram_client: client,
+      out: out,
+      err: err,
+      blocked_retry_attempts: 1,
+      model_name: "gpt-5-mini",
+      intent_interpreter: fake_interpreter
+    )
+
+    handler.handle(
+      Redwright::TelegramEvent.new(
+        update_id: 92,
+        chat_id: 47,
+        user_id: nil,
+        username: nil,
+        text: "/project switch rw @mode: direct @tests: required"
+      )
+    )
+
+    assert_includes(captured[:message], "Switch active project")
+    assert_equal("", err.string)
+  end
+
   def test_handle_includes_execution_summary_and_passes_actions_to_flow
     fake_flow = Object.new
     captured = {}
