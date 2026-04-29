@@ -4,7 +4,7 @@
 
 - owner: `adrianpk`
 - status: `in_progress`
-- active_slice: `slice_6`
+- active_slice: `slice_7`
 - plan: `ops/plans/2026-04-29-redwright-project-manifest-rehydration-and-docs-cycle-plan.md`
 
 ## Slice Progress
@@ -45,17 +45,17 @@
 
 - status: `completed`
 - branch: `feat/slice-5-prompt-context-integration-manifest`
-- PR: `pending`
-- commits: `pending`
+- PR: `#137`
+- commits: `feat(runtime): enrich prompt context from manifest fields`
 - validation: `bundle exec ruby -Itest test/redwright/prompt_context_loader_test.rb && bundle exec ruby -Itest test/redwright/iteration_context_packet_builder_test.rb`
 
 ### Slice 6: Docs Reference Set
 
-- status: `pending`
+- status: `completed`
 - branch: `feat/slice-6-docs-reference-set`
-- PR: `tbd`
+- PR: `pending`
 - commits: `pending`
-- validation: `docs-reference consistency review`
+- validation: `docs/reference review against runtime behavior`
 
 ### Slice 7: Docs How-To Set
 
@@ -81,3 +81,4 @@
 - `2026-04-29 19:04` state=`slice_3_completed` note=`/repo clone now writes schema v1 manifest with remote provenance metadata and preserves session alias continuity`
 - `2026-04-29 19:32` state=`slice_4_completed` note=`bootstrap startup now rehydrates project registry from manifest when sqlite is empty, with fallback registration for invalid/missing manifests`
 - `2026-04-29 19:44` state=`slice_5_completed` note=`prompt context now includes manifest identity/provenance fields while preserving architecture fallback and context packet quality checks`
+- `2026-04-29 20:02` state=`slice_6_completed` note=`added reference docs for manifest contract, slash command forms, and runtime persistence semantics`

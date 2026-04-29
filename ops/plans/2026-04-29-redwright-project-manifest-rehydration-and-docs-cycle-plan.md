@@ -56,11 +56,11 @@
 
 ### Slice 6: Docs Reference Set
 
-- status: `pending`
+- status: `completed`
 - branch: `feat/slice-6-docs-reference-set`
-- [ ] `T6.1 add docs/reference/project-manifest.md`
-- [ ] `T6.2 add docs/reference/slash-commands.md`
-- [ ] `T6.3 add docs/reference/runtime-persistence-contract.md`
+- [x] `T6.1 add docs/reference/project-manifest.md`
+- [x] `T6.2 add docs/reference/slash-commands.md`
+- [x] `T6.3 add docs/reference/runtime-persistence-contract.md`
 
 ### Slice 7: Docs How-To Set
 
