@@ -4,10 +4,14 @@
 
 - cycle_id: `rw-2026-04-29-factory-runtime-foundation`
 - status: `in_progress`
-- state: `awaiting_review`
+- state: `executing_slice`
 - updated: `2026-04-30`
-- active_slice: `slice_4`
-- active_task: `none`
+- active_slice: `slice_5`
+- active_task: `T5.3`
+- state: `executing_slice`
+- updated: `2026-04-30`
+- active_slice: `slice_5`
+- active_task: `T5.2`
 
 ## Slice Progress
 
@@ -68,6 +72,7 @@ Validation:
 - PR: `tbd`
 - merge_target: `dev`
 - last_sync_commit: `750d657`
+- last_sync_commit: `971868c`
 
 Tasks:
 
@@ -114,7 +119,7 @@ Validation:
 
 ### Slice 5: Kanban Application Integration Contract
 
-- status: `pending`
+- status: `in_progress`
 - branch: `feat/slice-5-kanban-integration-contract`
 - PR: `tbd`
 - merge_target: `dev`
@@ -122,7 +127,7 @@ Validation:
 
 Tasks:
 
-- [ ] `T5.1 define ticket/board command-query endpoints and error contract`
+- [x] `T5.1 define ticket/board command-query endpoints and error contract`
 - [ ] `T5.2 define assignment-plus-label authorization evaluation order`
 - [ ] `T5.3 define dual-bot and dual-runtime ingress policy contract`
 
@@ -155,3 +160,4 @@ Validation:
 - `2026-04-30 02:11` state=`executing_slice` note=`completed T4.1 with runtime-scoped state root partitioning for interactive and factory modes`
 - `2026-04-30 02:19` state=`executing_slice` note=`completed T4.2 with runtime session transfer contract and validation for interactive/factory continuity`
 - `2026-04-30 02:27` state=`awaiting_review` note=`completed T4.3 with runtime-specific observability envelope contract; slice 4 implementation is ready for single PR review`
+- `2026-04-30 02:48` state=`executing_slice` note=`completed T5.1 with kanban integration endpoint and error-envelope contract v1`
