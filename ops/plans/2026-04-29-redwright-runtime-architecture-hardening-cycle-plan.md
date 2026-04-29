@@ -66,11 +66,11 @@
 
 ### Slice 7: Runtime Control Taxonomy Closure
 
-- status: `pending`
+- status: `completed`
 - branch: `fix/slice-7-runtime-control-taxonomy-closure`
-- [ ] `T7.1 close remaining control vs operational taxonomy ambiguity paths in interpreter handoff`
-- [ ] `T7.2 add parity tests for direct slash and inferred control precedence with deterministic outcomes`
-- [ ] `T7.3 update runtime docs/contracts for final control routing invariants`
+- [x] `T7.1 close remaining control vs operational taxonomy ambiguity paths in interpreter handoff`
+- [x] `T7.2 add parity tests for direct slash and inferred control precedence with deterministic outcomes`
+- [x] `T7.3 update runtime docs/contracts for final control routing invariants`
 
 ## Validation Matrix
 

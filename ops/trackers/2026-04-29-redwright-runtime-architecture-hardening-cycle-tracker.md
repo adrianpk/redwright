@@ -4,7 +4,7 @@
 
 - owner: `adrianpk`
 - status: `in_progress`
-- active_slice: `slice_6`
+- active_slice: `slice_7`
 - plan: `ops/plans/2026-04-29-redwright-runtime-architecture-hardening-cycle-plan.md`
 
 ## Slice Progress
@@ -53,17 +53,17 @@
 
 - status: `completed`
 - branch: `fix/slice-6-deterministic-readonly-operational-routing`
-- PR: `tbd`
-- commits: `pending`
+- PR: `#162`
+- commits: `33986df, 7a630aa, c314878`
 - validation: `bundle exec ruby -Itest test/redwright/server_runtime_dispatcher_test.rb && bundle exec ruby -Itest test/redwright/telegram_control_router_test.rb && bundle exec ruby -Itest test/redwright/telegram_runtime_handler_test.rb -n "/operational_slash_through_dispatcher_without_llm|rewrites_operational_slashes_to_explicit_planner_hints/"`
 
 ### Slice 7: Runtime Control Taxonomy Closure
 
-- status: `pending`
+- status: `completed`
 - branch: `fix/slice-7-runtime-control-taxonomy-closure`
 - PR: `tbd`
 - commits: `pending`
-- validation: `pending`
+- validation: `bundle exec ruby -Itest test/redwright/telegram_control_router_test.rb && bundle exec ruby -Itest test/redwright/telegram_runtime_handler_test.rb -n "/direct_control_slash_bypasses_llm|operational_slash_through_dispatcher_without_llm/" && bundle exec ruby -Itest test/redwright/cross_channel_parity_matrix_test.rb`
 
 ## Event Log
 
@@ -74,3 +74,4 @@
 - `2026-04-29 20:25` state=`slice_4_completed` note=`extracted project/workstream/task CLI handlers; command-level tests and server/daemon smoke checks passed (tui ingress daemon test remains flaky on socket startup race)`
 - `2026-04-29 22:33` state=`slice_5_completed` note=`merged ops/runtime hygiene and deterministic mutating operational slash dispatch via PR #161`
 - `2026-04-29 22:58` state=`slice_6_completed` note=`added deterministic read-only operational slash routing for /project list|where and /repo status with dispatcher and regression tests`
+- `2026-04-29 23:18` state=`slice_7_completed` note=`closed control taxonomy ambiguity by enforcing explicit-control precedence and added deterministic control precedence tests`
