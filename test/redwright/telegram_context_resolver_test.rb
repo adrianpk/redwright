@@ -231,4 +231,55 @@ class TelegramContextResolverTest < Minitest::Test
       end
     end
   end
+
+  def test_resolve_blocks_implicit_cross_project_switch_when_session_has_active_project
+    Dir.mktmpdir("redwright-context-resolver-session-continuity-") do |dir|
+      Dir.chdir(dir) do
+        bootstrap = Redwright::Bootstrap.new(mode: :dev).call
+        projects = Redwright::ProjectStore.new(bootstrap.db_path)
+        contexts = Redwright::ChatContextStore.new(bootstrap.db_path)
+        clarifications = Redwright::ClarificationSessionStore.new(bootstrap.db_path)
+        resolver = Redwright::TelegramContextResolver.new(
+          project_store: projects,
+          chat_context_store: contexts,
+          projects_root: bootstrap.projects_root,
+          clarification_session_store: clarifications
+        )
+
+        alpha = projects.register(path: File.join(bootstrap.projects_root, "alpha"), aliases: ["alpha"])
+        beta = projects.register(path: File.join(bootstrap.projects_root, "beta"), aliases: ["beta"])
+        contexts.upsert(chat_id: 501, project_id: alpha.id, workstream_id: "ws-1")
+
+        result = resolver.resolve(chat_id: 501, text: "beta implement parser fix")
+        assert_equal(false, result.resolved)
+        assert_match("/project switch #{beta.name}", result.question)
+      end
+    end
+  end
+
+  def test_resolve_allows_after_explicit_session_switch
+    Dir.mktmpdir("redwright-context-resolver-session-switch-") do |dir|
+      Dir.chdir(dir) do
+        bootstrap = Redwright::Bootstrap.new(mode: :dev).call
+        projects = Redwright::ProjectStore.new(bootstrap.db_path)
+        contexts = Redwright::ChatContextStore.new(bootstrap.db_path)
+        clarifications = Redwright::ClarificationSessionStore.new(bootstrap.db_path)
+        resolver = Redwright::TelegramContextResolver.new(
+          project_store: projects,
+          chat_context_store: contexts,
+          projects_root: bootstrap.projects_root,
+          clarification_session_store: clarifications
+        )
+
+        alpha = projects.register(path: File.join(bootstrap.projects_root, "alpha"), aliases: ["alpha"])
+        beta = projects.register(path: File.join(bootstrap.projects_root, "beta"), aliases: ["beta"])
+        contexts.upsert(chat_id: 502, project_id: alpha.id, workstream_id: "ws-1")
+
+        contexts.upsert(chat_id: 502, project_id: beta.id, workstream_id: nil)
+        result = resolver.resolve(chat_id: 502, text: "beta implement parser fix")
+        assert_equal(true, result.resolved)
+        assert_equal(beta.id, result.project_ref)
+      end
+    end
+  end
 end

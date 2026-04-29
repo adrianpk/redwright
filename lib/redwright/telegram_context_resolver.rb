@@ -31,6 +31,15 @@ module Redwright
       if explicit_matches.size == 1
         project = explicit_matches.first
         context = @chat_context_store.get(chat_id)
+        if context && context.project_id != project.id
+          return Resolution.new(
+            resolved: false,
+            project_ref: nil,
+            project_path: nil,
+            workstream_id: nil,
+            question: "Session is bound to another active project. Use '/project switch #{project.name}' to switch explicitly before mutating requests."
+          )
+        end
         return Resolution.new(
           resolved: true,
           project_ref: project.id,

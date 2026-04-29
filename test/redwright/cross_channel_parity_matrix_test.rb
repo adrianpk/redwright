@@ -157,6 +157,16 @@ class CrossChannelParityMatrixTest < Minitest::Test
     end
   end
 
+  def test_cross_channel_parity_for_session_project_continuity
+    telegram = run_sequence_scenario(channel: :telegram, messages: ["alpha do work", "beta do work"])
+    console = run_sequence_scenario(channel: :console, messages: ["alpha do work", "beta do work"])
+    tui = run_sequence_scenario(channel: :tui, messages: ["alpha do work", "beta do work"])
+
+    [telegram, console, tui].each do |result|
+      assert_includes(result[:terminal_text], "Session is bound to another active project")
+    end
+  end
+
   private
 
   def run_scenario(channel:, unsafe:)
@@ -170,9 +180,12 @@ class CrossChannelParityMatrixTest < Minitest::Test
         chat_context_store = Redwright::ChatContextStore.new(bootstrap.db_path)
         clarification_session_store = Redwright::ClarificationSessionStore.new(bootstrap.db_path)
 
-        project_path = File.join(bootstrap.projects_root, "alpha")
-        FileUtils.mkdir_p(project_path)
-        project_store.register(path: project_path, aliases: ["alpha"])
+        alpha_path = File.join(bootstrap.projects_root, "alpha")
+        beta_path = File.join(bootstrap.projects_root, "beta")
+        FileUtils.mkdir_p(alpha_path)
+        FileUtils.mkdir_p(beta_path)
+        project_store.register(path: alpha_path, aliases: ["alpha"])
+        project_store.register(path: beta_path, aliases: ["beta"])
 
         flow = Redwright::RuntimeFlow.new(
           project_store: project_store,
@@ -228,8 +241,8 @@ class CrossChannelParityMatrixTest < Minitest::Test
                           output_text.string
                         end
 
-        inside_file = File.join(project_path, "runtime", "parity.txt")
-        outside_file = File.expand_path("../escape.txt", project_path)
+        inside_file = File.join(alpha_path, "runtime", "parity.txt")
+        outside_file = File.expand_path("../escape.txt", alpha_path)
 
         {
           terminal_reason: extract_terminal_reason(terminal_text),
@@ -253,9 +266,12 @@ class CrossChannelParityMatrixTest < Minitest::Test
         chat_context_store = Redwright::ChatContextStore.new(bootstrap.db_path)
         clarification_session_store = Redwright::ClarificationSessionStore.new(bootstrap.db_path)
 
-        project_path = File.join(bootstrap.projects_root, "alpha")
-        FileUtils.mkdir_p(project_path)
-        project_store.register(path: project_path, aliases: ["alpha"])
+        alpha_path = File.join(bootstrap.projects_root, "alpha")
+        beta_path = File.join(bootstrap.projects_root, "beta")
+        FileUtils.mkdir_p(alpha_path)
+        FileUtils.mkdir_p(beta_path)
+        project_store.register(path: alpha_path, aliases: ["alpha"])
+        project_store.register(path: beta_path, aliases: ["beta"])
 
         flow = Redwright::RuntimeFlow.new(
           project_store: project_store,

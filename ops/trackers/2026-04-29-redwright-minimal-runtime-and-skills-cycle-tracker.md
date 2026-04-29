@@ -108,11 +108,11 @@
 
 ### Slice 13: Session-Project Continuity Policy
 
-- status: `pending`
+- status: `completed`
 - branch: `feat/slice-13-session-project-continuity-policy`
 - PR: `tbd`
-- commits: `tbd`
-- validation: `tbd`
+- commits: `pending-push`
+- validation: `bundle exec ruby -Itest test/redwright/telegram_context_resolver_test.rb && bundle exec ruby -Itest test/redwright/cross_channel_parity_matrix_test.rb`
 
 ## Event Log
 
