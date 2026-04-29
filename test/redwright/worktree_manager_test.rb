@@ -3,6 +3,8 @@
 require "tmpdir"
 require "fileutils"
 require "open3"
+require "json"
+require "time"
 require "minitest/autorun"
 
 $LOAD_PATH.unshift(File.expand_path("../../lib", __dir__))
@@ -10,6 +12,7 @@ require "redwright/bootstrap"
 require "redwright/project_store"
 require "redwright/workstream_store"
 require "redwright/worktree_manager"
+require "redwright/worktree_lock_manager"
 
 class WorktreeManagerTest < Minitest::Test
   def test_create_status_remove_worktree_for_workstream
@@ -42,6 +45,38 @@ class WorktreeManagerTest < Minitest::Test
         removed = manager.remove(workstream_id: ws.id)
         assert_nil(removed.branch)
         assert_nil(removed.worktree_path)
+      end
+    end
+  end
+
+  def test_create_fails_fast_when_worktree_lock_is_held
+    Dir.mktmpdir("redwright-worktree-lock-test-") do |dir|
+      Dir.chdir(dir) do
+        repo_path = File.join(dir, "repo")
+        setup_git_repo(repo_path)
+
+        bootstrap = Redwright::Bootstrap.new(mode: :dev).call
+        project_store = Redwright::ProjectStore.new(bootstrap.db_path)
+        ws_store = Redwright::WorkstreamStore.new(bootstrap.db_path)
+
+        project = project_store.register(path: repo_path, aliases: ["rw"])
+        ws = ws_store.create(project_id: project.id, intent: "change")
+        locks_root = File.join(bootstrap.worktrees_root, ".locks")
+        FileUtils.mkdir_p(locks_root)
+        File.write(
+          File.join(locks_root, "#{ws.id}.lock"),
+          JSON.generate({ "pid" => Process.pid, "acquired_at" => Time.now.utc.iso8601 })
+        )
+
+        manager = Redwright::WorktreeManager.new(
+          project_store: project_store,
+          workstream_store: ws_store,
+          worktrees_root: bootstrap.worktrees_root
+        )
+
+        assert_raises(Redwright::WorktreeLockError) do
+          manager.create(workstream_id: ws.id, branch: "feat/worktree-lock")
+        end
       end
     end
   end
