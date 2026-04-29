@@ -422,6 +422,13 @@ module Redwright
 
     def update_workstream_state_checked(workstream:, next_state:)
       RuntimeStateContract.assert_transition!(from: workstream.state, to: next_state)
+      transition_id = RuntimeStateContract.transition_id(from: workstream.state, to: next_state)
+      Trace.runtime({
+        trace_id: Trace.current_trace_id || "none",
+        runtime_transition_id: transition_id,
+        runtime_transition_from: workstream.state,
+        runtime_transition_to: next_state
+      })
       @workstream_store.update_state(workstream.id, next_state)
     end
   end

@@ -12,11 +12,11 @@
 
 ### Slice 1: Turn Loop V1 Contract Hardening
 
-- status: `pending`
+- status: `completed`
 - branch: `feat/slice-1-turn-loop-v1-contract`
 - PR: `tbd`
-- commits: `tbd`
-- validation: `tbd`
+- commits: `pending-push`
+- validation: `bundle exec ruby -Itest test/redwright/runtime_state_contract_test.rb && bundle exec ruby -Itest test/redwright/runtime_flow_test.rb`
 
 ### Slice 2: Context Packet Builder V1
 
@@ -117,3 +117,4 @@
 ## Event Log
 
 - `2026-04-29 00:00` state=`planned` note=`initialized full-cycle planning for minimal runtime evolution with bounded loops, skills activation, and channel parity`
+- `2026-04-29 00:00` state=`implementation` slice=`slice-1` note=`extended RuntimeStateContract with explicit turn phases/transitions and stable transition ids, then traced runtime state transitions and validated guard clauses with contract/flow tests`
