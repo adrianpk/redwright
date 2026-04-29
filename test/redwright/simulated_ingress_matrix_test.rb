@@ -213,6 +213,70 @@ class SimulatedIngressMatrixTest < Minitest::Test
     }
   end
 
+  def run_events_with_options(bootstrap:, events:, send_json_envelope: false)
+    project_store = Redwright::ProjectStore.new(bootstrap.db_path)
+    workstream_store = Redwright::WorkstreamStore.new(bootstrap.db_path)
+    task_store = Redwright::TaskStore.new(bootstrap.db_path)
+    chat_context_store = Redwright::ChatContextStore.new(bootstrap.db_path)
+    clarification_session_store = Redwright::ClarificationSessionStore.new(bootstrap.db_path)
+
+    flow = Redwright::RuntimeFlow.new(
+      project_store: project_store,
+      workstream_store: workstream_store,
+      task_store: task_store,
+      alignment_store: Redwright::AlignmentStore.new(bootstrap.db_path),
+      alignment_interruption_store: Redwright::AlignmentInterruptionStore.new(bootstrap.db_path),
+      primitive_executor: Redwright::PrimitiveExecutor.new(
+        allowed_projects_root: bootstrap.projects_root,
+        enforce_mutating_projects_root: true
+      )
+    )
+
+    resolver = Redwright::TelegramContextResolver.new(
+      project_store: project_store,
+      chat_context_store: chat_context_store,
+      projects_root: bootstrap.projects_root,
+      clarification_session_store: clarification_session_store
+    )
+
+    prompt_loader = Object.new
+    prompt_loader.define_singleton_method(:build) do |**_kwargs|
+      { quality: { auto_validate: false, lint_command: nil, test_command: nil } }
+    end
+
+    ingress = Redwright::SimulatedIngressAdapter.new(events: events)
+    handler_out = StringIO.new
+    handler = Redwright::TelegramRuntimeHandler.new(
+      flow: flow,
+      telegram_client: ingress,
+      out: handler_out,
+      err: StringIO.new,
+      context_resolver: resolver,
+      chat_context_store: chat_context_store,
+      clarification_session_store: clarification_session_store,
+      blocked_retry_attempts: 1,
+      intent_interpreter: MatrixInterpreter.new,
+      prompt_context_loader: prompt_loader,
+      send_json_envelope: send_json_envelope
+    )
+
+    cursor = nil
+    runner = Redwright::DaemonRunner.new(
+      ingress_poller: lambda {
+        poll = ingress.poll(cursor: cursor, timeout_seconds: 0)
+        cursor = poll.next_cursor
+        poll.events
+      },
+      event_handler: ->(event) { handler.handle(event) }
+    )
+    runner.run(loop_interval_seconds: 0.0, max_iterations: 1)
+
+    {
+      ingress: ingress,
+      handler_out: handler_out.string
+    }
+  end
+
   def test_matrix_multilingual_stop_asking_continues_execution
     with_test_root("stop-asking") do |dir|
       Dir.chdir(dir) do
@@ -310,6 +374,38 @@ class SimulatedIngressMatrixTest < Minitest::Test
         combined = result[:ingress].sent_messages.map { |m| m[:text] }.join("\n")
         assert_match("terminal: max_attempts", combined)
         assert(File.file?(File.join(project_path, "runtime", "converged.txt")))
+      end
+    end
+  end
+
+  def test_matrix_emits_human_message_and_json_envelope_with_same_trace_id
+    with_test_root("json-envelope-trace") do |dir|
+      Dir.chdir(dir) do
+        bootstrap = Redwright::Bootstrap.new(mode: :dev).call
+        project_path = File.join(bootstrap.projects_root, "rw-json")
+        FileUtils.mkdir_p(project_path)
+        Redwright::ProjectStore.new(bootstrap.db_path).register(path: project_path, aliases: ["rw-json"])
+
+        result = run_events_with_options(
+          bootstrap: bootstrap,
+          send_json_envelope: true,
+          events: [
+            Redwright::SimulatedIngressAdapter.event(external_message_id: 1, external_chat_id: 206, text: "rw-json do work")
+          ]
+        )
+
+        messages = result[:ingress].sent_messages.map { |m| m[:text] }
+        assert_operator(messages.size, :>=, 2)
+        human = messages.find { |m| m.include?("Trace: trc-") }
+        json_msg = messages.find { |m| m.include?("```json") }
+        refute_nil(human)
+        refute_nil(json_msg)
+
+        human_trace = human[/Trace:\s+(trc-[a-f0-9]+)/, 1]
+        json_trace = json_msg[/\"trace_id\"\s*:\s*\"(trc-[a-f0-9]+)\"/, 1]
+        refute_nil(human_trace)
+        assert_equal(human_trace, json_trace)
+        assert_match("telegram processed chat=206 task=", result[:handler_out])
       end
     end
   end
