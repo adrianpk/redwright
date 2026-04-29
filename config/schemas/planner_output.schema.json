@@ -1,0 +1,122 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "intent",
+    "message",
+    "actions",
+    "gaps",
+    "control_intent",
+    "control_scope",
+    "skill_requested",
+    "skill_mode",
+    "skill_actions",
+    "skill_exit_condition"
+  ],
+  "properties": {
+    "intent": { "type": "string", "enum": ["change", "meta"] },
+    "message": { "type": "string", "minLength": 1 },
+    "actions": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/action" }
+    },
+    "gaps": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/gap" }
+    },
+    "control_intent": {
+      "type": "string",
+      "enum": ["none", "proceed_with_current_context", "cancel_clarification_only", "cancel_task", "cancel_all"]
+    },
+    "control_scope": {
+      "type": "string",
+      "enum": ["none", "gap", "task", "workstream", "chat", "runtime"]
+    },
+    "skill_requested": { "type": "string" },
+    "skill_mode": { "type": "string", "enum": ["none", "explicit", "inferred"] },
+    "skill_actions": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/skill_action" }
+    },
+    "skill_exit_condition": { "type": "string" }
+  },
+  "$defs": {
+    "action": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "args", "requires_confirmation", "timeout_ms", "on_failure"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "type": {
+          "type": "string",
+          "enum": [
+            "list_files", "read_file", "search", "write_file", "apply_patch", "run", "git_status", "git_branch", "git_commit", "git_push",
+            "write_files", "run_command", "run_commands"
+          ]
+        },
+        "args": {
+          "type": "object",
+          "oneOf": [
+            {
+              "properties": {
+                "files": {
+                  "type": "object",
+                  "additionalProperties": { "type": "string" }
+                }
+              },
+              "required": ["files"]
+            },
+            {
+              "properties": {
+                "files": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["path", "content"],
+                    "properties": {
+                      "path": { "type": "string", "minLength": 1 },
+                      "content": { "type": "string" }
+                    }
+                  }
+                }
+              },
+              "required": ["files"]
+            },
+            { "type": "object" }
+          ]
+        },
+        "requires_confirmation": { "type": "boolean" },
+        "timeout_ms": { "type": "integer", "minimum": 1 },
+        "on_failure": { "type": "string", "enum": ["abort", "continue"] }
+      }
+    },
+    "skill_action": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "args", "requires_confirmation", "timeout_ms", "on_failure"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "type": { "type": "string", "minLength": 1 },
+        "args": { "type": "object" },
+        "requires_confirmation": { "type": "boolean" },
+        "timeout_ms": { "type": "integer", "minimum": 1 },
+        "on_failure": { "type": "string", "enum": ["abort", "continue"] }
+      }
+    },
+    "gap": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "question", "field", "inferred_value", "resolved", "priority"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "question": { "type": "string", "minLength": 1 },
+        "field": { "type": "string", "minLength": 1 },
+        "inferred_value": { "type": "string" },
+        "resolved": { "type": "boolean" },
+        "priority": { "type": "integer", "minimum": 1, "maximum": 5 }
+      }
+    }
+  }
+}

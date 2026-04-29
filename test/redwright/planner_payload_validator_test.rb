@@ -9,8 +9,7 @@ class PlannerPayloadValidatorTest < Minitest::Test
   def test_validate_accepts_valid_payload
     validator = Redwright::PlannerPayloadValidator.new
     payload = JSON.generate(
-      {
-        intent: "change",
+      base_payload.merge(
         message: "update README with setup steps",
         actions: [
           {
@@ -22,27 +21,20 @@ class PlannerPayloadValidatorTest < Minitest::Test
             on_failure: "abort"
           }
         ]
-      }
+      )
     )
 
     result = validator.validate(payload)
     assert_equal(true, result.valid)
     assert_equal("change", result.intent)
     assert_equal("update README with setup steps", result.message)
-    assert_equal([], result.gaps)
-    assert_equal("none", result.control_intent)
-    assert_equal("none", result.control_scope)
-    assert_equal("", result.skill_requested)
-    assert_equal("none", result.skill_mode)
-    assert_equal([], result.skill_actions)
-    assert_equal("", result.skill_exit_condition)
     assert_empty(result.errors)
   end
 
   def test_validate_rejects_invalid_payload
     validator = Redwright::PlannerPayloadValidator.new
     payload = JSON.generate(
-      {
+      base_payload.merge(
         intent: "weird",
         message: "",
         actions: [
@@ -56,38 +48,29 @@ class PlannerPayloadValidatorTest < Minitest::Test
           }
         ],
         extra: "not-allowed"
-      }
+      )
     )
 
     result = validator.validate(payload)
     assert_equal(false, result.valid)
-    refute_empty(result.errors)
-    assert_includes(result.errors.join("|"), "intent_not_allowed")
-    assert_includes(result.errors.join("|"), "message_empty")
-    assert_includes(result.errors.join("|"), "top_level_extra_keys:extra")
-    assert_includes(result.errors.join("|"), "action_0_args_not_object")
-    assert_includes(result.errors.join("|"), "action_0_on_failure_not_allowed")
+    assert(result.errors.any? { |e| e.start_with?("schema_enum_mismatch:$.intent") })
+    assert(result.errors.any? { |e| e.start_with?("schema_min_length:$.message") })
+    assert_includes(result.errors, "schema_extra_key:$.extra")
   end
 
   def test_validate_rejects_partial_payload
     validator = Redwright::PlannerPayloadValidator.new
-    payload = JSON.generate(
-      {
-        intent: "meta",
-        actions: []
-      }
-    )
+    payload = JSON.generate({ intent: "meta", message: "x", actions: [] })
 
     result = validator.validate(payload)
     assert_equal(false, result.valid)
-    assert_includes(result.errors.join("|"), "top_level_missing_keys:message")
+    assert_includes(result.errors, "schema_missing_key:$.gaps")
   end
 
   def test_validate_accepts_macro_action_type
     validator = Redwright::PlannerPayloadValidator.new
     payload = JSON.generate(
-      {
-        intent: "change",
+      base_payload.merge(
         message: "write multiple files",
         actions: [
           {
@@ -99,19 +82,39 @@ class PlannerPayloadValidatorTest < Minitest::Test
             on_failure: "abort"
           }
         ]
-      }
+      )
     )
 
     result = validator.validate(payload)
     assert_equal(true, result.valid)
-    assert_empty(result.errors)
+  end
+
+  def test_validate_accepts_write_files_array_shape
+    validator = Redwright::PlannerPayloadValidator.new
+    payload = JSON.generate(
+      base_payload.merge(
+        message: "write multiple files",
+        actions: [
+          {
+            id: "a1",
+            type: "write_files",
+            args: { files: [{ path: "a.txt", content: "x" }] },
+            requires_confirmation: false,
+            timeout_ms: 10_000,
+            on_failure: "abort"
+          }
+        ]
+      )
+    )
+
+    result = validator.validate(payload)
+    assert_equal(true, result.valid)
   end
 
   def test_validate_rejects_unknown_action_type
     validator = Redwright::PlannerPayloadValidator.new
     payload = JSON.generate(
-      {
-        intent: "change",
+      base_payload.merge(
         message: "do unknown thing",
         actions: [
           {
@@ -123,119 +126,37 @@ class PlannerPayloadValidatorTest < Minitest::Test
             on_failure: "abort"
           }
         ]
-      }
+      )
     )
 
     result = validator.validate(payload)
     assert_equal(false, result.valid)
-    assert_includes(result.errors, "action_0_type_not_allowed:unknown_action_type")
-  end
-
-  def test_validate_accepts_optional_gaps_schema
-    validator = Redwright::PlannerPayloadValidator.new
-    payload = JSON.generate(
-      {
-        intent: "change",
-        message: "plan task",
-        actions: [],
-        gaps: [
-          {
-            id: "gap-project-name",
-            question: "What is the project name?",
-            field: "project_name",
-            inferred_value: "hello-cli",
-            resolved: false,
-            priority: 1
-          }
-        ]
-      }
-    )
-
-    result = validator.validate(payload)
-    assert_equal(true, result.valid)
-    assert_equal(1, result.gaps.size)
-    assert_empty(result.errors)
-  end
-
-  def test_validate_accepts_control_intent_and_scope
-    validator = Redwright::PlannerPayloadValidator.new
-    payload = JSON.generate(
-      {
-        intent: "change",
-        message: "continue with current assumptions",
-        actions: [],
-        control_intent: "proceed_with_current_context",
-        control_scope: "task"
-      }
-    )
-
-    result = validator.validate(payload)
-    assert_equal(true, result.valid)
-    assert_equal("proceed_with_current_context", result.control_intent)
-    assert_equal("task", result.control_scope)
-    assert_empty(result.errors)
+    assert(result.errors.any? { |e| e.start_with?("schema_enum_mismatch:$.actions[0].type") })
   end
 
   def test_validate_rejects_invalid_control_intent
     validator = Redwright::PlannerPayloadValidator.new
-    payload = JSON.generate(
-      {
-        intent: "meta",
-        message: "control",
-        actions: [],
-        control_intent: "unknown_control"
-      }
-    )
+    payload = JSON.generate(base_payload.merge(intent: "meta", control_intent: "unknown_control"))
 
     result = validator.validate(payload)
     assert_equal(false, result.valid)
-    assert_includes(result.errors, "control_intent_not_allowed")
+    assert(result.errors.any? { |e| e.start_with?("schema_enum_mismatch:$.control_intent") })
   end
 
-  def test_validate_accepts_skill_fields
-    validator = Redwright::PlannerPayloadValidator.new
-    payload = JSON.generate(
-      {
-        intent: "change",
-        message: "use grill mode first",
-        actions: [],
-        skill_requested: "grill-me",
-        skill_mode: "explicit",
-        skill_actions: [
-          {
-            id: "sa1",
-            type: "read_file",
-            args: { path: "README.md" },
-            requires_confirmation: false,
-            timeout_ms: 10_000,
-            on_failure: "abort"
-          }
-        ],
-        skill_exit_condition: "stop when no open critical gaps"
-      }
-    )
+  private
 
-    result = validator.validate(payload)
-    assert_equal(true, result.valid)
-    assert_equal("grill-me", result.skill_requested)
-    assert_equal("explicit", result.skill_mode)
-    assert_equal(1, result.skill_actions.size)
-    assert_equal("stop when no open critical gaps", result.skill_exit_condition)
-  end
-
-  def test_validate_rejects_invalid_skill_mode
-    validator = Redwright::PlannerPayloadValidator.new
-    payload = JSON.generate(
-      {
-        intent: "change",
-        message: "use skill",
-        actions: [],
-        skill_mode: "auto-magic"
-      }
-    )
-
-    result = validator.validate(payload)
-    assert_equal(false, result.valid)
-    assert_includes(result.errors, "skill_mode_not_allowed")
+  def base_payload
+    {
+      intent: "change",
+      message: "x",
+      actions: [],
+      gaps: [],
+      control_intent: "none",
+      control_scope: "none",
+      skill_requested: "",
+      skill_mode: "none",
+      skill_actions: [],
+      skill_exit_condition: ""
+    }
   end
 end

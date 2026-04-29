@@ -85,7 +85,7 @@ class LlmIntentInterpreterTest < Minitest::Test
     interpreter = Redwright::LlmIntentInterpreter.new(
       llm_client: FakeLlmClient.new(
         completion: Completion.new(
-          content: "{\"intent\":\"meta\",\"message\":\"show runtime status\",\"actions\":[]}",
+          content: valid_meta_payload_json,
           finish_reason: "stop"
         )
       )
@@ -122,7 +122,7 @@ class LlmIntentInterpreterTest < Minitest::Test
     client = FakeLlmClient.new(
       completions: [
         Completion.new(content: "{\"intent\":\"meta\",\"message\":\"\",\"actions\":[]}", finish_reason: "stop"),
-        Completion.new(content: "{\"intent\":\"meta\",\"message\":\"show runtime status\",\"actions\":[]}", finish_reason: "stop")
+        Completion.new(content: valid_meta_payload_json, finish_reason: "stop")
       ]
     )
     interpreter = Redwright::LlmIntentInterpreter.new(llm_client: client, max_validation_attempts: 2)
@@ -155,7 +155,7 @@ class LlmIntentInterpreterTest < Minitest::Test
     interpreter = Redwright::LlmIntentInterpreter.new(
       llm_client: FakeLlmClient.new(
         completion: Completion.new(
-          content: "{\"intent\":\"meta\",\"message\":\"show runtime status\",\"actions\":[]}",
+          content: valid_meta_payload_json,
           finish_reason: "stop"
         )
       ),
@@ -171,7 +171,7 @@ class LlmIntentInterpreterTest < Minitest::Test
   def test_uses_layered_prompt_with_precedence_and_injection_guardrails
     client = FakeLlmClient.new(
       completion: Completion.new(
-        content: "{\"intent\":\"meta\",\"message\":\"show runtime status\",\"actions\":[]}",
+        content: valid_meta_payload_json,
         finish_reason: "stop"
       )
     )
@@ -192,7 +192,7 @@ class LlmIntentInterpreterTest < Minitest::Test
   def test_uses_dynamic_project_and_architecture_context_providers
     client = FakeLlmClient.new(
       completion: Completion.new(
-        content: "{\"intent\":\"meta\",\"message\":\"show runtime status\",\"actions\":[]}",
+        content: valid_meta_payload_json,
         finish_reason: "stop"
       )
     )
@@ -211,5 +211,24 @@ class LlmIntentInterpreterTest < Minitest::Test
     assert_includes(client.last_system_prompt, "Project=rw Stack=Ruby")
     assert_includes(client.last_system_prompt, "Architecture source: .redwright/architecture-context.md")
     assert_includes(client.last_system_prompt, "[Workspace Context]")
+  end
+
+  private
+
+  def valid_meta_payload_json
+    JSON.generate(
+      {
+        intent: "meta",
+        message: "show runtime status",
+        actions: [],
+        gaps: [],
+        control_intent: "none",
+        control_scope: "none",
+        skill_requested: "",
+        skill_mode: "none",
+        skill_actions: [],
+        skill_exit_condition: ""
+      }
+    )
   end
 end
