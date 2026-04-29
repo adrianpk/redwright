@@ -72,8 +72,20 @@ module Redwright
             planner_text_fallback: "Create a new project named #{name} and set it active."
           }
         end
-        return { kind: "planner_hint", planner_text: "List known projects and show aliases." } if arg.match?(/^list$/i)
-        return { kind: "planner_hint", planner_text: "Show the current active project id, alias, and workspace path." } if arg.match?(/^where$/i)
+        if arg.match?(/^list$/i)
+          return {
+            kind: "operational",
+            command: "project_list",
+            planner_text_fallback: "List known projects and show aliases."
+          }
+        end
+        if arg.match?(/^where$/i)
+          return {
+            kind: "operational",
+            command: "project_where",
+            planner_text_fallback: "Show the current active project id, alias, and workspace path."
+          }
+        end
         nil
       when "/repo"
         if arg.match?(/^clone\s+/i)
@@ -84,7 +96,13 @@ module Redwright
             planner_text_fallback: "Clone repository #{repo} into the workspace and register it as a project."
           }
         end
-        return { kind: "planner_hint", planner_text: "Show repository status for the active project, including branch and dirty files." } if arg.match?(/^status$/i)
+        if arg.match?(/^status$/i)
+          return {
+            kind: "operational",
+            command: "repo_status",
+            planner_text_fallback: "Show repository status for the active project, including branch and dirty files."
+          }
+        end
         if arg.match?(/^undo$/i)
           return {
             kind: "operational",
