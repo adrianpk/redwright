@@ -2,7 +2,7 @@
 
 module Redwright
   SkillManifest = Struct.new(
-    :id, :name, :description, :entrypoint, :actions, :enabled_by_default, :path,
+    :id, :name, :description, :entrypoint, :actions, :enabled_by_default, :contracts, :template_sources, :path,
     keyword_init: true
   )
 end

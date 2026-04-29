@@ -92,11 +92,11 @@
 
 ### Slice 11: Bootstrap Skills (Repo + Docs)
 
-- status: `pending`
+- status: `completed`
 - branch: `feat/slice-11-bootstrap-skills-repo-docs`
 - PR: `tbd`
-- commits: `tbd`
-- validation: `tbd`
+- commits: `pending-push`
+- validation: `bundle exec ruby -Itest test/redwright/skill_loader_test.rb && bundle exec ruby -Itest test/redwright/template_source_resolver_test.rb && bundle exec ruby -Itest test/redwright/skill_contract_validator_test.rb`
 
 ### Slice 12: Channel Parity and Simulated E2E Matrix
 

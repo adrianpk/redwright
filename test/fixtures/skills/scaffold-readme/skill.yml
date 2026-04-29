@@ -1,0 +1,17 @@
+id: scaffold-readme
+name: Scaffold README
+description: Generate a concise README from project intent and conventions.
+entrypoint: scaffold_readme
+actions:
+  - docs.readme.generate
+  - docs.readme.validate
+enabled_by_default: true
+contracts:
+  dry_run_supported: true
+  required_fields:
+    - project_name
+template_sources:
+  - kind: project
+    path: .redwright/templates/readme
+  - kind: builtin
+    path: templates/readme

@@ -1,0 +1,21 @@
+id: repo-bootstrap
+name: Repo Bootstrap
+description: Bootstrap repository state and branch model.
+entrypoint: bootstrap_repo
+actions:
+  - repo.init
+  - repo.remote.configure
+  - repo.branch.ensure
+enabled_by_default: true
+contracts:
+  dry_run_supported: true
+  required_fields:
+    - project_name
+    - remote_url
+template_sources:
+  - kind: project
+    path: .redwright/templates/repo
+  - kind: global
+    path: ~/.config/redwright/templates/repo
+  - kind: builtin
+    path: templates/repo

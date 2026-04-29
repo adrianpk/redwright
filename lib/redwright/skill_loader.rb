@@ -41,6 +41,8 @@ module Redwright
         entrypoint: data.fetch("entrypoint"),
         actions: data.fetch("actions"),
         enabled_by_default: data.fetch("enabled_by_default"),
+        contracts: data.fetch("contracts", {}),
+        template_sources: data.fetch("template_sources", []),
         path: path
       )
     rescue StandardError
@@ -60,6 +62,28 @@ module Redwright
       unless [true, false].include?(data["enabled_by_default"])
         raise ArgumentError, "invalid skill manifest #{path}: enabled_by_default must be boolean"
       end
+      validate_contracts!(data, path)
+      validate_template_sources!(data, path)
+    end
+
+    def validate_contracts!(data, path)
+      contracts = data.fetch("contracts", {})
+      unless contracts.is_a?(Hash)
+        raise ArgumentError, "invalid skill manifest #{path}: contracts must be object"
+      end
+    end
+
+    def validate_template_sources!(data, path)
+      sources = data.fetch("template_sources", [])
+      unless sources.is_a?(Array)
+        raise ArgumentError, "invalid skill manifest #{path}: template_sources must be array"
+      end
+      return if sources.empty?
+
+      invalid = sources.any? do |source|
+        !source.is_a?(Hash) || source["kind"].to_s.strip.empty? || source["path"].to_s.strip.empty?
+      end
+      raise ArgumentError, "invalid skill manifest #{path}: template_sources entries must include kind and path" if invalid
     end
   end
 end

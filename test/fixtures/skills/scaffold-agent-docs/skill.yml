@@ -1,0 +1,17 @@
+id: scaffold-agent-docs
+name: Scaffold Agent Docs
+description: Generate AGENTS.md and .agents baseline docs for a project.
+entrypoint: scaffold_agent_docs
+actions:
+  - docs.agents.generate
+  - docs.agents.validate
+enabled_by_default: true
+contracts:
+  dry_run_supported: true
+  required_fields:
+    - target_stack
+template_sources:
+  - kind: project
+    path: .redwright/templates/agents
+  - kind: builtin
+    path: templates/agents
