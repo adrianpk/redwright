@@ -7,7 +7,7 @@
 - state: `executing_slice`
 - updated: `2026-04-29`
 - active_slice: `slice_1`
-- active_task: `T1.1`
+- active_task: `T1.2`
 
 ## Slice Progress
 
@@ -21,7 +21,7 @@
 
 Tasks:
 
-- [ ] `T1.1 define target directory map and ownership rules for core, adapters, apps/web, and runtime modules`
+- [x] `T1.1 define target directory map and ownership rules for core, adapters, apps/web, and runtime modules`
 - [ ] `T1.2 add boundary rules in docs/reference and enforce import/dependency direction`
 - [ ] `T1.3 add compatibility shims so existing telegram/tui entrypoints keep working`
 
@@ -141,3 +141,4 @@ Validation:
 
 - `2026-04-29 22:05` state=`planning` note=`formalized factory runtime foundation cycle with 5 slices and reliability guardrail ADR linkage`
 - `2026-04-29 22:40` state=`executing_slice` note=`started slice 1 task T1.1 and documented target repository structure and ownership map`
+- `2026-04-29 22:58` state=`executing_slice` note=`completed T1.1 and started T1.2 with dependency-direction contract and automated boundary check`
