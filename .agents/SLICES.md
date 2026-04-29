@@ -40,10 +40,11 @@ For approved multi-slice work:
 2. Implement only that slice's tasks.
 3. Keep a one-to-one mapping between task IDs and commits.
 4. Open one PR scoped to that slice.
-5. Update `ops/trackers/*` with tasks, commits, and validation outcomes.
-6. Complete review (manual and/or automated) before merge.
-7. Integrate to `main` with fast-forward policy after approved review.
-8. Report slice status before starting the next slice.
+5. Never open PRs per task or per commit.
+6. Update `ops/trackers/*` with tasks, commits, and validation outcomes.
+7. Complete review (manual and/or automated) before merge.
+8. Integrate to `main` with fast-forward policy after approved review.
+9. Report slice status before starting the next slice.
 
 ## 7. Execution gate
 
