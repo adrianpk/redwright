@@ -52,11 +52,11 @@
 
 ### Slice 6: Skill Router V1 (Explicit + Inferred)
 
-- status: `pending`
+- status: `completed`
 - branch: `feat/slice-6-skill-router-v1`
 - PR: `tbd`
-- commits: `tbd`
-- validation: `tbd`
+- commits: `pending-push`
+- validation: `bundle exec ruby -Itest test/redwright/skill_router_test.rb && bundle exec ruby -Itest test/redwright/telegram_runtime_handler_test.rb`
 
 ### Slice 7: Skill Sub-loop Runtime
 

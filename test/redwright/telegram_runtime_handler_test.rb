@@ -31,7 +31,20 @@ class TelegramRuntimeHandlerTest < Minitest::Test
     end
   end
 
-  FakeDecision = Struct.new(:intent, :message, :actions, :gaps, :control_intent, :control_scope, :source, :finish_reason, :raw_output, keyword_init: true)
+  FakeDecision = Struct.new(
+    :intent,
+    :message,
+    :actions,
+    :gaps,
+    :control_intent,
+    :control_scope,
+    :skill_requested,
+    :skill_mode,
+    :source,
+    :finish_reason,
+    :raw_output,
+    keyword_init: true
+  )
   FakeProject = Struct.new(:id, keyword_init: true)
   FakeWorkstream = Struct.new(:id, :state, keyword_init: true)
   FakeTask = Struct.new(:id, keyword_init: true)
@@ -783,6 +796,51 @@ class TelegramRuntimeHandlerTest < Minitest::Test
 
     assert(seen.any? { |t| t.include?("Switch active project to 'rw'") })
     assert(seen.any? { |t| t.include?("Activate skill 'grill-me' in explicit mode") })
+    assert_match("telegram skill chat=46 name=grill-me mode=explicit confidence=1.0 reason=explicit_slash_skill", out.string)
+    assert_equal("", err.string)
+  end
+
+  def test_handle_emits_inferred_skill_activation_telemetry
+    fake_flow = Object.new
+    fake_flow.define_singleton_method(:process) do |**_kwargs|
+      TelegramRuntimeHandlerTest::FakeResult.new(
+        project: TelegramRuntimeHandlerTest::FakeProject.new(id: "project-1"),
+        workstream: TelegramRuntimeHandlerTest::FakeWorkstream.new(id: "ws-1", state: "executing"),
+        task: TelegramRuntimeHandlerTest::FakeTask.new(id: "task-skill"),
+        alignment: nil,
+        action_results: []
+      )
+    end
+
+    fake_interpreter = Object.new
+    fake_interpreter.define_singleton_method(:interpret) do |text:, model:|
+      TelegramRuntimeHandlerTest::FakeDecision.new(
+        intent: "change",
+        message: text,
+        skill_requested: "repo-bootstrap",
+        skill_mode: "inferred",
+        source: "llm",
+        finish_reason: "stop",
+        raw_output: "{}"
+      )
+    end
+
+    client = FakeTelegramClient.new([])
+    out = StringIO.new
+    err = StringIO.new
+    handler = Redwright::TelegramRuntimeHandler.new(
+      flow: fake_flow,
+      telegram_client: client,
+      out: out,
+      err: err,
+      blocked_retry_attempts: 1,
+      model_name: "gpt-5-mini",
+      intent_interpreter: fake_interpreter
+    )
+
+    handler.handle(Redwright::TelegramEvent.new(update_id: 93, chat_id: 48, user_id: nil, username: nil, text: "bootstrap repo"))
+
+    assert_match("telegram skill chat=48 name=repo-bootstrap mode=inferred confidence=0.8 reason=planner_skill_inferred", out.string)
     assert_equal("", err.string)
   end
 

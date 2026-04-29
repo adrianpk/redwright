@@ -7,6 +7,7 @@ require_relative "telegram_context_resolver"
 require_relative "iteration_context_packet_builder"
 require_relative "bootstrap_minimum_gate"
 require_relative "hint_normalizer"
+require_relative "skill_router"
 
 module Redwright
   class TelegramRuntimeHandler
@@ -35,7 +36,8 @@ module Redwright
       typing_interval_seconds: 4.0,
       typing_sleeper: ->(seconds) { sleep(seconds) },
       bootstrap_minimum_gate: BootstrapMinimumGate.new,
-      hint_normalizer: HintNormalizer.new
+      hint_normalizer: HintNormalizer.new,
+      skill_router: SkillRouter.new
     )
       @flow = flow
       @telegram_client = telegram_client
@@ -60,6 +62,7 @@ module Redwright
       @typing_sleeper = typing_sleeper
       @bootstrap_minimum_gate = bootstrap_minimum_gate
       @hint_normalizer = hint_normalizer
+      @skill_router = skill_router
     end
 
     def handle(event)
@@ -91,6 +94,7 @@ module Redwright
           prompt_context = load_prompt_context(project_path: resolution.project_path)
           stop_typing = start_typing_keepalive(event.chat_id)
           slash = parse_slash_command(event.text)
+          explicit_skill_name = slash && slash[:kind] == "skill" ? slash[:skill_name] : ""
           if slash && slash[:kind] == "control"
             cancel_open_clarifications(
               chat_id: event.chat_id,
@@ -126,7 +130,7 @@ module Redwright
             @out.puts("telegram control chat=#{event.chat_id} command=#{slash[:command]} task=#{control_result.task.id}")
             return
           end
-          normalized_text = if slash && slash[:kind] == "planner_hint"
+          normalized_text = if slash && (slash[:kind] == "planner_hint" || slash[:kind] == "skill")
                               slash[:planner_text]
                             else
                               normalize_hint_text(event.text)
@@ -195,6 +199,13 @@ module Redwright
             @out.puts("telegram control chat=#{event.chat_id} command=#{control[:command]} task=#{control_result.task.id}")
             return
           end
+
+          skill_activation = @skill_router.resolve(
+            explicit_skill_name: explicit_skill_name,
+            decision: decision
+          )
+          apply_skill_activation(decision: decision, activation: skill_activation)
+          emit_skill_activation_telemetry(chat_id: event.chat_id, activation: skill_activation)
 
           gate_result = evaluate_bootstrap_gate(decision: decision, suppress_gap_clarify: suppress_gap_clarify)
           gap = gate_result[:technical_blocking_gap]
@@ -795,10 +806,37 @@ module Redwright
       when "/skill"
         return nil if arg.empty?
 
-        { kind: "planner_hint", planner_text: "Activate skill '#{arg}' in explicit mode for this turn." }
+        {
+          kind: "skill",
+          skill_name: arg,
+          planner_text: "Activate skill '#{arg}' in explicit mode for this turn."
+        }
       else
         nil
       end
+    end
+
+    def apply_skill_activation(decision:, activation:)
+      return unless decision && activation
+
+      decision.skill_requested = activation.name if decision.respond_to?(:skill_requested=)
+      decision.skill_mode = activation.mode if decision.respond_to?(:skill_mode=)
+    end
+
+    def emit_skill_activation_telemetry(chat_id:, activation:)
+      return unless activation
+
+      Trace.runtime(
+        trace_id: Trace.current_trace_id || "none",
+        skill_name: activation.name,
+        skill_mode: activation.mode,
+        skill_confidence: activation.confidence,
+        skill_reason: activation.reason
+      )
+      @out.puts(
+        "telegram skill chat=#{chat_id} name=#{activation.name} mode=#{activation.mode} " \
+        "confidence=#{activation.confidence} reason=#{activation.reason}"
+      )
     end
 
     def normalize_hint_text(text)
