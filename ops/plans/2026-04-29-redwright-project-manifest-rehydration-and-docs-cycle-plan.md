@@ -30,12 +30,12 @@
 
 ### Slice 3: Manifest Writer on Repo Clone
 
-- status: `pending`
+- status: `completed`
 - branch: `feat/slice-3-manifest-writer-repo-clone`
-- [ ] `T3.1 create manifest on clone completion`
-- [ ] `T3.2 persist clone source metadata (remote url/provider/ref)`
-- [ ] `T3.3 register aliases/context from cloned project name`
-- [ ] `T3.4 add tests for clone registration + manifest consistency`
+- [x] `T3.1 create manifest on clone completion`
+- [x] `T3.2 persist clone source metadata (remote url/provider/ref)`
+- [x] `T3.3 register aliases/context from cloned project name`
+- [x] `T3.4 add tests for clone registration + manifest consistency`
 
 ### Slice 4: Runtime Rehydration Precedence Model
 

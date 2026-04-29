@@ -291,6 +291,16 @@ class ServerRuntimeDispatcherTest < Minitest::Test
         assert_equal("remote_clone", project.source_type)
         assert_equal(remote_repo, project.source_ref)
         assert_equal(true, File.directory?(File.join(project.path, ".git")))
+        manifest_path = File.join(project.path, ".redwright", "manifest.yml")
+        assert_equal(true, File.file?(manifest_path))
+        manifest = YAML.safe_load(File.read(manifest_path))
+        assert_equal(1, manifest["schema_version"])
+        assert_equal(project.id, manifest.dig("project", "id"))
+        assert_equal(project.name, manifest.dig("project", "name"))
+        assert_equal("clone", manifest.dig("project", "created_via"))
+        assert_equal(remote_repo, manifest.dig("provenance", "remote_url"))
+        refute_nil(manifest.dig("provenance", "provider"))
+        refute_nil(manifest.dig("provenance", "ref"))
 
         follow_up = dispatcher.call(
           "type" => "send",
@@ -306,6 +316,7 @@ class ServerRuntimeDispatcherTest < Minitest::Test
 
         assert_equal("ok", follow_up["status"])
         assert_equal(project.id, follow_up["project_id"])
+        assert_equal(project.id, project_store.resolve(project.name).id)
       end
     end
   end

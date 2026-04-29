@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 require "fileutils"
+require "open3"
 require "time"
 require "uri"
 require "yaml"
@@ -231,7 +232,17 @@ module Redwright
         raise ArgumentError, "git clone failed: #{url}" unless $?.success?
       end
 
-      @project_store.register(path: path, aliases: [name], source_type: "remote_clone", source_ref: url.to_s)
+      project = @project_store.register(path: path, aliases: [name], source_type: "remote_clone", source_ref: url.to_s)
+      write_project_manifest_if_missing(
+        project: project,
+        created_via: "clone",
+        provenance: {
+          "remote_url" => url.to_s,
+          "provider" => infer_provider_from_url(url.to_s),
+          "ref" => infer_head_ref(path)
+        }
+      )
+      project
     end
 
     def infer_repo_name(url)
@@ -251,7 +262,7 @@ module Redwright
       slug
     end
 
-    def write_project_manifest_if_missing(project:, created_via:)
+    def write_project_manifest_if_missing(project:, created_via:, provenance: nil)
       manifest_dir = File.join(project.path, ".redwright")
       manifest_path = File.join(manifest_dir, "manifest.yml")
       return if File.file?(manifest_path)
@@ -268,12 +279,36 @@ module Redwright
           "created_at" => Time.now.utc.iso8601
         }
       }
+      manifest["provenance"] = provenance if provenance.is_a?(Hash) && !provenance.empty?
       File.write(manifest_path, YAML.dump(manifest))
     end
 
     def normalize_slug(name)
       slug = name.to_s.downcase.gsub(/[^a-z0-9._\-]+/, "-").gsub(/\A-+|-+\z/, "")
       slug.empty? ? "project" : slug
+    end
+
+    def infer_provider_from_url(url)
+      host = begin
+        URI.parse(url).host.to_s.downcase
+      rescue URI::InvalidURIError
+        ""
+      end
+      return "github" if host.include?("github")
+      return "codeberg" if host.include?("codeberg")
+      return "gitlab" if host.include?("gitlab")
+
+      host.empty? ? "unknown" : host
+    end
+
+    def infer_head_ref(path)
+      out, status = Open3.capture2("git", "-C", path.to_s, "symbolic-ref", "--quiet", "--short", "HEAD")
+      return "HEAD" unless status.success?
+
+      value = out.to_s.strip
+      value.empty? ? "HEAD" : value
+    rescue StandardError
+      "HEAD"
     end
   end
 end
