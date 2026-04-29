@@ -4,11 +4,11 @@
 
 - cycle_id: `rw-2026-04-29-factory-runtime-foundation`
 - status: `in_progress`
-- state: `executing_slice`
+- state: `awaiting_review`
 - updated: `2026-04-30`
 - active_slice: `slice_5`
-- active_task: `T5.3`
-- state: `executing_slice`
+- active_task: `none`
+- state: `awaiting_review`
 - updated: `2026-04-30`
 - active_slice: `slice_5`
 - active_task: `T5.2`
@@ -119,7 +119,7 @@ Validation:
 
 ### Slice 5: Kanban Application Integration Contract
 
-- status: `in_progress`
+- status: `completed`
 - branch: `feat/slice-5-kanban-integration-contract`
 - PR: `tbd`
 - merge_target: `dev`
@@ -129,7 +129,7 @@ Tasks:
 
 - [x] `T5.1 define ticket/board command-query endpoints and error contract`
 - [x] `T5.2 define assignment-plus-label authorization evaluation order`
-- [ ] `T5.3 define dual-bot and dual-runtime ingress policy contract`
+- [x] `T5.3 define dual-bot and dual-runtime ingress policy contract`
 
 Commits:
 
@@ -162,3 +162,4 @@ Validation:
 - `2026-04-30 02:27` state=`awaiting_review` note=`completed T4.3 with runtime-specific observability envelope contract; slice 4 implementation is ready for single PR review`
 - `2026-04-30 02:48` state=`executing_slice` note=`completed T5.1 with kanban integration endpoint and error-envelope contract v1`
 - `2026-04-30 03:20` state=`executing_slice` note=`completed T5.2 with assignment-plus-label visibility policy and explicit reason codes`
+- `2026-04-30 04:09` state=`awaiting_review` note=`completed T5.3 and closed slice 5 implementation; ready for single slice PR review`

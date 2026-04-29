@@ -87,7 +87,7 @@
 
 ### Slice 5: Kanban Application Integration Contract
 
-- status: `pending`
+- status: `completed`
 - branch: `feat/slice-5-kanban-integration-contract`
 - objective: `formalize rails-backed board/ticket integration while preserving harness execution ownership`
 - tasks:
