@@ -220,4 +220,25 @@ class IterationContextPacketBuilderTest < Minitest::Test
       assert_includes(packet.dig(:packet, :stack_hints, :toolchains), "npm test")
     end
   end
+
+  def test_prefers_manifest_in_selected_files_when_present
+    Dir.mktmpdir("redwright-iter-packet-manifest-") do |dir|
+      FileUtils.mkdir_p(File.join(dir, ".redwright"))
+      File.write(File.join(dir, ".redwright", "manifest.yml"), "schema_version: 1\n")
+      File.write(File.join(dir, "README.md"), "# demo\n")
+      FileUtils.mkdir_p(File.join(dir, "lib"))
+      File.write(File.join(dir, "lib", "main.rb"), "class Main\nend\n")
+
+      packet = Redwright::IterationContextPacketBuilder.new.build(
+        project_path: dir,
+        task_goal: "use manifest context",
+        previous_message: "none",
+        current_errors: [],
+        top_k_files: 5
+      )
+
+      selected = packet[:summary][:top_files]
+      assert_includes(selected, ".redwright/manifest.yml")
+    end
+  end
 end

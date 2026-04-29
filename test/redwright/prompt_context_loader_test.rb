@@ -24,6 +24,10 @@ class PromptContextLoaderTest < Minitest::Test
             created_via: "new"
             created_at: "2026-04-29T10:00:00Z"
             summary: "agent runtime"
+          provenance:
+            remote_url: "https://example.com/acme/rw-project.git"
+            provider: "example"
+            ref: "main"
           architecture:
             context: "Use strict module boundaries."
             conventions:
@@ -37,7 +41,11 @@ class PromptContextLoaderTest < Minitest::Test
       )
 
       context = Redwright::PromptContextLoader.new(repo_root: dir).build(project_path: project_root)
+      assert_includes(context[:project_context], "Project id: rw-project-id")
       assert_includes(context[:project_context], "Project name: rw-project")
+      assert_includes(context[:project_context], "Project slug: rw-project")
+      assert_includes(context[:project_context], "Created via: new")
+      assert_includes(context[:project_context], "Source remote: https://example.com/acme/rw-project.git")
       assert_includes(context[:project_context], "Stack: ruby")
       assert_includes(context[:architecture_context], "Use strict module boundaries.")
       assert_includes(context[:architecture_context], "Keep docs in English")
@@ -75,6 +83,39 @@ class PromptContextLoaderTest < Minitest::Test
       assert_includes(context[:architecture_context], "Must keep code comments concise")
       assert_includes(context[:workspace_context], "Workspace unavailable.")
       assert_equal(false, context.dig(:quality, :auto_validate))
+    end
+  end
+
+  def test_build_uses_fallback_architecture_when_manifest_omits_architecture_context
+    Dir.mktmpdir("redwright-prompt-context-manifest-partial-") do |dir|
+      project_root = File.join(dir, "project")
+      FileUtils.mkdir_p(File.join(project_root, ".redwright"))
+      File.write(File.join(dir, "AGENTS.md"), <<~MD)
+        # Agent Operating Contract
+        - Always keep documentation in English.
+        - Never bypass repository guardrails.
+      MD
+      File.write(
+        File.join(project_root, ".redwright", "manifest.yml"),
+        <<~YAML
+          schema_version: 1
+          project:
+            id: "partial-id"
+            name: "partial"
+            slug: "partial"
+            stack: "go"
+            created_via: "new"
+            created_at: "2026-04-29T10:00:00Z"
+        YAML
+      )
+
+      context = Redwright::PromptContextLoader.new(repo_root: dir).build(project_path: project_root)
+      assert_includes(context[:project_context], "Project name: partial")
+      assert_includes(context[:architecture_context], "Fallback conventions and guardrails")
+      assert_includes(context[:architecture_context], "Always keep documentation in English")
+      assert_equal(false, context.dig(:quality, :auto_validate))
+      assert_nil(context.dig(:quality, :lint_command))
+      assert_nil(context.dig(:quality, :test_command))
     end
   end
 end

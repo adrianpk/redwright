@@ -39,9 +39,16 @@ module Redwright
     def project_context_from_manifest(manifest, project_path)
       lines = []
       project = manifest["project"].is_a?(Hash) ? manifest["project"] : {}
+      lines << "Project id: #{project['id']}" if non_empty_string?(project["id"])
       lines << "Project name: #{project['name']}" if non_empty_string?(project["name"])
+      lines << "Project slug: #{project['slug']}" if non_empty_string?(project["slug"])
       lines << "Stack: #{project['stack']}" if non_empty_string?(project["stack"])
+      lines << "Created via: #{project['created_via']}" if non_empty_string?(project["created_via"])
       lines << "Project summary: #{project['summary']}" if non_empty_string?(project["summary"])
+      provenance = manifest["provenance"].is_a?(Hash) ? manifest["provenance"] : {}
+      lines << "Source remote: #{provenance['remote_url']}" if non_empty_string?(provenance["remote_url"])
+      lines << "Source provider: #{provenance['provider']}" if non_empty_string?(provenance["provider"])
+      lines << "Source ref: #{provenance['ref']}" if non_empty_string?(provenance["ref"])
       context = manifest["context"].is_a?(Hash) ? manifest["context"] : {}
       lines << "Project context: #{context['project']}" if non_empty_string?(context["project"])
       return nil if lines.empty?

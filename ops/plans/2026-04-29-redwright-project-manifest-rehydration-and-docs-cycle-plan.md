@@ -48,11 +48,11 @@
 
 ### Slice 5: Prompt Context Integration from Manifest
 
-- status: `pending`
+- status: `completed`
 - branch: `feat/slice-5-prompt-context-integration-manifest`
-- [ ] `T5.1 consume manifest for project/architecture/quality context`
-- [ ] `T5.2 keep fallback behavior when manifest omits fields`
-- [ ] `T5.3 add tests ensuring no regression in context packet quality`
+- [x] `T5.1 consume manifest for project/architecture/quality context`
+- [x] `T5.2 keep fallback behavior when manifest omits fields`
+- [x] `T5.3 add tests ensuring no regression in context packet quality`
 
 ### Slice 6: Docs Reference Set
 
