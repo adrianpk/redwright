@@ -3,8 +3,8 @@
 ## Metadata
 
 - owner: `adrianpk`
-- status: `in_progress`
-- active_cycle: `cycle_c`
+- status: `completed`
+- active_cycle: `none`
 - plan: `ops/plans/2026-04-29-redwright-runtime-next-program-plan.md`
 
 ## Cycle Progress
@@ -23,7 +23,7 @@
 
 ### Cycle C: Project Manifest Rehydration and Docs
 
-- status: `pending`
+- status: `completed`
 - plan: `ops/plans/2026-04-29-redwright-project-manifest-rehydration-and-docs-cycle-plan.md`
 - tracker: `ops/trackers/2026-04-29-redwright-project-manifest-rehydration-and-docs-cycle-tracker.md`
 
@@ -33,3 +33,5 @@
 - `2026-04-29 17:35` state=`completed` cycle=`cycle_a` note=`persistence audit and canonical state cycle completed`
 - `2026-04-29 17:35` state=`completed` cycle=`cycle_b` note=`operational command model cycle completed`
 - `2026-04-29 17:35` state=`ready` cycle=`cycle_c` note=`project manifest rehydration and docs cycle is next in sequence`
+- `2026-04-29 20:35` state=`completed` cycle=`cycle_c` note=`project manifest rehydration and docs cycle completed`
+- `2026-04-29 20:35` state=`completed` note=`runtime-next three-cycle program closed with all cycles completed`

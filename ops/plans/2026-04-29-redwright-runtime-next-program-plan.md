@@ -3,7 +3,7 @@
 ## Metadata
 
 - owner: `adrianpk`
-- status: `in_progress`
+- status: `completed`
 - scope: `runtime`
 - objective: `stabilize runtime control semantics, normalize persistent state, and make per-project context rehydratable through a canonical project manifest`
 - tracker: `ops/trackers/2026-04-29-redwright-runtime-next-program-tracker.md`
