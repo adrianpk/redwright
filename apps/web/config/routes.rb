@@ -3,15 +3,22 @@ Rails.application.routes.draw do
   resources :passwords, param: :token
   resources :boards, only: [ :index, :show ]
   resources :boards, only: [] do
-    resources :tickets, only: [] do
+    resources :tickets, only: [ :new, :create ] do
       collection do
         get :pick
       end
     end
+    resources :columns, only: [] do
+      collection do
+        patch :reorder
+      end
+    end
   end
-  resources :tickets, only: [] do
+  resources :tickets, only: [ :edit, :update ] do
     member do
       patch :move
+      patch :archive
+      delete :destroy
     end
   end
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html

@@ -1,20 +1,61 @@
 class TicketsController < ApplicationController
   allow_unauthenticated_access
-  before_action :set_ticket, only: [ :move ]
-  before_action :set_board, only: [ :pick ]
+  before_action :set_ticket, only: [ :edit, :update, :move, :archive, :destroy ]
+  before_action :set_board, only: [ :new, :create, :pick ]
+
+  def new
+    @ticket = @board.tickets.new(column: default_column)
+    render :new, layout: false if turbo_frame_request?
+  end
+
+  def create
+    @ticket = @board.tickets.new(ticket_params)
+    @ticket.column ||= default_column
+    if @ticket.save
+      load_board_context(@board)
+      respond_to do |format|
+        format.turbo_stream { render "boards/update" }
+        format.html { redirect_to board_path(@board), notice: "Ticket created." }
+      end
+    else
+      render :new, status: :unprocessable_entity
+    end
+  end
+
+  def edit
+    render :edit, layout: false if turbo_frame_request?
+  end
+
+  def update
+    if @ticket.update(ticket_params)
+      load_board_context(@ticket.board)
+      respond_to do |format|
+        format.turbo_stream { render "boards/update" }
+        format.html { redirect_to board_path(@ticket.board), notice: "Ticket updated." }
+      end
+    else
+      render :edit, status: :unprocessable_entity
+    end
+  end
 
   def move
     target_column = @ticket.board.columns.find(params[:column_id])
     @ticket.transition_to_column!(target_column)
+    load_board_context(@ticket.board)
+    render "boards/update"
+  end
 
-    @board = @ticket.board
-    @columns = @board.columns.includes(:tickets)
-    @tickets_by_column = @board.tickets.ordered_for_board.includes(:labels).group_by(&:column_id)
+  def archive
+    @ticket.archive!
+    load_board_context(@ticket.board)
+    render "boards/update"
+  end
 
-    respond_to do |format|
-      format.turbo_stream
-      format.html { redirect_to board_path(@board) }
-    end
+  def destroy
+    board = @ticket.board
+    @ticket.destroy!
+    load_board_context(board)
+    render "boards/update"
   end
 
   def pick
@@ -40,5 +81,19 @@ class TicketsController < ApplicationController
 
   def set_board
     @board = Board.find(params[:board_id])
+  end
+
+  def load_board_context(board)
+    @board = board
+    @columns = @board.columns.order(:position)
+    @tickets_by_column = @board.tickets.visible_on_board.ordered_for_board.includes(:labels).group_by(&:column_id)
+  end
+
+  def ticket_params
+    params.require(:ticket).permit(:title, :description, :priority, :assignee, :column_id)
+  end
+
+  def default_column
+    @board.columns.order(:position).first
   end
 end

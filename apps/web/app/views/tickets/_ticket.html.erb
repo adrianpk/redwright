@@ -11,11 +11,22 @@
     <span>Review: <%= seconds_to_readable(ticket.review_elapsed_seconds) %></span>
   </div>
   <footer>
-    <% if ticket.assignee.present? %>
-      <span>@<%= ticket.assignee %></span>
-    <% end %>
     <% ticket.labels.each do |label| %>
       <span class="ticket-label" style="background-color: <%= label.color %>"><%= label.name %></span>
     <% end %>
   </footer>
+  <% if ticket.assignee.present? %>
+    <div class="ticket-assignee">@<%= ticket.assignee %></div>
+  <% end %>
+  <div class="ticket-card-actions">
+    <div class="ticket-actions-main">
+      <%= button_to archive_ticket_path(ticket), method: :patch, form: { data: { turbo_stream: true } }, class: "ticket-icon-btn", title: "Archive" do %>
+        <span aria-hidden="true">🗃</span>
+      <% end %>
+      <%= button_to ticket_path(ticket), method: :delete, form: { data: { turbo_stream: true } }, class: "ticket-icon-btn danger", title: "Delete" do %>
+        <span aria-hidden="true">🗑</span>
+      <% end %>
+    </div>
+    <%= link_to "Edit", edit_ticket_path(ticket), class: "ticket-action ticket-edit-link", data: { turbo_frame: "modal" } %>
+  </div>
 </article>

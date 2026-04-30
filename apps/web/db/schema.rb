@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_04_30_073924) do
+ActiveRecord::Schema[8.1].define(version: 2026_04_30_120500) do
   create_table "boards", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "name", null: false
@@ -61,6 +61,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_30_073924) do
   end
 
   create_table "tickets", force: :cascade do |t|
+    t.datetime "archived_at"
     t.string "assignee"
     t.integer "board_id", null: false
     t.integer "column_id", null: false
@@ -77,6 +78,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_30_073924) do
     t.datetime "started_at"
     t.string "title", null: false
     t.datetime "updated_at", null: false
+    t.index ["archived_at"], name: "index_tickets_on_archived_at"
     t.index ["board_id", "priority"], name: "index_tickets_on_board_id_and_priority"
     t.index ["board_id"], name: "index_tickets_on_board_id"
     t.index ["column_id", "created_at"], name: "index_tickets_on_column_id_and_created_at"

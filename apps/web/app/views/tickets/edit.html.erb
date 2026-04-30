@@ -1,0 +1,11 @@
+<%= turbo_frame_tag "modal" do %>
+  <div class="modal-backdrop">
+    <section class="modal-card ticket-editor">
+      <header class="modal-header">
+        <h1>Edit Ticket</h1>
+        <button type="button" class="ticket-action modal-close">Close</button>
+      </header>
+      <%= render "form", ticket: @ticket, url: ticket_path(@ticket), submit_label: "Save changes" %>
+    </section>
+  </div>
+<% end %>

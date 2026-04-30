@@ -1,0 +1,41 @@
+<%= form_with model: ticket, url: url do |f| %>
+  <% if ticket.errors.any? %>
+    <div class="form-errors">
+      <% ticket.errors.full_messages.each do |message| %>
+        <p><%= message %></p>
+      <% end %>
+    </div>
+  <% end %>
+
+  <div class="field">
+    <%= f.label :title %>
+    <%= f.text_field :title, required: true %>
+  </div>
+
+  <div class="field">
+    <%= f.label :description %>
+    <%= f.text_area :description, rows: 5 %>
+  </div>
+
+  <div class="field-row">
+    <div class="field">
+      <%= f.label :priority %>
+      <%= f.select :priority, Ticket.priorities.keys.map { |p| [p.humanize, p] } %>
+    </div>
+    <div class="field">
+      <%= f.label :assignee %>
+      <%= f.text_field :assignee %>
+    </div>
+  </div>
+
+  <div class="field">
+    <%= f.label :column_id, "Status" %>
+    <%= f.collection_select :column_id, ticket.board.columns.order(:position), :id, :title %>
+  </div>
+
+  <div class="form-actions">
+    <%= f.submit submit_label, class: "ticket-action" %>
+    <%= link_to "Back to board", board_path(ticket.board), class: "ticket-action" %>
+  </div>
+<% end %>
+

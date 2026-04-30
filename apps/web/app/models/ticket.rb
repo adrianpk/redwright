@@ -8,8 +8,9 @@ class Ticket < ApplicationRecord
 
   validates :title, presence: true
 
+  scope :visible_on_board, -> { where(archived_at: nil) }
   scope :ordered_for_board, -> { order(priority: :desc, created_at: :asc) }
-  scope :active, -> { joins(:column).where.not(columns: { key: [ "merged", "done" ] }) }
+  scope :active, -> { visible_on_board.joins(:column).where.not(columns: { key: [ "merged", "done" ] }) }
 
   def transition_to_column!(target_column)
     self.column = target_column
@@ -48,5 +49,9 @@ class Ticket < ApplicationRecord
     assigned = assignee.to_s.strip.empty? ? Ticket.none : relation.where(assignee: assignee.to_s.strip)
     pool = assigned.exists? ? assigned : relation
     pool.ordered_for_board.first
+  end
+
+  def archive!
+    update!(archived_at: Time.current)
   end
 end
