@@ -6,7 +6,7 @@
 - status: `in_progress`
 - state: `in_review`
 - updated: `2026-04-30`
-- active_slice: `slice-1`
+- active_slice: `slice-2`
 - active_task: `none`
 
 ## Slice Progress
@@ -38,26 +38,27 @@ Validation:
 
 ### Slice 2: Provider Adapter Registry
 
-- status: `pending`
+- status: `in_review`
 - branch: `feat/slice-2-provider-adapter-registry`
-- PR: `tbd`
+- PR: `tbd (open)`
 - merge_target: `dev`
-- last_sync_commit: `tbd`
+- last_sync_commit: `b07a316`
 
 Tasks:
 
-- [ ] `T2.1 define llm client registry contract for provider lookup`
-- [ ] `T2.2 implement openai-compatible adapter path for openai/openrouter/deepseek/kimi`
-- [ ] `T2.3 add provider-specific env/base-url resolution rules`
+- [x] `T2.1 define llm client registry contract for provider lookup`
+- [x] `T2.2 implement openai-compatible adapter path for openai/openrouter/deepseek/kimi`
+- [x] `T2.3 add provider-specific env/base-url resolution rules`
 
 Commits:
 
-- [ ] `<sha> feat(runtime): add provider adapter registry for llm clients`
-- [ ] `<sha> test(runtime): validate provider registry resolution and defaults`
+- [x] `99d6209 feat(runtime): add llm client registry contract`
+- [x] `5c3b675 refactor(runtime): route llm client lookup through registry`
+- [x] `b07a316 test(runtime): cover provider env and base-url overrides`
 
 Validation:
 
-- [ ] `<cmd> ruby -Ilib:test test/redwright/llm_client_registry_test.rb`
+- [x] `<cmd> ruby -Ilib:test test/redwright/llm_client_registry_test.rb`
 
 ### Slice 3: Runtime Integration Without Behavioral Drift
 
@@ -135,3 +136,4 @@ Validation:
 - `2026-04-30 20:00` state=`planning` note=`initialized provider adapter and model aliasing cycle with pr-per-slice and commit-per-task execution policy`
 - `2026-04-30 20:25` state=`implementation` slice=`slice-1` note=`completed T1.1 by introducing models.aliases config contract and coverage in app_config tests`
 - `2026-04-30 20:45` state=`in_review` slice=`slice-1` note=`completed T1.2/T1.3 with alias target resolution and model_alias trace metadata; ready for PR merge to dev`
+- `2026-04-30 20:58` state=`in_review` slice=`slice-2` note=`completed T2.1/T2.2/T2.3 with llm client registry, runtime wiring through registry, and provider env/base-url override tests`
