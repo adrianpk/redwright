@@ -124,7 +124,7 @@ Tasks:
 Commits:
 
 - [x] `b9af976 feat(web): add ticket time aggregation and board metrics`
-- [x] `<sha> test(e2e): cover unified ticket lifecycle across ingress`
+- [x] `142bbe2 test(e2e): cover unified ticket lifecycle across ingress`
 
 Validation:
 
