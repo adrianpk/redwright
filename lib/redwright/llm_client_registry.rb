@@ -16,8 +16,13 @@ module Redwright
       return nil if key.empty?
       return nil unless PROVIDER_DEFAULT_BASE_URL.key?(key)
 
+      api_key = api_key_for(key)
+      if api_key.to_s.strip.empty?
+        raise ArgumentError, "missing api key for provider: #{key} (set #{key.upcase}_API_KEY)"
+      end
+
       OpenAIClient.new(
-        api_key: api_key_for(key),
+        api_key: api_key,
         base_url: base_url_for(key)
       )
     end

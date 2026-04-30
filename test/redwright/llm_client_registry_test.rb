@@ -7,9 +7,13 @@ require "redwright/llm_client_registry"
 
 class LlmClientRegistryTest < Minitest::Test
   def test_returns_client_for_known_provider
+    previous = ENV["OPENROUTER_API_KEY"]
+    ENV["OPENROUTER_API_KEY"] = "dummy-openrouter-key"
     client = Redwright::LlmClientRegistry.new.client_for("openrouter")
     assert_instance_of(Redwright::OpenAIClient, client)
     assert_equal("https://openrouter.ai/api/v1", client.instance_variable_get(:@base_url))
+  ensure
+    ENV["OPENROUTER_API_KEY"] = previous
   end
 
   def test_returns_nil_for_blank_provider
@@ -22,13 +26,24 @@ class LlmClientRegistryTest < Minitest::Test
     assert_nil(client)
   end
 
+  def test_raises_for_supported_provider_without_api_key
+    previous = ENV.delete("DEEPSEEK_API_KEY")
+    err = assert_raises(ArgumentError) { Redwright::LlmClientRegistry.new.client_for("deepseek") }
+    assert_equal("missing api key for provider: deepseek (set DEEPSEEK_API_KEY)", err.message)
+  ensure
+    ENV["DEEPSEEK_API_KEY"] = previous if previous
+  end
+
   def test_uses_provider_specific_base_url_override
+    previous_key = ENV["DEEPSEEK_API_KEY"]
     previous = ENV["DEEPSEEK_BASE_URL"]
+    ENV["DEEPSEEK_API_KEY"] = "dummy-deepseek-key"
     ENV["DEEPSEEK_BASE_URL"] = "https://proxy.example/v1"
 
     client = Redwright::LlmClientRegistry.new.client_for("deepseek")
     assert_equal("https://proxy.example/v1", client.instance_variable_get(:@base_url))
   ensure
+    ENV["DEEPSEEK_API_KEY"] = previous_key
     ENV["DEEPSEEK_BASE_URL"] = previous
   end
 
