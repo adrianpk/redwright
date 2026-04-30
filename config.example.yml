@@ -30,11 +30,21 @@ alignment:
   max_turn_seconds: 180
 
 models:
+  # Logical model ids -> concrete provider/model targets.
+  # Agents should reference logical ids so version updates happen only here.
+  aliases:
+    "openai/codex":
+      provider: "openai"
+      name: "gpt-5.2"
+    "openai/router":
+      provider: "openai"
+      name: "gpt-5-mini"
+
   coding:
     # Primary model candidates for coding-heavy tasks (ordered by priority).
     - provider: "openai"
-      name: "gpt-5.2"
+      name: "openai/codex"
   non_coding:
     # Primary model candidates for routing/planning/meta tasks.
     - provider: "openai"
-      name: "gpt-5-mini"
+      name: "openai/router"
