@@ -9,6 +9,7 @@ class Ticket < ApplicationRecord
   validates :title, presence: true
 
   scope :ordered_for_board, -> { order(priority: :desc, created_at: :asc) }
+  scope :active, -> { joins(:column).where.not(columns: { key: [ "merged", "done" ] }) }
 
   def transition_to_column!(target_column)
     self.column = target_column
@@ -40,5 +41,12 @@ class Ticket < ApplicationRecord
     return 0 unless started_at
 
     ((merged_at || Time.current) - started_at).to_i
+  end
+
+  def self.pick_next_for(board:, assignee: nil)
+    relation = board.tickets.active
+    assigned = assignee.to_s.strip.empty? ? Ticket.none : relation.where(assignee: assignee.to_s.strip)
+    pool = assigned.exists? ? assigned : relation
+    pool.ordered_for_board.first
   end
 end

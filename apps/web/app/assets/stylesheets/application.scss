@@ -24,6 +24,15 @@ body {
   color: #475569;
 }
 
+.board-metrics {
+  margin-top: 10px;
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  font-size: 0.85rem;
+  color: #0f766e;
+}
+
 .board-columns {
   margin-top: 20px;
   display: grid;
@@ -111,6 +120,14 @@ body {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
+}
+
+.ticket-times {
+  margin-top: 8px;
+  display: grid;
+  gap: 2px;
+  font-size: 0.72rem;
+  color: #334155;
 }
 
 .ticket-label {

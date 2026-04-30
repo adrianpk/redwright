@@ -2,6 +2,10 @@
   <header class="board-header">
     <h1><%= @board.name %></h1>
     <p class="board-key"><%= @board.project_key %></p>
+    <div class="board-metrics">
+      <span>Total elapsed: <%= seconds_to_readable(board_total_elapsed_seconds(@board.tickets)) %></span>
+      <span>Review elapsed: <%= seconds_to_readable(board_review_elapsed_seconds(@board.tickets)) %></span>
+    </div>
   </header>
 
   <div class="board-columns">
@@ -18,4 +22,3 @@
     <% end %>
   </div>
 </section>
-

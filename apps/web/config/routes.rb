@@ -2,6 +2,13 @@ Rails.application.routes.draw do
   resource :session
   resources :passwords, param: :token
   resources :boards, only: [ :index, :show ]
+  resources :boards, only: [] do
+    resources :tickets, only: [] do
+      collection do
+        get :pick
+      end
+    end
+  end
   resources :tickets, only: [] do
     member do
       patch :move

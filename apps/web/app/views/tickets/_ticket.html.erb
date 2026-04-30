@@ -6,6 +6,10 @@
   <% if ticket.description.present? %>
     <p><%= ticket.description %></p>
   <% end %>
+  <div class="ticket-times">
+    <span>Total: <%= seconds_to_readable(ticket.total_elapsed_seconds) %></span>
+    <span>Review: <%= seconds_to_readable(ticket.review_elapsed_seconds) %></span>
+  </div>
   <footer>
     <% if ticket.assignee.present? %>
       <span>@<%= ticket.assignee %></span>
@@ -15,4 +19,3 @@
     <% end %>
   </footer>
 </article>
-
