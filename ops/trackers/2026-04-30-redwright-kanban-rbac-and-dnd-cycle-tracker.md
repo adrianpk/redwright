@@ -37,27 +37,27 @@ Validation:
 
 ### Slice 2: RBAC Gates for Ticket Governance
 
-- status: `pending`
+- status: `in_review`
 - branch: `feat/slice-2-ticket-rbac-gates`
 - PR: `tbd`
 - merge_target: `dev`
-- last_sync_commit: `tbd`
+- last_sync_commit: `725c760`
 
 Tasks:
 
-- [ ] `T2.1 restrict ticket assignment to admin`
-- [ ] `T2.2 restrict archive and delete ticket actions to admin`
-- [ ] `T2.3 keep create/edit available to authenticated users under current MVP policy`
-- [ ] `T2.4 add controller tests for allowed/blocked role paths`
+- [x] `T2.1 restrict ticket assignment to admin`
+- [x] `T2.2 restrict archive and delete ticket actions to admin`
+- [x] `T2.3 keep create/edit available to authenticated users under current MVP policy`
+- [x] `T2.4 add controller tests for allowed/blocked role paths`
 
 Commits:
 
-- [ ] `<sha> feat(authz): gate ticket governance actions behind admin role`
-- [ ] `<sha> test(authz): add ticket action authorization coverage`
+- [x] `3d90200 feat(authz): gate ticket governance actions behind admin role`
+- [x] `8037694 test(authz): add ticket action authorization coverage`
 
 Validation:
 
-- [ ] `<cmd> ticket authorization controller tests`
+- [x] `<cmd> cd apps/web && bundle exec bin/rails test test/models/user_test.rb test/controllers/users_controller_test.rb test/controllers/tickets_controller_test.rb`
 
 ### Slice 3: Kanban DnD Semantics (Columns Locked)
 
