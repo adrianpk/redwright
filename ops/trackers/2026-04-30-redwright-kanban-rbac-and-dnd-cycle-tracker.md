@@ -13,27 +13,27 @@
 
 ### Slice 1: Instance Admin Bootstrap and Role Model
 
-- status: `pending`
+- status: `in_review`
 - branch: `feat/slice-1-instance-admin-and-role-model`
 - PR: `tbd`
 - merge_target: `dev`
-- last_sync_commit: `52db091`
+- last_sync_commit: `7df1661`
 
 Tasks:
 
-- [ ] `T1.1 add fixed role taxonomy (admin, programmer, reviewer, merger, qa) and user-role relation`
-- [ ] `T1.2 enforce first-user bootstrap as sole instance admin`
-- [ ] `T1.3 enforce rule that agent-role users cannot hold admin`
-- [ ] `T1.4 add tests for bootstrap/admin exclusivity and invalid role combinations`
+- [x] `T1.1 add fixed role taxonomy (admin, programmer, reviewer, merger, qa) and user-role relation`
+- [x] `T1.2 enforce first-user bootstrap as sole instance admin`
+- [x] `T1.3 enforce rule that agent-role users cannot hold admin`
+- [x] `T1.4 add tests for bootstrap/admin exclusivity and invalid role combinations`
 
 Commits:
 
-- [ ] `<sha> feat(auth): enforce single-admin bootstrap and fixed role taxonomy`
-- [ ] `<sha> test(auth): cover role constraints and first-user admin rules`
+- [x] `<sha> feat(auth): enforce single-admin bootstrap and fixed role taxonomy`
+- [x] `<sha> test(auth): cover role constraints and first-user admin rules`
 
 Validation:
 
-- [ ] `<cmd> role and bootstrap model tests`
+- [x] `<cmd> cd apps/web && bundle exec bin/rails test test/models/user_test.rb test/controllers/users_controller_test.rb`
 
 ### Slice 2: RBAC Gates for Ticket Governance
 
