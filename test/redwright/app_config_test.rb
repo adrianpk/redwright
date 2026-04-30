@@ -541,4 +541,68 @@ class AppConfigTest < Minitest::Test
       assert_equal("missing config key: models.aliases.openai/codex.provider", err.message)
     end
   end
+
+  def test_allows_alias_only_role_candidate_without_provider
+    Dir.mktmpdir("redwright-app-config-model-alias-only-candidate-") do |dir|
+      config_dir = File.join(dir, ".config", "redwright")
+      FileUtils.mkdir_p(config_dir)
+      File.write(File.join(config_dir, "config.yml"), <<~YAML)
+        runtime:
+          loop_interval_ms: 100
+          blocked_retry_attempts: 2
+        telegram:
+          bot_token: "x"
+          poll_interval_seconds: 1
+          allowed_chat_ids: [1]
+        paths:
+          default_projects_root: "#{dir}/projects"
+        models:
+          aliases:
+            "openrouter":
+              provider: "openrouter"
+              name: "openrouter/auto"
+          coding:
+            - name: "openrouter"
+          non_coding:
+            - provider: "openai"
+              name: "gpt-5-mini"
+      YAML
+
+      config = Redwright::AppConfigLoader.new(mode: :real, home: dir).load
+      candidate = config.models.coding.candidates.first
+      assert_nil(candidate.provider)
+      assert_equal("openrouter", candidate.name)
+    end
+  end
+
+  def test_rejects_missing_provider_for_non_aliased_role_candidate
+    Dir.mktmpdir("redwright-app-config-model-missing-provider-non-alias-") do |dir|
+      config_dir = File.join(dir, ".config", "redwright")
+      FileUtils.mkdir_p(config_dir)
+      File.write(File.join(config_dir, "config.yml"), <<~YAML)
+        runtime:
+          loop_interval_ms: 100
+          blocked_retry_attempts: 2
+        telegram:
+          bot_token: "x"
+          poll_interval_seconds: 1
+          allowed_chat_ids: [1]
+        paths:
+          default_projects_root: "#{dir}/projects"
+        models:
+          aliases:
+            "openrouter":
+              provider: "openrouter"
+              name: "openrouter/auto"
+          coding:
+            - name: "gpt-5.2"
+          non_coding:
+            - provider: "openai"
+              name: "gpt-5-mini"
+      YAML
+
+      err = assert_raises(ArgumentError) { Redwright::AppConfigLoader.new(mode: :real, home: dir).load }
+      assert_equal("missing config key: models.coding[0].provider", err.message)
+    end
+  end
 end

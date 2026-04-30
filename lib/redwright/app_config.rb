@@ -34,7 +34,7 @@ module Redwright
       models = fetch_hash(raw, "models")
       alignment = raw["alignment"].is_a?(Hash) ? raw["alignment"] : {}
 
-      AppConfig.new(
+      parsed = AppConfig.new(
         runtime: RuntimeConfig.new(
           loop_interval_ms: positive_integer(runtime, "loop_interval_ms"),
           blocked_retry_attempts: positive_integer(runtime, "blocked_retry_attempts"),
@@ -54,11 +54,14 @@ module Redwright
           max_turn_seconds: optional_positive_integer(alignment, "max_turn_seconds", default: 180)
         ),
         models: ModelsConfig.new(
-          coding: parse_model_role(models, "coding"),
-          non_coding: parse_model_role(models, "non_coding"),
-          aliases: parse_model_aliases(models)
+          aliases: parse_model_aliases(models),
+          coding: nil,
+          non_coding: nil
         )
       )
+      parsed.models.coding = parse_model_role(models, "coding", aliases: parsed.models.aliases)
+      parsed.models.non_coding = parse_model_role(models, "non_coding", aliases: parsed.models.aliases)
+      parsed
     rescue Psych::SyntaxError => e
       raise ArgumentError, "invalid config yaml: #{e.message}"
     end
@@ -126,20 +129,20 @@ module Redwright
       raise ArgumentError, "invalid config key: #{key} must be one of all|one"
     end
 
-    def parse_model_role(models, key)
+    def parse_model_role(models, key, aliases:)
       raw = models[key]
       raise ArgumentError, "missing config key: models.#{key}" if raw.nil?
 
       candidates = case raw
                    when Hash
-                     [parse_model_candidate(raw, "models.#{key}")]
+                     [parse_model_candidate(raw, "models.#{key}", aliases: aliases)]
                    when Array
                      raise ArgumentError, "invalid config key: models.#{key} must contain at least one candidate" if raw.empty?
 
                      raw.each_with_index.map do |value, index|
                        raise ArgumentError, "invalid config key: models.#{key}[#{index}] must be a mapping" unless value.is_a?(Hash)
 
-                       parse_model_candidate(value, "models.#{key}[#{index}]")
+                       parse_model_candidate(value, "models.#{key}[#{index}]", aliases: aliases)
                      end
                    else
                      raise ArgumentError, "invalid config key: models.#{key} must be a mapping or an array"
@@ -166,11 +169,21 @@ module Redwright
       required_array(telegram, "allowed_chat_ids").map { |id| integer_value(id, "allowed_chat_ids[]") }
     end
 
-    def parse_model_candidate(candidate, prefix)
+    def parse_model_candidate(candidate, prefix, aliases:)
+      name = required_string(candidate, "name", label: "#{prefix}.name")
+      provider = optional_provider_for_candidate(candidate, prefix: prefix, alias_name: name, aliases: aliases)
       ModelCandidate.new(
-        provider: required_string(candidate, "provider", label: "#{prefix}.provider"),
-        name: required_string(candidate, "name", label: "#{prefix}.name")
+        provider: provider,
+        name: name
       )
+    end
+
+    def optional_provider_for_candidate(candidate, prefix:, alias_name:, aliases:)
+      return required_string(candidate, "provider", label: "#{prefix}.provider") if candidate.key?("provider")
+
+      return nil if aliases.key?(alias_name)
+
+      raise ArgumentError, "missing config key: #{prefix}.provider"
     end
 
     def parse_model_aliases(models)

@@ -56,4 +56,19 @@ class ModelResolverTest < Minitest::Test
     assert_equal("gpt-5.2", resolved.name)
     assert_equal("openai/codex", resolved.alias_id)
   end
+
+  def test_resolve_raises_when_non_aliased_candidate_has_no_provider
+    config = Redwright::ModelsConfig.new(
+      coding: Redwright::ModelRoleConfig.new(
+        candidates: [Redwright::ModelCandidate.new(provider: nil, name: "gpt-5.2")]
+      ),
+      non_coding: Redwright::ModelRoleConfig.new(
+        candidates: [Redwright::ModelCandidate.new(provider: "openai", name: "gpt-5-mini")]
+      ),
+      aliases: {}
+    )
+
+    err = assert_raises(ArgumentError) { Redwright::ModelResolver.new(config).resolve("coding") }
+    assert_equal("missing provider for non-aliased model candidate: gpt-5.2", err.message)
+  end
 end

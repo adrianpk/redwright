@@ -44,6 +44,9 @@ module Redwright
       alias_map = @models_config.respond_to?(:aliases) ? (@models_config.aliases || {}) : {}
       alias_target = alias_map[candidate.name.to_s]
       unless alias_target
+        provider = candidate.provider.to_s.strip
+        raise ArgumentError, "missing provider for non-aliased model candidate: #{candidate.name}" if provider.empty?
+
         return ResolvedModel.new(provider: candidate.provider, name: candidate.name, alias_id: nil)
       end
 
