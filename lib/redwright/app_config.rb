@@ -11,7 +11,8 @@ module Redwright
   AlignmentConfig = Struct.new(:max_turns, :max_turn_seconds, keyword_init: true)
   ModelCandidate = Struct.new(:provider, :name, keyword_init: true)
   ModelRoleConfig = Struct.new(:candidates, keyword_init: true)
-  ModelsConfig = Struct.new(:coding, :non_coding, keyword_init: true)
+  ModelAliasTarget = Struct.new(:provider, :name, keyword_init: true)
+  ModelsConfig = Struct.new(:coding, :non_coding, :aliases, keyword_init: true)
 
   class AppConfigLoader
     def initialize(mode: :dev, pwd: Dir.pwd, home: Dir.home)
@@ -54,7 +55,8 @@ module Redwright
         ),
         models: ModelsConfig.new(
           coding: parse_model_role(models, "coding"),
-          non_coding: parse_model_role(models, "non_coding")
+          non_coding: parse_model_role(models, "non_coding"),
+          aliases: parse_model_aliases(models)
         )
       )
     rescue Psych::SyntaxError => e
@@ -169,6 +171,29 @@ module Redwright
         provider: required_string(candidate, "provider", label: "#{prefix}.provider"),
         name: required_string(candidate, "name", label: "#{prefix}.name")
       )
+    end
+
+    def parse_model_aliases(models)
+      raw = models["aliases"]
+      return {} unless raw
+
+      unless raw.is_a?(Hash)
+        raise ArgumentError, "invalid config key: models.aliases must be a mapping"
+      end
+
+      raw.each_with_object({}) do |(alias_id, target), acc|
+        unless alias_id.is_a?(String) && !alias_id.strip.empty?
+          raise ArgumentError, "invalid config key: models.aliases keys must be non-empty strings"
+        end
+        unless target.is_a?(Hash)
+          raise ArgumentError, "invalid config key: models.aliases.#{alias_id} must be a mapping"
+        end
+
+        acc[alias_id.strip] = ModelAliasTarget.new(
+          provider: required_string(target, "provider", label: "models.aliases.#{alias_id}.provider"),
+          name: required_string(target, "name", label: "models.aliases.#{alias_id}.name")
+        )
+      end
     end
 
     def normalize_path_root(value)

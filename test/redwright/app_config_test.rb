@@ -447,4 +447,38 @@ class AppConfigTest < Minitest::Test
       assert_equal(240, config.alignment.max_turn_seconds)
     end
   end
+
+  def test_loads_models_aliases
+    Dir.mktmpdir("redwright-app-config-model-aliases-") do |dir|
+      config_dir = File.join(dir, ".config", "redwright")
+      FileUtils.mkdir_p(config_dir)
+      File.write(File.join(config_dir, "config.yml"), <<~YAML)
+        runtime:
+          loop_interval_ms: 100
+          blocked_retry_attempts: 2
+        telegram:
+          bot_token: "x"
+          poll_interval_seconds: 1
+          allowed_chat_ids: [1]
+        paths:
+          default_projects_root: "#{dir}/projects"
+        models:
+          aliases:
+            "openai/codex":
+              provider: "openai"
+              name: "gpt-5.2"
+          coding:
+            - provider: "openai"
+              name: "openai/codex"
+          non_coding:
+            - provider: "openai"
+              name: "gpt-5-mini"
+      YAML
+
+      config = Redwright::AppConfigLoader.new(mode: :real, home: dir).load
+      alias_target = config.models.aliases.fetch("openai/codex")
+      assert_equal("openai", alias_target.provider)
+      assert_equal("gpt-5.2", alias_target.name)
+    end
+  end
 end

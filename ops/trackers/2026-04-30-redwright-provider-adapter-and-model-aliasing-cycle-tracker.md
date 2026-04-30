@@ -4,10 +4,10 @@
 
 - cycle_id: `rw-2026-04-30-provider-adapter-model-aliasing`
 - status: `in_progress`
-- state: `planning`
+- state: `implementation`
 - updated: `2026-04-30`
 - active_slice: `slice-1`
-- active_task: `T1.1`
+- active_task: `T1.2`
 
 ## Slice Progress
 
@@ -21,7 +21,7 @@
 
 Tasks:
 
-- [ ] `T1.1 extend config contract with models.aliases mapping`
+- [x] `T1.1 extend config contract with models.aliases mapping`
 - [ ] `T1.2 implement resolver support for alias -> provider/model target`
 - [ ] `T1.3 add trace fields for model alias and resolved target`
 
@@ -132,3 +132,4 @@ Validation:
 ## Event Log
 
 - `2026-04-30 20:00` state=`planning` note=`initialized provider adapter and model aliasing cycle with pr-per-slice and commit-per-task execution policy`
+- `2026-04-30 20:25` state=`implementation` slice=`slice-1` note=`completed T1.1 by introducing models.aliases config contract and coverage in app_config tests`
