@@ -13,6 +13,20 @@ pr:
 commits: []
 ---
 
+Valid `status` values:
+- `open`
+- `in_progress`
+- `reviewing`
+- `closed`
+- `blocked`
+
+Allowed transitions:
+- `open -> in_progress`
+- `in_progress -> reviewing`
+- `reviewing -> closed`
+- `* -> blocked`
+- `blocked -> in_progress`
+
 ## Context
 Brief background and why this matters.
 

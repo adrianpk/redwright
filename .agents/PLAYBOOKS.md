@@ -94,10 +94,13 @@ Use tickets for small, bounded fixes where full plan/tracker formalization is un
 2. Use sortable filename format: `YYYYMMDDHHMMSS-<slug>.md` (UTC timestamp).
 3. Use the frontmatter fields from `ops/tickets/TEMPLATE.md`.
 4. Keep code and repository documentation in English.
-5. Set `status: open` when reported; add `started_at` when implementation begins.
-6. Link delivery artifacts in frontmatter (`branch`, `pr`, `commits`).
-7. Set `status: closed` and `closed_at` only after validation is complete.
-8. If scope expands beyond a small fix, promote the ticket to a formal plan/slice/tracker flow and reference that plan from the ticket.
+5. Use only these status values: `open`, `in_progress`, `reviewing`, `closed`, `blocked`.
+6. Apply only these transitions: `open -> in_progress`, `in_progress -> reviewing`, `reviewing -> closed`, `* -> blocked`, `blocked -> in_progress`.
+7. Mutate ticket state in the same implementation cycle, not as a later administrative pass.
+8. Set `started_at` when changing `open -> in_progress`.
+9. Link delivery artifacts in frontmatter (`branch`, `pr`, `commits`) before or during `reviewing`.
+10. Set `closed_at` only when changing `reviewing -> closed` after validation is complete.
+11. If scope expands beyond a small fix, promote the ticket to a formal plan/slice/tracker flow and reference that plan from the ticket.
 
 ## 9. Full Workflow (Plan-Driven)
 
@@ -119,10 +122,12 @@ Use this workflow for minor features, minor changes, bugs, and hotfixes.
 
 1. Create ticket under `ops/tickets/`.
 2. Create a branch from `dev`.
-3. Implement the fix.
-4. Open one PR for the ticket.
-5. Complete review (manual and/or automated tooling such as Greptile).
-6. Merge and close the ticket.
+3. Set ticket `status: in_progress` and `started_at`.
+4. Implement the fix.
+5. Set ticket `status: reviewing`, update `branch`, `pr`, and `commits`.
+6. Open one PR for the ticket.
+7. Complete review (manual and/or automated tooling such as Greptile).
+8. Merge, then set ticket `status: closed` and `closed_at`.
 
 ## 11. Dev-to-Main Release Alignment
 
