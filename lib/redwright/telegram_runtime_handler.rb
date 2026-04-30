@@ -527,6 +527,8 @@ module Redwright
         role: @model_role,
         provider: @model_provider,
         model: @model_name,
+        model_alias: @model_name.to_s.include?("/") ? @model_name : nil,
+        resolved_model: @model_name.to_s.include?("/") ? model : nil,
         action: action,
         payload_bytes: text.to_s.bytesize,
         system_prompt: trace_system_prompt_for_interpreter(

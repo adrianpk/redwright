@@ -37,7 +37,17 @@ module Redwright
       }.compact)
     end
 
-    def llm_request(role:, provider:, model:, action:, payload_bytes:, system_prompt: nil, user_text: nil)
+    def llm_request(
+      role:,
+      provider:,
+      model:,
+      action:,
+      payload_bytes:,
+      model_alias: nil,
+      resolved_model: nil,
+      system_prompt: nil,
+      user_text: nil
+    )
       return unless llm_enabled?
 
       banner("LLM REQUEST", {
@@ -45,6 +55,8 @@ module Redwright
         model_role: role,
         provider: provider,
         model: model,
+        model_alias: model_alias,
+        resolved_model: resolved_model,
         action: action,
         payload_bytes: payload_bytes,
         system_prompt: system_prompt,
