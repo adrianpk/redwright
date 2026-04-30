@@ -1,0 +1,5 @@
+<% @columns_to_refresh.each do |column| %>
+  <%= turbo_stream.replace dom_id(column) do %>
+    <%= render "boards/column", column: column %>
+  <% end %>
+<% end %>

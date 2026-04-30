@@ -1,5 +1,4 @@
 class BoardsController < ApplicationController
-  allow_unauthenticated_access
   before_action :set_board, only: [ :show ]
 
   def index

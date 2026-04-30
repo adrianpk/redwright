@@ -40,23 +40,29 @@ class TicketsController < ApplicationController
   end
 
   def move
+    source_column = @ticket.column
     target_column = @ticket.board.columns.find(params[:column_id])
     @ticket.transition_to_column!(target_column)
     load_board_context(@ticket.board)
-    render "boards/update"
+    @columns_to_refresh = [ source_column, target_column ].uniq
+    render "boards/update_columns"
   end
 
   def archive
+    source_column = @ticket.column
     @ticket.archive!
     load_board_context(@ticket.board)
-    render "boards/update"
+    @columns_to_refresh = [ source_column ]
+    render "boards/update_columns"
   end
 
   def destroy
     board = @ticket.board
+    source_column = @ticket.column
     @ticket.destroy!
     load_board_context(board)
-    render "boards/update"
+    @columns_to_refresh = [ source_column ]
+    render "boards/update_columns"
   end
 
   def pick

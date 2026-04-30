@@ -4,42 +4,34 @@
       <h1><%= @board.name %></h1>
       <%= link_to "New ticket", new_board_ticket_path(@board), class: "ticket-action", data: { turbo_frame: "modal" } %>
     </div>
-    <p class="board-key"><%= @board.project_key %></p>
-    <div class="board-metrics">
-      <span>Total elapsed: <%= seconds_to_readable(board_total_elapsed_seconds(@board.tickets.visible_on_board)) %></span>
-      <span>Review elapsed: <%= seconds_to_readable(board_review_elapsed_seconds(@board.tickets.visible_on_board)) %></span>
-    </div>
   </header>
 
   <div class="board-columns" data-board-id="<%= @board.id %>">
     <% @columns.each do |column| %>
-      <article class="board-column" id="<%= dom_id(column) %>" data-column-id="<%= column.id %>">
-        <header class="column-header">
-          <h2><%= column.title %></h2>
-          <span class="column-count"><%= (@tickets_by_column[column.id] || []).size %></span>
-          <%# Column reorder handle intentionally kept in markup but hidden while reorder is paused. %>
-          <button type="button" class="column-grip is-hidden" draggable="false" title="Column reorder disabled" aria-hidden="true">::</button>
-        </header>
-        <div class="ticket-stack" data-column-id="<%= column.id %>">
-          <% (@tickets_by_column[column.id] || []).each do |ticket| %>
-            <%= render "tickets/ticket", ticket: ticket %>
-          <% end %>
-          <% if (@tickets_by_column[column.id] || []).empty? %>
-            <div class="empty-state">No tickets in this stage</div>
-          <% end %>
-        </div>
-      </article>
+      <%= render "boards/column", column: column %>
     <% end %>
   </div>
 
   <div class="drag-drop-zones" id="drag-drop-zones" aria-hidden="true">
     <div class="drop-zone zone-archive" data-drop-action="archive">
-      <span>A</span>
-      <small>Archive</small>
+      <div class="drop-zone-glyph">
+        <svg class="drop-zone-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M3 7h18" />
+          <path d="M5 7v11a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7" />
+          <path d="M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+          <path d="M10 11v5M14 11v5" />
+        </svg>
+      </div>
     </div>
     <div class="drop-zone zone-delete" data-drop-action="delete">
-      <span>D</span>
-      <small>Delete</small>
+      <div class="drop-zone-glyph">
+        <svg class="drop-zone-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M4 7h16" />
+          <path d="M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+          <path d="M7 7l1 12a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2l1-12" />
+          <path d="M10 11v6M14 11v6" />
+        </svg>
+      </div>
     </div>
   </div>
 </section>

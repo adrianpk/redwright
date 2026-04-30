@@ -1,3 +1,5 @@
-<svg width="512" height="512" xmlns="http://www.w3.org/2000/svg">
-  <circle cx="256" cy="256" r="256" fill="red"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="RedWright monogram">
+  <rect width="64" height="64" rx="12" fill="#F4EFE6"/>
+  <path d="M7 50V14h12c6 0 9 3 9 9 0 4-2 7-5 8l6 19h-8l-5-15h-3v15H7Zm6-22h5c3 0 4-1 4-4s-1-4-4-4h-5v8Z" fill="#B23A2F"/>
+  <path d="M33 16h5l3 20 4-14h4l4 14 3-20h5l-5 34h-6l-4-13-4 13h-6l-5-34Z" fill="#1F2A44"/>
 </svg>

@@ -1,15 +1,39 @@
-<%= tag.div(flash[:alert], style: "color:red") if flash[:alert] %>
-<%= tag.div(flash[:notice], style: "color:green") if flash[:notice] %>
-
-<%= form_with url: session_path do |form| %>
-  <%= form.email_field :email_address, required: true, autofocus: true, autocomplete: "username", placeholder: "Enter your email address", value: params[:email_address] %><br>
-  <%= form.password_field :password, required: true, autocomplete: "current-password", placeholder: "Enter your password", maxlength: 72 %><br>
-  <%= form.submit "Sign in" %>
+<% content_for :head do %>
+  <meta name="turbo-visit-control" content="reload">
 <% end %>
-<br>
 
-<%= link_to "Forgot password?", new_password_path %>
-<% unless User.exists? %>
-  <br>
-  <%= link_to "Create admin account", new_user_path %>
-<% end %>
+<section class="auth-shell">
+  <article class="auth-card">
+    <div class="auth-brand">
+      <img src="/logo.png" alt="RedWright" />
+    </div>
+    <header class="auth-header">
+      <h1>Sign in</h1>
+      <p>Access RedWright workspace.</p>
+    </header>
+
+    <%= tag.div(flash[:alert], class: "auth-flash error") if flash[:alert] %>
+    <%= tag.div(flash[:notice], class: "auth-flash notice") if flash[:notice] %>
+
+    <%= form_with url: session_path, class: "auth-form" do |form| %>
+      <div class="field">
+        <%= form.label :email_address, "Email" %>
+        <%= form.email_field :email_address, required: true, autofocus: true, autocomplete: "username", placeholder: "name@example.com", value: params[:email_address] %>
+      </div>
+      <div class="field">
+        <%= form.label :password, "Password" %>
+        <%= form.password_field :password, required: true, autocomplete: "current-password", placeholder: "Your password", maxlength: 72 %>
+      </div>
+      <div class="form-actions">
+        <%= form.submit "Sign in", class: "ticket-action" %>
+      </div>
+    <% end %>
+
+    <div class="auth-links">
+      <%= link_to "Forgot password?", new_password_path %>
+      <% unless User.exists? %>
+        <%= link_to "Create admin account", new_user_path %>
+      <% end %>
+    </div>
+  </article>
+</section>
