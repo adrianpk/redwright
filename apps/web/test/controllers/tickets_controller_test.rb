@@ -188,4 +188,30 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to board_path(board)
     assert_equal "New title", ticket.reload.title
   end
+
+  test "new returns modal frame payload for turbo frame requests" do
+    admin = create_admin_user!
+    sign_in_as(admin)
+    board = Board.create!(name: "Factory", project_key: "factory-modal-new")
+    board.columns.create!(key: "backlog", title: "Backlog", position: 0)
+
+    get new_board_ticket_path(board), headers: { "Turbo-Frame" => "modal" }
+
+    assert_response :success
+    assert_match('turbo-frame id="modal"', response.body)
+  end
+
+  test "edit returns modal frame payload for turbo frame requests" do
+    admin = create_admin_user!
+    sign_in_as(admin)
+    board = Board.create!(name: "Factory", project_key: "factory-modal-edit")
+    backlog = board.columns.create!(key: "backlog", title: "Backlog", position: 0)
+    ticket = board.tickets.create!(column: backlog, title: "Modal target")
+
+    get edit_ticket_path(ticket), headers: { "Turbo-Frame" => "modal" }
+
+    assert_response :success
+    assert_match('turbo-frame id="modal"', response.body)
+    assert_match("Edit Ticket", response.body)
+  end
 end

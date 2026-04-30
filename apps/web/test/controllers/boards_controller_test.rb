@@ -31,5 +31,6 @@ class BoardsControllerTest < ActionDispatch::IntegrationTest
     assert_match("Archive", response.body)
     assert_match("Delete", response.body)
     assert_match("column-grip is-hidden", response.body)
+    assert_match("data-edit-url=", response.body)
   end
 end
