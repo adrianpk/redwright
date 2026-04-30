@@ -6,7 +6,7 @@
 - status: `in_progress`
 - state: `in_review`
 - updated: `2026-04-30`
-- active_slice: `slice-2`
+- active_slice: `slice-3`
 - active_task: `none`
 
 ## Slice Progress
@@ -62,27 +62,28 @@ Validation:
 
 ### Slice 3: Runtime Integration Without Behavioral Drift
 
-- status: `pending`
+- status: `in_review`
 - branch: `feat/slice-3-runtime-integration-with-provider-registry`
-- PR: `tbd`
+- PR: `tbd (open)`
 - merge_target: `dev`
-- last_sync_commit: `tbd`
+- last_sync_commit: `8255108`
 
 Tasks:
 
-- [ ] `T3.1 integrate registry into daemon/runtime llm client creation path`
-- [ ] `T3.2 preserve non-configured fallback behavior in interpreter`
-- [ ] `T3.3 add integration tests for openai parity after wiring changes`
+- [x] `T3.1 integrate registry into daemon/runtime llm client creation path`
+- [x] `T3.2 preserve non-configured fallback behavior in interpreter`
+- [x] `T3.3 add integration tests for openai parity after wiring changes`
 
 Commits:
 
-- [ ] `<sha> refactor(runtime): route llm client creation through provider registry`
-- [ ] `<sha> test(runtime): assert openai parity under registry wiring`
+- [x] `8520449 refactor(runtime): inject shared llm registry into cli runtime`
+- [x] `780677f fix(runtime): preserve nil fallback for unsupported providers`
+- [x] `8255108 test(runtime): add cli llm client parity coverage`
 
 Validation:
 
-- [ ] `<cmd> ruby -Ilib:test test/redwright/daemon_cli_test.rb`
-- [ ] `<cmd> ruby -Ilib:test test/redwright/telegram_runtime_handler_test.rb`
+- [x] `<cmd> ruby -Ilib:test test/redwright/daemon_cli_test.rb`
+- [x] `<cmd> ruby -Ilib:test test/redwright/cli_llm_client_test.rb`
 
 ### Slice 4: Config DX and Operational Documentation
 
@@ -137,3 +138,4 @@ Validation:
 - `2026-04-30 20:25` state=`implementation` slice=`slice-1` note=`completed T1.1 by introducing models.aliases config contract and coverage in app_config tests`
 - `2026-04-30 20:45` state=`in_review` slice=`slice-1` note=`completed T1.2/T1.3 with alias target resolution and model_alias trace metadata; ready for PR merge to dev`
 - `2026-04-30 20:58` state=`in_review` slice=`slice-2` note=`completed T2.1/T2.2/T2.3 with llm client registry, runtime wiring through registry, and provider env/base-url override tests`
+- `2026-04-30 21:15` state=`in_review` slice=`slice-3` note=`completed T3.1/T3.2/T3.3 with shared registry injection, unsupported-provider nil fallback preservation, and cli-level openai parity tests`
