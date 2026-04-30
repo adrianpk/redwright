@@ -9,8 +9,8 @@ started_at: 2026-04-30T20:32:00Z
 closed_at:
 owner: adrianpk
 branch: fix/tkt-20260430201353-workspace-context-isolation
-pr:
-commits: []
+pr: https://codeberg.org/adrianpk/redwright/pulls/188
+commits: ["5384b65"]
 ---
 
 ## Context
