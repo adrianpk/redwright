@@ -3,19 +3,19 @@
 ## Metadata
 
 - cycle_id: `rw-2026-04-30-kanban-rbac-dnd`
-- status: `in_progress`
-- state: `planning`
+- status: `completed`
+- state: `closed`
 - updated: `2026-04-30`
-- active_slice: `slice-4`
-- active_task: `T4.1`
+- active_slice: `none`
+- active_task: `none`
 
 ## Slice Progress
 
 ### Slice 1: Instance Admin Bootstrap and Role Model
 
-- status: `in_review`
+- status: `completed`
 - branch: `feat/slice-1-instance-admin-and-role-model`
-- PR: `tbd`
+- PR: `#177`
 - merge_target: `dev`
 - last_sync_commit: `7df1661`
 
@@ -61,9 +61,9 @@ Validation:
 
 ### Slice 3: Kanban DnD Semantics (Columns Locked)
 
-- status: `in_review`
+- status: `completed`
 - branch: `feat/slice-3-kanban-dnd-semantic-hardening`
-- PR: `tbd`
+- PR: `#179`
 - merge_target: `dev`
 - last_sync_commit: `8af2cd2`
 
@@ -76,8 +76,8 @@ Tasks:
 
 Commits:
 
-- [x] `a7eb5c2 feat(web): harden ticket drag semantics and add archive-delete drop zones`
-- [x] `a7685be test(web): cover drag transition and drop-zone actions`
+- [x] `f355631 feat(web): harden ticket drag semantics and add archive-delete drop zones`
+- [x] `7c0355d test(web): cover drag transition and drop-zone actions`
 
 Validation:
 
@@ -85,9 +85,9 @@ Validation:
 
 ### Slice 4: Ticket Modal Workflow and Card Interaction Cleanup
 
-- status: `in_review`
+- status: `completed`
 - branch: `feat/slice-4-ticket-modal-interaction-cleanup`
-- PR: `tbd`
+- PR: `#180`
 - merge_target: `dev`
 - last_sync_commit: `7b97216`
 
@@ -100,7 +100,7 @@ Tasks:
 
 Commits:
 
-- [x] `a7eb5c2 feat(web): streamline ticket card interactions and modal entry`
+- [x] `f355631 feat(web): streamline ticket card interactions and modal entry`
 - [x] `a73064d test(web): cover modal entry and ticket update flow`
 
 Validation:
@@ -110,3 +110,4 @@ Validation:
 ## Event Log
 
 - `2026-04-30 13:00` state=`planning` note=`initialized RBAC + drag semantics hardening cycle after kanban MVP alignment`
+- `2026-04-30 14:20` state=`completed` note=`all four slices merged to dev with single-pr-per-slice workflow`
