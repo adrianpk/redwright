@@ -6,7 +6,7 @@
 - status: `in_progress`
 - state: `in_review`
 - updated: `2026-04-30`
-- active_slice: `slice-3`
+- active_slice: `slice-4`
 - active_task: `none`
 
 ## Slice Progress
@@ -87,26 +87,27 @@ Validation:
 
 ### Slice 4: Config DX and Operational Documentation
 
-- status: `pending`
+- status: `in_review`
 - branch: `feat/slice-4-provider-alias-config-dx`
-- PR: `tbd`
+- PR: `tbd (open)`
 - merge_target: `dev`
-- last_sync_commit: `tbd`
+- last_sync_commit: `3bfc3b9`
 
 Tasks:
 
-- [ ] `T4.1 update config.example.yml with alias-first model mapping examples`
-- [ ] `T4.2 document provider wrapper semantics for openrouter`
-- [ ] `T4.3 add validation errors for malformed aliases/provider entries`
+- [x] `T4.1 update config.example.yml with alias-first model mapping examples`
+- [x] `T4.2 document provider wrapper semantics for openrouter`
+- [x] `T4.3 add validation errors for malformed aliases/provider entries`
 
 Commits:
 
-- [ ] `<sha> docs(config): add alias-first provider model mapping examples`
-- [ ] `<sha> test(config): validate malformed alias contract errors`
+- [x] `656a5c2 docs(config): add alias-first model mapping examples`
+- [x] `c6cf931 docs(config): document openrouter wrapper alias semantics`
+- [x] `3bfc3b9 test(config): validate malformed model alias contracts`
 
 Validation:
 
-- [ ] `<cmd> ruby -Ilib:test test/redwright/app_config_test.rb`
+- [x] `<cmd> ruby -Ilib:test test/redwright/app_config_test.rb`
 
 ### Slice 5: Observability and Failure Surfaces
 
@@ -139,3 +140,4 @@ Validation:
 - `2026-04-30 20:45` state=`in_review` slice=`slice-1` note=`completed T1.2/T1.3 with alias target resolution and model_alias trace metadata; ready for PR merge to dev`
 - `2026-04-30 20:58` state=`in_review` slice=`slice-2` note=`completed T2.1/T2.2/T2.3 with llm client registry, runtime wiring through registry, and provider env/base-url override tests`
 - `2026-04-30 21:15` state=`in_review` slice=`slice-3` note=`completed T3.1/T3.2/T3.3 with shared registry injection, unsupported-provider nil fallback preservation, and cli-level openai parity tests`
+- `2026-04-30 21:36` state=`in_review` slice=`slice-4` note=`completed T4.1/T4.2/T4.3 with alias-first config examples, openrouter wrapper docs, and malformed alias contract validation tests`
