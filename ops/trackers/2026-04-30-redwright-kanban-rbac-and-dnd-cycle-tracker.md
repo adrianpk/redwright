@@ -6,8 +6,8 @@
 - status: `in_progress`
 - state: `planning`
 - updated: `2026-04-30`
-- active_slice: `slice-1`
-- active_task: `T1.1`
+- active_slice: `slice-3`
+- active_task: `T3.1`
 
 ## Slice Progress
 
@@ -37,9 +37,9 @@ Validation:
 
 ### Slice 2: RBAC Gates for Ticket Governance
 
-- status: `in_review`
+- status: `completed`
 - branch: `feat/slice-2-ticket-rbac-gates`
-- PR: `tbd`
+- PR: `#178`
 - merge_target: `dev`
 - last_sync_commit: `725c760`
 
@@ -61,27 +61,27 @@ Validation:
 
 ### Slice 3: Kanban DnD Semantics (Columns Locked)
 
-- status: `pending`
+- status: `in_review`
 - branch: `feat/slice-3-kanban-dnd-semantic-hardening`
 - PR: `tbd`
 - merge_target: `dev`
-- last_sync_commit: `tbd`
+- last_sync_commit: `8af2cd2`
 
 Tasks:
 
-- [ ] `T3.1 hide column reorder handle from UI and keep reorder logic disabled/commented`
-- [ ] `T3.2 harden ticket drag-drop transition handling to ensure status/column updates always apply`
-- [ ] `T3.3 add bottom drop zones shown only during drag gesture: A (archive), D (delete)`
-- [ ] `T3.4 wire archive/delete drop zones to turbo-stream board updates`
+- [x] `T3.1 hide column reorder handle from UI and keep reorder logic disabled/commented`
+- [x] `T3.2 harden ticket drag-drop transition handling to ensure status/column updates always apply`
+- [x] `T3.3 add bottom drop zones shown only during drag gesture: A (archive), D (delete)`
+- [x] `T3.4 wire archive/delete drop zones to turbo-stream board updates`
 
 Commits:
 
-- [ ] `<sha> feat(web): harden ticket drag semantics and add archive-delete drop zones`
-- [ ] `<sha> test(web): cover drag transition and drop-zone actions`
+- [x] `a7eb5c2 feat(web): harden ticket drag semantics and add archive-delete drop zones`
+- [x] `a7685be test(web): cover drag transition and drop-zone actions`
 
 Validation:
 
-- [ ] `<cmd> kanban drag interaction tests`
+- [x] `<cmd> cd apps/web && bundle exec bin/rails test test/controllers/boards_controller_test.rb test/controllers/tickets_controller_test.rb test/controllers/columns_controller_test.rb test/models/ticket_test.rb test/models/user_test.rb test/controllers/users_controller_test.rb`
 
 ### Slice 4: Ticket Modal Workflow and Card Interaction Cleanup
 
