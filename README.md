@@ -5,8 +5,11 @@
 [![coverage](https://img.shields.io/badge/coverage-28.28%-brightgreen)](badges/coverage.svg)
 <!-- REDWRIGHT_LOCAL_BADGES:END -->
 
-RedWright is a **black-box software factory platform** where one runtime agent operates directly from the Kanban board.
+<div align="center" style="background:#FDF3E4; padding:2px 12px; border-radius:14px; margin:16px 0 24px 0;">
+  <img src="apps/web/public/logo.png" alt="RedWright logo" style="max-width:216px; width:100%; height:auto;" />
+</div>
 
+RedWright is a **black-box software factory platform** where one runtime agent operates directly from the Kanban board.
 Telegram and local TUI are the current interactive surfaces. The agent reads board state, decides the next ticket to execute, and can create new tickets when incoming work is not yet represented on the board.
 
 (*) Slack is expected as a later extension after the Telegram path is stable.
