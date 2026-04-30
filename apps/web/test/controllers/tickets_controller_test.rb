@@ -14,4 +14,17 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
     assert_equal "text/vnd.turbo-stream.html; charset=utf-8", response.media_type + "; charset=utf-8"
     assert_equal review.id, ticket.reload.column_id
   end
+
+  test "pick returns assignee-prioritized ticket" do
+    board = Board.create!(name: "Factory", project_key: "factory")
+    backlog = board.columns.create!(key: "backlog", title: "Backlog", position: 0)
+    board.tickets.create!(column: backlog, title: "General high", priority: :high)
+    selected = board.tickets.create!(column: backlog, title: "Mine medium", priority: :medium, assignee: "agent-1")
+
+    get pick_board_tickets_path(board), params: { assignee: "agent-1" }
+
+    assert_response :success
+    json = JSON.parse(response.body)
+    assert_equal selected.id, json.fetch("id")
+  end
 end

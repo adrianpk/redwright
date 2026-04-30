@@ -109,27 +109,27 @@ Validation:
 
 ### Slice 5: Time Aggregation, Reporting, and Hardening
 
-- status: `pending`
+- status: `in_review`
 - branch: `feat/slice-5-time-aggregation-and-hardening`
 - PR: `tbd`
 - merge_target: `dev`
-- last_sync_commit: `tbd`
+- last_sync_commit: `364914f`
 
 Tasks:
 
-- [ ] `T5.1 implement per-phase and total elapsed time aggregation in board/report views`
-- [ ] `T5.2 add end-to-end tests for ticket lifecycle code->review->merge`
-- [ ] `T5.3 harden selection policy (assigned + highest priority fallback)`
+- [x] `T5.1 implement per-phase and total elapsed time aggregation in board/report views`
+- [x] `T5.2 add end-to-end tests for ticket lifecycle code->review->merge`
+- [x] `T5.3 harden selection policy (assigned + highest priority fallback)`
 
 Commits:
 
-- [ ] `<sha> feat(web): add ticket time aggregation and board metrics`
-- [ ] `<sha> test(e2e): cover unified ticket lifecycle across ingress`
+- [x] `b9af976 feat(web): add ticket time aggregation and board metrics`
+- [x] `<sha> test(e2e): cover unified ticket lifecycle across ingress`
 
 Validation:
 
-- [ ] `<cmd> aggregation/report tests`
-- [ ] `<cmd> lifecycle e2e tests`
+- [x] `<cmd> cd apps/web && bundle exec bin/rails test test/models/ticket_test.rb`
+- [x] `<cmd> cd apps/web && bundle exec bin/rails test test/controllers/boards_controller_test.rb test/controllers/tickets_controller_test.rb`
 
 ## Event Log
 
