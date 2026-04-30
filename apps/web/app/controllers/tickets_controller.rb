@@ -1,7 +1,8 @@
 class TicketsController < ApplicationController
-  allow_unauthenticated_access
   before_action :set_ticket, only: [ :edit, :update, :move, :archive, :destroy ]
   before_action :set_board, only: [ :new, :create, :pick ]
+  before_action :require_admin!, only: [ :archive, :destroy ]
+  before_action :require_admin_for_assignment!, only: [ :create, :update ]
 
   def new
     @ticket = @board.tickets.new(column: default_column)
@@ -95,5 +96,17 @@ class TicketsController < ApplicationController
 
   def default_column
     @board.columns.order(:position).first
+  end
+
+  def require_admin_for_assignment!
+    assignee_value = params.dig(:ticket, :assignee)
+    return if assignee_value.nil? || assignee_value.to_s.strip.empty?
+    return if current_user&.admin?
+
+    respond_to do |format|
+      format.turbo_stream { head :forbidden }
+      format.json { render json: { error: "forbidden" }, status: :forbidden }
+      format.html { redirect_to root_path, alert: "Only admin can assign tickets." }
+    end
   end
 end
