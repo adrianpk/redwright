@@ -37,4 +37,23 @@ class ModelResolverTest < Minitest::Test
     err = assert_raises(ArgumentError) { resolver.resolve("other") }
     assert_match("unknown model role", err.message)
   end
+
+  def test_resolve_applies_alias_target
+    config = Redwright::ModelsConfig.new(
+      coding: Redwright::ModelRoleConfig.new(
+        candidates: [Redwright::ModelCandidate.new(provider: "openai", name: "openai/codex")]
+      ),
+      non_coding: Redwright::ModelRoleConfig.new(
+        candidates: [Redwright::ModelCandidate.new(provider: "openai", name: "gpt-5-mini")]
+      ),
+      aliases: {
+        "openai/codex" => Redwright::ModelAliasTarget.new(provider: "openai", name: "gpt-5.2")
+      }
+    )
+
+    resolved = Redwright::ModelResolver.new(config).resolve("coding")
+    assert_equal("openai", resolved.provider)
+    assert_equal("gpt-5.2", resolved.name)
+    assert_equal("openai/codex", resolved.alias_id)
+  end
 end

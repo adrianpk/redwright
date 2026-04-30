@@ -4,6 +4,8 @@ require_relative "trace"
 
 module Redwright
   class ModelResolver
+    ResolvedModel = Struct.new(:provider, :name, :alias_id, keyword_init: true)
+
     def initialize(models_config)
       @models_config = models_config
     end
@@ -23,15 +25,32 @@ module Redwright
       candidate = role_config.candidates.first
       raise ArgumentError, "no model candidates configured for role: #{role_key}" unless candidate
 
+      resolved = resolve_alias(candidate)
       Trace.banner("MODEL RESOLUTION", {
         trace_id: Trace.current_trace_id || "none",
         model_role: role_key,
-        provider: candidate.provider,
-        model: candidate.name,
+        provider: resolved.provider,
+        model: resolved.name,
         candidates_count: role_config.candidates.length
       })
 
-      candidate
+      resolved
+    end
+
+    private
+
+    def resolve_alias(candidate)
+      alias_map = @models_config.respond_to?(:aliases) ? (@models_config.aliases || {}) : {}
+      alias_target = alias_map[candidate.name.to_s]
+      unless alias_target
+        return ResolvedModel.new(provider: candidate.provider, name: candidate.name, alias_id: nil)
+      end
+
+      ResolvedModel.new(
+        provider: alias_target.provider,
+        name: alias_target.name,
+        alias_id: candidate.name
+      )
     end
   end
 end
