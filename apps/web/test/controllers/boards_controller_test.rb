@@ -27,5 +27,9 @@ class BoardsControllerTest < ActionDispatch::IntegrationTest
     assert_match("Total elapsed:", response.body)
     assert_match("Review elapsed:", response.body)
     assert_match("Implement parser", response.body)
+    assert_match("drag-drop-zones", response.body)
+    assert_match("Archive", response.body)
+    assert_match("Delete", response.body)
+    assert_match("column-grip is-hidden", response.body)
   end
 end
