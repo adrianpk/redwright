@@ -6,8 +6,8 @@
 - status: `in_progress`
 - state: `planning`
 - updated: `2026-04-30`
-- active_slice: `slice-3`
-- active_task: `T3.1`
+- active_slice: `slice-4`
+- active_task: `T4.1`
 
 ## Slice Progress
 
@@ -85,27 +85,27 @@ Validation:
 
 ### Slice 4: Ticket Modal Workflow and Card Interaction Cleanup
 
-- status: `pending`
+- status: `in_review`
 - branch: `feat/slice-4-ticket-modal-interaction-cleanup`
 - PR: `tbd`
 - merge_target: `dev`
-- last_sync_commit: `tbd`
+- last_sync_commit: `7b97216`
 
 Tasks:
 
-- [ ] `T4.1 make full ticket card clickable to open edit modal`
-- [ ] `T4.2 remove explicit edit/archive/delete button controls from card body`
-- [ ] `T4.3 preserve subtle assignee marker at bottom-right`
-- [ ] `T4.4 add controller/view tests for modal open and update flow`
+- [x] `T4.1 make full ticket card clickable to open edit modal`
+- [x] `T4.2 remove explicit edit/archive/delete button controls from card body`
+- [x] `T4.3 preserve subtle assignee marker at bottom-right`
+- [x] `T4.4 add controller/view tests for modal open and update flow`
 
 Commits:
 
-- [ ] `<sha> feat(web): streamline ticket card interactions and modal entry`
-- [ ] `<sha> test(web): cover modal entry and ticket update flow`
+- [x] `a7eb5c2 feat(web): streamline ticket card interactions and modal entry`
+- [x] `a73064d test(web): cover modal entry and ticket update flow`
 
 Validation:
 
-- [ ] `<cmd> modal interaction tests`
+- [x] `<cmd> cd apps/web && bundle exec bin/rails test test/controllers/boards_controller_test.rb test/controllers/tickets_controller_test.rb test/controllers/columns_controller_test.rb test/models/ticket_test.rb test/models/user_test.rb test/controllers/users_controller_test.rb`
 
 ## Event Log
 
