@@ -1,0 +1,18 @@
+<article class="ticket-card" id="<%= dom_id(ticket) %>" draggable="true" data-ticket-id="<%= ticket.id %>">
+  <header>
+    <h3><%= ticket.title %></h3>
+    <span class="priority <%= ticket.priority %>"><%= ticket.priority %></span>
+  </header>
+  <% if ticket.description.present? %>
+    <p><%= ticket.description %></p>
+  <% end %>
+  <footer>
+    <% if ticket.assignee.present? %>
+      <span>@<%= ticket.assignee %></span>
+    <% end %>
+    <% ticket.labels.each do |label| %>
+      <span class="ticket-label" style="background-color: <%= label.color %>"><%= label.name %></span>
+    <% end %>
+  </footer>
+</article>
+

@@ -1,0 +1,21 @@
+<section class="board-shell">
+  <header class="board-header">
+    <h1><%= @board.name %></h1>
+    <p class="board-key"><%= @board.project_key %></p>
+  </header>
+
+  <div class="board-columns">
+    <% @columns.each do |column| %>
+      <article class="board-column" id="<%= dom_id(column) %>">
+        <h2><%= column.title %></h2>
+        <p class="drop-hint">Drop a ticket here</p>
+        <div class="ticket-stack" data-column-id="<%= column.id %>">
+          <% (@tickets_by_column[column.id] || []).each do |ticket| %>
+            <%= render "tickets/ticket", ticket: ticket %>
+          <% end %>
+        </div>
+      </article>
+    <% end %>
+  </div>
+</section>
+

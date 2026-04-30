@@ -60,27 +60,28 @@ Validation:
 
 ### Slice 3: Ticket Domain and Kanban Board MVP
 
-- status: `pending`
-- branch: `feat/slice-3-ticket-domain-and-board-mvp`
+- status: `in_review`
+- branch: `feat/slice-3-ticket-domain-and-kanban-mvp`
 - PR: `tbd`
 - merge_target: `dev`
-- last_sync_commit: `tbd`
+- last_sync_commit: `00720b3`
 
 Tasks:
 
-- [ ] `T3.1 add board/column/ticket/label models and migrations`
-- [ ] `T3.2 add priority and time-tracking schema support`
-- [ ] `T3.3 build kanban board UI with turbo-stream ticket movement`
+- [x] `T3.1 add board/column/ticket/label models and migrations`
+- [x] `T3.2 add priority and time-tracking schema support`
+- [x] `T3.3 build kanban board UI with turbo-stream ticket movement`
 
 Commits:
 
-- [ ] `<sha> feat(web): implement kanban domain models and board views`
-- [ ] `<sha> feat(web): add turbo-stream drag-drop ticket transitions`
+- [x] `359d785 feat(web): add kanban domain entities and persistence model`
+- [x] `9b12b3e test(web): cover ticket priority and lifecycle timing semantics`
+- [x] `<sha> feat(web): add turbo-stream kanban board movement and interaction tests`
 
 Validation:
 
-- [ ] `<cmd> model and migration tests`
-- [ ] `<cmd> turbo stream board interaction tests`
+- [x] `<cmd> bundle exec bin/rails test test/models/ticket_test.rb`
+- [x] `<cmd> bundle exec bin/rails test test/controllers/boards_controller_test.rb test/controllers/tickets_controller_test.rb`
 
 ### Slice 4: Unified Command/Query Bridge and Runtime Loop Controls
 

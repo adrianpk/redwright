@@ -1,0 +1,51 @@
+<%= turbo_frame_tag "board" do %>
+  <%= render "board" %>
+<% end %>
+
+<script>
+  (function() {
+    const board = document.querySelector(".board-columns");
+    if (!board) return;
+
+    board.querySelectorAll(".ticket-card").forEach((card) => {
+      card.addEventListener("dragstart", (event) => {
+        event.dataTransfer.setData("text/plain", card.dataset.ticketId);
+      });
+    });
+
+    board.querySelectorAll(".ticket-stack").forEach((stack) => {
+      stack.addEventListener("dragover", (event) => {
+        event.preventDefault();
+        stack.classList.add("drag-active");
+      });
+
+      stack.addEventListener("dragleave", () => {
+        stack.classList.remove("drag-active");
+      });
+
+      stack.addEventListener("drop", async (event) => {
+        event.preventDefault();
+        stack.classList.remove("drag-active");
+
+        const ticketId = event.dataTransfer.getData("text/plain");
+        const columnId = stack.dataset.columnId;
+        if (!ticketId || !columnId) return;
+
+        const response = await fetch(`/tickets/${ticketId}/move`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            "Accept": "text/vnd.turbo-stream.html",
+            "X-CSRF-Token": document.querySelector("meta[name='csrf-token']").content
+          },
+          body: JSON.stringify({ column_id: columnId })
+        });
+
+        if (!response.ok) return;
+        const stream = await response.text();
+        if (window.Turbo && stream) window.Turbo.renderStreamMessage(stream);
+      });
+    });
+  })();
+</script>
+
