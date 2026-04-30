@@ -481,4 +481,64 @@ class AppConfigTest < Minitest::Test
       assert_equal("gpt-5.2", alias_target.name)
     end
   end
+
+  def test_rejects_non_mapping_models_aliases
+    Dir.mktmpdir("redwright-app-config-model-aliases-invalid-root-") do |dir|
+      config_dir = File.join(dir, ".config", "redwright")
+      FileUtils.mkdir_p(config_dir)
+      File.write(File.join(config_dir, "config.yml"), <<~YAML)
+        runtime:
+          loop_interval_ms: 100
+          blocked_retry_attempts: 2
+        telegram:
+          bot_token: "x"
+          poll_interval_seconds: 1
+          allowed_chat_ids: [1]
+        paths:
+          default_projects_root: "#{dir}/projects"
+        models:
+          aliases: "openai/codex"
+          coding:
+            - provider: "openai"
+              name: "gpt-5.2"
+          non_coding:
+            - provider: "openai"
+              name: "gpt-5-mini"
+      YAML
+
+      err = assert_raises(ArgumentError) { Redwright::AppConfigLoader.new(mode: :real, home: dir).load }
+      assert_equal("invalid config key: models.aliases must be a mapping", err.message)
+    end
+  end
+
+  def test_rejects_alias_target_without_provider
+    Dir.mktmpdir("redwright-app-config-model-aliases-missing-provider-") do |dir|
+      config_dir = File.join(dir, ".config", "redwright")
+      FileUtils.mkdir_p(config_dir)
+      File.write(File.join(config_dir, "config.yml"), <<~YAML)
+        runtime:
+          loop_interval_ms: 100
+          blocked_retry_attempts: 2
+        telegram:
+          bot_token: "x"
+          poll_interval_seconds: 1
+          allowed_chat_ids: [1]
+        paths:
+          default_projects_root: "#{dir}/projects"
+        models:
+          aliases:
+            "openai/codex":
+              name: "gpt-5.2"
+          coding:
+            - provider: "openai"
+              name: "openai/codex"
+          non_coding:
+            - provider: "openai"
+              name: "gpt-5-mini"
+      YAML
+
+      err = assert_raises(ArgumentError) { Redwright::AppConfigLoader.new(mode: :real, home: dir).load }
+      assert_equal("missing config key: models.aliases.openai/codex.provider", err.message)
+    end
+  end
 end
