@@ -123,6 +123,10 @@ body {
   cursor: grab;
 }
 
+.column-grip.is-hidden {
+  display: none;
+}
+
 .ticket-stack {
   min-height: 330px;
   display: grid;
@@ -232,18 +236,6 @@ body {
   padding: 2px 8px;
 }
 
-.ticket-card-actions {
-  margin-top: 10px;
-  display: grid;
-  gap: 8px;
-}
-
-.ticket-actions-main {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
 .ticket-action {
   border: 1px solid var(--border-soft);
   background: #fff;
@@ -269,36 +261,53 @@ body {
   color: #fff;
 }
 
-.ticket-edit-link {
-  text-align: center;
+.drag-drop-zones {
+  position: sticky;
+  bottom: 8px;
+  margin-top: 12px;
+  display: none;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  z-index: 15;
 }
 
-.ticket-icon-btn {
+.drag-drop-zones.visible {
+  display: grid;
+}
+
+.drop-zone {
   border: 1px solid var(--border-soft);
+  border-radius: 10px;
   background: #fff;
+  min-height: 62px;
+  display: grid;
+  place-items: center;
   color: var(--navy-soft);
-  border-radius: 8px;
-  width: 34px;
-  height: 30px;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
 }
 
-.ticket-icon-btn:hover {
+.drop-zone span {
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.drop-zone small {
+  font-size: 0.68rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.drop-zone.zone-archive {
+  border-color: #b7c4d9;
+}
+
+.drop-zone.zone-delete {
+  border-color: #d7b1ac;
+}
+
+.drop-zone.drag-active {
   border-color: var(--accent-red);
-  color: var(--accent-red);
-}
-
-.ticket-icon-btn.danger {
-  border-color: var(--accent-red);
-  color: var(--accent-red);
-}
-
-.ticket-icon-btn.danger:hover {
-  background: var(--accent-red-dark);
-  color: #fff;
+  background: rgba(178, 58, 47, 0.08);
+  color: var(--accent-red-dark);
 }
 
 .ticket-editor {

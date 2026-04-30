@@ -9,19 +9,22 @@
       const board = document.querySelector(".board-columns");
       if (!board || board.dataset.jsBound === "1") return;
       board.dataset.jsBound = "1";
+      const dropZones = document.getElementById("drag-drop-zones");
 
       // Column reorder is intentionally disabled for now to keep agent state mapping stable.
       // Keep the visual grip as an affordance placeholder for future controlled enablement.
       let draggingColumn = null;
+      let draggingTicketId = null;
 
       board.addEventListener("dragstart", (event) => {
-        if (event.target.closest(".ticket-card-actions")) return;
         const card = event.target.closest(".ticket-card");
         if (card) {
           event.dataTransfer.setData("ticket-id", card.dataset.ticketId);
           event.dataTransfer.setData("text/plain", card.dataset.ticketId);
           event.dataTransfer.effectAllowed = "move";
+          draggingTicketId = card.dataset.ticketId;
           card.classList.add("dragging");
+          if (dropZones) dropZones.classList.add("visible");
           return;
         }
 
@@ -33,6 +36,11 @@
         board.querySelectorAll(".column-drop-target").forEach((el) => el.classList.remove("column-drop-target"));
         board.querySelectorAll(".dragging").forEach((el) => el.classList.remove("dragging"));
         board.querySelectorAll(".column-dragging").forEach((el) => el.classList.remove("column-dragging"));
+        if (dropZones) {
+          dropZones.classList.remove("visible");
+          dropZones.querySelectorAll(".drop-zone.drag-active").forEach((el) => el.classList.remove("drag-active"));
+        }
+        draggingTicketId = null;
       });
 
       board.addEventListener("dragover", (event) => {
@@ -64,6 +72,47 @@
         }
 
         // Column reorder drop is disabled while feature is paused.
+      });
+
+      if (dropZones) {
+        dropZones.querySelectorAll(".drop-zone").forEach((zone) => {
+          zone.addEventListener("dragover", (event) => {
+            if (!draggingTicketId) return;
+            event.preventDefault();
+            zone.classList.add("drag-active");
+          });
+
+          zone.addEventListener("dragleave", () => {
+            zone.classList.remove("drag-active");
+          });
+
+          zone.addEventListener("drop", async (event) => {
+            if (!draggingTicketId) return;
+            event.preventDefault();
+            zone.classList.remove("drag-active");
+            const action = zone.dataset.dropAction;
+            const ticketId = event.dataTransfer.getData("ticket-id") || event.dataTransfer.getData("text/plain") || draggingTicketId;
+            if (!ticketId || !action) return;
+
+            if (action === "archive") {
+              await sendTurbo(`/tickets/${ticketId}/archive`, "PATCH", {});
+            } else if (action === "delete") {
+              await sendTurbo(`/tickets/${ticketId}`, "DELETE", {});
+            }
+          });
+        });
+      }
+
+      board.addEventListener("click", (event) => {
+        const card = event.target.closest(".ticket-card");
+        if (!card) return;
+        if (event.target.closest("a,button,form,input,select,textarea")) return;
+        const url = card.dataset.editUrl;
+        if (!url) return;
+        const modal = document.getElementById("modal");
+        if (!modal) return;
+        event.preventDefault();
+        window.Turbo.visit(url, { frame: "modal" });
       });
     }
 

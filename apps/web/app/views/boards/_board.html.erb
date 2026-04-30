@@ -17,7 +17,8 @@
         <header class="column-header">
           <h2><%= column.title %></h2>
           <span class="column-count"><%= (@tickets_by_column[column.id] || []).size %></span>
-          <button type="button" class="column-grip" draggable="false" title="Column reorder disabled">::</button>
+          <%# Column reorder handle intentionally kept in markup but hidden while reorder is paused. %>
+          <button type="button" class="column-grip is-hidden" draggable="false" title="Column reorder disabled" aria-hidden="true">::</button>
         </header>
         <div class="ticket-stack" data-column-id="<%= column.id %>">
           <% (@tickets_by_column[column.id] || []).each do |ticket| %>
@@ -29,5 +30,16 @@
         </div>
       </article>
     <% end %>
+  </div>
+
+  <div class="drag-drop-zones" id="drag-drop-zones" aria-hidden="true">
+    <div class="drop-zone zone-archive" data-drop-action="archive">
+      <span>A</span>
+      <small>Archive</small>
+    </div>
+    <div class="drop-zone zone-delete" data-drop-action="delete">
+      <span>D</span>
+      <small>Delete</small>
+    </div>
   </div>
 </section>
