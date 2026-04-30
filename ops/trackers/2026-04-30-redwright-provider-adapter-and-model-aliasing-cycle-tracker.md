@@ -6,7 +6,7 @@
 - status: `in_progress`
 - state: `in_review`
 - updated: `2026-04-30`
-- active_slice: `slice-4`
+- active_slice: `slice-5`
 - active_task: `none`
 
 ## Slice Progress
@@ -111,27 +111,27 @@ Validation:
 
 ### Slice 5: Observability and Failure Surfaces
 
-- status: `pending`
+- status: `in_review`
 - branch: `feat/slice-5-provider-observability-and-guardrails`
-- PR: `tbd`
+- PR: `tbd (open)`
 - merge_target: `dev`
-- last_sync_commit: `tbd`
+- last_sync_commit: `4e59146`
 
 Tasks:
 
-- [ ] `T5.1 include provider/model alias metadata in llm request tracing`
-- [ ] `T5.2 add explicit errors for missing provider api keys`
-- [ ] `T5.3 add tests for provider misconfiguration and fallback behavior`
+- [x] `T5.1 include provider/model alias metadata in llm request tracing`
+- [x] `T5.2 add explicit errors for missing provider api keys`
+- [x] `T5.3 add tests for provider misconfiguration and fallback behavior`
 
 Commits:
 
-- [ ] `<sha> feat(observability): enrich llm trace metadata with provider alias context`
-- [ ] `<sha> test(runtime): cover provider configuration failure paths`
+- [x] `77e4ca4 feat(observability): include alias metadata in llm request traces`
+- [x] `4e59146 fix(runtime): raise clear errors for missing provider api keys`
 
 Validation:
 
-- [ ] `<cmd> ruby -Ilib:test test/redwright/trace_test.rb`
-- [ ] `<cmd> ruby -Ilib:test test/redwright/openai_client_test.rb`
+- [x] `<cmd> ruby -Ilib:test test/redwright/trace_test.rb`
+- [x] `<cmd> ruby -Ilib:test test/redwright/llm_client_registry_test.rb`
 
 ## Event Log
 
@@ -141,3 +141,4 @@ Validation:
 - `2026-04-30 20:58` state=`in_review` slice=`slice-2` note=`completed T2.1/T2.2/T2.3 with llm client registry, runtime wiring through registry, and provider env/base-url override tests`
 - `2026-04-30 21:15` state=`in_review` slice=`slice-3` note=`completed T3.1/T3.2/T3.3 with shared registry injection, unsupported-provider nil fallback preservation, and cli-level openai parity tests`
 - `2026-04-30 21:36` state=`in_review` slice=`slice-4` note=`completed T4.1/T4.2/T4.3 with alias-first config examples, openrouter wrapper docs, and malformed alias contract validation tests`
+- `2026-04-30 21:55` state=`in_review` slice=`slice-5` note=`completed T5.1/T5.2/T5.3 with llm trace alias metadata plus explicit missing-key guardrails and misconfiguration tests`
