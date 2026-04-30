@@ -39,6 +39,7 @@ require_relative "redwright/chat_context_store"
 require_relative "redwright/clarification_session_store"
 require_relative "redwright/telegram_context_resolver"
 require_relative "redwright/model_resolver"
+require_relative "redwright/llm_client_registry"
 require_relative "redwright/openai_client"
 require_relative "redwright/llm_intent_interpreter"
 require_relative "redwright/prompt_context_loader"
@@ -711,12 +712,7 @@ module Redwright
     end
 
     def llm_client_for(provider)
-      case provider.to_s
-      when "openai"
-        OpenAIClient.new
-      else
-        nil
-      end
+      LlmClientRegistry.new.client_for(provider)
     end
   end
 end
