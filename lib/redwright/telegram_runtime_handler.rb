@@ -201,6 +201,12 @@ module Redwright
                                "Active project: #{operational['project_name']} (#{operational['project_id']})\nPath: #{operational['project_path']}\nTrace: #{Trace.current_trace_id || 'none'}"
                              elsif operational["command"] == "repo_status"
                                "Repo status for #{operational['project_name']}:\n#{operational['git_status']}\nTrace: #{Trace.current_trace_id || 'none'}"
+                             elsif operational["command"] == "ticket_list"
+                               lines = (operational["tickets"] || []).first(10).map do |t|
+                                 "- #{t['id']} [#{t['status']}] #{t['description']}"
+                               end
+                               body = lines.empty? ? "No tickets found." : lines.join("\n")
+                               "Tickets for #{operational['project_name']}:\n#{body}\nTrace: #{Trace.current_trace_id || 'none'}"
                              else
                                "Operational command applied.\nproject=#{runtime_project_id} workstream=#{runtime_workstream_id} task=#{runtime_task_id} state=#{runtime_state}\nTrace: #{Trace.current_trace_id || 'none'}"
                              end

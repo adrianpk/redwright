@@ -85,27 +85,27 @@ Validation:
 
 ### Slice 4: Unified Command/Query Bridge and Runtime Loop Controls
 
-- status: `pending`
+- status: `in_review`
 - branch: `feat/slice-4-command-query-bridge-and-loop-controls`
 - PR: `tbd`
 - merge_target: `dev`
-- last_sync_commit: `tbd`
+- last_sync_commit: `858d7f2`
 
 Tasks:
 
-- [ ] `T4.1 add command/query endpoints for ticket start/select/list and loop controls`
-- [ ] `T4.2 implement ad-hoc request ticketization policy for telegram/tui`
-- [ ] `T4.3 implement default telegram ticket progress notifications`
+- [x] `T4.1 add command/query endpoints for ticket start/select/list and loop controls`
+- [x] `T4.2 implement ad-hoc request ticketization policy for telegram/tui`
+- [x] `T4.3 implement default telegram ticket progress notifications`
 
 Commits:
 
-- [ ] `<sha> feat(runtime): enforce ticket-first execution bridge across ingress channels`
-- [ ] `<sha> feat(runtime): add loop controls and telegram ticket progress notifications`
+- [x] `<sha> feat(runtime): enforce ticket-first execution bridge across ingress channels`
+- [x] `<sha> feat(runtime): add loop controls and telegram ticket progress notifications`
 
 Validation:
 
-- [ ] `<cmd> unified ingress ticketization tests`
-- [ ] `<cmd> loop mode and ticket selection tests`
+- [x] `<cmd> ruby -Ilib:test test/redwright/server_runtime_dispatcher_test.rb`
+- [x] `<cmd> ruby -Ilib:test test/redwright/telegram_control_router_test.rb`
 
 ### Slice 5: Time Aggregation, Reporting, and Hardening
 
