@@ -3,8 +3,8 @@
 ## Metadata
 
 - owner: `adrianpk`
-- status: `completed`
-- active_cycle: `none`
+- status: `in_progress`
+- active_cycle: `cycle_d`
 - plan: `ops/plans/2026-04-29-redwright-runtime-next-program-plan.md`
 
 ## Cycle Progress
@@ -27,6 +27,12 @@
 - plan: `ops/plans/2026-04-29-redwright-project-manifest-rehydration-and-docs-cycle-plan.md`
 - tracker: `ops/trackers/2026-04-29-redwright-project-manifest-rehydration-and-docs-cycle-tracker.md`
 
+### Cycle D: Kanban-Centric Rails MVP
+
+- status: `in_progress`
+- plan: `ops/plans/2026-04-30-redwright-kanban-centric-rails-mvp-cycle-plan.md`
+- tracker: `ops/trackers/2026-04-30-redwright-kanban-centric-rails-mvp-cycle-tracker.md`
+
 ## Event Log
 
 - `2026-04-29 14:10` state=`planned` note=`program initialized with three ordered cycles: persistence, operational commands, manifest+docs`
@@ -34,4 +40,4 @@
 - `2026-04-29 17:35` state=`completed` cycle=`cycle_b` note=`operational command model cycle completed`
 - `2026-04-29 17:35` state=`ready` cycle=`cycle_c` note=`project manifest rehydration and docs cycle is next in sequence`
 - `2026-04-29 20:35` state=`completed` cycle=`cycle_c` note=`project manifest rehydration and docs cycle completed`
-- `2026-04-29 20:35` state=`completed` note=`runtime-next three-cycle program closed with all cycles completed`
+- `2026-04-30 00:00` state=`in_progress` cycle=`cycle_d` note=`kanban-centric rails MVP cycle initialized under unified ticket-first runtime policy`

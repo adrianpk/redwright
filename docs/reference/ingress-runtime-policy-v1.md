@@ -1,51 +1,36 @@
-# Ingress and Runtime Policy v1
+# Ingress and Runtime Policy v2
 
 ## Scope
-Defines ingress policies for dual-bot operation and runtime partitioning.
+Defines unified ingress policy for one bot and one ticket-centric runtime surface.
 
-## Runtime Mapping
+## Unified Runtime Mapping
+- Telegram, TUI, and Rails all map to the same Command/Query core.
+- No ingress path may bypass ticket semantics for mutating work.
 
-1. `interactive` runtime
-- Intended for direct operator workflows.
-- Supported ingress: Telegram interactive bot, TUI.
-- No sandbox required.
+## Ticketization Policy
 
-2. `factory` runtime
-- Intended for ticket-driven autonomous workflows.
-- Supported ingress: factory control bot, API/web orchestration.
-- Sandbox required for mutating execution.
+1. If request references ticket explicitly:
+- Resolve ticket.
+- Execute in `single_ticket` mode unless user requests `loop`.
 
-## Dual-Bot Policy
+2. If request has no ticket:
+- Create ticket from intent.
+- Assign project/board context.
+- Place in workflow column according to intent.
 
-### Interactive Bot
-- Channel purpose: project-scoped ad-hoc execution.
-- Runtime target: `interactive`.
-- Allowed command/query classes:
-  - direct operational requests
-  - local project context checks
+3. Special handling:
+- `new project` requests must create a board and a setup ticket.
 
-### Factory Bot
-- Channel purpose: board/ticket orchestration.
-- Runtime target: `factory`.
-- Allowed command/query classes:
-  - ticket lifecycle commands
-  - factory status and queue visibility queries
+## Notifications Policy
+- Runtime emits ticket progress updates to Telegram by default.
+- Notification channel/mode becomes configurable in later slices.
 
 ## Identity and Access
-
-1. Bots must map to explicit actor identities.
-2. Actor identity must map to role constraints.
-3. Visibility policy evaluation must run before handler dispatch.
-
-## Enforcement Rules
-
-1. Ingress adapter must declare target runtime explicitly.
-2. Runtime-role mismatch must fail with structured error.
-3. Interactive ingress must not impersonate factory roles.
-4. Factory ingress must not bypass ticket visibility policy.
+1. Actor identity is mandatory for each command/query.
+2. Ticket visibility policy must pass before dispatch.
+3. Priority-based selection must still respect assignment/visibility rules.
 
 ## Error Contract
-
 On policy violation:
 
 ```json
@@ -53,16 +38,15 @@ On policy violation:
   "status": "error",
   "error": {
     "code": "unauthorized",
-    "message": "runtime role mismatch for ingress"
+    "message": "ticket visibility policy denied"
   }
 }
 ```
 
 ## Observability Requirements
-
 Each ingress event must emit:
-- runtime
-- ingress channel identifier
+- ticket id (or ticket creation event id)
+- execution mode (`single_ticket|loop`)
 - actor identity
 - request id
-- decision outcome (`allowed` | `denied`)
+- decision outcome (`allowed|denied`)

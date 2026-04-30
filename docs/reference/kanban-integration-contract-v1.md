@@ -1,7 +1,7 @@
-# Kanban Integration Contract v1
+# Kanban Integration Contract v2
 
 ## Scope
-Defines the integration contract between Kanban application surfaces and the runtime Command/Query core.
+Defines integration between Rails Kanban surface and runtime Command/Query core under ticket-first execution.
 
 ## Base Path
 `/api/v1`
@@ -14,77 +14,77 @@ Required headers:
 - `X-Actor-Id: <identity>`
 - `X-Request-Id: <request-id>`
 
+## Ticket Metadata Contract
+Each ticket must support:
+- `priority`: `high|medium|low`
+- `time_tracking`:
+  - `coding_started_at`
+  - `coding_stopped_at`
+  - `review_started_at`
+  - `review_completed_at`
+  - `merge_started_at`
+  - `merged_at`
+  - `elapsed_seconds_total`
+  - `elapsed_seconds_by_phase`
+
 ## Command Endpoints
 
 ### POST `/commands/tickets`
-Creates a ticket-oriented command envelope and dispatches it.
+Creates and dispatches ticket commands.
+
+Supported names (MVP):
+- `CreateTicket`
+- `AssignTicket`
+- `MoveTicket`
+- `StartTicketExecution`
+- `StartLoopExecution`
+- `StopLoopExecution`
+
+### POST `/commands/intake`
+Transforms ad-hoc ingress request into ticketized work.
 
 Request body:
 ```json
 {
-  "name": "MoveTicket",
+  "name": "IntakeRequestAsTicket",
   "payload": {
-    "ticket_id": "RW-42",
-    "to_column": "review"
-  },
-  "execution_context": {
-    "runtime": "factory",
-    "role": "coder",
-    "actor_id": "agent_coder"
+    "project_id": "p1",
+    "text": "build a simple CLI ping/pong app",
+    "source": "telegram"
   }
 }
 ```
 
-Response (accepted):
-```json
-{
-  "status": "ok",
-  "request_id": "req-uuid",
-  "result": {}
-}
-```
+Behavior:
+- creates ticket,
+- sets initial column/status,
+- returns created ticket id.
 
 ## Query Endpoints
 
 ### POST `/queries/tickets`
-Dispatches ticket query envelopes.
+Dispatches ticket queries.
 
-Request body:
-```json
-{
-  "name": "GetTickets",
-  "payload": {
-    "project_id": "p1",
-    "status": "in_review"
-  },
-  "execution_context": {
-    "runtime": "factory",
-    "role": "human_operator",
-    "actor_id": "user_1"
-  }
-}
-```
-
-Response:
-```json
-{
-  "status": "ok",
-  "request_id": "req-uuid",
-  "result": {
-    "tickets": []
-  }
-}
-```
+Supported names (MVP):
+- `GetTicket`
+- `GetTicketsByProject`
+- `GetNextTicketByPriority`
 
 ### POST `/queries/board`
 Dispatches board-level queries.
 
-Allowed names:
+Supported names (MVP):
 - `GetBoard`
-- `GetFactoryStatus`
+- `GetBoardMetrics`
+
+## Transport Rules
+1. Request handlers must not run domain logic directly.
+2. Adapters must map payloads to command/query envelopes before dispatch.
+3. All responses must include `request_id`.
+4. Mutating execution must target a ticket id.
 
 ## Error Contract
-All command/query errors must use the same envelope.
+All command/query errors use same envelope.
 
 ```json
 {
@@ -92,21 +92,7 @@ All command/query errors must use the same envelope.
   "request_id": "req-uuid",
   "error": {
     "code": "unsupported_action",
-    "message": "no handler registered for GetBoard"
+    "message": "no handler registered"
   }
 }
 ```
-
-Error codes:
-- `invalid_envelope`
-- `invalid_payload`
-- `unsupported_action`
-- `unauthorized`
-- `forbidden_transition`
-- `execution_failed`
-
-## Transport Rules
-1. Request handlers must not run domain logic directly.
-2. Adapters must map payloads to command/query envelopes before dispatch.
-3. All responses must include `request_id`.
-4. Runtime role constraints are enforced in handlers, not in transport adapters.

@@ -1,36 +1,16 @@
 # ADR-004: Runtime Partitioning (Interactive and Factory)
 
 ## Status
-Accepted
+Superseded by ADR-008
 
 ## Date
 2026-04-29
 
 ## Context
-The product must keep fast interactive workflows while adding reproducible ticket-driven automation.
+This ADR defined two logical runtimes (`interactive` and `factory`) to preserve low-latency direct workflows while adding reproducible ticket automation.
 
-## Decision
-Run two logical runtimes sharing one semantic core:
+## Supersession Note
+As of 2026-04-30, RedWright moves to a Kanban-centric execution model where all work is ticket-oriented and executed by one unified runtime surface. The previous runtime partitioning is kept only as historical context.
 
-1. `interactive` runtime:
-- Telegram/TUI direct mode.
-- No Docker.
-- Low-latency operator workflow.
-
-2. `factory` runtime:
-- Ticket-driven mode.
-- Docker sandbox mandatory.
-- Reproducible autonomous or semi-autonomous execution.
-
-Both runtimes must consume the same Command/Query contracts and domain policies.
-
-## Consequences
-
-### Positive
-- Isolation of concerns and state.
-- Cleaner operational controls and observability.
-- Avoids context contamination between informal and factory flows.
-
-### Negative
-- Duplicate operational plumbing (queues, metrics, health checks).
-- More deployment and lifecycle management complexity.
+See:
+- `docs/explanation/adr/adr-008-kanban-centric-unified-runtime-and-ticket-execution.md`

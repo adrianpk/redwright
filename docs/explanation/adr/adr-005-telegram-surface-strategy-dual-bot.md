@@ -1,34 +1,16 @@
 # ADR-005: Telegram Surface Strategy (Dual Bot)
 
 ## Status
-Accepted
+Superseded by ADR-008
 
 ## Date
 2026-04-29
 
 ## Context
-One-bot strategy mixes informal project conversations with multi-project factory control traffic. This increases noise, policy complexity, and authorization risk.
+This ADR defined a dual-bot strategy (interactive bot + factory bot) to isolate noisy traffic and policy boundaries.
 
-## Decision
-Adopt **dual Telegram bot surfaces**:
+## Supersession Note
+As of 2026-04-30, RedWright standardizes on one Telegram bot operating over a unified ticket-centric runtime surface. Bot-level split is deferred and considered optional for future scale.
 
-1. `interactive bot`
-- Project-scoped operational conversations.
-- Human-driven and low-latency interactions.
-
-2. `factory bot`
-- Kanban/factory control operations.
-- Multi-project orchestration interactions.
-
-Both bots route into the same Command/Query semantic core with different ingress policies.
-
-## Consequences
-
-### Positive
-- Lower operator noise and channel overload.
-- Simpler chat allow-list and control policy boundaries.
-- Better audit separation by channel intent.
-
-### Negative
-- Additional token, webhook, and lifecycle management.
-- Slightly higher setup complexity.
+See:
+- `docs/explanation/adr/adr-008-kanban-centric-unified-runtime-and-ticket-execution.md`

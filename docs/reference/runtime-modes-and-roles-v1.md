@@ -1,16 +1,24 @@
-# Runtime Modes and Role Constraints v1
+# Runtime Execution and Role Constraints v2
 
-## Modes
+## Execution Modes
 
-### Interactive
-- Direct Telegram/TUI operation.
-- No Docker sandbox.
-- Optimized for low latency.
+### Single Ticket
+- Execute one selected ticket lifecycle.
+- Lifecycle phases: `coding -> review -> merge`.
+- Stops after ticket terminal state.
 
-### Factory
-- Ticket-driven operation.
-- Docker sandbox required.
-- Optimized for reproducibility and isolation.
+### Loop
+- Continuously picks next eligible ticket.
+- Selection baseline: assigned tickets first, then highest priority.
+- Repeats lifecycle until stop condition.
+
+## Ticket-First Rule
+All mutating execution must target a ticket.
+
+If ingress request has no ticket:
+1. Create/derive ticket.
+2. Place ticket in correct board column.
+3. Start lifecycle execution under selected mode.
 
 ## Role Constraints
 
@@ -26,5 +34,10 @@
 - Can merge approved PRs and perform merge cleanup.
 - Cannot author implementation commits.
 
+## MVP Runtime Topology
+- One bot.
+- One runtime agent process.
+- Team/pool model is deferred.
+
 ## Enforcement
-Role constraints are enforced in application handlers, not only by prompt conventions.
+Role constraints and ticket-first policy are enforced in application handlers, not only by prompt conventions.
