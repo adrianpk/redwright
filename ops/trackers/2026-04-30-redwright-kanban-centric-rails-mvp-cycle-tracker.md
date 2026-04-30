@@ -76,7 +76,7 @@ Commits:
 
 - [x] `359d785 feat(web): add kanban domain entities and persistence model`
 - [x] `9b12b3e test(web): cover ticket priority and lifecycle timing semantics`
-- [x] `<sha> feat(web): add turbo-stream kanban board movement and interaction tests`
+- [x] `259f584 feat(web): add turbo-stream kanban board movement and interaction tests`
 
 Validation:
 
