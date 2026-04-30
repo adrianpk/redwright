@@ -1,7 +1,28 @@
 require "test_helper"
 
 class TicketsControllerTest < ActionDispatch::IntegrationTest
+  def create_admin_user!
+    User.create!(
+      email_address: "owner@example.com",
+      password: "password-123",
+      password_confirmation: "password-123"
+    )
+  end
+
+  def create_programmer_user!
+    user = User.new(
+      email_address: "programmer@example.com",
+      password: "password-123",
+      password_confirmation: "password-123"
+    )
+    user.roles = [ "programmer" ]
+    user.save!
+    user
+  end
+
   test "create persists ticket from board form" do
+    admin = create_admin_user!
+    sign_in_as(admin)
     board = Board.create!(name: "Factory", project_key: "factory-create")
     backlog = board.columns.create!(key: "backlog", title: "Backlog", position: 0)
 
@@ -22,6 +43,8 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "update edits existing ticket" do
+    admin = create_admin_user!
+    sign_in_as(admin)
     board = Board.create!(name: "Factory", project_key: "factory-update")
     backlog = board.columns.create!(key: "backlog", title: "Backlog", position: 0)
     ticket = board.tickets.create!(column: backlog, title: "Old title")
@@ -36,6 +59,8 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "move updates ticket column and returns turbo stream" do
+    admin = create_admin_user!
+    sign_in_as(admin)
     board = Board.create!(name: "Factory", project_key: "factory")
     backlog = board.columns.create!(key: "backlog", title: "Backlog", position: 0)
     review = board.columns.create!(key: "review", title: "Review", position: 1)
@@ -50,6 +75,8 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "pick returns assignee-prioritized ticket" do
+    admin = create_admin_user!
+    sign_in_as(admin)
     board = Board.create!(name: "Factory", project_key: "factory")
     backlog = board.columns.create!(key: "backlog", title: "Backlog", position: 0)
     board.tickets.create!(column: backlog, title: "General high", priority: :high)
@@ -63,6 +90,8 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "archive removes ticket from board scope" do
+    admin = create_admin_user!
+    sign_in_as(admin)
     board = Board.create!(name: "Factory", project_key: "factory-archive")
     backlog = board.columns.create!(key: "backlog", title: "Backlog", position: 0)
     ticket = board.tickets.create!(column: backlog, title: "Archive me")
@@ -75,6 +104,8 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "destroy removes ticket from database" do
+    admin = create_admin_user!
+    sign_in_as(admin)
     board = Board.create!(name: "Factory", project_key: "factory-delete")
     backlog = board.columns.create!(key: "backlog", title: "Backlog", position: 0)
     ticket = board.tickets.create!(column: backlog, title: "Delete me")
@@ -83,5 +114,78 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_nil Ticket.find_by(id: ticket.id)
+  end
+
+  test "non-admin cannot assign ticket on create" do
+    create_admin_user!
+    programmer = create_programmer_user!
+    sign_in_as(programmer)
+    board = Board.create!(name: "Factory", project_key: "factory-assign-create")
+    backlog = board.columns.create!(key: "backlog", title: "Backlog", position: 0)
+
+    post board_tickets_path(board), params: {
+      ticket: {
+        title: "Assign blocked",
+        assignee: "agent-1",
+        column_id: backlog.id
+      }
+    }
+
+    assert_response :redirect
+    assert_equal 0, board.tickets.count
+  end
+
+  test "non-admin can create ticket when assignee is omitted" do
+    create_admin_user!
+    programmer = create_programmer_user!
+    sign_in_as(programmer)
+    board = Board.create!(name: "Factory", project_key: "factory-non-admin-create")
+    backlog = board.columns.create!(key: "backlog", title: "Backlog", position: 0)
+
+    post board_tickets_path(board), params: {
+      ticket: {
+        title: "Allowed create",
+        description: "No assignee set",
+        column_id: backlog.id
+      }
+    }
+
+    assert_redirected_to board_path(board)
+    created = board.tickets.order(:created_at).last
+    assert_equal "Allowed create", created.title
+    assert_equal("", created.assignee.to_s)
+  end
+
+  test "non-admin cannot archive or delete" do
+    create_admin_user!
+    programmer = create_programmer_user!
+    sign_in_as(programmer)
+    board = Board.create!(name: "Factory", project_key: "factory-governance")
+    backlog = board.columns.create!(key: "backlog", title: "Backlog", position: 0)
+    ticket = board.tickets.create!(column: backlog, title: "Governance target")
+
+    patch archive_ticket_path(ticket, format: :turbo_stream)
+    assert_response :forbidden
+    assert_nil ticket.reload.archived_at
+
+    delete ticket_path(ticket, format: :turbo_stream)
+    assert_response :forbidden
+    assert_not_nil Ticket.find_by(id: ticket.id)
+  end
+
+  test "non-admin can update ticket fields when assignee is unchanged" do
+    create_admin_user!
+    programmer = create_programmer_user!
+    sign_in_as(programmer)
+    board = Board.create!(name: "Factory", project_key: "factory-non-admin-update")
+    backlog = board.columns.create!(key: "backlog", title: "Backlog", position: 0)
+    ticket = board.tickets.create!(column: backlog, title: "Old title", assignee: "")
+
+    patch ticket_path(ticket), params: {
+      ticket: { title: "New title", priority: "high" }
+    }
+
+    assert_redirected_to board_path(board)
+    assert_equal "New title", ticket.reload.title
   end
 end
