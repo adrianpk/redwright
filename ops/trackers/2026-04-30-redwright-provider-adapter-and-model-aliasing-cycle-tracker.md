@@ -4,36 +4,37 @@
 
 - cycle_id: `rw-2026-04-30-provider-adapter-model-aliasing`
 - status: `in_progress`
-- state: `implementation`
+- state: `in_review`
 - updated: `2026-04-30`
 - active_slice: `slice-1`
-- active_task: `T1.2`
+- active_task: `none`
 
 ## Slice Progress
 
 ### Slice 1: Model Alias Contract and Resolver
 
-- status: `pending`
+- status: `in_review`
 - branch: `feat/slice-1-model-alias-contract-and-resolver`
-- PR: `tbd`
+- PR: `tbd (open)`
 - merge_target: `dev`
-- last_sync_commit: `tbd`
+- last_sync_commit: `1b8aa34`
 
 Tasks:
 
 - [x] `T1.1 extend config contract with models.aliases mapping`
-- [ ] `T1.2 implement resolver support for alias -> provider/model target`
-- [ ] `T1.3 add trace fields for model alias and resolved target`
+- [x] `T1.2 implement resolver support for alias -> provider/model target`
+- [x] `T1.3 add trace fields for model alias and resolved target`
 
 Commits:
 
-- [ ] `<sha> feat(config): add model alias mapping contract and resolver wiring`
-- [ ] `<sha> test(config): cover model alias parsing and resolution behavior`
+- [x] `08c69dd feat(config): add models alias mapping contract`
+- [x] `83da737 feat(runtime): resolve model aliases to provider targets`
+- [x] `1b8aa34 feat(observability): add model alias to resolution trace`
 
 Validation:
 
-- [ ] `<cmd> ruby -Ilib:test test/redwright/app_config_test.rb`
-- [ ] `<cmd> ruby -Ilib:test test/redwright/model_resolver_test.rb`
+- [x] `<cmd> ruby -Ilib:test test/redwright/app_config_test.rb`
+- [x] `<cmd> ruby -Ilib:test test/redwright/model_resolver_test.rb`
 
 ### Slice 2: Provider Adapter Registry
 
@@ -133,3 +134,4 @@ Validation:
 
 - `2026-04-30 20:00` state=`planning` note=`initialized provider adapter and model aliasing cycle with pr-per-slice and commit-per-task execution policy`
 - `2026-04-30 20:25` state=`implementation` slice=`slice-1` note=`completed T1.1 by introducing models.aliases config contract and coverage in app_config tests`
+- `2026-04-30 20:45` state=`in_review` slice=`slice-1` note=`completed T1.2/T1.3 with alias target resolution and model_alias trace metadata; ready for PR merge to dev`
