@@ -228,6 +228,7 @@ module Redwright
     def infer_project_name(text)
       normalized = text.to_s.strip
       return nil if normalized.empty?
+      return nil if normalized.start_with?("/")
 
       patterns = [
         /named\s+([a-z0-9][a-z0-9._\-]+)/i,
@@ -253,6 +254,7 @@ module Redwright
     def infer_replacement_name(text)
       normalized = text.to_s.strip
       return nil if normalized.empty?
+      return nil if normalized.start_with?("/")
 
       patterns = [
         /use\s+([a-z0-9][a-z0-9._\-]+)/i,

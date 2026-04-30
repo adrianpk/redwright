@@ -295,6 +295,27 @@ class TelegramContextResolverTest < Minitest::Test
     end
   end
 
+  def test_resolve_does_not_infer_project_name_from_slash_project_new_message
+    Dir.mktmpdir("redwright-context-resolver-slash-project-new-") do |dir|
+      Dir.chdir(dir) do
+        bootstrap = Redwright::Bootstrap.new(mode: :dev).call
+        projects = Redwright::ProjectStore.new(bootstrap.db_path)
+        contexts = Redwright::ChatContextStore.new(bootstrap.db_path)
+        resolver = Redwright::TelegramContextResolver.new(
+          project_store: projects,
+          chat_context_store: contexts,
+          projects_root: bootstrap.projects_root,
+          clarification_session_store: nil
+        )
+
+        result = resolver.resolve(chat_id: 611, text: "/project new asciart a bash script that prints ascii art")
+        assert_equal(true, result.resolved)
+        assert_equal(File.join(bootstrap.projects_root, "project-1"), result.project_path)
+        refute(File.directory?(File.join(bootstrap.projects_root, "new")))
+      end
+    end
+  end
+
   def test_resolve_allows_after_explicit_session_switch
     Dir.mktmpdir("redwright-context-resolver-session-switch-") do |dir|
       Dir.chdir(dir) do
