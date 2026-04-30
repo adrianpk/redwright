@@ -514,6 +514,84 @@ class ServerRuntimeDispatcherTest < Minitest::Test
     end
   end
 
+  def test_send_dispatch_ticket_list_returns_recent_project_tickets_without_flow_execution
+    Dir.mktmpdir("redwright-server-dispatcher-ticket-list-") do |dir|
+      Dir.chdir(dir) do
+        bootstrap = Redwright::Bootstrap.new(mode: :dev).call
+        project_store = Redwright::ProjectStore.new(bootstrap.db_path)
+        task_store = Redwright::TaskStore.new(bootstrap.db_path)
+        workstream_store = Redwright::WorkstreamStore.new(bootstrap.db_path)
+        path = File.join(bootstrap.projects_root, "alpha")
+        FileUtils.mkdir_p(path)
+        project = project_store.register(path: path, aliases: ["alpha"])
+        workstream = workstream_store.create(project_id: project.id, intent: "change", state: "executing")
+        task_store.create(workstream_id: workstream.id, description: "First ticketized request", status: "pending", trace_id: "trc-ticket-1")
+
+        flow = Object.new
+        flow.define_singleton_method(:process) do |**_kwargs|
+          raise "flow should not run for /ticket list"
+        end
+        dispatcher = Redwright::ServerRuntimeDispatcher.new(
+          flow: flow,
+          blocked_retry_attempts: 1,
+          project_store: project_store,
+          projects_root: bootstrap.projects_root,
+          task_store: task_store
+        )
+
+        response = dispatcher.call(
+          "type" => "send",
+          "session_id" => "telegram-91",
+          "payload" => {
+            "channel" => "telegram",
+            "project_ref" => "alpha",
+            "intent" => "change",
+            "message" => "/ticket list",
+            "actions" => []
+          }
+        )
+
+        assert_equal("ok", response["status"])
+        assert_equal("ticket_list", response["command"])
+        assert_equal(project.id, response["project_id"])
+        assert_equal(1, response.fetch("tickets").size)
+        assert_match("First ticketized request", response.fetch("tickets").first.fetch("description"))
+      end
+    end
+  end
+
+  def test_send_dispatch_ticketizes_adhoc_message_for_telegram_channel
+    flow = Object.new
+    captured = {}
+    flow.define_singleton_method(:process) do |**kwargs|
+      captured.merge!(kwargs)
+      Struct.new(:project, :workstream, :task, :terminal_reason, :action_results, keyword_init: true).new(
+        project: Struct.new(:id).new("p-1"),
+        workstream: Struct.new(:id, :state).new("ws-1", "executing"),
+        task: Struct.new(:id).new("task-1"),
+        terminal_reason: "ok",
+        action_results: []
+      )
+    end
+    dispatcher = Redwright::ServerRuntimeDispatcher.new(flow: flow, blocked_retry_attempts: 1)
+
+    response = dispatcher.call(
+      "type" => "send",
+      "session_id" => "telegram-92",
+      "payload" => {
+        "channel" => "telegram",
+        "project_ref" => "p-1",
+        "intent" => "change",
+        "message" => "implement parser",
+        "actions" => []
+      }
+    )
+
+    assert_equal("ok", response["status"])
+    assert_equal(true, response["ticketized"])
+    assert_equal("Ticket request: implement parser", captured[:message])
+  end
+
   def test_send_dispatch_repo_undo_executes_git_undo_when_last_task_is_git_only
     Dir.mktmpdir("redwright-server-dispatcher-repo-undo-ok-") do |dir|
       Dir.chdir(dir) do

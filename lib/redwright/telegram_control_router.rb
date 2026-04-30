@@ -123,6 +123,46 @@ module Redwright
         return { kind: "control", command: "resume", reason: raw } if arg.match?(/^resume$/i)
         return { kind: "control", command: "stop", reason: raw } if arg.match?(/^cancel$/i)
         nil
+      when "/ticket"
+        if arg.match?(/^list$/i)
+          return {
+            kind: "operational",
+            command: "ticket_list",
+            planner_text_fallback: "List tickets for the active project ordered by priority."
+          }
+        end
+        if arg.match?(/^pick$/i)
+          return {
+            kind: "operational",
+            command: "ticket_pick",
+            planner_text_fallback: "Pick the next eligible ticket and start execution."
+          }
+        end
+        if arg.match?(/^start\s+/i)
+          ticket_id = arg.sub(/^start\s+/i, "")
+          return {
+            kind: "operational",
+            command: "ticket_start",
+            planner_text_fallback: "Start work on ticket #{ticket_id}."
+          }
+        end
+        nil
+      when "/loop"
+        if arg.match?(/^start$/i)
+          return {
+            kind: "operational",
+            command: "loop_start",
+            planner_text_fallback: "Enable loop mode to continuously process tickets."
+          }
+        end
+        if arg.match?(/^stop$/i)
+          return {
+            kind: "operational",
+            command: "loop_stop",
+            planner_text_fallback: "Stop loop mode after the current ticket boundary."
+          }
+        end
+        nil
       when "/plan"
         return { kind: "planner_hint", planner_text: "Start an explicit planning and slicing workflow for the current request." } if arg.match?(/^start$/i)
         return { kind: "planner_hint", planner_text: "Continue with current context and execute using existing assumptions." } if arg.match?(/^continue$/i)

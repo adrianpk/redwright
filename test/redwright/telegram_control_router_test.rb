@@ -51,6 +51,18 @@ class TelegramControlRouterTest < Minitest::Test
     assert_equal("repo_status", parsed[:command])
   end
 
+  def test_parse_slash_command_routes_ticket_list_as_operational
+    parsed = Redwright::TelegramControlRouter.new.parse_slash_command("/ticket list")
+    assert_equal("operational", parsed[:kind])
+    assert_equal("ticket_list", parsed[:command])
+  end
+
+  def test_parse_slash_command_routes_loop_start_as_operational
+    parsed = Redwright::TelegramControlRouter.new.parse_slash_command("/loop start")
+    assert_equal("operational", parsed[:kind])
+    assert_equal("loop_start", parsed[:command])
+  end
+
   def test_control_from_decision_maps_meta_cancel
     router = Redwright::TelegramControlRouter.new
     control = router.control_from_decision(

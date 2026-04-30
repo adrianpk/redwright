@@ -61,6 +61,7 @@ module Redwright
     def dispatch_send(request:, payload:)
       session_id = request.fetch("session_id", "").to_s
       message = payload.fetch("message").to_s
+      channel = payload.fetch("channel", "").to_s
       project_ref = payload.fetch("project_ref", "").to_s.strip
       project_ref, message, operational = resolve_project_ref_for_send(session_id: session_id, project_ref: project_ref, message: message)
       if operational
@@ -68,6 +69,9 @@ module Redwright
         return read_only if read_only
       end
       raise ArgumentError, "missing_project_ref" if project_ref.to_s.strip.empty?
+
+      ticketization = ticketize_ad_hoc_message(channel: channel, message: message)
+      message = ticketization[:message]
 
       intent = payload.fetch("intent", "change").to_s
       actions = payload.fetch("actions", [])
@@ -97,6 +101,7 @@ module Redwright
         "workstream_id" => result.workstream.id,
         "task_id" => result.task.id,
         "state" => result.workstream.state,
+        "ticketized" => ticketization[:ticketized],
         "terminal_reason" => result.terminal_reason.to_s,
         "action_results" => (result.action_results || []).map do |r|
           {
@@ -156,6 +161,27 @@ module Redwright
           "project_name" => active.name,
           "git_status" => output.to_s.strip
         }
+      when "ticket_list"
+        active = resolve_active_project(session_id: session_id, project_ref: project_ref)
+        raise ArgumentError, "missing_project_ref" unless active
+        raise ArgumentError, "task_store_not_available" unless @task_store
+
+        tickets = @task_store.list_recent_with_trace(limit: 50).select { |row| row.project_id == active.id }
+        return {
+          "status" => "ok",
+          "command" => "ticket_list",
+          "project_id" => active.id,
+          "project_name" => active.name,
+          "tickets" => tickets.first(20).map do |row|
+            {
+              "id" => row.task_id,
+              "description" => row.task_description,
+              "status" => row.task_status,
+              "workstream_id" => row.workstream_id,
+              "created_at" => row.created_at
+            }
+          end
+        }
       end
 
       nil
@@ -184,6 +210,21 @@ module Redwright
         when "undo"
           active = resolve_active_project(session_id: session_id, project_ref: project_ref)
           return [active.id, "Undo the latest safe repository changes for the active project.", parsed] if active
+        when "ticket_list"
+          active = resolve_active_project(session_id: session_id, project_ref: project_ref)
+          return [active.id, message, parsed] if active
+        when "ticket_pick"
+          active = resolve_active_project(session_id: session_id, project_ref: project_ref)
+          return [active.id, "Pick next ticket and start execution.", parsed] if active
+        when "ticket_start"
+          active = resolve_active_project(session_id: session_id, project_ref: project_ref)
+          return [active.id, "Start working on ticket #{parsed[:ticket_id]}.", parsed] if active
+        when "loop_start"
+          active = resolve_active_project(session_id: session_id, project_ref: project_ref)
+          return [active.id, "Enable ticket loop mode and continue with the next eligible ticket.", parsed] if active
+        when "loop_stop"
+          active = resolve_active_project(session_id: session_id, project_ref: project_ref)
+          return [active.id, "Stop ticket loop mode after current task boundary.", parsed] if active
         when "list"
           return [project_ref, message, parsed]
         when "where", "status"
@@ -229,7 +270,31 @@ module Redwright
         end
       end
 
+      if raw.start_with?("/ticket ")
+        return { command: "ticket_list" } if raw.match?(%r{\A/ticket\s+list\s*\z}i)
+        return { command: "ticket_pick" } if raw.match?(%r{\A/ticket\s+pick\s*\z}i)
+        start_match = raw.match(%r{\A/ticket\s+start\s+([a-zA-Z0-9._\-]+)\s*\z}i)
+        return { command: "ticket_start", ticket_id: start_match[1] } if start_match
+      end
+
+      if raw.start_with?("/loop ")
+        return { command: "loop_start" } if raw.match?(%r{\A/loop\s+start\s*\z}i)
+        return { command: "loop_stop" } if raw.match?(%r{\A/loop\s+stop\s*\z}i)
+      end
+
       nil
+    end
+
+    def ticketize_ad_hoc_message(channel:, message:)
+      raw = message.to_s.strip
+      return { ticketized: false, message: raw } if raw.empty?
+      return { ticketized: false, message: raw } if raw.start_with?("/")
+      return { ticketized: false, message: raw } unless %w[telegram tui].include?(channel)
+
+      {
+        ticketized: true,
+        message: "Ticket request: #{raw}"
+      }
     end
 
     def resolve_active_project(session_id:, project_ref:)
