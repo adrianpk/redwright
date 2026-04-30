@@ -63,6 +63,7 @@ module Redwright
       @argv = argv.dup
       @out = out
       @err = err
+      @llm_client_registry = LlmClientRegistry.new
     end
 
     def run
@@ -712,7 +713,7 @@ module Redwright
     end
 
     def llm_client_for(provider)
-      LlmClientRegistry.new.client_for(provider)
+      @llm_client_registry.client_for(provider)
     end
   end
 end
