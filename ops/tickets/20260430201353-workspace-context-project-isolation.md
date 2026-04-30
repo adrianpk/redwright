@@ -1,14 +1,14 @@
 ---
 id: TKT-20260430201353
 title: Isolate workspace context and project paths in dev runtime
-status: open
+status: reviewing
 severity: high
 scope: runtime
 reported_at: 2026-04-30T20:13:53Z
-started_at:
+started_at: 2026-04-30T20:32:00Z
 closed_at:
-owner: codex
-branch:
+owner: adrianpk
+branch: fix/tkt-20260430201353-workspace-context-isolation
 pr:
 commits: []
 ---

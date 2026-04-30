@@ -1202,6 +1202,70 @@ class TelegramRuntimeHandlerTest < Minitest::Test
     assert(seen.any? { |t| t.include?("Create a new project. User request: create a Go app named cubix with ascii art") })
   end
 
+  def test_handle_dispatches_planner_operational_project_new_intent
+    fake_flow = Object.new
+    fake_flow.define_singleton_method(:process) do |**_kwargs|
+      raise "flow should not run when planner emits operational intent"
+    end
+
+    fake_interpreter = Object.new
+    fake_interpreter.define_singleton_method(:interpret) do |text:, model:|
+      TelegramRuntimeHandlerTest::FakeDecision.new(
+        intent: "meta",
+        message: text,
+        operational_intent: "project_new",
+        operational_scope: "runtime",
+        operational_args: { "project_name" => "cubix" },
+        source: "llm",
+        finish_reason: "stop",
+        raw_output: "{}"
+      )
+    end
+
+    captured = []
+    fake_operational_dispatcher = Object.new
+    fake_operational_dispatcher.define_singleton_method(:call) do |request|
+      captured << request
+      {
+        "status" => "ok",
+        "project_id" => "project-cubix",
+        "workstream_id" => "none",
+        "task_id" => "none",
+        "state" => "executing"
+      }
+    end
+
+    client = FakeTelegramClient.new([])
+    out = StringIO.new
+    err = StringIO.new
+    handler = Redwright::TelegramRuntimeHandler.new(
+      flow: fake_flow,
+      telegram_client: client,
+      out: out,
+      err: err,
+      blocked_retry_attempts: 1,
+      model_name: "gpt-5-mini",
+      intent_interpreter: fake_interpreter,
+      operational_dispatcher: fake_operational_dispatcher
+    )
+
+    handler.handle(
+      Redwright::TelegramEvent.new(
+        update_id: 921,
+        chat_id: 46,
+        user_id: nil,
+        username: nil,
+        text: "Create a new Go app named cubix with ascii art"
+      )
+    )
+
+    assert_equal(1, captured.size)
+    payload = captured.first.fetch("payload")
+    assert_equal("project_new", payload["operational_intent"])
+    assert_equal("cubix", payload.fetch("operational_args").fetch("project_name"))
+    assert_match("telegram planner_operational chat=46 command=project_new", out.string)
+  end
+
   def test_handle_emits_inferred_skill_activation_telemetry
     fake_flow = Object.new
     fake_flow.define_singleton_method(:process) do |**_kwargs|

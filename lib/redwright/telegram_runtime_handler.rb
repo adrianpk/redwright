@@ -366,6 +366,15 @@ module Redwright
             return
           end
 
+          if planner_operational?(decision)
+            handled = dispatch_planner_operational(
+              event: event,
+              resolution: resolution,
+              decision: decision
+            )
+            return if handled
+          end
+
           skill_activation = @skill_router.resolve(
             explicit_skill_name: explicit_skill_name,
             decision: decision
@@ -963,6 +972,80 @@ module Redwright
 
     def control_from_operational(decision, raw_text:)
       @control_router.control_from_operational(decision, raw_text: raw_text)
+    end
+
+    def planner_operational?(decision)
+      return false unless decision.respond_to?(:operational_intent)
+
+      intent = decision.operational_intent.to_s.strip
+      !intent.empty? && intent != "none"
+    end
+
+    def dispatch_planner_operational(event:, resolution:, decision:)
+      return false unless @operational_dispatcher
+
+      operational = @operational_dispatcher.call({
+        "type" => "send",
+        "session_id" => "telegram-#{event.chat_id}",
+        "payload" => {
+          "channel" => "telegram",
+          "project_ref" => resolution.project_ref.to_s,
+          "intent" => decision.intent.to_s.empty? ? "change" : decision.intent.to_s,
+          "message" => decision.message.to_s,
+          "actions" => [],
+          "confirm_new_workstream" => true,
+          "operational_intent" => decision.operational_intent.to_s,
+          "operational_args" => decision.respond_to?(:operational_args) ? (decision.operational_args || {}) : {}
+        }
+      })
+
+      if operational["status"] == "ok"
+        runtime_project_id = operational["project_id"] || resolution.project_ref.to_s
+        runtime_workstream_id = operational["workstream_id"] || "none"
+        runtime_task_id = operational["task_id"] || "none"
+        runtime_state = operational["state"] || "executing"
+        reply_text = if operational["command"] == "project_list"
+                       names = (operational["projects"] || []).map { |p| p["name"] }.join(", ")
+                       names = "none" if names.empty?
+                       "Projects: #{names}\nTrace: #{Trace.current_trace_id || 'none'}"
+                     elsif operational["command"] == "project_where"
+                       "Active project: #{operational['project_name']} (#{operational['project_id']})\nPath: #{operational['project_path']}\nTrace: #{Trace.current_trace_id || 'none'}"
+                     elsif operational["command"] == "repo_status"
+                       "Repo status for #{operational['project_name']}:\n#{operational['git_status']}\nTrace: #{Trace.current_trace_id || 'none'}"
+                     elsif operational["command"] == "ticket_list"
+                       lines = (operational["tickets"] || []).first(10).map do |t|
+                         "- #{t['id']} [#{t['status']}] #{t['description']}"
+                       end
+                       body = lines.empty? ? "No tickets found." : lines.join("\n")
+                       "Tickets for #{operational['project_name']}:\n#{body}\nTrace: #{Trace.current_trace_id || 'none'}"
+                     else
+                       "Operational command applied.\nproject=#{runtime_project_id} workstream=#{runtime_workstream_id} task=#{runtime_task_id} state=#{runtime_state}\nTrace: #{Trace.current_trace_id || 'none'}"
+                     end
+        envelope = RuntimeResultEnvelope.success(
+          trace_id: Trace.current_trace_id || "none",
+          project_id: runtime_project_id.to_s,
+          workstream_id: runtime_workstream_id.to_s,
+          task_id: runtime_task_id.to_s,
+          state: runtime_state.to_s,
+          terminal_reason: operational["terminal_reason"].to_s
+        )
+        @telegram_client.send_message(chat_id: event.chat_id, text: reply_text)
+        send_json_envelope_if_enabled(chat_id: event.chat_id, envelope: envelope)
+        @out.puts("telegram planner_operational chat=#{event.chat_id} command=#{decision.operational_intent}")
+      else
+        error_message = operational["message"].to_s.empty? ? "operational command failed" : operational["message"].to_s
+        error_envelope = RuntimeResultEnvelope.error(
+          trace_id: Trace.current_trace_id || "none",
+          message: error_message
+        )
+        @telegram_client.send_message(
+          chat_id: event.chat_id,
+          text: @message_renderer.error(message: error_message, trace_id: Trace.current_trace_id || "none")
+        )
+        send_json_envelope_if_enabled(chat_id: event.chat_id, envelope: error_envelope)
+        @out.puts("telegram planner_operational_error chat=#{event.chat_id} command=#{decision.operational_intent}")
+      end
+      true
     end
 
     def cancel_open_clarifications(chat_id:, workstream_id:, scope:)

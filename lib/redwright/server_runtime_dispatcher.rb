@@ -63,7 +63,13 @@ module Redwright
       message = payload.fetch("message").to_s
       channel = payload.fetch("channel", "").to_s
       project_ref = payload.fetch("project_ref", "").to_s.strip
-      project_ref, message, operational = resolve_project_ref_for_send(session_id: session_id, project_ref: project_ref, message: message)
+      project_ref, message, operational = resolve_project_ref_for_send(
+        session_id: session_id,
+        project_ref: project_ref,
+        message: message,
+        operational_intent: payload["operational_intent"],
+        operational_args: payload["operational_args"]
+      )
       if operational
         read_only = dispatch_read_only_operational(session_id: session_id, project_ref: project_ref, operational: operational)
         return read_only if read_only
@@ -187,10 +193,11 @@ module Redwright
       nil
     end
 
-    def resolve_project_ref_for_send(session_id:, project_ref:, message:)
+    def resolve_project_ref_for_send(session_id:, project_ref:, message:, operational_intent: nil, operational_args: nil)
       return [project_ref, message, nil] unless @project_store
 
-      parsed = parse_operational_slash(message)
+      parsed = parse_explicit_operational(intent: operational_intent, args: operational_args)
+      parsed ||= parse_operational_slash(message)
       if parsed
         case parsed[:command]
         when "new"
@@ -246,6 +253,46 @@ module Redwright
       return [active.id, message, nil] if active
 
       [project_ref, message, nil]
+    end
+
+    def parse_explicit_operational(intent:, args:)
+      op = intent.to_s.strip
+      return nil if op.empty? || op == "none"
+
+      operational_args = args.is_a?(Hash) ? args : {}
+      case op
+      when "project_new"
+        name = operational_args["project_name"].to_s.strip
+        name = operational_args["name"].to_s.strip if name.empty?
+        return nil if name.empty?
+
+        { command: "new", name: name }
+      when "project_switch"
+        name = operational_args["project_ref"].to_s.strip
+        name = operational_args["name"].to_s.strip if name.empty?
+        return nil if name.empty?
+
+        { command: "switch", name: name }
+      when "project_list"
+        { command: "list" }
+      when "project_where"
+        { command: "where" }
+      when "repo_status"
+        { command: "status" }
+      when "repo_undo"
+        { command: "undo" }
+      when "repo_clone"
+        url = operational_args["repo_url"].to_s.strip
+        url = operational_args["url"].to_s.strip if url.empty?
+        return nil if url.empty?
+
+        name = operational_args["project_name"].to_s.strip
+        name = operational_args["name"].to_s.strip if name.empty?
+        name = infer_repo_name(url) if name.empty?
+        { command: "clone", url: url, name: name }
+      else
+        nil
+      end
     end
 
     def parse_operational_slash(message)

@@ -74,6 +74,11 @@ class LlmIntentInterpreterTest < Minitest::Test
     assert_equal("hola", decision.message)
     assert_equal("none", decision.control_intent)
     assert_equal("none", decision.control_scope)
+    assert_equal("none", decision.operational_intent)
+    assert_equal("none", decision.operational_scope)
+    assert_equal({}, decision.operational_args)
+    assert_equal(false, decision.operational_requires_project)
+    assert_equal(false, decision.operational_requires_confirmation)
     assert_equal("", decision.skill_requested)
     assert_equal("none", decision.skill_mode)
     assert_equal([], decision.skill_actions)
@@ -97,6 +102,11 @@ class LlmIntentInterpreterTest < Minitest::Test
     assert_equal("show runtime status", decision.message)
     assert_equal("none", decision.control_intent)
     assert_equal("none", decision.control_scope)
+    assert_equal("none", decision.operational_intent)
+    assert_equal("none", decision.operational_scope)
+    assert_equal({}, decision.operational_args)
+    assert_equal(false, decision.operational_requires_project)
+    assert_equal(false, decision.operational_requires_confirmation)
     assert_equal("", decision.skill_requested)
     assert_equal("none", decision.skill_mode)
     assert_equal([], decision.skill_actions)
@@ -269,6 +279,11 @@ class LlmIntentInterpreterTest < Minitest::Test
         gaps: [],
         control_intent: "none",
         control_scope: "none",
+        operational_intent: "none",
+        operational_scope: "none",
+        operational_args: {},
+        operational_requires_project: false,
+        operational_requires_confirmation: false,
         skill_requested: "",
         skill_mode: "none",
         skill_actions: [],

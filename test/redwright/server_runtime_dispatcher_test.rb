@@ -268,6 +268,55 @@ class ServerRuntimeDispatcherTest < Minitest::Test
     end
   end
 
+  def test_send_dispatch_creates_project_from_explicit_operational_intent
+    Dir.mktmpdir("redwright-server-dispatcher-project-new-operational-intent-") do |dir|
+      Dir.chdir(dir) do
+        bootstrap = Redwright::Bootstrap.new(mode: :dev).call
+        project_store = Redwright::ProjectStore.new(bootstrap.db_path)
+        flow = Redwright::RuntimeFlow.new(
+          project_store: project_store,
+          workstream_store: Redwright::WorkstreamStore.new(bootstrap.db_path),
+          task_store: Redwright::TaskStore.new(bootstrap.db_path),
+          alignment_store: Redwright::AlignmentStore.new(bootstrap.db_path),
+          alignment_interruption_store: Redwright::AlignmentInterruptionStore.new(bootstrap.db_path),
+          primitive_executor: Redwright::PrimitiveExecutor.new(
+            allowed_projects_root: bootstrap.projects_root,
+            enforce_mutating_projects_root: true
+          ),
+          action_execution_store: Redwright::ActionExecutionStore.new(bootstrap.db_path)
+        )
+        dispatcher = Redwright::ServerRuntimeDispatcher.new(
+          flow: flow,
+          blocked_retry_attempts: 1,
+          project_store: project_store,
+          projects_root: bootstrap.projects_root,
+          task_store: Redwright::TaskStore.new(bootstrap.db_path),
+          action_execution_store: Redwright::ActionExecutionStore.new(bootstrap.db_path)
+        )
+
+        response = dispatcher.call(
+          "type" => "send",
+          "session_id" => "telegram-42",
+          "payload" => {
+            "channel" => "telegram",
+            "project_ref" => "rw",
+            "intent" => "change",
+            "message" => "Create a new project named obelix",
+            "actions" => [],
+            "operational_intent" => "project_new",
+            "operational_args" => { "project_name" => "obelix" }
+          }
+        )
+
+        assert_equal("ok", response["status"])
+        project = project_store.resolve(response["project_id"])
+        refute_nil(project)
+        assert_equal("obelix", project.name)
+        assert_equal(true, File.directory?(File.join(bootstrap.projects_root, "obelix")))
+      end
+    end
+  end
+
   def test_send_dispatch_clones_repo_from_repo_clone_slash_and_binds_session_context
     Dir.mktmpdir("redwright-server-dispatcher-repo-clone-") do |dir|
       Dir.chdir(dir) do
