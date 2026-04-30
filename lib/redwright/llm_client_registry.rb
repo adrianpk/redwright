@@ -14,6 +14,7 @@ module Redwright
     def client_for(provider)
       key = provider.to_s.strip.downcase
       return nil if key.empty?
+      return nil unless PROVIDER_DEFAULT_BASE_URL.key?(key)
 
       OpenAIClient.new(
         api_key: api_key_for(key),

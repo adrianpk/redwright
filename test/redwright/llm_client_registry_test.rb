@@ -17,6 +17,11 @@ class LlmClientRegistryTest < Minitest::Test
     assert_nil(client)
   end
 
+  def test_returns_nil_for_unsupported_provider
+    client = Redwright::LlmClientRegistry.new.client_for("vendor-x")
+    assert_nil(client)
+  end
+
   def test_uses_provider_specific_base_url_override
     previous = ENV["DEEPSEEK_BASE_URL"]
     ENV["DEEPSEEK_BASE_URL"] = "https://proxy.example/v1"
