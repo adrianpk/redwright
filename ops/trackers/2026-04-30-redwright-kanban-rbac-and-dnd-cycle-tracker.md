@@ -28,8 +28,8 @@ Tasks:
 
 Commits:
 
-- [x] `<sha> feat(auth): enforce single-admin bootstrap and fixed role taxonomy`
-- [x] `<sha> test(auth): cover role constraints and first-user admin rules`
+- [x] `3f04fa2 feat(auth): enforce single-admin bootstrap and fixed role taxonomy`
+- [x] `71c6a7c test(auth): cover role constraints and first-user admin rules`
 
 Validation:
 
