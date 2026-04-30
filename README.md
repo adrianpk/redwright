@@ -6,13 +6,11 @@
 <!-- REDWRIGHT_LOCAL_BADGES:END -->
 
 <div align="center" style="background:#FDF3E4; padding:2px 12px; border-radius:14px; margin:16px 0 24px 0;">
-  <img src="apps/web/public/logo.png" alt="RedWright logo" style="max-width:216px; width:100%; height:auto;" />
+  <img src="apps/web/public/logo.png" alt="RedWright logo" width="216" />
 </div>
 
 RedWright is a **black-box software factory platform** where one runtime agent operates directly from the Kanban board.
 Telegram and local TUI are the current interactive surfaces. The agent reads board state, decides the next ticket to execute, and can create new tickets when incoming work is not yet represented on the board.
-
-(*) Slack is expected as a later extension after the Telegram path is stable.
 
 ## Name Origin
 
@@ -36,7 +34,7 @@ The TUI is intentionally minimal and will remain so, but in its current state it
 
 Execution can be triggered for a specific ticket, or run as a continuous loop where the full lifecycle is completed (program, review, merge) before automatically selecting the next assigned ticket based on priority. If work is introduced without an explicit ticket, the agent will create one to track its evolution, keeping the system strictly ticket-centric.
 
-Much of this is already in progress, and several parts are already functional, but refinement is still ongoing. This README should be read as an advanced statement of intent grounded in active implementation.
+Much of this is already in progress, and several parts are already functional, but refinement is still ongoing. This readme should be read as an advanced statement of intent grounded in active implementation.
 
 ## Start Here
 
