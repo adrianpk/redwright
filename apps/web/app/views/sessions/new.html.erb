@@ -9,3 +9,7 @@
 <br>
 
 <%= link_to "Forgot password?", new_password_path %>
+<% unless User.exists? %>
+  <br>
+  <%= link_to "Create admin account", new_user_path %>
+<% end %>
