@@ -31,6 +31,7 @@ module Redwright
         model_role: role_key,
         provider: resolved.provider,
         model: resolved.name,
+        model_alias: resolved.alias_id || "",
         candidates_count: role_config.candidates.length
       })
 
