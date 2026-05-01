@@ -90,13 +90,13 @@
 
 ### Slice 5: Ticket Reference UX Integration
 
-- status: `pending`
+- status: `completed`
 - branch: `fix/slice-5-ticket-reference-ux-integration`
 - objective: `enable optional artifact references in ticket create/update flows`
 - tasks:
-- [ ] `T5.1 add ticket form controls for optional artifact references`
-- [ ] `T5.2 render linked artifacts in ticket detail/board context`
-- [ ] `T5.3 add tests for optional linking behavior and no-link path`
+- [x] `T5.1 add ticket form controls for optional artifact references`
+- [x] `T5.2 render linked artifacts in ticket detail/board context`
+- [x] `T5.3 add tests for optional linking behavior and no-link path`
 - acceptance:
 - `tickets can be created/updated with or without artifact links`
 - `ticket execution semantics remain unchanged`
@@ -104,7 +104,7 @@
 - `feat(web): integrate optional artifact references in ticket flows`
 - `test(web): cover ticket artifact linking behavior`
 - PR:
-- `tbd`
+- `#tbd`
 
 ### Slice 6: Top Navigation and Visual Alignment
 

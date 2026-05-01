@@ -6,8 +6,8 @@
 - status: `in_progress`
 - state: `awaiting_review`
 - updated: `2026-05-01`
-- active_slice: `Slice 4`
-- active_task: `T4.3`
+- active_slice: `Slice 5`
+- active_task: `T5.3`
 
 ## Slice Progress
 
@@ -109,7 +109,7 @@ Validation:
 
 ### Slice 5: Ticket Reference UX Integration
 
-- status: `pending`
+- status: `completed`
 - branch: `fix/slice-5-ticket-reference-ux-integration`
 - PR: `tbd`
 - merge_target: `dev`
@@ -117,18 +117,18 @@ Validation:
 
 Tasks:
 
-- [ ] `T5.1 add ticket form controls for optional artifact references`
-- [ ] `T5.2 render linked artifacts in ticket detail/board context`
-- [ ] `T5.3 add tests for optional linking behavior and no-link path`
+- [x] `T5.1 add ticket form controls for optional artifact references`
+- [x] `T5.2 render linked artifacts in ticket detail/board context`
+- [x] `T5.3 add tests for optional linking behavior and no-link path`
 
 Commits:
 
-- [ ] `<sha> feat(web): integrate optional artifact references in ticket flows`
-- [ ] `<sha> test(web): cover ticket artifact linking behavior`
+- [x] `102489a feat(web): integrate optional artifact references in ticket flows`
+- [x] `4b36f32 test(web): cover ticket artifact linking behavior`
 
 Validation:
 
-- [ ] `ticket linking optional-path tests`
+- [x] `cd apps/web && bundle exec bin/rails test test/controllers/tickets_controller_test.rb test/controllers/document_artifacts_controller_test.rb (pass)`
 
 ### Slice 6: Top Navigation and Visual Alignment
 
@@ -183,3 +183,4 @@ Validation:
 - `2026-05-01 18:05` state=`awaiting_review` note=`Slice 2 implemented with draft CRUD, promotion service, and controller/model validation coverage`
 - `2026-05-01 18:35` state=`awaiting_review` note=`Slice 3 implemented with typed read surfaces and enforced read-only behavior for spec and plan_tracker`
 - `2026-05-01 19:05` state=`awaiting_review` note=`Slice 4 implemented with artifact relation traversal and detail navigation`
+- `2026-05-01 19:40` state=`awaiting_review` note=`Slice 5 implemented with optional ticket artifact links and ticket card rendering`
