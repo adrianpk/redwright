@@ -59,6 +59,74 @@ body {
   padding: 20px;
 }
 
+.document-artifacts-index {
+  padding: 20px;
+}
+
+.document-artifacts-index h1 {
+  margin: 0;
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: var(--navy);
+}
+
+.artifact-type-nav {
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(180px, 1fr));
+  gap: 10px;
+}
+
+.artifact-type-card {
+  display: block;
+  text-decoration: none;
+  border: 1px solid var(--border-soft);
+  border-radius: 12px;
+  background: #fff;
+  color: var(--navy);
+  padding: 10px;
+}
+
+.artifact-type-card h2 {
+  margin: 0;
+  font-size: 0.92rem;
+}
+
+.artifact-type-card p {
+  margin: 6px 0 0;
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+.artifact-type-card:hover,
+.artifact-type-card.is-active {
+  border-color: var(--accent-red);
+  box-shadow: 0 0 0 2px rgba(178, 58, 47, 0.08);
+}
+
+.artifact-list {
+  margin-top: 12px;
+  display: grid;
+  gap: 8px;
+}
+
+.artifact-list-card {
+  border: 1px solid var(--border-soft);
+  border-radius: 10px;
+  background: #fff;
+  padding: 10px;
+}
+
+.artifact-list-card a {
+  color: var(--navy);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.artifact-list-card a:hover {
+  color: var(--accent-red);
+}
+
 .boards-index h1,
 .board-header h1 {
   margin: 0;

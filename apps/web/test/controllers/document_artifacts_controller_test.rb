@@ -87,6 +87,18 @@ class DocumentArtifactsControllerTest < ActionDispatch::IntegrationTest
     refute_match "Draft One", response.body
   end
 
+  test "index renders type navigation cards" do
+    admin = create_admin_user!
+    sign_in_as(admin)
+
+    get document_artifacts_path
+    assert_response :success
+    assert_match "artifact-type-nav", response.body
+    assert_match "Drafts", response.body
+    assert_match "Specs", response.body
+    assert_match "Plan Trackers", response.body
+  end
+
   test "spec and plan_tracker cannot be edited in phase one" do
     admin = create_admin_user!
     sign_in_as(admin)
