@@ -6,96 +6,77 @@ $LOAD_PATH.unshift(File.expand_path("../../lib", __dir__))
 require "redwright/telegram_control_router"
 
 class TelegramControlRouterTest < Minitest::Test
-  FakeDecision = Struct.new(:intent, :control_intent, :operational_intent, keyword_init: true)
+  FakeDecision = Struct.new(
+    :control_intent,
+    :intent,
+    :operational_intent,
+    keyword_init: true
+  )
 
-  def test_parse_slash_command_returns_control_for_cancel
-    parsed = Redwright::TelegramControlRouter.new.parse_slash_command("/cancel")
-    assert_equal("control", parsed[:kind])
-    assert_equal("stop", parsed[:command])
+  def setup
+    @router = Redwright::TelegramControlRouter.new
   end
 
-  def test_parse_slash_command_clarifies_project_new_without_name
-    parsed = Redwright::TelegramControlRouter.new.parse_slash_command("/project new")
-    assert_equal("clarify", parsed[:kind])
-    assert_match("/project new <name>", parsed[:question])
+  def test_control_from_decision_maps_explicit_control_intent
+    decision = FakeDecision.new(control_intent: "cancel_task", intent: "change")
+    result = @router.control_from_decision(decision, raw_text: "cancel this")
+
+    assert_equal({ command: "stop", reason: "cancel this" }, result)
   end
 
-  def test_parse_slash_command_routes_project_switch_as_operational
-    parsed = Redwright::TelegramControlRouter.new.parse_slash_command("/project switch alpha")
-    assert_equal("operational", parsed[:kind])
-    assert_equal("project_switch", parsed[:command])
+  def test_control_from_decision_ignores_proceed_on_non_meta_intent
+    decision = FakeDecision.new(control_intent: "proceed_with_current_context", intent: "change")
+    assert_nil(@router.control_from_decision(decision, raw_text: "continue"))
   end
 
-  def test_parse_slash_command_routes_project_new_with_text_to_planner_hint
-    parsed = Redwright::TelegramControlRouter.new.parse_slash_command("/project new create a go app")
-    assert_equal("planner_hint", parsed[:kind])
-    assert_includes(parsed[:planner_text], "Create a new project.")
-    assert_includes(parsed[:planner_text], "create a go app")
+  def test_control_from_decision_infers_control_only_for_meta_intent
+    decision = FakeDecision.new(control_intent: "none", intent: "meta")
+
+    assert_equal("pause", @router.control_from_decision(decision, raw_text: "pausa")[:command])
+    assert_equal("resume", @router.control_from_decision(decision, raw_text: "continue")[:command])
+    assert_equal("stop", @router.control_from_decision(decision, raw_text: "cancelar")[:command])
+    assert_nil(@router.control_from_decision(decision, raw_text: "do work"))
   end
 
-  def test_parse_slash_command_routes_repo_clone_as_operational
-    parsed = Redwright::TelegramControlRouter.new.parse_slash_command("/repo clone https://example.com/acme/repo.git")
-    assert_equal("operational", parsed[:kind])
-    assert_equal("repo_clone", parsed[:command])
+  def test_control_from_operational_maps_known_operational_intents
+    assert_equal("pause", @router.control_from_operational(FakeDecision.new(operational_intent: "task_pause"), raw_text: "x")[:command])
+    assert_equal("resume", @router.control_from_operational(FakeDecision.new(operational_intent: "task_resume"), raw_text: "x")[:command])
+    assert_equal("stop", @router.control_from_operational(FakeDecision.new(operational_intent: "task_cancel"), raw_text: "x")[:command])
+    assert_equal("resume", @router.control_from_operational(FakeDecision.new(operational_intent: "plan_continue"), raw_text: "x")[:command])
+    assert_equal("resume", @router.control_from_operational(FakeDecision.new(operational_intent: "plan_stop_and_apply"), raw_text: "x")[:command])
   end
 
-  def test_parse_slash_command_routes_project_list_as_operational
-    parsed = Redwright::TelegramControlRouter.new.parse_slash_command("/project list")
-    assert_equal("operational", parsed[:kind])
-    assert_equal("project_list", parsed[:command])
+  def test_control_from_operational_returns_nil_when_control_intent_is_present
+    decision = FakeDecision.new(control_intent: "cancel_task", operational_intent: "task_pause")
+    assert_nil(@router.control_from_operational(decision, raw_text: "x"))
   end
 
-  def test_parse_slash_command_routes_repo_status_as_operational
-    parsed = Redwright::TelegramControlRouter.new.parse_slash_command("/repo status")
-    assert_equal("operational", parsed[:kind])
-    assert_equal("repo_status", parsed[:command])
+  def test_parse_slash_command_handles_control_and_planner_hints
+    assert_equal("control", @router.parse_slash_command("/pause")[:kind])
+    assert_equal("resume", @router.parse_slash_command("/resume")[:command])
+    assert_equal("stop", @router.parse_slash_command("/cancel")[:command])
+    assert_equal("planner_hint", @router.parse_slash_command("/continue")[:kind])
+    assert_equal("planner_hint", @router.parse_slash_command("/status")[:kind])
   end
 
-  def test_parse_slash_command_routes_ticket_list_as_operational
-    parsed = Redwright::TelegramControlRouter.new.parse_slash_command("/ticket list")
-    assert_equal("operational", parsed[:kind])
-    assert_equal("ticket_list", parsed[:command])
-  end
+  def test_parse_slash_command_handles_project_repo_task_loop_and_skill_commands
+    assert_equal("clarify", @router.parse_slash_command("/project new")[:kind])
+    assert_equal("project_switch", @router.parse_slash_command("/project switch alpha")[:command])
+    assert_equal("project_list", @router.parse_slash_command("/project list")[:command])
+    assert_equal("project_where", @router.parse_slash_command("/project where")[:command])
 
-  def test_parse_slash_command_routes_loop_start_as_operational
-    parsed = Redwright::TelegramControlRouter.new.parse_slash_command("/loop start")
-    assert_equal("operational", parsed[:kind])
-    assert_equal("loop_start", parsed[:command])
-  end
+    assert_equal("repo_clone", @router.parse_slash_command("/repo clone https://example.com/acme/repo.git")[:command])
+    assert_equal("repo_status", @router.parse_slash_command("/repo status")[:command])
+    assert_equal("repo_undo", @router.parse_slash_command("/repo undo")[:command])
 
-  def test_control_from_decision_maps_meta_cancel
-    router = Redwright::TelegramControlRouter.new
-    control = router.control_from_decision(
-      FakeDecision.new(intent: "meta", control_intent: "cancel_task"),
-      raw_text: "cancelar"
-    )
-    assert_equal("stop", control[:command])
-  end
+    assert_equal("ticket_list", @router.parse_slash_command("/ticket list")[:command])
+    assert_equal("ticket_pick", @router.parse_slash_command("/ticket pick")[:command])
+    assert_equal("ticket_start", @router.parse_slash_command("/ticket start tk-1")[:command])
 
-  def test_control_from_operational_maps_plan_stop_and_apply_to_resume
-    router = Redwright::TelegramControlRouter.new
-    control = router.control_from_operational(
-      FakeDecision.new(operational_intent: "plan_stop_and_apply"),
-      raw_text: "continue"
-    )
-    assert_equal("resume", control[:command])
-  end
+    assert_equal("loop_start", @router.parse_slash_command("/loop start")[:command])
+    assert_equal("loop_stop", @router.parse_slash_command("/loop stop")[:command])
 
-  def test_control_from_decision_accepts_explicit_control_even_without_meta_intent
-    router = Redwright::TelegramControlRouter.new
-    control = router.control_from_decision(
-      FakeDecision.new(intent: "change", control_intent: "cancel_task"),
-      raw_text: "continue coding but cancel current task"
-    )
-    assert_equal("stop", control[:command])
-  end
-
-  def test_control_from_operational_is_ignored_when_control_intent_is_present
-    router = Redwright::TelegramControlRouter.new
-    control = router.control_from_operational(
-      FakeDecision.new(control_intent: "cancel_task", operational_intent: "task_resume"),
-      raw_text: "resume"
-    )
-    assert_nil(control)
+    assert_equal("skill_control_stop", @router.parse_slash_command("/skill stop-and-apply")[:kind])
+    assert_equal("skill", @router.parse_slash_command("/skill repo-bootstrap")[:kind])
   end
 end

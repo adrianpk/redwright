@@ -972,6 +972,57 @@ class ServerRuntimeDispatcherTest < Minitest::Test
     end
   end
 
+  def test_call_supports_subscribe_and_ctl_commands
+    dispatcher = Redwright::ServerRuntimeDispatcher.new(flow: Object.new)
+
+    subscribe = dispatcher.call("type" => "subscribe", "payload" => { "channel" => "telegram" })
+    assert_equal("subscribed", subscribe["status"])
+    assert_equal("telegram", subscribe["channel"])
+
+    %w[status stop resume trace].each do |command|
+      response = dispatcher.call("type" => "ctl", "payload" => { "command" => command })
+      assert_equal("ok", response["status"])
+      assert_equal(command, response["command"])
+    end
+  end
+
+  def test_call_raises_for_unsupported_request_type
+    dispatcher = Redwright::ServerRuntimeDispatcher.new(flow: Object.new)
+
+    assert_raises(ArgumentError) do
+      dispatcher.call("type" => "unknown", "payload" => {})
+    end
+  end
+
+  def test_send_dispatch_project_where_returns_error_without_active_project
+    Dir.mktmpdir("redwright-server-dispatcher-project-where-missing-") do |dir|
+      Dir.chdir(dir) do
+        bootstrap = Redwright::Bootstrap.new(mode: :dev).call
+        project_store = Redwright::ProjectStore.new(bootstrap.db_path)
+        dispatcher = Redwright::ServerRuntimeDispatcher.new(
+          flow: Object.new,
+          project_store: project_store,
+          projects_root: bootstrap.projects_root
+        )
+
+        response = dispatcher.call(
+          "type" => "send",
+          "session_id" => "s-missing",
+          "payload" => {
+            "channel" => "telegram",
+            "project_ref" => "",
+            "intent" => "meta",
+            "message" => "/project where",
+            "actions" => []
+          }
+        )
+
+        assert_equal("error", response["status"])
+        assert_equal("missing_project_ref", response["message"])
+      end
+    end
+  end
+
   private
 
   def run_cmd!(cmd)

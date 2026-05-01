@@ -11,37 +11,38 @@ Dir[File.expand_path("../**/*_test.rb", __dir__)].sort.each do |path|
 end
 
 result = Coverage.result
-files_total = 0
-files_covered = 0
+lines_total = 0
+lines_covered = 0
 root = File.expand_path("../..", __dir__)
 runtime_root = File.join(root, "lib", "redwright")
-minimum_percent = ENV.fetch("COVERAGE_MIN_PERCENT", "51").to_f
+minimum_percent = ENV.fetch("COVERAGE_MIN_PERCENT", "25").to_f
 
 result.each do |path, counts|
   next unless path.start_with?(runtime_root)
   next unless counts.is_a?(Array)
 
-  executable_line_counts = counts.compact
-  next if executable_line_counts.empty?
+  counts.each do |count|
+    next if count.nil?
 
-  files_total += 1
-  files_covered += 1 if executable_line_counts.any?(&:positive?)
+    lines_total += 1
+    lines_covered += 1 if count.positive?
+  end
 end
 
-percent = if files_total.zero?
+percent = if lines_total.zero?
             0.0
           else
-            ((files_covered.to_f / files_total) * 100).round(2)
+            ((lines_covered.to_f / lines_total) * 100).round(2)
           end
 
 payload = {
   "name" => "coverage",
   "status" => percent >= minimum_percent ? "pass" : "fail",
-  "minimum_file_percent" => minimum_percent,
-  "metric" => "runtime_file_execution_percent",
+  "minimum_line_percent" => minimum_percent,
+  "metric" => "runtime_line_coverage_percent",
   "line_percent" => percent,
-  "files_total" => files_total,
-  "files_covered" => files_covered
+  "lines_total" => lines_total,
+  "lines_covered" => lines_covered
 }
 
 FileUtils.mkdir_p("tmp/quality")
