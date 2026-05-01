@@ -35,13 +35,13 @@
 
 ### Slice 2: Draft CRUD and Promotion Service
 
-- status: `pending`
+- status: `completed`
 - branch: `fix/slice-2-draft-crud-and-promotion`
 - objective: `implement draft create/read/update/list and draft-to-spec promotion`
 - tasks:
-- [ ] `T2.1 add document controller actions and routes for draft CRUD`
-- [ ] `T2.2 implement promotion service from draft to spec preserving lineage`
-- [ ] `T2.3 add request/controller tests for draft CRUD and promotion`
+- [x] `T2.1 add document controller actions and routes for draft CRUD`
+- [x] `T2.2 implement promotion service from draft to spec preserving lineage`
+- [x] `T2.3 add request/controller tests for draft CRUD and promotion`
 - acceptance:
 - `draft CRUD works end-to-end`
 - `promotion creates read-only spec with lineage metadata`
@@ -50,7 +50,7 @@
 - `feat(web): add draft-to-spec promotion flow`
 - `test(web): cover draft CRUD and promotion`
 - PR:
-- `tbd`
+- `#tbd`
 
 ### Slice 3: Read Surfaces for Spec and Plan Tracker
 
