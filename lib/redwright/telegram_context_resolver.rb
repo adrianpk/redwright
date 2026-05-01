@@ -14,7 +14,8 @@ module Redwright
     end
 
     def resolve(chat_id:, text:)
-      pending = resolve_pending_gap(chat_id: chat_id, text: text)
+      context = @chat_context_store.get(chat_id)
+      pending = resolve_pending_gap(chat_id: chat_id, text: text, context: context)
       return pending if pending
 
       explicit_matches = explicit_project_matches(text.to_s)
@@ -42,7 +43,6 @@ module Redwright
         )
       end
 
-      context = @chat_context_store.get(chat_id)
       if context
         project = @project_store.get(context.project_id)
         if project
@@ -72,7 +72,7 @@ module Redwright
             question: nil
           )
         end
-        @clarification_session_store&.open_project_name_confirm(
+          @clarification_session_store&.open_project_name_confirm(
           chat_id: chat_id,
           workstream_id: context&.workstream_id,
           suggested_project_name: inferred_name,
@@ -101,8 +101,12 @@ module Redwright
 
     private
 
-    def resolve_pending_gap(chat_id:, text:)
-      pending = @clarification_session_store&.get_open(chat_id: chat_id)
+    def resolve_pending_gap(chat_id:, text:, context:)
+      pending = if context&.workstream_id
+                  @clarification_session_store&.get_open(chat_id: chat_id, workstream_id: context.workstream_id)
+                else
+                  @clarification_session_store&.get_open(chat_id: chat_id)
+                end
       return nil unless pending
 
       if pending.gap_type == "project_name_confirm"

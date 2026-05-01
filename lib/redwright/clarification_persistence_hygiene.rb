@@ -15,6 +15,7 @@ module Redwright
       with_db do |db|
         timeout_stale_open_sessions!(db)
         cancel_orphan_open_sessions!(db)
+        cancel_cross_project_open_sessions!(db)
         repair_chat_context_workstream_links!(db)
         assert_no_open_orphans!(db)
       end
@@ -72,6 +73,26 @@ module Redwright
                 WHERE w2.id = chat_contexts.workstream_id
                   AND w2.project_id = chat_contexts.project_id
               )
+            )
+        SQL
+      )
+    end
+
+    def cancel_cross_project_open_sessions!(db)
+      db.execute(
+        <<~SQL
+          UPDATE clarification_sessions
+          SET status = 'cancelled',
+              updated_at = datetime('now')
+          WHERE status = 'open'
+            AND workstream_id IS NOT NULL
+            AND workstream_id != ''
+            AND EXISTS (
+              SELECT 1
+              FROM chat_contexts c
+              JOIN workstreams w ON w.id = clarification_sessions.workstream_id
+              WHERE c.chat_id = clarification_sessions.chat_id
+                AND c.project_id != w.project_id
             )
         SQL
       )

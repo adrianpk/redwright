@@ -270,6 +270,42 @@ class TelegramContextResolverTest < Minitest::Test
     end
   end
 
+  def test_resolve_ignores_pending_clarification_from_stale_workstream_context
+    Dir.mktmpdir("redwright-context-resolver-stale-pending-") do |dir|
+      Dir.chdir(dir) do
+        bootstrap = Redwright::Bootstrap.new(mode: :dev).call
+        projects = Redwright::ProjectStore.new(bootstrap.db_path)
+        contexts = Redwright::ChatContextStore.new(bootstrap.db_path)
+        workstreams = Redwright::WorkstreamStore.new(bootstrap.db_path)
+        clarifications = Redwright::ClarificationSessionStore.new(bootstrap.db_path)
+        resolver = Redwright::TelegramContextResolver.new(
+          project_store: projects,
+          chat_context_store: contexts,
+          projects_root: bootstrap.projects_root,
+          clarification_session_store: clarifications
+        )
+
+        alpha = projects.register(path: File.join(bootstrap.projects_root, "alpha"), aliases: ["alpha"])
+        beta = projects.register(path: File.join(bootstrap.projects_root, "beta"), aliases: ["beta"])
+        ws_alpha = workstreams.create(project_id: alpha.id, intent: "change", state: "executing")
+        ws_beta = workstreams.create(project_id: beta.id, intent: "change", state: "executing")
+        contexts.upsert(chat_id: 777, project_id: beta.id, workstream_id: ws_beta.id)
+
+        clarifications.open_project_name_confirm(
+          chat_id: 777,
+          workstream_id: ws_alpha.id,
+          suggested_project_name: "legacy-alpha",
+          question_id: "project_name_confirm"
+        )
+
+        result = resolver.resolve(chat_id: 777, text: "continue with parser fix")
+        assert_equal(true, result.resolved)
+        assert_equal(beta.id, result.project_ref)
+        assert_equal(ws_beta.id, result.workstream_id)
+      end
+    end
+  end
+
   def test_resolve_infers_and_registers_project_without_clarification_store
     Dir.mktmpdir("redwright-context-resolver-infer-no-clarification-store-") do |dir|
       Dir.chdir(dir) do

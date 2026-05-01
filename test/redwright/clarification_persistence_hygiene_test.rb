@@ -107,4 +107,41 @@ class ClarificationPersistenceHygieneTest < Minitest::Test
       end
     end
   end
+
+  def test_cancels_open_session_when_chat_context_project_and_workstream_project_diverge
+    Dir.mktmpdir("redwright-clarification-hygiene-cross-project-") do |dir|
+      Dir.chdir(dir) do
+        bootstrap = Redwright::Bootstrap.new(mode: :dev).call
+        db = SQLite3::Database.new(bootstrap.db_path)
+        db.results_as_hash = false
+
+        db.execute(
+          "INSERT INTO projects (id, name, path, created_at, updated_at, last_active_at) VALUES (?, ?, ?, datetime('now'), datetime('now'), NULL)",
+          ["project-a", "project-a", "/tmp/project-a"]
+        )
+        db.execute(
+          "INSERT INTO projects (id, name, path, created_at, updated_at, last_active_at) VALUES (?, ?, ?, datetime('now'), datetime('now'), NULL)",
+          ["project-b", "project-b", "/tmp/project-b"]
+        )
+        db.execute(
+          "INSERT INTO workstreams (id, project_id, intent, state, branch, worktree_path, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))",
+          ["ws-b", "project-b", "change", "executing", nil, nil]
+        )
+        db.execute(
+          "INSERT INTO chat_contexts (chat_id, project_id, workstream_id, updated_at) VALUES (?, ?, ?, datetime('now'))",
+          [501, "project-a", "ws-b"]
+        )
+        db.execute(
+          "INSERT INTO clarification_sessions (id, chat_id, workstream_id, status, gap_type, payload_json, resolved_fields_json, last_question_id, turn_counter, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))",
+          ["cls-cross", 501, "ws-b", "open", "planner_gap", "{}", "{}", "q1", 0]
+        )
+
+        Redwright::ClarificationPersistenceHygiene.new(bootstrap.db_path).run!
+        status = db.get_first_value("SELECT status FROM clarification_sessions WHERE id = 'cls-cross'")
+        assert_equal("cancelled", status)
+      ensure
+        db&.close
+      end
+    end
+  end
 end
