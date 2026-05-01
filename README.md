@@ -6,7 +6,7 @@
 <!-- REDWRIGHT_LOCAL_BADGES:END -->
 
 <div align="center" style="background:#FDF3E4; padding:2px 12px; border-radius:14px; margin:16px 0 24px 0;">
-  <img src="apps/web/public/logo.png" alt="RedWright logo" width="216" />
+  <img src="docs/reference/assets/img/gallery/boards.png" alt="RedWright board screenshot" width="860" />
 </div>
 
 RedWright is a **black-box software factory platform** where one runtime agent operates directly from the Kanban board.
