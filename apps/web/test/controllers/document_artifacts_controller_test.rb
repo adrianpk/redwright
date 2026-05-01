@@ -39,6 +39,16 @@ class DocumentArtifactsControllerTest < ActionDispatch::IntegrationTest
     assert_equal "Feature Draft Updated", created.reload.title
   end
 
+  test "index renders top navigation back to board" do
+    admin = create_admin_user!
+    sign_in_as(admin)
+
+    get document_artifacts_path
+    assert_response :success
+    assert_match "Board", response.body
+    assert_match "href=\"#{boards_path}\"", response.body
+  end
+
   test "promote draft to spec with lineage and relation" do
     admin = create_admin_user!
     sign_in_as(admin)

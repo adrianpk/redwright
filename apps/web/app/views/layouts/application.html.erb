@@ -24,6 +24,12 @@
   </head>
 
   <body>
+    <header class="top-nav">
+      <nav aria-label="Primary navigation">
+        <%= link_to "Board", boards_path, class: "top-nav-link" %>
+        <%= link_to "Document Canvas", document_artifacts_path, class: "top-nav-link" %>
+      </nav>
+    </header>
     <%= yield %>
   </body>
 </html>

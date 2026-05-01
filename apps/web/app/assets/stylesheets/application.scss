@@ -20,6 +20,40 @@ body {
   background: var(--cream);
 }
 
+.top-nav {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: rgba(244, 239, 230, 0.94);
+  border-bottom: 1px solid var(--border-soft);
+  backdrop-filter: blur(6px);
+}
+
+.top-nav nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+}
+
+.top-nav-link {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--border-soft);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--navy-soft);
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-decoration: none;
+  padding: 5px 10px;
+}
+
+.top-nav-link:hover {
+  border-color: var(--accent-red);
+  color: var(--accent-red);
+}
+
 .boards-index,
 .board-shell {
   padding: 20px;

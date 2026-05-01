@@ -21,6 +21,8 @@ class BoardsControllerTest < ActionDispatch::IntegrationTest
     get boards_path
     assert_response :success
     assert_match "Factory", response.body
+    assert_match "Document Canvas", response.body
+    assert_match "href=\"#{document_artifacts_path}\"", response.body
   end
 
   test "board lifecycle shows elapsed metrics after review and merge transitions" do
