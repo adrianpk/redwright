@@ -7,6 +7,12 @@
 
   <% if @artifact.artifact_type == "draft" %>
     <p><%= link_to "Edit Draft", edit_document_artifact_path(@artifact) %></p>
+    <p>
+      <%= button_to "Promote to Spec",
+                    promote_document_artifact_path(@artifact),
+                    method: :post,
+                    form: { data: { turbo_confirm: "Promote this draft to a spec?" } } %>
+    </p>
   <% end %>
 
   <p><%= link_to "Back to Drafts", document_artifacts_path %></p>

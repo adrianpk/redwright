@@ -42,7 +42,15 @@ class DocumentArtifactsController < ApplicationController
   end
 
   def promote
-    redirect_to document_artifact_path(@artifact), alert: "Promotion flow is not available yet."
+    if @artifact.artifact_type != "draft"
+      redirect_to document_artifact_path(@artifact), alert: "Only drafts can be promoted."
+      return
+    end
+
+    spec = DocumentArtifactPromotionService.new(draft: @artifact).call
+    redirect_to document_artifact_path(spec), notice: "Draft promoted to spec."
+  rescue StandardError => e
+    redirect_to document_artifact_path(@artifact), alert: "Promotion failed: #{e.message}"
   end
 
   private
