@@ -23,6 +23,10 @@ https://diataxis.fr
 - Each document should have one primary intent.
 - Split documents when intent changes.
 - Preserve technical meaning when reorganizing docs.
+- Avoid title/heading suffixes in parentheses (for example `(Draft)`).
+- Prefer semantic metadata fields (for example `Status`) over title decoration when state needs to be explicit.
+- For structural documentation updates, complete one consistency pass before commit.
+- Prefer one cohesive commit per documentation iteration; avoid corrective micro-commits caused by partial updates.
 
 ## Scope boundary
 

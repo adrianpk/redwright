@@ -26,6 +26,11 @@ Both files are living artifacts until promoted.
 5. Mark provisional decisions clearly (for example: `keep`, `unsure`, `discard`).
 6. Remove noise, typos, and irrelevant detours from conversation notes.
 7. Keep the conversation file editable for future expansion.
+8. Do not use title or heading suffixes in parentheses such as `(Draft)`.
+9. Use semantic fields for state metadata (for example `Status`) only when they add operational value.
+10. Add explicit cross-references: each draft must reference its conversation counterpart and vice versa.
+11. Before commit, run a full consistency pass across playbook, templates, and concrete artifacts.
+12. For each iteration, prefer one cohesive commit over corrective micro-commits.
 
 ## Template Locations
 
