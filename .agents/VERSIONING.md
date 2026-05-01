@@ -30,10 +30,8 @@ Examples:
 ## Pull request base policy
 
 - Default and mandatory PR target for slices, tickets, and planned implementation is `dev`.
-- Creating PRs with base `main` is forbidden unless the user explicitly requests a `dev -> main` alignment step.
-- Before creating any PR, verify both:
-  - current branch ancestry starts from `dev`
-  - PR base is `dev` (except explicit alignment request)
+- PRs targeting `main` are not allowed during normal delivery flow.
+- `dev -> main` is a formal alignment protocol executed only on explicit user request.
 
 ## Alignment policy (`dev` and `main`)
 
