@@ -3,6 +3,9 @@
 ## Status
 Living discussion
 
+## Related Draft
+`<YYYY-MM-DD-topic-draft.md>`
+
 ## Purpose
 Curated discussion log supporting `<related-draft-file>`.
 
@@ -18,13 +21,13 @@ Curated discussion log supporting `<related-draft-file>`.
 #### Candidate Answers
 - ...
 
-#### Convergences (Current)
+#### Current Convergences
 - ...
 
 #### Open Tensions
 - ...
 
-#### Decisions (Provisional)
+#### Provisional Decisions
 - ...
 
 #### Deferred / Out of Scope
