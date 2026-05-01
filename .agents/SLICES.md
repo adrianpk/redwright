@@ -8,6 +8,19 @@ This document defines delivery strategy for non-trivial work.
 - Slice: smallest meaningful, testable behavior increment
 - Commit: atomic versioning unit
 
+## 1.1 Naming Convention (Mandatory)
+
+Use one naming scheme consistently across plans, trackers, tickets, PR notes, and reports.
+
+- Slice labels: `Slice 1`, `Slice 2`, `Slice 3`, ...
+- Task labels: `T1.1`, `T1.2`, `T2.1`, ...
+- Completion reporting: `Slice N of M completed`
+
+Do not mix alternative numbering styles for these entities:
+
+- no alphabetic slice/task labels (`Slice A`, `Task B2`)
+- no Roman numerals (`Slice IV`, `Task II.3`)
+
 ## 2. Decomposition rules
 
 Use a single slice only when scope and integration risk are low.

@@ -7,6 +7,12 @@
 3. Implement and validate per slice.
 4. Integrate incrementally while keeping repository healthy.
 
+## Naming Convention
+
+1. Use `Slice 1`, `Slice 2`, `Slice 3`, ... for slice identifiers.
+2. Use `T1.1`, `T1.2`, `T2.1`, ... for task identifiers.
+3. Do not use letter-based or Roman numeral variants for slices/tasks.
+
 ## PR Title
 
 - Required: `feat(slice-<n>): <short slice name>`
