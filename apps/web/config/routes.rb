@@ -22,6 +22,11 @@ Rails.application.routes.draw do
       delete :destroy
     end
   end
+  resources :document_artifacts, only: [ :index, :show, :new, :create, :edit, :update ] do
+    member do
+      post :promote
+    end
+  end
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.

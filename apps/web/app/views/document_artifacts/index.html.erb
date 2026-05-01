@@ -1,0 +1,11 @@
+<main class="document-artifacts-index">
+  <h1>Drafts</h1>
+  <p><%= link_to "New Draft", new_document_artifact_path %></p>
+  <ul>
+    <% @artifacts.each do |artifact| %>
+      <li>
+        <%= link_to artifact.title, document_artifact_path(artifact) %>
+      </li>
+    <% end %>
+  </ul>
+</main>

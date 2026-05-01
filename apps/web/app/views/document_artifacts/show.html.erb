@@ -1,0 +1,13 @@
+<main class="document-artifacts-show">
+  <h1><%= @artifact.title %></h1>
+  <p>Type: <%= @artifact.artifact_type %></p>
+  <article>
+    <pre><%= @artifact.body %></pre>
+  </article>
+
+  <% if @artifact.artifact_type == "draft" %>
+    <p><%= link_to "Edit Draft", edit_document_artifact_path(@artifact) %></p>
+  <% end %>
+
+  <p><%= link_to "Back to Drafts", document_artifacts_path %></p>
+</main>
