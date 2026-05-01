@@ -3,6 +3,8 @@ class Ticket < ApplicationRecord
   belongs_to :column
   has_many :ticket_labels, dependent: :destroy
   has_many :labels, through: :ticket_labels
+  has_many :ticket_artifact_links, dependent: :destroy
+  has_many :document_artifacts, through: :ticket_artifact_links
 
   enum :priority, { low: 0, medium: 1, high: 2 }, default: :medium
 

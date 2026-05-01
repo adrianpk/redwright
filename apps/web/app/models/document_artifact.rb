@@ -19,6 +19,8 @@ class DocumentArtifact < ApplicationRecord
            foreign_key: :to_artifact_id,
            inverse_of: :to_artifact,
            dependent: :destroy
+  has_many :ticket_artifact_links, dependent: :destroy
+  has_many :tickets, through: :ticket_artifact_links
 
   validates :artifact_type, inclusion: { in: TYPES }
   validates :title, presence: true
