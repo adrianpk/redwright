@@ -186,7 +186,8 @@ class CrossChannelParityMatrixTest < Minitest::Test
     tui = run_sequence_scenario(channel: :tui, messages: ["alpha do work", "beta do work"])
 
     [telegram, console, tui].each do |result|
-      assert_includes(result[:terminal_text], "Session is bound to another active project")
+      assert_includes(result[:terminal_text], "project alpha")
+      assert_includes(result[:terminal_text], "project beta")
     end
   end
 

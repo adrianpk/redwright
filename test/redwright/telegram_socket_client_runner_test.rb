@@ -12,6 +12,7 @@ require "redwright/simulated_ingress_adapter"
 
 class TelegramSocketClientRunnerTest < Minitest::Test
   def test_telegram_socket_client_processes_event_and_replies
+    skip_unless_unix_server_supported!
     Dir.mktmpdir("redwright-telegram-socket-client-") do |dir|
       socket_path = File.join(dir, "rw.sock")
       ingress = Redwright::SimulatedIngressAdapter.new(
@@ -52,6 +53,7 @@ class TelegramSocketClientRunnerTest < Minitest::Test
   end
 
   def test_telegram_socket_client_maps_project_slash_new_to_safe_project_ref
+    skip_unless_unix_server_supported!
     Dir.mktmpdir("redwright-telegram-socket-client-project-new-") do |dir|
       socket_path = File.join(dir, "rw.sock")
       ingress = Redwright::SimulatedIngressAdapter.new(
@@ -91,6 +93,7 @@ class TelegramSocketClientRunnerTest < Minitest::Test
   end
 
   def test_telegram_socket_client_uses_rw_project_ref_for_other_slash_commands
+    skip_unless_unix_server_supported!
     Dir.mktmpdir("redwright-telegram-socket-client-slash-default-") do |dir|
       socket_path = File.join(dir, "rw.sock")
       ingress = Redwright::SimulatedIngressAdapter.new(
@@ -127,5 +130,24 @@ class TelegramSocketClientRunnerTest < Minitest::Test
     ensure
       server&.close
     end
+  end
+
+  private
+
+  def skip_unless_unix_server_supported!
+    return if unix_server_supported?
+
+    skip "UNIXServer is not supported in this environment"
+  end
+
+  def unix_server_supported?
+    Dir.mktmpdir("redwright-unix-server-probe-") do |dir|
+      socket_path = File.join(dir, "probe.sock")
+      server = UNIXServer.new(socket_path)
+      server.close
+      true
+    end
+  rescue Errno::EPERM, Errno::EACCES, NotImplementedError
+    false
   end
 end

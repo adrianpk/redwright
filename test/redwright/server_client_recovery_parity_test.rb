@@ -25,6 +25,7 @@ require "redwright/server_runtime_dispatcher"
 
 class ServerClientRecoveryParityTest < Minitest::Test
   def test_two_clients_reconnect_and_mutate_same_project_with_single_server
+    skip_unless_unix_server_supported!
     Dir.mktmpdir("redwright-server-recovery-parity-") do |dir|
       Dir.chdir(dir) do
         bootstrap = Redwright::Bootstrap.new(mode: :dev).call
@@ -129,6 +130,23 @@ class ServerClientRecoveryParityTest < Minitest::Test
   end
 
   private
+
+  def skip_unless_unix_server_supported!
+    return if unix_server_supported?
+
+    skip "UNIXServer is not supported in this environment"
+  end
+
+  def unix_server_supported?
+    Dir.mktmpdir("redwright-unix-server-probe-") do |dir|
+      socket_path = File.join(dir, "probe.sock")
+      server = UNIXServer.new(socket_path)
+      server.close
+      true
+    end
+  rescue Errno::EPERM, Errno::EACCES, NotImplementedError
+    false
+  end
 
   def send_line(socket_path, line)
     socket = UNIXSocket.new(socket_path)

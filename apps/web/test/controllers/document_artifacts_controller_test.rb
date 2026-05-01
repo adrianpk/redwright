@@ -128,7 +128,7 @@ class DocumentArtifactsControllerTest < ActionDispatch::IntegrationTest
 
     get document_artifact_path(spec)
     assert_response :success
-    assert_match "Related Artifacts", response.body
+    assert_match "Related Documents", response.body
     assert_match "derives_from:", response.body
     assert_match "Draft Base (draft)", response.body
     assert_match "tracks:", response.body

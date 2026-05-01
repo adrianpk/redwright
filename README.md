@@ -1,8 +1,8 @@
 # RedWright
 
 <!-- REDWRIGHT_LOCAL_BADGES:START -->
-[![CI](https://img.shields.io/badge/CI-failing-red)](https://codeberg.org/adrianpk/redwright)
-[![coverage](https://img.shields.io/badge/coverage-28.19%-brightgreen)](badges/coverage.svg)
+[![CI](https://img.shields.io/badge/CI-passing-brightgreen)](https://codeberg.org/adrianpk/redwright)
+[![coverage](https://img.shields.io/badge/coverage-27.94%-brightgreen)](badges/coverage.svg)
 <!-- REDWRIGHT_LOCAL_BADGES:END -->
 
 <div align="center" style="background:#FDF3E4; padding:2px 12px; border-radius:14px; margin:16px 0 24px 0;">

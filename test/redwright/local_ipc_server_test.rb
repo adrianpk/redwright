@@ -12,6 +12,7 @@ require "redwright/local_ipc_session_registry"
 
 class LocalIpcServerTest < Minitest::Test
   def test_run_once_accepts_subscribe_and_returns_ack
+    skip_unless_unix_server_supported!
     Dir.mktmpdir("redwright-ipc-server-") do |dir|
       socket_path = File.join(dir, "rw.sock")
       registry = Redwright::LocalIpcSessionRegistry.new
@@ -38,6 +39,7 @@ class LocalIpcServerTest < Minitest::Test
   end
 
   def test_run_once_rejects_invalid_payload
+    skip_unless_unix_server_supported!
     Dir.mktmpdir("redwright-ipc-server-bad-") do |dir|
       socket_path = File.join(dir, "rw.sock")
       server = Redwright::LocalIpcServer.new(
@@ -57,5 +59,24 @@ class LocalIpcServerTest < Minitest::Test
     ensure
       client&.close
     end
+  end
+
+  private
+
+  def skip_unless_unix_server_supported!
+    return if unix_server_supported?
+
+    skip "UNIXServer is not supported in this environment"
+  end
+
+  def unix_server_supported?
+    Dir.mktmpdir("redwright-unix-server-probe-") do |dir|
+      socket_path = File.join(dir, "probe.sock")
+      server = UNIXServer.new(socket_path)
+      server.close
+      true
+    end
+  rescue Errno::EPERM, Errno::EACCES, NotImplementedError
+    false
   end
 end

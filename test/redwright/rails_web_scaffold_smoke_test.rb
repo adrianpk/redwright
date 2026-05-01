@@ -3,6 +3,7 @@
 require "minitest/autorun"
 require "open3"
 require "pathname"
+require "bundler"
 
 class RailsWebScaffoldSmokeTest < Minitest::Test
   ROOT = Pathname.new(File.expand_path("../..", __dir__))
@@ -15,11 +16,16 @@ class RailsWebScaffoldSmokeTest < Minitest::Test
   end
 
   def test_rails_web_boot_smoke_runner
-    stdout, stderr, status = Open3.capture3(
-      { "BUNDLE_GEMFILE" => WEB_APP.join("Gemfile").to_s },
-      "bundle exec ruby bin/rails runner \"puts 'rw-web-ok'\"",
-      chdir: WEB_APP.to_s
-    )
+    stdout = ""
+    stderr = ""
+    status = nil
+    Bundler.with_unbundled_env do
+      stdout, stderr, status = Open3.capture3(
+        { "BUNDLE_GEMFILE" => WEB_APP.join("Gemfile").to_s },
+        "bundle exec ruby bin/rails runner \"puts 'rw-web-ok'\"",
+        chdir: WEB_APP.to_s
+      )
+    end
 
     assert(status.success?, "expected rails runner to boot successfully\nstdout=#{stdout}\nstderr=#{stderr}")
     assert_includes(stdout, "rw-web-ok")

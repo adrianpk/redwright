@@ -16,7 +16,7 @@ class DocumentCanvasNavigationFlowTest < ActionDispatch::IntegrationTest
 
     get boards_path
     assert_response :success
-    assert_match "Document Canvas", response.body
+    assert_match "Docs", response.body
     assert_match "href=\"#{document_artifacts_path}\"", response.body
 
     get document_artifacts_path

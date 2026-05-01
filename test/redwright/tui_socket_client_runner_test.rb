@@ -12,6 +12,7 @@ require "redwright/tui/socket_client_runner"
 
 class TuiSocketClientRunnerTest < Minitest::Test
   def test_tui_socket_client_sends_subscribe_and_send_requests
+    skip_unless_unix_server_supported!
     Dir.mktmpdir("redwright-tui-socket-client-") do |dir|
       socket_path = File.join(dir, "rw.sock")
       received = Queue.new
@@ -43,5 +44,24 @@ class TuiSocketClientRunnerTest < Minitest::Test
     ensure
       server&.close
     end
+  end
+
+  private
+
+  def skip_unless_unix_server_supported!
+    return if unix_server_supported?
+
+    skip "UNIXServer is not supported in this environment"
+  end
+
+  def unix_server_supported?
+    Dir.mktmpdir("redwright-unix-server-probe-") do |dir|
+      socket_path = File.join(dir, "probe.sock")
+      server = UNIXServer.new(socket_path)
+      server.close
+      true
+    end
+  rescue Errno::EPERM, Errno::EACCES, NotImplementedError
+    false
   end
 end
