@@ -366,6 +366,124 @@ class ServerRuntimeDispatcherTest < Minitest::Test
     end
   end
 
+  def test_send_dispatch_delegates_project_new_operational_intent_to_mediator
+    Dir.mktmpdir("redwright-server-dispatcher-project-new-mediator-operational-") do |dir|
+      Dir.chdir(dir) do
+        bootstrap = Redwright::Bootstrap.new(mode: :dev).call
+        project_store = Redwright::ProjectStore.new(bootstrap.db_path)
+        flow = Redwright::RuntimeFlow.new(
+          project_store: project_store,
+          workstream_store: Redwright::WorkstreamStore.new(bootstrap.db_path),
+          task_store: Redwright::TaskStore.new(bootstrap.db_path),
+          alignment_store: Redwright::AlignmentStore.new(bootstrap.db_path),
+          alignment_interruption_store: Redwright::AlignmentInterruptionStore.new(bootstrap.db_path),
+          primitive_executor: Redwright::PrimitiveExecutor.new(
+            allowed_projects_root: bootstrap.projects_root,
+            enforce_mutating_projects_root: true
+          ),
+          action_execution_store: Redwright::ActionExecutionStore.new(bootstrap.db_path)
+        )
+
+        calls = []
+        mediator = Object.new
+        mediator.define_singleton_method(:parse_operational_intent) do |intent:, args:|
+          calls << { intent: intent, args: args }
+          { command: "new", name: "mediated-project" }
+        end
+        mediator.define_singleton_method(:parse_project_slash) do |raw:|
+          _ = raw
+          nil
+        end
+
+        dispatcher = Redwright::ServerRuntimeDispatcher.new(
+          flow: flow,
+          blocked_retry_attempts: 1,
+          project_store: project_store,
+          projects_root: bootstrap.projects_root,
+          project_new_mediator: mediator
+        )
+
+        response = dispatcher.call(
+          "type" => "send",
+          "session_id" => "telegram-42",
+          "payload" => {
+            "channel" => "telegram",
+            "project_ref" => "rw",
+            "intent" => "change",
+            "message" => "create project",
+            "actions" => [],
+            "operational_intent" => "project_new",
+            "operational_args" => { "project_name" => "ignored-by-mediator" }
+          }
+        )
+
+        assert_equal("ok", response["status"])
+        project = project_store.resolve(response["project_id"])
+        assert_equal("mediated-project", project.name)
+        assert_equal(1, calls.size)
+        assert_equal("project_new", calls.first[:intent])
+      end
+    end
+  end
+
+  def test_send_dispatch_delegates_project_new_slash_to_mediator
+    Dir.mktmpdir("redwright-server-dispatcher-project-new-mediator-slash-") do |dir|
+      Dir.chdir(dir) do
+        bootstrap = Redwright::Bootstrap.new(mode: :dev).call
+        project_store = Redwright::ProjectStore.new(bootstrap.db_path)
+        flow = Redwright::RuntimeFlow.new(
+          project_store: project_store,
+          workstream_store: Redwright::WorkstreamStore.new(bootstrap.db_path),
+          task_store: Redwright::TaskStore.new(bootstrap.db_path),
+          alignment_store: Redwright::AlignmentStore.new(bootstrap.db_path),
+          alignment_interruption_store: Redwright::AlignmentInterruptionStore.new(bootstrap.db_path),
+          primitive_executor: Redwright::PrimitiveExecutor.new(
+            allowed_projects_root: bootstrap.projects_root,
+            enforce_mutating_projects_root: true
+          ),
+          action_execution_store: Redwright::ActionExecutionStore.new(bootstrap.db_path)
+        )
+
+        slash_calls = []
+        mediator = Object.new
+        mediator.define_singleton_method(:parse_operational_intent) do |intent:, args:|
+          _ = intent
+          _ = args
+          nil
+        end
+        mediator.define_singleton_method(:parse_project_slash) do |raw:|
+          slash_calls << raw
+          { command: "new", name: "slash-mediated-project" }
+        end
+
+        dispatcher = Redwright::ServerRuntimeDispatcher.new(
+          flow: flow,
+          blocked_retry_attempts: 1,
+          project_store: project_store,
+          projects_root: bootstrap.projects_root,
+          project_new_mediator: mediator
+        )
+
+        response = dispatcher.call(
+          "type" => "send",
+          "session_id" => "telegram-42",
+          "payload" => {
+            "channel" => "telegram",
+            "project_ref" => "rw",
+            "intent" => "change",
+            "message" => "/project new any-name",
+            "actions" => []
+          }
+        )
+
+        assert_equal("ok", response["status"])
+        project = project_store.resolve(response["project_id"])
+        assert_equal("slash-mediated-project", project.name)
+        assert_equal(["/project new any-name"], slash_calls)
+      end
+    end
+  end
+
   def test_send_dispatch_clones_repo_from_repo_clone_slash_and_binds_session_context
     Dir.mktmpdir("redwright-server-dispatcher-repo-clone-") do |dir|
       Dir.chdir(dir) do

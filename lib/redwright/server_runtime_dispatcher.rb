@@ -4,16 +4,18 @@ require "open3"
 require "time"
 require "uri"
 require "yaml"
+require_relative "project_new_mediator"
 
 module Redwright
   class ServerRuntimeDispatcher
-    def initialize(flow:, blocked_retry_attempts: 1, project_store: nil, projects_root: nil, task_store: nil, action_execution_store: nil)
+    def initialize(flow:, blocked_retry_attempts: 1, project_store: nil, projects_root: nil, task_store: nil, action_execution_store: nil, project_new_mediator: nil)
       @flow = flow
       @blocked_retry_attempts = blocked_retry_attempts
       @project_store = project_store
       @projects_root = projects_root
       @task_store = task_store
       @action_execution_store = action_execution_store
+      @project_new_mediator = project_new_mediator || ProjectNewMediator.new
       @session_project_refs = {}
     end
 
@@ -259,15 +261,11 @@ module Redwright
       op = intent.to_s.strip
       return nil if op.empty? || op == "none"
 
+      parsed_project_new = @project_new_mediator.parse_operational_intent(intent: op, args: args)
+      return parsed_project_new if parsed_project_new
+
       operational_args = args.is_a?(Hash) ? args : {}
       case op
-      when "project_new"
-        name = operational_args["project_name"].to_s.strip
-        name = operational_args["project_ref"].to_s.strip if name.empty?
-        name = operational_args["name"].to_s.strip if name.empty?
-        return nil if name.empty?
-
-        { command: "new", name: name }
       when "project_switch"
         name = operational_args["project_ref"].to_s.strip
         name = operational_args["name"].to_s.strip if name.empty?
@@ -299,7 +297,10 @@ module Redwright
     def parse_operational_slash(message)
       raw = message.to_s.strip
       if raw.start_with?("/project ")
-        project_match = raw.match(%r{\A/project\s+(new|switch)\s+([a-zA-Z0-9._\-]+)\s*\z}i)
+        parsed_project_new = @project_new_mediator.parse_project_slash(raw: raw)
+        return parsed_project_new if parsed_project_new
+
+        project_match = raw.match(%r{\A/project\s+(switch)\s+([a-zA-Z0-9._\-]+)\s*\z}i)
         return { command: "list" } if raw.match?(%r{\A/project\s+list\s*\z}i)
         return { command: "where" } if raw.match?(%r{\A/project\s+where\s*\z}i)
         return nil unless project_match
