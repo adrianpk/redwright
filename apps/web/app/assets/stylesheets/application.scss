@@ -40,7 +40,7 @@ body {
   display: inline-flex;
   align-items: center;
   border: 1px solid var(--border-soft);
-  border-radius: 999px;
+  border-radius: 10px;
   background: #fff;
   color: var(--navy-soft);
   font-size: 0.8rem;
@@ -142,14 +142,18 @@ body {
 
 .document-artifact-panel {
   margin-top: 12px;
+  width: min(100%, 920px);
+  margin-left: auto;
+  margin-right: auto;
   border: 1px solid var(--border-soft);
   border-radius: 12px;
-  background: #fff;
+  background: var(--card);
   padding: 14px;
+  box-shadow: 0 1px 2px rgba(31, 42, 68, 0.06);
 }
 
 .document-artifact-form {
-  max-width: 760px;
+  max-width: 840px;
 }
 
 .document-artifact-panel pre {
