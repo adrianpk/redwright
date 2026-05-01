@@ -145,7 +145,11 @@ body {
   border: 1px solid var(--border-soft);
   border-radius: 12px;
   background: #fff;
-  padding: 12px;
+  padding: 14px;
+}
+
+.document-artifact-form {
+  max-width: 760px;
 }
 
 .document-artifact-panel pre {
@@ -184,6 +188,8 @@ body {
 
 .document-artifact-field input,
 .document-artifact-field textarea {
+  display: block;
+  width: 100%;
   border: 1px solid var(--border-soft);
   border-radius: 8px;
   background: #fff;
@@ -197,7 +203,10 @@ body {
 }
 
 .document-artifact-actions {
-  margin-top: 6px;
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .artifact-relations {
