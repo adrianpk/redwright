@@ -10,6 +10,7 @@ class DocumentArtifactsController < ApplicationController
   end
 
   def show
+    @related_artifacts = @artifact.related_artifacts
   end
 
   def new

@@ -5,6 +5,22 @@
     <pre><%= @artifact.body %></pre>
   </article>
 
+  <section class="artifact-relations">
+    <h2>Related Artifacts</h2>
+    <% if @related_artifacts.empty? %>
+      <p>No related artifacts.</p>
+    <% else %>
+      <ul>
+        <% @related_artifacts.each do |relation_type, related_artifact| %>
+          <li>
+            <%= relation_type %>:
+            <%= link_to "#{related_artifact.title} (#{related_artifact.artifact_type})", document_artifact_path(related_artifact) %>
+          </li>
+        <% end %>
+      </ul>
+    <% end %>
+  </section>
+
   <% if @artifact.artifact_type == "draft" %>
     <p><%= link_to "Edit Draft", edit_document_artifact_path(@artifact) %></p>
     <p>

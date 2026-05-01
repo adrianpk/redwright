@@ -29,6 +29,16 @@ class DocumentArtifact < ApplicationRecord
 
   scope :by_type, ->(type) { where(artifact_type: type) }
 
+  def related_artifacts
+    outgoing = outgoing_relations.includes(:to_artifact).map do |relation|
+      [relation.relation_type, relation.to_artifact]
+    end
+    incoming = incoming_relations.includes(:from_artifact).map do |relation|
+      [relation.relation_type, relation.from_artifact]
+    end
+    (outgoing + incoming).uniq { |relation_type, artifact| [relation_type, artifact.id] }
+  end
+
   private
 
   def source_draft_contract
