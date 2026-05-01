@@ -58,4 +58,40 @@ class DocumentArtifactsControllerTest < ActionDispatch::IntegrationTest
     refute_nil relation
     assert_equal "derives_from", relation.relation_type
   end
+
+  test "index filters by artifact type for spec and plan tracker" do
+    admin = create_admin_user!
+    sign_in_as(admin)
+    DocumentArtifact.create!(artifact_type: "draft", title: "Draft One", body: "draft")
+    DocumentArtifact.create!(artifact_type: "spec", title: "Spec One", body: "spec", source_draft: DocumentArtifact.by_type("draft").first, editable: false)
+    DocumentArtifact.create!(artifact_type: "plan_tracker", title: "Plan One", body: "plan", editable: false)
+
+    get document_artifacts_path(type: "spec")
+    assert_response :success
+    assert_match "Spec One", response.body
+    refute_match "Draft One", response.body
+
+    get document_artifacts_path(type: "plan_tracker")
+    assert_response :success
+    assert_match "Plan One", response.body
+    refute_match "Draft One", response.body
+  end
+
+  test "spec and plan_tracker cannot be edited in phase one" do
+    admin = create_admin_user!
+    sign_in_as(admin)
+    draft = DocumentArtifact.create!(artifact_type: "draft", title: "Draft for Spec", body: "draft")
+    spec = DocumentArtifact.create!(artifact_type: "spec", title: "Spec Locked", body: "spec", source_draft: draft, editable: false)
+    plan = DocumentArtifact.create!(artifact_type: "plan_tracker", title: "Plan Locked", body: "plan", editable: false)
+
+    get edit_document_artifact_path(spec)
+    assert_redirected_to document_artifact_path(spec)
+
+    patch document_artifact_path(spec), params: { document_artifact: { title: "Changed" } }
+    assert_redirected_to document_artifact_path(spec)
+    assert_equal "Spec Locked", spec.reload.title
+
+    get edit_document_artifact_path(plan)
+    assert_redirected_to document_artifact_path(plan)
+  end
 end
