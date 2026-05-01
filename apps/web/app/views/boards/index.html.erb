@@ -1,9 +1,10 @@
 <main class="boards-index">
   <h1>Boards</h1>
-  <ul>
+  <section class="boards-list">
     <% @boards.each do |board| %>
-      <li><%= link_to board.name, board_path(board) %></li>
+      <%= link_to board_path(board), class: "board-list-card" do %>
+        <span><%= board.name %></span>
+      <% end %>
     <% end %>
-  </ul>
+  </section>
 </main>
-

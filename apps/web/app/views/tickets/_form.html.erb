@@ -34,7 +34,8 @@
   </div>
 
   <div class="field">
-    <%= f.label :document_artifact_ids, "Linked Artifacts (optional)" %>
+    <%= f.label :document_artifact_ids, "Linked Documents" %>
+    <p class="field-hint">Optional for quick tickets and small fixes.</p>
     <%= f.collection_select :document_artifact_ids,
                             @available_artifacts || [],
                             :id,

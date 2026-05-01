@@ -21,14 +21,27 @@
     <%# Includes all stylesheet files in app/assets/stylesheets %>
     <%= stylesheet_link_tag :app %>
     <%= javascript_include_tag "board_interactions", defer: true %>
+    <%= javascript_include_tag "top_nav_autofold", defer: true %>
   </head>
 
   <body>
-    <header class="top-nav">
+    <header class="top-nav" data-nav-state="expanded">
       <nav aria-label="Primary navigation">
-        <%= link_to "Board", boards_path, class: "top-nav-link" %>
-        <%= link_to "Document Canvas", document_artifacts_path, class: "top-nav-link" %>
+        <%= link_to boards_path, class: "top-nav-logo-link", aria: { label: "Home" } do %>
+          <%= image_tag "/logo.png",
+                        alt: "RedWright",
+                        class: "top-nav-logo",
+                        width: 77,
+                        height: 77,
+                        style: "display:block;max-width:77px;max-height:77px;object-fit:contain;" %>
+        <% end %>
+        <div class="top-nav-links">
+          <%= link_to "Board", boards_path, class: "top-nav-link" %>
+          <%= link_to "Documents", document_artifacts_path, class: "top-nav-link" %>
+        </div>
       </nav>
+      <button type="button" class="top-nav-pin" aria-label="Pin menu" aria-pressed="false" title="Pin menu">📌</button>
+      <button type="button" class="top-nav-handle" aria-label="Toggle menu" aria-expanded="true"></button>
     </header>
     <%= yield %>
   </body>

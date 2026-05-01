@@ -19,6 +19,6 @@
     <%= f.text_area :body, rows: 14, required: true %>
   </div>
   <div class="document-artifact-actions">
-    <%= f.submit class: "ticket-action" %>
+    <%= f.submit (local_assigns[:submit_label] || "Save"), class: "ticket-action" %>
   </div>
 <% end %>

@@ -1,4 +1,7 @@
 <main class="document-artifacts-show">
+  <p class="document-artifact-breadcrumb">
+    <%= link_to "Drafts", document_artifacts_path(type: "draft") %>
+  </p>
   <header class="document-artifacts-header">
     <h1><%= @artifact.title %></h1>
     <p class="board-key">Type: <%= @artifact.artifact_type %></p>
@@ -8,9 +11,9 @@
   </article>
 
   <section class="artifact-relations">
-    <h2>Related Artifacts</h2>
+    <h2>Related Documents</h2>
     <% if @related_artifacts.empty? %>
-      <p>No related artifacts.</p>
+      <p>No related documents.</p>
     <% else %>
       <ul class="artifact-relations-list">
         <% @related_artifacts.each do |relation_type, related_artifact| %>
@@ -24,8 +27,8 @@
   </section>
 
   <% if @artifact.artifact_type == "draft" %>
-    <p><%= link_to "Edit Draft", edit_document_artifact_path(@artifact), class: "ticket-action" %></p>
-    <p>
+    <p class="document-artifact-inline-actions"><%= link_to "Edit Draft", edit_document_artifact_path(@artifact), class: "ticket-action" %></p>
+    <p class="document-artifact-inline-actions">
       <%= button_to "Promote to Spec",
                     promote_document_artifact_path(@artifact),
                     method: :post,
@@ -34,5 +37,4 @@
     </p>
   <% end %>
 
-  <p><%= link_to "Back to Drafts", document_artifacts_path(type: "draft"), class: "ticket-action" %></p>
 </main>

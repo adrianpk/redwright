@@ -1,9 +1,11 @@
 <main class="document-artifacts-new">
+  <p class="document-artifact-breadcrumb">
+    <%= link_to "Drafts", document_artifacts_path(type: "draft") %>
+  </p>
   <header class="document-artifacts-header">
     <h1>New Draft</h1>
   </header>
   <section class="document-artifact-panel">
-    <%= render "form", artifact: @artifact %>
+    <%= render "form", artifact: @artifact, submit_label: "Create" %>
   </section>
-  <p><%= link_to "Back to Drafts", document_artifacts_path(type: "draft"), class: "ticket-action" %></p>
 </main>

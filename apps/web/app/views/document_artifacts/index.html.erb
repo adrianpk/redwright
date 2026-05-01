@@ -1,22 +1,24 @@
 <main class="document-artifacts-index">
-  <h1>Document Artifacts</h1>
-  <section class="artifact-type-nav" aria-label="Document type navigation">
-    <%= link_to document_artifacts_path(type: "draft"), class: "artifact-type-card#{' is-active' if @selected_type == 'draft'}" do %>
-      <h2>Drafts</h2>
-      <p>Working notes and iterative drafts.</p>
-    <% end %>
-    <%= link_to document_artifacts_path(type: "spec"), class: "artifact-type-card#{' is-active' if @selected_type == 'spec'}" do %>
-      <h2>Specs</h2>
-      <p>Approved, read-only specification artifacts.</p>
-    <% end %>
-    <%= link_to document_artifacts_path(type: "plan_tracker"), class: "artifact-type-card#{' is-active' if @selected_type == 'plan_tracker'}" do %>
-      <h2>Plan Trackers</h2>
-      <p>Execution plans and delivery tracking records.</p>
-    <% end %>
+  <section class="documents-top-shell">
+    <div class="board-title-row">
+      <h1>Documents</h1>
+      <%= link_to "New Draft", new_document_artifact_path, class: "ticket-action" %>
+    </div>
+    <section class="artifact-type-nav" aria-label="Document type navigation">
+      <%= link_to document_artifacts_path(type: "draft"), class: "artifact-type-card#{' is-active' if @selected_type == 'draft'}" do %>
+        <h2>Drafts</h2>
+        <p>Working notes and iterative drafts.</p>
+      <% end %>
+      <%= link_to document_artifacts_path(type: "spec"), class: "artifact-type-card#{' is-active' if @selected_type == 'spec'}" do %>
+        <h2>Specs</h2>
+        <p>Approved, read-only specification documents.</p>
+      <% end %>
+      <%= link_to document_artifacts_path(type: "plan_tracker"), class: "artifact-type-card#{' is-active' if @selected_type == 'plan_tracker'}" do %>
+        <h2>Plan Trackers</h2>
+        <p>Execution plans and delivery tracking records.</p>
+      <% end %>
+    </section>
   </section>
-  <% if @selected_type == "draft" %>
-    <p><%= link_to "New Draft", new_document_artifact_path, class: "ticket-action" %></p>
-  <% end %>
   <section class="artifact-list">
     <% @artifacts.each do |artifact| %>
       <article class="artifact-list-card">
