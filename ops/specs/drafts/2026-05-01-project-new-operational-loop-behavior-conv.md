@@ -6,6 +6,9 @@ Living discussion
 ## Related Draft
 `2026-05-01-project-new-operational-loop-behavior-draft.md`
 
+## Promoted Specification
+`ops/specs/specs/2026-05-01-project-new-operational-loop-behavior-spec.md`
+
 ## Purpose
 Curated discussion log supporting `2026-05-01-project-new-operational-loop-behavior-draft.md`.
 

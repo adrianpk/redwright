@@ -3,6 +3,9 @@
 ## Status
 Draft
 
+## Promoted Specification
+- `ops/specs/specs/2026-05-01-project-new-operational-loop-behavior-spec.md`
+
 ## Conversation Counterpart
 - `2026-05-01-project-new-operational-loop-behavior-conv.md`
 
