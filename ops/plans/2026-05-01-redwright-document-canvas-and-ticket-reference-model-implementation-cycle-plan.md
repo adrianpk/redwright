@@ -15,14 +15,14 @@
 
 ### Slice 1: Artifact Domain and Persistence Foundation
 
-- status: `pending`
+- status: `completed`
 - branch: `fix/slice-1-document-canvas-domain-foundation`
 - objective: `introduce artifact and ticket-reference persistence contracts with model validations`
 - tasks:
-- [ ] `T1.1 add schema tables for artifacts, artifact relations, and ticket artifact links`
-- [ ] `T1.2 add models and validations for artifact types and relation integrity`
-- [ ] `T1.3 add ticket-to-artifact association layer`
-- [ ] `T1.4 add model tests for type, lineage, and relation constraints`
+- [x] `T1.1 add schema tables for artifacts, artifact relations, and ticket artifact links`
+- [x] `T1.2 add models and validations for artifact types and relation integrity`
+- [x] `T1.3 add ticket-to-artifact association layer`
+- [x] `T1.4 add model tests for type, lineage, and relation constraints`
 - acceptance:
 - `persistence contract exists and passes model tests`
 - `ticket references are optional and validatable`
@@ -31,7 +31,7 @@
 - `feat(web): add artifact domain models and associations`
 - `test(web): add document artifact model coverage`
 - PR:
-- `tbd`
+- `#tbd`
 
 ### Slice 2: Draft CRUD and Promotion Service
 

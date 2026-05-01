@@ -4,16 +4,16 @@
 
 - cycle_id: `cycle-2026-05-01-redwright-document-canvas-and-ticket-reference-model`
 - status: `in_progress`
-- state: `executing_slice`
+- state: `awaiting_review`
 - updated: `2026-05-01`
 - active_slice: `Slice 1`
-- active_task: `T1.1`
+- active_task: `T1.4`
 
 ## Slice Progress
 
 ### Slice 1: Artifact Domain and Persistence Foundation
 
-- status: `in_progress`
+- status: `completed`
 - branch: `fix/slice-1-document-canvas-domain-foundation`
 - PR: `tbd`
 - merge_target: `dev`
@@ -21,20 +21,21 @@
 
 Tasks:
 
-- [ ] `T1.1 add schema tables for artifacts, artifact relations, and ticket artifact links`
-- [ ] `T1.2 add models and validations for artifact types and relation integrity`
-- [ ] `T1.3 add ticket-to-artifact association layer`
-- [ ] `T1.4 add model tests for type, lineage, and relation constraints`
+- [x] `T1.1 add schema tables for artifacts, artifact relations, and ticket artifact links`
+- [x] `T1.2 add models and validations for artifact types and relation integrity`
+- [x] `T1.3 add ticket-to-artifact association layer`
+- [x] `T1.4 add model tests for type, lineage, and relation constraints`
 
 Commits:
 
-- [ ] `<sha> feat(web): add document artifact persistence schema`
-- [ ] `<sha> feat(web): add artifact domain models and associations`
-- [ ] `<sha> test(web): add document artifact model coverage`
+- [x] `5114cc7 feat(web): add document artifact persistence schema`
+- [x] `cc4d711 feat(web): add artifact domain models and relation integrity validations`
+- [x] `8bc84e8 feat(web): add ticket-to-artifact association layer`
+- [x] `91051ba test(web): add document artifact model coverage`
 
 Validation:
 
-- [ ] `cd apps/web && bundle exec bin/rails test test/models`
+- [x] `cd apps/web && bundle exec bin/rails test test/models/document_artifact_test.rb test/models/ticket_test.rb (pass)`
 
 ### Slice 2: Draft CRUD and Promotion Service
 
@@ -178,3 +179,4 @@ Validation:
 ## Event Log
 
 - `2026-05-01 17:15` state=`executing_slice` note=`spec and implementation plan initialized from latest draft and conversation; proceeding with Slice 1 code implementation`
+- `2026-05-01 17:45` state=`awaiting_review` note=`Slice 1 implementation completed with schema, models, associations, and model test coverage`
