@@ -1,6 +1,13 @@
 <main class="document-artifacts-index">
-  <h1>Drafts</h1>
-  <p><%= link_to "New Draft", new_document_artifact_path %></p>
+  <h1>Document Artifacts</h1>
+  <nav>
+    <%= link_to "Drafts", document_artifacts_path(type: "draft") %> |
+    <%= link_to "Specs", document_artifacts_path(type: "spec") %> |
+    <%= link_to "Plan Trackers", document_artifacts_path(type: "plan_tracker") %>
+  </nav>
+  <% if @selected_type == "draft" %>
+    <p><%= link_to "New Draft", new_document_artifact_path %></p>
+  <% end %>
   <ul>
     <% @artifacts.each do |artifact| %>
       <li>

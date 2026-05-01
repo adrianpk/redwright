@@ -2,7 +2,11 @@ class DocumentArtifactsController < ApplicationController
   before_action :set_artifact, only: [ :show, :edit, :update, :promote ]
 
   def index
-    @artifacts = DocumentArtifact.where(artifact_type: "draft").order(updated_at: :desc, created_at: :desc)
+    allowed_types = %w[draft spec plan_tracker]
+    selected_type = params[:type].to_s
+    selected_type = "draft" unless allowed_types.include?(selected_type)
+    @selected_type = selected_type
+    @artifacts = DocumentArtifact.where(artifact_type: selected_type).order(updated_at: :desc, created_at: :desc)
   end
 
   def show
@@ -22,14 +26,14 @@ class DocumentArtifactsController < ApplicationController
   end
 
   def edit
-    if @artifact.artifact_type != "draft"
+    if read_only_artifact?(@artifact)
       redirect_to document_artifact_path(@artifact), alert: "Only drafts are editable in phase one."
       return
     end
   end
 
   def update
-    if @artifact.artifact_type != "draft"
+    if read_only_artifact?(@artifact)
       redirect_to document_artifact_path(@artifact), alert: "Only drafts are editable in phase one."
       return
     end
@@ -61,5 +65,9 @@ class DocumentArtifactsController < ApplicationController
 
   def draft_params
     params.require(:document_artifact).permit(:title, :body)
+  end
+
+  def read_only_artifact?(artifact)
+    %w[spec plan_tracker].include?(artifact.artifact_type)
   end
 end
