@@ -22,9 +22,24 @@ Examples:
 ## Branch policy
 
 - `main` is protected; no direct commits.
-- Day-to-day work happens on `dev` or short-lived branches.
+- `dev` is the mandatory trunk branch for all planned and day-to-day delivery work.
+- Day-to-day work happens on `dev` or short-lived branches created from `dev`.
 - Merge to `main` only via pull request.
 - Slice branches should use: `fix/slice-<n>-<short-slug>`.
+
+## Pull request base policy
+
+- Default and mandatory PR target for slices, tickets, and planned implementation is `dev`.
+- Creating PRs with base `main` is forbidden unless the user explicitly requests a `dev -> main` alignment step.
+- Before creating any PR, verify both:
+  - current branch ancestry starts from `dev`
+  - PR base is `dev` (except explicit alignment request)
+
+## Alignment policy (`dev` and `main`)
+
+- Regular implementation flow is linear through `dev`.
+- `main` receives changes only from explicit alignment actions requested by the user.
+- If an unintended PR targets `main`, stop and realign by replaying the missing commit chain into `dev` without destructive history edits.
 
 ## Workflow policy
 
