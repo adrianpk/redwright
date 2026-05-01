@@ -193,6 +193,11 @@ module Redwright
                 runtime_workstream_id = operational["workstream_id"] || "none"
                 runtime_task_id = operational["task_id"] || "none"
                 runtime_state = operational["state"] || "executing"
+                @chat_context_store&.upsert(
+                  chat_id: event.chat_id,
+                  project_id: runtime_project_id.to_s,
+                  workstream_id: runtime_workstream_id.to_s == "none" ? nil : runtime_workstream_id.to_s
+                )
                 reply_text = if operational["command"] == "project_list"
                                names = (operational["projects"] || []).map { |p| p["name"] }.join(", ")
                                names = "none" if names.empty?
@@ -1004,6 +1009,11 @@ module Redwright
         runtime_workstream_id = operational["workstream_id"] || "none"
         runtime_task_id = operational["task_id"] || "none"
         runtime_state = operational["state"] || "executing"
+        @chat_context_store&.upsert(
+          chat_id: event.chat_id,
+          project_id: runtime_project_id.to_s,
+          workstream_id: runtime_workstream_id.to_s == "none" ? nil : runtime_workstream_id.to_s
+        )
         reply_text = if operational["command"] == "project_list"
                        names = (operational["projects"] || []).map { |p| p["name"] }.join(", ")
                        names = "none" if names.empty?

@@ -1235,6 +1235,12 @@ class TelegramRuntimeHandlerTest < Minitest::Test
       }
     end
 
+    chat_context_upserts = []
+    fake_chat_context_store = Object.new
+    fake_chat_context_store.define_singleton_method(:upsert) do |**kwargs|
+      chat_context_upserts << kwargs
+    end
+
     client = FakeTelegramClient.new([])
     out = StringIO.new
     err = StringIO.new
@@ -1246,7 +1252,8 @@ class TelegramRuntimeHandlerTest < Minitest::Test
       blocked_retry_attempts: 1,
       model_name: "gpt-5-mini",
       intent_interpreter: fake_interpreter,
-      operational_dispatcher: fake_operational_dispatcher
+      operational_dispatcher: fake_operational_dispatcher,
+      chat_context_store: fake_chat_context_store
     )
 
     handler.handle(
@@ -1263,6 +1270,10 @@ class TelegramRuntimeHandlerTest < Minitest::Test
     payload = captured.first.fetch("payload")
     assert_equal("project_new", payload["operational_intent"])
     assert_equal("cubix", payload.fetch("operational_args").fetch("project_name"))
+    assert_equal(
+      [{ chat_id: 46, project_id: "project-cubix", workstream_id: nil }],
+      chat_context_upserts
+    )
     assert_match("telegram planner_operational chat=46 command=project_new", out.string)
   end
 

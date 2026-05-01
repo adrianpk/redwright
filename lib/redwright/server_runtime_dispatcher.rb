@@ -263,6 +263,7 @@ module Redwright
       case op
       when "project_new"
         name = operational_args["project_name"].to_s.strip
+        name = operational_args["project_ref"].to_s.strip if name.empty?
         name = operational_args["name"].to_s.strip if name.empty?
         return nil if name.empty?
 
