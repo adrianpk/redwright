@@ -127,6 +127,108 @@ body {
   color: var(--accent-red);
 }
 
+.document-artifacts-new,
+.document-artifacts-edit,
+.document-artifacts-show {
+  padding: 20px;
+}
+
+.document-artifacts-header h1 {
+  margin: 0;
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: var(--navy);
+}
+
+.document-artifact-panel {
+  margin-top: 12px;
+  border: 1px solid var(--border-soft);
+  border-radius: 12px;
+  background: #fff;
+  padding: 12px;
+}
+
+.document-artifact-panel pre {
+  margin: 0;
+  white-space: pre-wrap;
+  color: var(--navy-soft);
+  font-size: 0.85rem;
+  font-family: "IBM Plex Mono", "Fira Code", monospace;
+}
+
+.document-artifact-errors {
+  margin-bottom: 12px;
+  border: 1px solid rgba(178, 58, 47, 0.25);
+  border-radius: 10px;
+  background: rgba(178, 58, 47, 0.05);
+  padding: 10px;
+}
+
+.document-artifact-errors h2 {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--accent-red);
+}
+
+.document-artifact-field {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.document-artifact-field label {
+  font-size: 0.8rem;
+  color: var(--navy-soft);
+  font-weight: 600;
+}
+
+.document-artifact-field input,
+.document-artifact-field textarea {
+  border: 1px solid var(--border-soft);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--navy);
+  font: inherit;
+  padding: 8px 10px;
+}
+
+.document-artifact-field textarea {
+  resize: vertical;
+}
+
+.document-artifact-actions {
+  margin-top: 6px;
+}
+
+.artifact-relations {
+  margin-top: 12px;
+}
+
+.artifact-relations h2 {
+  margin: 0;
+  font-size: 0.94rem;
+}
+
+.artifact-relations-list {
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 8px;
+}
+
+.artifact-relations-list li {
+  border: 1px solid var(--border-soft);
+  border-radius: 10px;
+  background: #fff;
+  padding: 8px 10px;
+  font-size: 0.82rem;
+}
+
+.artifact-relations-list a {
+  color: var(--navy);
+}
+
 .boards-index h1,
 .board-header h1 {
   margin: 0;

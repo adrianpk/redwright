@@ -1,7 +1,9 @@
 <main class="document-artifacts-show">
-  <h1><%= @artifact.title %></h1>
-  <p>Type: <%= @artifact.artifact_type %></p>
-  <article>
+  <header class="document-artifacts-header">
+    <h1><%= @artifact.title %></h1>
+    <p class="board-key">Type: <%= @artifact.artifact_type %></p>
+  </header>
+  <article class="document-artifact-panel">
     <pre><%= @artifact.body %></pre>
   </article>
 
@@ -10,7 +12,7 @@
     <% if @related_artifacts.empty? %>
       <p>No related artifacts.</p>
     <% else %>
-      <ul>
+      <ul class="artifact-relations-list">
         <% @related_artifacts.each do |relation_type, related_artifact| %>
           <li>
             <%= relation_type %>:
@@ -22,14 +24,15 @@
   </section>
 
   <% if @artifact.artifact_type == "draft" %>
-    <p><%= link_to "Edit Draft", edit_document_artifact_path(@artifact) %></p>
+    <p><%= link_to "Edit Draft", edit_document_artifact_path(@artifact), class: "ticket-action" %></p>
     <p>
       <%= button_to "Promote to Spec",
                     promote_document_artifact_path(@artifact),
                     method: :post,
+                    class: "ticket-action",
                     form: { data: { turbo_confirm: "Promote this draft to a spec?" } } %>
     </p>
   <% end %>
 
-  <p><%= link_to "Back to Drafts", document_artifacts_path %></p>
+  <p><%= link_to "Back to Drafts", document_artifacts_path(type: "draft"), class: "ticket-action" %></p>
 </main>

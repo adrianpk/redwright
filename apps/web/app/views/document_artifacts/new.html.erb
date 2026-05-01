@@ -1,5 +1,9 @@
 <main class="document-artifacts-new">
-  <h1>New Draft</h1>
-  <%= render "form", artifact: @artifact %>
-  <p><%= link_to "Back to Drafts", document_artifacts_path %></p>
+  <header class="document-artifacts-header">
+    <h1>New Draft</h1>
+  </header>
+  <section class="document-artifact-panel">
+    <%= render "form", artifact: @artifact %>
+  </section>
+  <p><%= link_to "Back to Drafts", document_artifacts_path(type: "draft"), class: "ticket-action" %></p>
 </main>

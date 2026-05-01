@@ -1,6 +1,6 @@
 <%= form_with model: artifact do |f| %>
   <% if artifact.errors.any? %>
-    <div>
+    <div class="document-artifact-errors">
       <h2><%= pluralize(artifact.errors.count, "error") %> blocked this draft:</h2>
       <ul>
         <% artifact.errors.full_messages.each do |message| %>
@@ -10,15 +10,15 @@
     </div>
   <% end %>
 
-  <div>
-    <%= f.label :title %><br>
+  <div class="document-artifact-field">
+    <%= f.label :title %>
     <%= f.text_field :title, required: true %>
   </div>
-  <div>
-    <%= f.label :body %><br>
+  <div class="document-artifact-field">
+    <%= f.label :body %>
     <%= f.text_area :body, rows: 14, required: true %>
   </div>
-  <div>
-    <%= f.submit %>
+  <div class="document-artifact-actions">
+    <%= f.submit class: "ticket-action" %>
   </div>
 <% end %>
