@@ -1,154 +1,18 @@
-# Engineering Playbooks
+# Engineering Playbooks Index
 
-Operational procedures for this repository.
+This file indexes focused playbooks under `.agents/playbooks/`.
 
-## 1. Branching and PR Flow
+## Core Playbooks
 
-1. Create a branch from `dev`.
-2. For slice execution, use `fix/slice-<n>-<slug>`.
-3. Never work on `main` directly.
-4. Before opening a PR from `dev` to `main`, run `bundle exec rake pr:dev_to_main:gate`.
-5. Merge into `main` only via PR.
-6. If `pr:dev_to_main:gate` reports stale badge targets, commit the refreshed `README.md` and `badges/*` outputs before PR.
-7. Avoid force push unless explicitly approved.
-8. Exception: `ops/plans/*` and `ops/trackers/*` updates may be committed directly to `dev` (no slice PR required) when they only formalize planning/tracking state.
+- `.agents/playbooks/branching-and-pr-flow.md`
+- `.agents/playbooks/slice-delivery.md`
+- `.agents/playbooks/ticket-workflow.md`
+- `.agents/playbooks/plan-driven-workflow.md`
+- `.agents/playbooks/release-alignment.md`
+- `.agents/playbooks/spec-draft-conversation-workflow.md`
 
-## 2. Slice Delivery
+## Usage
 
-1. Evaluate single-slice vs multi-slice execution.
-2. Define behavior-first slice boundaries.
-3. Implement and validate per slice.
-4. Integrate incrementally while keeping repository healthy.
-
-## 3. Slice PR Title and Body
-
-PR title format (required):
-- `feat(slice-<n>): <short slice name>`
-
-PR body format (required):
-
-```md
-## Summary
-
-- <functional increment 1>
-- <functional increment 2>
-
-## Changes
-
-- <path/to/file>
-  - <change detail>
-- <path/to/other_file>
-  - <change detail>
-
-## Validation
-
-- <command and result>
-```
-
-Ordering rules (required):
-1. `Summary`: functional impact first, ordered from primary behavior change to secondary change.
-2. `Changes`: group entries in this order: runtime/library code, tests, docs, ops artifacts.
-3. `Validation`: list commands from most targeted to broadest.
-4. Validation commands must be executable and include a brief outcome (`pass`/`fail`) when reported after execution.
-
-## 4. Traceability Contract
-
-For each slice, keep explicit correlation across artifacts:
-- plan entry in `ops/plans/*-plan.md`
-- tracker entry in `ops/trackers/*-tracker.md`
-- branch name and PR title
-- commit list that maps to slice tasks
-
-When closing a slice, update tracker tasks, commits, and the validation checklist in the same cycle.
-
-## 5. Blocker Handling
-
-1. Capture failing command and exact error.
-2. Attempt the least-invasive compliant alternative.
-3. Report blocker and stop further risky changes.
-
-## 6. Completion Checklist
-
-1. Scope implemented.
-2. Relevant checks run.
-3. Tracker/plan status updated.
-4. Final status reported with concrete outcomes.
-
-## 7. Slice Execution Workflow (Mandatory)
-
-1. Execute one slice at a time.
-2. Implement slice tasks in order.
-3. Create one conventional commit per task.
-4. Open one PR per slice.
-5. Do not open PRs per task or per commit.
-6. Complete PR review using manual review and/or automated review tooling.
-7. Integrate with fast-forward policy to `main` after approval.
-8. Report implementation and validation status.
-9. Start the next slice only after the previous one is fully closed.
-
-## 8. Ticket Workflow for Small Fixes
-
-Use tickets for small, bounded fixes where full plan/tracker formalization is unnecessary.
-
-1. Create ticket files under `ops/tickets/`.
-2. Use sortable filename format: `YYYYMMDDHHMMSS-<slug>.md` (UTC timestamp).
-3. Use the frontmatter fields from `ops/tickets/TEMPLATE.md`.
-4. Keep code and repository documentation in English.
-5. Use only these status values: `open`, `in_progress`, `reviewing`, `solved`, `closed`, `blocked`.
-6. Apply only these transitions: `open -> in_progress`, `in_progress -> reviewing`, `reviewing -> solved`, `reviewing -> closed`, `* -> blocked`, `blocked -> in_progress`.
-7. Mutate ticket state in the same implementation cycle, not as a later administrative pass.
-8. Set `started_at` when changing `open -> in_progress`.
-9. Link delivery artifacts in frontmatter (`branch`, `pr`, `commits`) before or during `reviewing`.
-10. Set `closed_at` only when changing `reviewing -> solved` or `reviewing -> closed` after validation is complete.
-11. Keep ticket status as `reviewing` while the implementation PR is open.
-12. Update ticket to `solved` or `closed` directly on `dev` after review and acceptance decision.
-13. Do not open a dedicated PR only to update ticket status metadata.
-14. If scope expands beyond a small fix, promote the ticket to a formal plan/slice/tracker flow and reference that plan from the ticket.
-
-## 9. Full Workflow (Plan-Driven)
-
-Use this workflow for large features, architectural changes, or multi-slice workstreams.
-
-1. Start from a long-form idea/ticket.
-2. Create `ops/plans/*` and `ops/trackers/*` artifacts.
-3. Define slices as behavior increments; define tasks inside each slice.
-4. Implement tasks in order; create one Conventional Commit per task.
-5. Open one PR per slice (not per task).
-6. Complete review (manual and/or automated tooling such as Greptile).
-7. Report slice completion using canonical status format: `Slice N of M completed`.
-8. Start the next slice only after the previous slice is merged.
-9. After the final slice, publish a canonical end-to-end cycle report summarizing all slices.
-
-## 10. Reduced Workflow (Ticket-Driven)
-
-Use this workflow for minor features, minor changes, bugs, and hotfixes.
-
-1. Create ticket under `ops/tickets/`.
-2. Create a branch from `dev`.
-3. Set ticket `status: in_progress` and `started_at`.
-4. Implement the fix.
-5. Set ticket `status: reviewing`, update `branch`, `pr`, and `commits`.
-6. Open one PR for the ticket.
-7. Complete review (manual and/or automated tooling such as Greptile).
-8. Merge, then set ticket `status: solved` and `closed_at` when resolved; use `closed` only when not resolved/discarded.
-
-## 11. Dev-to-Main Release Alignment
-
-Canonical release-alignment PR from `dev` to `main`:
-
-1. Run `bundle exec rake pr:dev_to_main:gate`.
-2. Open PR with title: `chore(release): align dev with main`.
-3. Use this PR body format:
-
-```md
-## Summary
-
-- align `main` with the latest merged state from `dev`
-- include all previously reviewed and merged slice/ticket work
-
-## Validation
-
-- bundle exec rake pr:dev_to_main:gate (pass)
-```
-
-4. Merge `dev -> main` only through PR.
+- Use the smallest playbook set that matches the active task.
+- If playbooks overlap, prefer the more specific playbook.
+- Keep playbook content operational and repository-specific.
