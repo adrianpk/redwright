@@ -42,6 +42,30 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
     assert_equal "high", created.priority
   end
 
+  test "create can link artifacts optionally" do
+    admin = create_admin_user!
+    sign_in_as(admin)
+    board = Board.create!(name: "Factory", project_key: "factory-create-links")
+    backlog = board.columns.create!(key: "backlog", title: "Backlog", position: 0)
+    draft = DocumentArtifact.create!(artifact_type: "draft", title: "Draft Link", body: "draft")
+    spec = DocumentArtifact.create!(artifact_type: "spec", title: "Spec Link", body: "spec", source_draft: draft, editable: false)
+
+    post board_tickets_path(board), params: {
+      ticket: {
+        title: "Create endpoint with links",
+        description: "Need a new endpoint",
+        priority: "high",
+        assignee: "agent-1",
+        column_id: backlog.id,
+        document_artifact_ids: [ draft.id, spec.id ]
+      }
+    }
+
+    assert_redirected_to board_path(board)
+    created = board.tickets.order(:created_at).last
+    assert_equal [draft.id, spec.id].sort, created.document_artifact_ids.sort
+  end
+
   test "update edits existing ticket" do
     admin = create_admin_user!
     sign_in_as(admin)
@@ -56,6 +80,38 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to board_path(board)
     assert_equal "New title", ticket.reload.title
     assert_equal "low", ticket.priority
+  end
+
+  test "update can replace linked artifacts and allow empty list" do
+    admin = create_admin_user!
+    sign_in_as(admin)
+    board = Board.create!(name: "Factory", project_key: "factory-update-links")
+    backlog = board.columns.create!(key: "backlog", title: "Backlog", position: 0)
+    draft = DocumentArtifact.create!(artifact_type: "draft", title: "Draft A", body: "draft")
+    spec = DocumentArtifact.create!(artifact_type: "spec", title: "Spec A", body: "spec", source_draft: draft, editable: false)
+    plan = DocumentArtifact.create!(artifact_type: "plan_tracker", title: "Plan A", body: "plan", editable: false)
+    ticket = board.tickets.create!(column: backlog, title: "Old title")
+    ticket.ticket_artifact_links.create!(document_artifact: draft, role: "reference")
+
+    patch ticket_path(ticket), params: {
+      ticket: {
+        title: "New title",
+        priority: "low",
+        document_artifact_ids: [ spec.id, plan.id ]
+      }
+    }
+
+    assert_redirected_to board_path(board)
+    assert_equal [spec.id, plan.id].sort, ticket.reload.document_artifact_ids.sort
+
+    patch ticket_path(ticket), params: {
+      ticket: {
+        title: "No links",
+        document_artifact_ids: [""]
+      }
+    }
+    assert_redirected_to board_path(board)
+    assert_empty ticket.reload.document_artifact_ids
   end
 
   test "move updates ticket column and returns turbo stream" do
