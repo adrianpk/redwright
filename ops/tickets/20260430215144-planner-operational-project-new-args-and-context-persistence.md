@@ -1,12 +1,12 @@
 ---
 id: TKT-20260430215000
 title: Planner project_new operational args mismatch and stale chat context persistence
-status: open
+status: solved
 severity: medium
 scope: runtime
 reported_at: 2026-04-30T21:50:00Z
 started_at: 2026-05-01T08:44:39Z
-closed_at:
+closed_at: 2026-05-01T09:20:50Z
 owner: adrianpk
 branch: fix/tkt-20260430215000-project-new-args-and-chat-context
 pr: https://codeberg.org/adrianpk/redwright/pulls/192
@@ -43,4 +43,4 @@ Two related issues remain:
 - Verify subsequent prompt context uses new project path, not legacy `.../Projects/new`.
 
 ## Outcome
-In review.
+Solved.
