@@ -54,13 +54,13 @@
 
 ### Slice 3: Read Surfaces for Spec and Plan Tracker
 
-- status: `pending`
+- status: `completed`
 - branch: `fix/slice-3-spec-plantracker-read-surfaces`
 - objective: `implement list/detail read surfaces for spec and plan_tracker`
 - tasks:
-- [ ] `T3.1 add list/detail filters by artifact type`
-- [ ] `T3.2 enforce read-only behavior for spec and plan_tracker`
-- [ ] `T3.3 add tests for read/list and edit restrictions`
+- [x] `T3.1 add list/detail filters by artifact type`
+- [x] `T3.2 enforce read-only behavior for spec and plan_tracker`
+- [x] `T3.3 add tests for read/list and edit restrictions`
 - acceptance:
 - `spec and plan_tracker are listable/readable`
 - `edit attempts are rejected in phase one`
@@ -68,7 +68,7 @@
 - `feat(web): add read-only surfaces for spec and plan_tracker`
 - `test(web): verify read-only constraints for spec and plan_tracker`
 - PR:
-- `tbd`
+- `#tbd`
 
 ### Slice 4: Artifact Interrelations and Navigation
 

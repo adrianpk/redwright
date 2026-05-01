@@ -6,8 +6,8 @@
 - status: `in_progress`
 - state: `awaiting_review`
 - updated: `2026-05-01`
-- active_slice: `Slice 2`
-- active_task: `T2.3`
+- active_slice: `Slice 3`
+- active_task: `T3.3`
 
 ## Slice Progress
 
@@ -63,7 +63,7 @@ Validation:
 
 ### Slice 3: Read Surfaces for Spec and Plan Tracker
 
-- status: `pending`
+- status: `completed`
 - branch: `fix/slice-3-spec-plantracker-read-surfaces`
 - PR: `tbd`
 - merge_target: `dev`
@@ -71,18 +71,18 @@ Validation:
 
 Tasks:
 
-- [ ] `T3.1 add list/detail filters by artifact type`
-- [ ] `T3.2 enforce read-only behavior for spec and plan_tracker`
-- [ ] `T3.3 add tests for read/list and edit restrictions`
+- [x] `T3.1 add list/detail filters by artifact type`
+- [x] `T3.2 enforce read-only behavior for spec and plan_tracker`
+- [x] `T3.3 add tests for read/list and edit restrictions`
 
 Commits:
 
-- [ ] `<sha> feat(web): add read-only surfaces for spec and plan_tracker`
-- [ ] `<sha> test(web): verify read-only constraints for spec and plan_tracker`
+- [x] `f448d10 feat(web): add read-only surfaces for spec and plan_tracker`
+- [x] `e03241d test(web): verify read-only constraints for spec and plan_tracker`
 
 Validation:
 
-- [ ] `read/list and restriction tests`
+- [x] `cd apps/web && bundle exec bin/rails test test/controllers/document_artifacts_controller_test.rb (pass)`
 
 ### Slice 4: Artifact Interrelations and Navigation
 
@@ -181,3 +181,4 @@ Validation:
 - `2026-05-01 17:15` state=`executing_slice` note=`spec and implementation plan initialized from latest draft and conversation; proceeding with Slice 1 code implementation`
 - `2026-05-01 17:45` state=`awaiting_review` note=`Slice 1 implementation completed with schema, models, associations, and model test coverage`
 - `2026-05-01 18:05` state=`awaiting_review` note=`Slice 2 implemented with draft CRUD, promotion service, and controller/model validation coverage`
+- `2026-05-01 18:35` state=`awaiting_review` note=`Slice 3 implemented with typed read surfaces and enforced read-only behavior for spec and plan_tracker`
