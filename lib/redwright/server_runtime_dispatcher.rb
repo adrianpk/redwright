@@ -105,6 +105,7 @@ module Redwright
       )
       {
         "status" => "ok",
+        "command" => operational ? operational[:command].to_s : nil,
         "project_id" => result.project.id,
         "workstream_id" => result.workstream.id,
         "task_id" => result.task.id,

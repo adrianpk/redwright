@@ -55,7 +55,8 @@ module Redwright
       control_router: TelegramControlRouter.new,
       clarification_policy: nil,
       semantic_adapter: nil,
-      operational_dispatcher: nil
+      operational_dispatcher: nil,
+      show_operational_telemetry: false
     )
       @flow = flow
       @telegram_client = telegram_client
@@ -95,6 +96,7 @@ module Redwright
       )
       @semantic_adapter = semantic_adapter || IngressSemanticCompatibilityAdapter.new
       @operational_dispatcher = operational_dispatcher
+      @show_operational_telemetry = show_operational_telemetry == true
     end
 
     def handle(event)
@@ -198,23 +200,13 @@ module Redwright
                   project_id: runtime_project_id.to_s,
                   workstream_id: runtime_workstream_id.to_s == "none" ? nil : runtime_workstream_id.to_s
                 )
-                reply_text = if operational["command"] == "project_list"
-                               names = (operational["projects"] || []).map { |p| p["name"] }.join(", ")
-                               names = "none" if names.empty?
-                               "Projects: #{names}\nTrace: #{Trace.current_trace_id || 'none'}"
-                             elsif operational["command"] == "project_where"
-                               "Active project: #{operational['project_name']} (#{operational['project_id']})\nPath: #{operational['project_path']}\nTrace: #{Trace.current_trace_id || 'none'}"
-                             elsif operational["command"] == "repo_status"
-                               "Repo status for #{operational['project_name']}:\n#{operational['git_status']}\nTrace: #{Trace.current_trace_id || 'none'}"
-                             elsif operational["command"] == "ticket_list"
-                               lines = (operational["tickets"] || []).first(10).map do |t|
-                                 "- #{t['id']} [#{t['status']}] #{t['description']}"
-                               end
-                               body = lines.empty? ? "No tickets found." : lines.join("\n")
-                               "Tickets for #{operational['project_name']}:\n#{body}\nTrace: #{Trace.current_trace_id || 'none'}"
-                             else
-                               "Operational command applied.\nproject=#{runtime_project_id} workstream=#{runtime_workstream_id} task=#{runtime_task_id} state=#{runtime_state}\nTrace: #{Trace.current_trace_id || 'none'}"
-                             end
+                reply_text = build_operational_reply_text(
+                  operational: operational,
+                  runtime_project_id: runtime_project_id,
+                  runtime_workstream_id: runtime_workstream_id,
+                  runtime_task_id: runtime_task_id,
+                  runtime_state: runtime_state
+                )
                 envelope = RuntimeResultEnvelope.success(
                   trace_id: Trace.current_trace_id || "none",
                   project_id: runtime_project_id.to_s,
@@ -1014,23 +1006,13 @@ module Redwright
           project_id: runtime_project_id.to_s,
           workstream_id: runtime_workstream_id.to_s == "none" ? nil : runtime_workstream_id.to_s
         )
-        reply_text = if operational["command"] == "project_list"
-                       names = (operational["projects"] || []).map { |p| p["name"] }.join(", ")
-                       names = "none" if names.empty?
-                       "Projects: #{names}\nTrace: #{Trace.current_trace_id || 'none'}"
-                     elsif operational["command"] == "project_where"
-                       "Active project: #{operational['project_name']} (#{operational['project_id']})\nPath: #{operational['project_path']}\nTrace: #{Trace.current_trace_id || 'none'}"
-                     elsif operational["command"] == "repo_status"
-                       "Repo status for #{operational['project_name']}:\n#{operational['git_status']}\nTrace: #{Trace.current_trace_id || 'none'}"
-                     elsif operational["command"] == "ticket_list"
-                       lines = (operational["tickets"] || []).first(10).map do |t|
-                         "- #{t['id']} [#{t['status']}] #{t['description']}"
-                       end
-                       body = lines.empty? ? "No tickets found." : lines.join("\n")
-                       "Tickets for #{operational['project_name']}:\n#{body}\nTrace: #{Trace.current_trace_id || 'none'}"
-                     else
-                       "Operational command applied.\nproject=#{runtime_project_id} workstream=#{runtime_workstream_id} task=#{runtime_task_id} state=#{runtime_state}\nTrace: #{Trace.current_trace_id || 'none'}"
-                     end
+        reply_text = build_operational_reply_text(
+          operational: operational,
+          runtime_project_id: runtime_project_id,
+          runtime_workstream_id: runtime_workstream_id,
+          runtime_task_id: runtime_task_id,
+          runtime_state: runtime_state
+        )
         envelope = RuntimeResultEnvelope.success(
           trace_id: Trace.current_trace_id || "none",
           project_id: runtime_project_id.to_s,
@@ -1177,6 +1159,40 @@ module Redwright
 
     def parse_slash_command(text)
       @control_router.parse_slash_command(text)
+    end
+
+    def build_operational_reply_text(operational:, runtime_project_id:, runtime_workstream_id:, runtime_task_id:, runtime_state:)
+      if operational["command"] == "project_list"
+        names = (operational["projects"] || []).map { |p| p["name"] }.join(", ")
+        names = "none" if names.empty?
+        return "Projects: #{names}\nTrace: #{Trace.current_trace_id || 'none'}"
+      end
+
+      if operational["command"] == "project_where"
+        return "Active project: #{operational['project_name']} (#{operational['project_id']})\nPath: #{operational['project_path']}\nTrace: #{Trace.current_trace_id || 'none'}"
+      end
+
+      if operational["command"] == "repo_status"
+        return "Repo status for #{operational['project_name']}:\n#{operational['git_status']}\nTrace: #{Trace.current_trace_id || 'none'}"
+      end
+
+      if operational["command"] == "ticket_list"
+        lines = (operational["tickets"] || []).first(10).map do |t|
+          "- #{t['id']} [#{t['status']}] #{t['description']}"
+        end
+        body = lines.empty? ? "No tickets found." : lines.join("\n")
+        return "Tickets for #{operational['project_name']}:\n#{body}\nTrace: #{Trace.current_trace_id || 'none'}"
+      end
+
+      if operational["command"] == "new"
+        message = "Project created and active.\nProject: #{runtime_project_id}\nState: #{runtime_state}"
+        if @show_operational_telemetry
+          message += "\nDebug: project=`#{runtime_project_id}` workstream=`#{runtime_workstream_id}` task=`#{runtime_task_id}` trace=`#{Trace.current_trace_id || 'none'}`"
+        end
+        return message
+      end
+
+      "Operational command applied.\nproject=#{runtime_project_id} workstream=#{runtime_workstream_id} task=#{runtime_task_id} state=#{runtime_state}\nTrace: #{Trace.current_trace_id || 'none'}"
     end
 
     def apply_skill_activation(decision:, activation:)
