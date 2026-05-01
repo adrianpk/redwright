@@ -3,6 +3,9 @@
 ## Status
 Living discussion
 
+## Related Draft
+`2026-05-01-project-new-operational-loop-behavior-draft.md`
+
 ## Purpose
 Curated discussion log supporting `2026-05-01-project-new-operational-loop-behavior-draft.md`.
 
@@ -27,7 +30,7 @@ Curated discussion log supporting `2026-05-01-project-new-operational-loop-behav
 - Use semantic slots/priorities instead of static text prompts.
 - Reuse existing persistence entities for clarification state and context carry-forward.
 
-#### Convergences (Current)
+#### Current Convergences
 - Slash commands should remain wrappers over domain operations (command-query / verb-noun style).
 - A strong conversational loop is needed, but not one that asks for the sake of asking.
 - Prompt-provided context must be consumed first; only blocking gaps should trigger questions.
@@ -39,7 +42,7 @@ Curated discussion log supporting `2026-05-01-project-new-operational-loop-behav
 - How conservative default behavior should be when confidence is moderate.
 - Exact threshold for "enough context to act".
 
-#### Decisions (Provisional)
+#### Provisional Decisions
 - Keep exploration active; do not freeze implementation decisions yet.
 - Maintain a running draft plus a curated conversation counterpart.
 - Treat this pair as living artifacts; refine and edit continuously.

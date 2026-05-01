@@ -1,12 +1,15 @@
-# Project New Operational Loop Behavior (Draft)
+# Project New Operational Loop Behavior
 
 ## Status
 Draft
 
+## Conversation Counterpart
+- `2026-05-01-project-new-operational-loop-behavior-conv.md`
+
 ## Scope
 Capture ongoing brainstorming about `/project new` behavior, operational feedback loops, and human-in-the-loop escalation rules.
 
-## Source Context (Observed)
+## Source Context
 - Command used:
   - `/project new "TaskMaster" "Una CLI para crear, listar y completar tareas de manera sencilla con persistencia en archivos locales."`
 - Current runtime behavior observed:
@@ -55,7 +58,7 @@ This document is intentionally iterative. Items can be revised, removed, or spli
 - pending decision:
   - should `/project new` default to scaffold-only, functional baseline generation, or adaptive behavior based on prompt richness?
 
-### 5) Multi-Layer Loop Pattern (Candidate)
+### 5) Candidate Multi-Layer Loop Pattern
 - provisional_status: `unsure`
 - candidate model:
   - intent interpretation loop
@@ -71,7 +74,7 @@ This document is intentionally iterative. Items can be revised, removed, or spli
 - What exact config flag should control telemetry visibility?
 - Should stack/module/package prompts trigger only when stack is explicit, or also when inferable from description?
 
-## Out of Scope (for this draft iteration)
+## Out of Scope
 - concrete code changes
 - final schema/contract wording
 - migration of existing ticket states
@@ -91,7 +94,7 @@ This document is intentionally iterative. Items can be revised, removed, or spli
   - avoid embedding business behavior directly in slash parsing branches
   - slash layer should map user input to domain operations and return user-facing summaries
 
-## Current Runtime Entities and Persistence Correlation (Human-Readable)
+## Current Runtime Entities and Persistence Correlation
 
 ### A) Runtime Entities Participating in `/project new` Conversational Cycle
 - `Project`
@@ -106,10 +109,10 @@ This document is intentionally iterative. Items can be revised, removed, or spli
   - open/closed Q&A state for pending user clarifications
 - `Planner Gap`
   - structured unresolved field/question payload persisted inside clarification session
-- `Alignment Question/Answer` (existing planning substrate)
+- `Alignment Question/Answer`
   - persisted question/answer memory that can support context carry-forward patterns
 
-### B) Status Fields Currently Present (Observed in Persistence)
+### B) Status Fields Currently Present
 - `workstreams.state`:
   - generic lifecycle state (`executing`, `waiting_user`, `ready`, etc. depending on flow)
 - `tasks.status`:
@@ -176,7 +179,7 @@ This document is intentionally iterative. Items can be revised, removed, or spli
 - correlation:
   - useful for understanding loop breakpoints and fallback behavior
 
-### D) Practical Correlation Map (Conceptual)
+### D) Practical Correlation Map
 - ingress message (`/project new ...`) -> slash wrapper / planner intent
 - -> resolved active project/chat context (`chat_contexts`)
 - -> optional clarification open (`clarification_sessions` with `planner_gap` payload)
