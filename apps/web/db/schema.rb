@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_04_30_133000) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_01_172000) do
   create_table "boards", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "name", null: false
@@ -31,6 +31,29 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_30_133000) do
     t.index ["board_id"], name: "index_columns_on_board_id"
   end
 
+  create_table "document_artifact_relations", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.integer "from_artifact_id", null: false
+    t.string "relation_type", null: false
+    t.integer "to_artifact_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["from_artifact_id", "to_artifact_id", "relation_type"], name: "idx_document_artifact_relations_unique_edge", unique: true
+    t.index ["from_artifact_id"], name: "index_document_artifact_relations_on_from_artifact_id"
+    t.index ["to_artifact_id"], name: "index_document_artifact_relations_on_to_artifact_id"
+  end
+
+  create_table "document_artifacts", force: :cascade do |t|
+    t.string "artifact_type", null: false
+    t.text "body", null: false
+    t.datetime "created_at", null: false
+    t.boolean "editable", default: true, null: false
+    t.integer "source_draft_id"
+    t.string "title", null: false
+    t.datetime "updated_at", null: false
+    t.index ["artifact_type"], name: "index_document_artifacts_on_artifact_type"
+    t.index ["source_draft_id"], name: "index_document_artifacts_on_source_draft_id"
+  end
+
   create_table "labels", force: :cascade do |t|
     t.integer "board_id", null: false
     t.string "color", default: "#3b82f6", null: false
@@ -48,6 +71,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_30_133000) do
     t.string "user_agent"
     t.integer "user_id", null: false
     t.index ["user_id"], name: "index_sessions_on_user_id"
+  end
+
+  create_table "ticket_artifact_links", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.integer "document_artifact_id", null: false
+    t.string "role", default: "reference", null: false
+    t.integer "ticket_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["document_artifact_id"], name: "index_ticket_artifact_links_on_document_artifact_id"
+    t.index ["ticket_id", "document_artifact_id"], name: "idx_ticket_artifact_links_unique_ticket_artifact", unique: true
+    t.index ["ticket_id"], name: "index_ticket_artifact_links_on_ticket_id"
   end
 
   create_table "ticket_labels", force: :cascade do |t|
@@ -95,8 +129,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_30_133000) do
   end
 
   add_foreign_key "columns", "boards"
+  add_foreign_key "document_artifact_relations", "document_artifacts", column: "from_artifact_id"
+  add_foreign_key "document_artifact_relations", "document_artifacts", column: "to_artifact_id"
+  add_foreign_key "document_artifacts", "document_artifacts", column: "source_draft_id"
   add_foreign_key "labels", "boards"
   add_foreign_key "sessions", "users"
+  add_foreign_key "ticket_artifact_links", "document_artifacts"
+  add_foreign_key "ticket_artifact_links", "tickets"
   add_foreign_key "ticket_labels", "labels"
   add_foreign_key "ticket_labels", "tickets"
   add_foreign_key "tickets", "boards"
