@@ -72,4 +72,32 @@ class DocumentArtifactTest < ActiveSupport::TestCase
     assert_equal draft.id, ticket.document_artifacts.first.id
     assert_equal "reference", link.role
   end
+
+  test "related_artifacts returns outgoing and incoming relation edges" do
+    draft = DocumentArtifact.create!(
+      artifact_type: "draft",
+      title: "Draft Base",
+      body: "Draft details"
+    )
+    spec = DocumentArtifact.create!(
+      artifact_type: "spec",
+      title: "Spec Derived",
+      body: "Spec details",
+      source_draft: draft,
+      editable: false
+    )
+    plan = DocumentArtifact.create!(
+      artifact_type: "plan_tracker",
+      title: "Plan Linked",
+      body: "Plan details",
+      editable: false
+    )
+
+    DocumentArtifactRelation.create!(from_artifact: spec, to_artifact: draft, relation_type: "derives_from")
+    DocumentArtifactRelation.create!(from_artifact: spec, to_artifact: plan, relation_type: "tracks")
+
+    pairs = spec.related_artifacts.map { |relation_type, artifact| [relation_type, artifact.id] }
+    assert_includes pairs, [ "derives_from", draft.id ]
+    assert_includes pairs, [ "tracks", plan.id ]
+  end
 end

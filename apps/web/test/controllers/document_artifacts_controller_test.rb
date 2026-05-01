@@ -94,4 +94,22 @@ class DocumentArtifactsControllerTest < ActionDispatch::IntegrationTest
     get edit_document_artifact_path(plan)
     assert_redirected_to document_artifact_path(plan)
   end
+
+  test "show renders related artifacts section and linked entries" do
+    admin = create_admin_user!
+    sign_in_as(admin)
+    draft = DocumentArtifact.create!(artifact_type: "draft", title: "Draft Base", body: "draft")
+    spec = DocumentArtifact.create!(artifact_type: "spec", title: "Spec Derived", body: "spec", source_draft: draft, editable: false)
+    plan = DocumentArtifact.create!(artifact_type: "plan_tracker", title: "Plan Linked", body: "plan", editable: false)
+    DocumentArtifactRelation.create!(from_artifact: spec, to_artifact: draft, relation_type: "derives_from")
+    DocumentArtifactRelation.create!(from_artifact: spec, to_artifact: plan, relation_type: "tracks")
+
+    get document_artifact_path(spec)
+    assert_response :success
+    assert_match "Related Artifacts", response.body
+    assert_match "derives_from:", response.body
+    assert_match "Draft Base (draft)", response.body
+    assert_match "tracks:", response.body
+    assert_match "Plan Linked (plan_tracker)", response.body
+  end
 end
