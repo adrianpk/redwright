@@ -33,6 +33,16 @@
     <%= f.collection_select :column_id, ticket.board.columns.order(:position), :id, :title %>
   </div>
 
+  <div class="field">
+    <%= f.label :document_artifact_ids, "Linked Artifacts (optional)" %>
+    <%= f.collection_select :document_artifact_ids,
+                            @available_artifacts || [],
+                            :id,
+                            ->(artifact) { "#{artifact.title} (#{artifact.artifact_type})" },
+                            { selected: ticket.document_artifact_ids },
+                            { multiple: true, size: 6 } %>
+  </div>
+
   <div class="form-actions">
     <%= f.submit submit_label, class: "ticket-action" %>
   </div>
