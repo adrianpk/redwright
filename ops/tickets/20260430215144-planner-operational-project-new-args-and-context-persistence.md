@@ -5,12 +5,12 @@ status: open
 severity: medium
 scope: runtime
 reported_at: 2026-04-30T21:50:00Z
-started_at:
+started_at: 2026-05-01T08:44:39Z
 closed_at:
 owner: adrianpk
-branch:
-pr:
-commits: []
+branch: fix/tkt-20260430215000-project-new-args-and-chat-context
+pr: https://codeberg.org/adrianpk/redwright/pulls/192
+commits: ["00fccf0"]
 ---
 
 ## Context
@@ -43,4 +43,4 @@ Two related issues remain:
 - Verify subsequent prompt context uses new project path, not legacy `.../Projects/new`.
 
 ## Outcome
-Pending implementation.
+In review.
