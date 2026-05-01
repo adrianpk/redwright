@@ -1,5 +1,5 @@
 :root {
-  --cream: #F4EFE6;
+  --cream: #FEF3E4;
   --navy: #1F2A44;
   --navy-soft: #3A4A63;
   --accent-red: #B23A2F;
@@ -27,7 +27,7 @@ body {
   position: sticky;
   top: 0;
   z-index: 10;
-  background: rgba(244, 239, 230, 0.94);
+  background: rgba(254, 243, 228, 0.96);
   border-bottom: 1px solid var(--border-soft);
   backdrop-filter: blur(6px);
   overflow: hidden;
