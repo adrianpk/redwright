@@ -72,13 +72,13 @@
 
 ### Slice 4: Artifact Interrelations and Navigation
 
-- status: `pending`
+- status: `completed`
 - branch: `fix/slice-4-artifact-interrelations-navigation`
 - objective: `implement related-artifact traversal and detail-page navigation`
 - tasks:
-- [ ] `T4.1 add artifact relation create/query logic`
-- [ ] `T4.2 render related artifacts section in detail view`
-- [ ] `T4.3 add tests for relation traversal and integrity`
+- [x] `T4.1 add artifact relation create/query logic`
+- [x] `T4.2 render related artifacts section in detail view`
+- [x] `T4.3 add tests for relation traversal and integrity`
 - acceptance:
 - `related artifacts are discoverable from any artifact detail page`
 - `relation integrity is validated`
@@ -86,7 +86,7 @@
 - `feat(web): add artifact relation traversal and detail navigation`
 - `test(web): cover artifact relation integrity and traversal`
 - PR:
-- `tbd`
+- `#tbd`
 
 ### Slice 5: Ticket Reference UX Integration
 

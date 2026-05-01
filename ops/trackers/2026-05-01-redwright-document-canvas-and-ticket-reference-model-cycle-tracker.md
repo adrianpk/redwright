@@ -6,8 +6,8 @@
 - status: `in_progress`
 - state: `awaiting_review`
 - updated: `2026-05-01`
-- active_slice: `Slice 3`
-- active_task: `T3.3`
+- active_slice: `Slice 4`
+- active_task: `T4.3`
 
 ## Slice Progress
 
@@ -86,7 +86,7 @@ Validation:
 
 ### Slice 4: Artifact Interrelations and Navigation
 
-- status: `pending`
+- status: `completed`
 - branch: `fix/slice-4-artifact-interrelations-navigation`
 - PR: `tbd`
 - merge_target: `dev`
@@ -94,18 +94,18 @@ Validation:
 
 Tasks:
 
-- [ ] `T4.1 add artifact relation create/query logic`
-- [ ] `T4.2 render related artifacts section in detail view`
-- [ ] `T4.3 add tests for relation traversal and integrity`
+- [x] `T4.1 add artifact relation create/query logic`
+- [x] `T4.2 render related artifacts section in detail view`
+- [x] `T4.3 add tests for relation traversal and integrity`
 
 Commits:
 
-- [ ] `<sha> feat(web): add artifact relation traversal and detail navigation`
-- [ ] `<sha> test(web): cover artifact relation integrity and traversal`
+- [x] `5906342 feat(web): add artifact relation traversal and detail navigation`
+- [x] `ecb4ff6 test(web): cover artifact relation integrity and traversal`
 
 Validation:
 
-- [ ] `relation traversal and integrity tests`
+- [x] `cd apps/web && bundle exec bin/rails test test/models/document_artifact_test.rb test/controllers/document_artifacts_controller_test.rb (pass)`
 
 ### Slice 5: Ticket Reference UX Integration
 
@@ -182,3 +182,4 @@ Validation:
 - `2026-05-01 17:45` state=`awaiting_review` note=`Slice 1 implementation completed with schema, models, associations, and model test coverage`
 - `2026-05-01 18:05` state=`awaiting_review` note=`Slice 2 implemented with draft CRUD, promotion service, and controller/model validation coverage`
 - `2026-05-01 18:35` state=`awaiting_review` note=`Slice 3 implemented with typed read surfaces and enforced read-only behavior for spec and plan_tracker`
+- `2026-05-01 19:05` state=`awaiting_review` note=`Slice 4 implemented with artifact relation traversal and detail navigation`
