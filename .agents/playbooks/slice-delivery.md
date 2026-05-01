@@ -65,6 +65,14 @@
 3. Tracker/plan status updated.
 4. Final status reported with concrete outcomes.
 
+## Post-Slice Tuning
+
+1. After planned slices and automated checks pass, decide whether tuning is needed.
+2. Tuning slices are recommended, not mandatory.
+3. If needed, run one or more short tuning slices (UX polish, manual verification findings, integration adjustments).
+4. Keep the same delivery discipline: one branch + one PR per tuning slice, base `dev`.
+5. Record the decision (`tuning needed: yes/no`) and evidence in the tracker.
+
 ## Mandatory Execution Rules
 
 1. Execute one slice at a time.
