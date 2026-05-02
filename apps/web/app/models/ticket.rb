@@ -1,4 +1,6 @@
 class Ticket < ApplicationRecord
+  RUNTIME_EXECUTION_STATUSES = %w[started failed].freeze
+
   belongs_to :board
   belongs_to :column
   has_many :ticket_labels, dependent: :destroy
@@ -9,6 +11,7 @@ class Ticket < ApplicationRecord
   enum :priority, { low: 0, medium: 1, high: 2 }, default: :medium
 
   validates :title, presence: true
+  validates :runtime_execution_status, inclusion: { in: RUNTIME_EXECUTION_STATUSES }, allow_blank: true
 
   scope :visible_on_board, -> { where(archived_at: nil) }
   scope :ordered_for_board, -> { order(priority: :desc, created_at: :asc) }
@@ -62,5 +65,31 @@ class Ticket < ApplicationRecord
 
   def project_context_consistent?(candidate_project_id)
     candidate_project_id.to_i == project_id
+  end
+
+  def record_runtime_execution!(result)
+    update!(
+      runtime_execution_id: result.execution_id,
+      runtime_execution_status: result.status,
+      runtime_project_ref: result.runtime_project_ref,
+      runtime_workstream_id: result.runtime_workstream_id,
+      runtime_task_id: result.runtime_task_id,
+      runtime_state: result.runtime_state,
+      runtime_execution_started_at: (Time.current if result.ok?),
+      runtime_execution_error: result.ok? ? nil : result.error_message
+    )
+  end
+
+  def runtime_execution
+    {
+      "execution_id" => runtime_execution_id,
+      "status" => runtime_execution_status,
+      "runtime_project_ref" => runtime_project_ref,
+      "runtime_workstream_id" => runtime_workstream_id,
+      "runtime_task_id" => runtime_task_id,
+      "runtime_state" => runtime_state,
+      "started_at" => runtime_execution_started_at&.iso8601,
+      "error" => runtime_execution_error
+    }
   end
 end

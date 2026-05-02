@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_02_213500) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_02_231000) do
   create_table "boards", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "name", null: false
@@ -172,6 +172,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_02_213500) do
     t.string "pull_request_url"
     t.datetime "review_completed_at"
     t.datetime "review_started_at"
+    t.text "runtime_execution_error"
+    t.string "runtime_execution_id"
+    t.datetime "runtime_execution_started_at"
+    t.string "runtime_execution_status"
+    t.string "runtime_project_ref"
+    t.string "runtime_state"
+    t.string "runtime_task_id"
+    t.string "runtime_workstream_id"
     t.datetime "sent_to_review_at"
     t.datetime "started_at"
     t.string "title", null: false
@@ -181,6 +189,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_02_213500) do
     t.index ["board_id"], name: "index_tickets_on_board_id"
     t.index ["column_id", "created_at"], name: "index_tickets_on_column_id_and_created_at"
     t.index ["column_id"], name: "index_tickets_on_column_id"
+    t.index ["runtime_execution_id"], name: "index_tickets_on_runtime_execution_id"
+    t.index ["runtime_execution_status", "updated_at"], name: "index_tickets_on_runtime_execution_status_and_updated_at"
   end
 
   create_table "users", force: :cascade do |t|

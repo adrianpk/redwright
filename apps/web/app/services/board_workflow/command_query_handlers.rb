@@ -4,11 +4,16 @@ module BoardWorkflow
       new.register(dispatcher)
     end
 
+    def initialize(ticket_execution_bridge: nil)
+      @ticket_execution_bridge = ticket_execution_bridge
+    end
+
     def register(dispatcher)
       dispatcher.register_command("CreateTicket", method(:create_ticket))
       dispatcher.register_command("UpdateTicket", method(:update_ticket))
       dispatcher.register_command("MoveTicket", method(:move_ticket))
       dispatcher.register_command("AttachDocumentToTicket", method(:attach_document_to_ticket))
+      dispatcher.register_command("StartTicketExecution", method(:start_ticket_execution))
       dispatcher.register_query("PickNextTicket", method(:pick_next_ticket))
       dispatcher.register_query("GetBoard", method(:get_board))
       dispatcher.register_query("GetTicketsByProject", method(:get_tickets_by_project))
@@ -136,8 +141,59 @@ module BoardWorkflow
       invalid_record_result(e.record, request_id: request_id, summary: "Document could not be attached to ticket.")
     end
 
+    def start_ticket_execution(payload:, context:, request_id:)
+      ticket = find_ticket(value_from(payload, "ticket_id"))
+      return missing_ticket_result(request_id: request_id) unless ticket
+      return invalid_payload_result(request_id: request_id, message: "archived tickets cannot be started") if ticket.archived_at.present?
+
+      bridge_result = ticket_execution_bridge.start(
+        ticket: ticket,
+        request_id: request_id,
+        actor_identifier: actor_identifier_from(context)
+      )
+      ticket.record_runtime_execution!(bridge_result)
+
+      if bridge_result.ok?
+        return CommandQuery::Result.ok(
+          request_id: request_id,
+          data: ticket_result_data(ticket.reload, summary: "Ticket execution started."),
+          effects: [
+            {
+              "type" => "ticket_execution_started",
+              "ticket_id" => ticket.id,
+              "project_id" => ticket.project_id,
+              "runtime_execution_id" => bridge_result.execution_id,
+              "runtime_workstream_id" => bridge_result.runtime_workstream_id,
+              "runtime_task_id" => bridge_result.runtime_task_id
+            }
+          ]
+        )
+      end
+
+      CommandQuery::Result.new(
+        status: "error",
+        request_id: request_id,
+        data: ticket_result_data(ticket.reload, summary: "Ticket execution could not be started."),
+        effects: [
+          {
+            "type" => "ticket_execution_failed",
+            "ticket_id" => ticket.id,
+            "project_id" => ticket.project_id,
+            "error_code" => bridge_result.error_code
+          }
+        ],
+        errors: [
+          {
+            code: bridge_result.error_code,
+            message: bridge_result.error_message,
+            details: {"ticket_id" => ticket.id}
+          }
+        ]
+      )
+    end
+
     def pick_next_ticket(payload:, context:, request_id:)
-      board = find_board(value_from(payload, "board_id"))
+      board = board_from_payload(payload)
       return missing_board_result(request_id: request_id) unless board
 
       ticket = Ticket.pick_next_for(board: board, assignee: value_from(payload, "assignee"))
@@ -239,6 +295,7 @@ module BoardWorkflow
         "priority" => ticket.priority,
         "assignee" => ticket.assignee,
         "archived_at" => ticket.archived_at&.iso8601,
+        "runtime_execution" => ticket.runtime_execution,
         "document_links" => ticket.ticket_document_links.includes(:document).map do |link|
           {
             "id" => link.id,
@@ -387,6 +444,14 @@ module BoardWorkflow
 
     def hash_from(value)
       value.is_a?(Hash) ? value : {}
+    end
+
+    def ticket_execution_bridge
+      @ticket_execution_bridge ||= RuntimeBridge::TicketExecutionBridge.new
+    end
+
+    def actor_identifier_from(context)
+      value_from(context, "actor_identifier", "actor_id").to_s
     end
   end
 end
