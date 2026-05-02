@@ -241,4 +241,58 @@ class IterationContextPacketBuilderTest < Minitest::Test
       assert_includes(selected, ".redwright/manifest.yml")
     end
   end
+
+  def test_emits_semantic_capabilities_with_preferred_and_fallback_states
+    Dir.mktmpdir("redwright-iter-packet-capabilities-") do |dir|
+      File.write(File.join(dir, "README.md"), "# demo\n")
+
+      preferred = Redwright::IterationContextPacketBuilder.new.build(
+        project_path: dir,
+        task_goal: "semantic preferred",
+        previous_message: "none",
+        current_errors: [],
+        parser_mode: "preferred_tree_sitter",
+        lsp_mode: "preferred_lsp"
+      )
+      fallback = Redwright::IterationContextPacketBuilder.new.build(
+        project_path: dir,
+        task_goal: "semantic fallback",
+        previous_message: "none",
+        current_errors: []
+      )
+
+      assert_equal("preferred_tree_sitter", preferred.dig(:packet, :semantic_capabilities, :parser_mode))
+      assert_equal("preferred_lsp", preferred.dig(:packet, :semantic_capabilities, :lsp_mode))
+      assert_equal(true, preferred.dig(:packet, :semantic_capabilities, :parser_preferred))
+      assert_equal(true, preferred.dig(:packet, :semantic_capabilities, :lsp_preferred))
+
+      assert_equal("fallback_plain_text", fallback.dig(:packet, :semantic_capabilities, :parser_mode))
+      assert_equal("fallback_disabled", fallback.dig(:packet, :semantic_capabilities, :lsp_mode))
+      assert_equal(false, fallback.dig(:packet, :semantic_capabilities, :parser_preferred))
+      assert_equal(false, fallback.dig(:packet, :semantic_capabilities, :lsp_preferred))
+    end
+  end
+
+  def test_emits_stable_ir_v1_schema_and_ordering
+    Dir.mktmpdir("redwright-iter-packet-irv1-") do |dir|
+      FileUtils.mkdir_p(File.join(dir, "lib"))
+      File.write(File.join(dir, "README.md"), "# demo\n")
+      File.write(File.join(dir, "lib", "alpha.rb"), "class Alpha\nend\n")
+
+      packet = Redwright::IterationContextPacketBuilder.new.build(
+        project_path: dir,
+        task_goal: "stabilize ir",
+        previous_message: "prev",
+        current_errors: ["Validation failed"],
+        top_k_files: 3
+      )
+
+      ir = packet.dig(:packet, :ir_v1)
+      assert_equal(%w[TASK CURRENT_FILE AVAILABLE_SYMBOLS DOC_HINTS ERRORS REPO_MAP], ir.keys)
+      assert_equal("stabilize ir", ir.dig("TASK", "goal"))
+      assert_equal(packet.dig(:packet, :files, 0, :path).to_s, ir.dig("CURRENT_FILE", "path"))
+      assert_equal(["Validation failed"], ir["ERRORS"])
+      assert_equal(packet.dig(:packet, :tree, :entries), ir["REPO_MAP"])
+    end
+  end
 end
