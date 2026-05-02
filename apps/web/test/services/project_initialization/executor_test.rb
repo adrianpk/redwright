@@ -103,6 +103,23 @@ module ProjectInitialization
       assert_equal "repository failed", result.errors[:initialization][:message]
     end
 
+    test "returns deterministic payload shape for incomplete outcomes" do
+      command = base_command
+      lifecycle = LifecycleDouble.new(failure_step: :workspace, rollback_status: :incomplete)
+
+      payload = Executor.new(
+        command: command,
+        resolved_repository: resolved_repository,
+        lifecycle: lifecycle
+      ).call.to_h
+
+      assert_equal(
+        %i[status next_action project repository guided_alignment errors],
+        payload.keys
+      )
+      assert_equal :initialization_incomplete, payload[:status]
+    end
+
     private
 
     def base_command
