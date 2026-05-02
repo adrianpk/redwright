@@ -6,7 +6,7 @@
 - status: `in_progress`
 - state: `awaiting_review`
 - updated: `2026-05-02`
-- active_slice: `Slice 4`
+- active_slice: `Slice 5`
 - active_task: `none`
 - source_plan: `ops/plans/2026-05-02-redwright-rails-core-command-api-and-project-setup-saga-implementation-cycle-plan.md`
 - source_spec: `ops/specs/specs/2026-05-02-redwright-rails-core-command-api-and-project-setup-saga-spec.md`
@@ -93,7 +93,7 @@ Validation:
 
 ### Slice 4: Rails Project Setup Command API
 
-- status: `awaiting_review`
+- status: `completed`
 - branch: `fix/slice-4-rails-project-setup-command-api`
 - PR: `https://codeberg.org/adrianpk/redwright/pulls/248`
 - merge_target: `dev`
@@ -119,28 +119,32 @@ Validation:
 
 ### Slice 5: Telegram Project Setup Adapter Over Rails API
 
-- status: `pending`
+- status: `awaiting_review`
 - branch: `fix/slice-5-telegram-project-setup-rails-api-adapter`
 - PR: `tbd`
 - merge_target: `dev`
-- last_sync_commit: `tbd`
+- last_sync_commit: `508e141`
 
 Tasks:
 
-- [ ] `T5.1 add Telegram Rails API client/adapter for command/query envelopes`
-- [ ] `T5.2 route /project new, project setup replies, /project list, and /project where through Rails API where applicable`
-- [ ] `T5.3 add Telegram handler tests proving multi-turn setup and no runtime-only project creation for new projects`
+- [x] `T5.1 add Telegram Rails API client/adapter for command/query envelopes`
+- [x] `T5.2 route /project new, project setup replies, /project list, and /project where through Rails API where applicable`
+- [x] `T5.3 add Telegram handler tests proving multi-turn setup and no runtime-only project creation for new projects`
 
 Commits:
 
-- [ ] `feat(telegram): add rails command api adapter`
-- [ ] `feat(telegram): route project setup commands through rails api`
-- [ ] `test(telegram): cover rails-backed project setup flow`
+- [x] `62a1332 feat(telegram): add rails command api adapter`
+- [x] `c49522f feat(telegram): route project setup commands through rails api`
+- [x] `3874752 test(telegram): cover rails-backed project setup flow`
+- [x] `0449e3d test(telegram): harden rails project setup adapter coverage`
 
 Validation:
 
-- [ ] `targeted Telegram adapter/handler tests (pending)`
-- [ ] `bundle exec rake test:coverage from repository root (pending before slice closure)`
+- [x] `ruby -Itest test/redwright/telegram_rails_api_client_test.rb (pass)`
+- [x] `ruby -Itest test/redwright/telegram_project_setup_adapter_test.rb (pass)`
+- [x] `ruby -Itest test/redwright/telegram_runtime_handler_test.rb (pass)`
+- [x] `cd apps/web && bundle exec bin/rails test (pass)`
+- [x] `bundle exec rake test:coverage from repository root (pass, coverage=91.28)`
 
 ### Slice 6: Rails-Governed Guided Alignment and Questionnaire Artifacts
 
@@ -227,8 +231,9 @@ Validation:
 - `2026-05-02` state=`planning` note=`created formal spec, implementation plan, and tracker for Rails core command API plus project setup saga cycle`
 - `2026-05-02` state=`awaiting_review` slice=`Slice 1` note=`implemented Rails command/query envelope, result, registry, dispatcher, structured error handling, and focused service coverage`
 - `2026-05-02` state=`slice_merged` slice=`Slice 1` note=`Slice 1 merged to dev via PR 245`
-- `2026-05-02` state=`awaiting_review` slice=`Slice 2` note=`implemented Rails project setup session persistence, setup turn ordering, deterministic state transitions, terminal outcomes, and focused model/service coverage`
 - `2026-05-02` state=`slice_merged` slice=`Slice 2` note=`Slice 2 merged to dev via PR 246`
 - `2026-05-02` state=`awaiting_review` slice=`Slice 3` note=`implemented unified project initialization setup runner, routed ProjectsController through setup sessions, and added service/controller coverage for opt-in, opt-out, cancellation, ambiguity, and failed partial state`
 - `2026-05-02` state=`slice_merged` slice=`Slice 3` note=`Slice 3 merged to dev via PR 247`
 - `2026-05-02` state=`awaiting_review` slice=`Slice 4` note=`implemented Rails API command/query namespace, project setup command/query handlers, and integration coverage for start, advance, cancel, status, and project listing`
+- `2026-05-02` state=`slice_merged` slice=`Slice 4` note=`Slice 4 merged to dev via PR 248`
+- `2026-05-02` state=`awaiting_review` slice=`Slice 5` note=`implemented Telegram Rails API client/adapter, routed Telegram project setup commands and replies through Rails API when configured, and added coverage proving no runtime-only project creation for Rails-backed project setup`
