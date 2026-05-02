@@ -180,7 +180,7 @@ Validation:
 
 - status: `awaiting_review`
 - branch: `fix/slice-8-semantic-structured-feedback-signals`
-- PR: `tbd`
+- PR: `https://codeberg.org/adrianpk/redwright/pulls/242`
 - merge_target: `dev`
 - last_sync_commit: `00642ee`
 
