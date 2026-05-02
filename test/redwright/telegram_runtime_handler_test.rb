@@ -3079,4 +3079,131 @@ class TelegramRuntimeHandlerTest < Minitest::Test
     assert_match("Attempts: 2 (terminal: no_progress).", client.messages.last[:text])
   end
 
+  def test_parse_slash_command_maps_operational_ticket_and_loop_variants
+    handler = build_private_method_handler
+
+    parsed_ticket_pick = handler.send(:parse_slash_command, "/ticket pick")
+    parsed_ticket_start = handler.send(:parse_slash_command, "/ticket start task-9")
+    parsed_loop_start = handler.send(:parse_slash_command, "/loop start")
+    parsed_loop_stop = handler.send(:parse_slash_command, "/loop stop")
+    parsed_unknown = handler.send(:parse_slash_command, "/loop maybe")
+
+    assert_equal("operational", parsed_ticket_pick[:kind])
+    assert_equal("ticket_pick", parsed_ticket_pick[:command])
+    assert_equal("operational", parsed_ticket_start[:kind])
+    assert_equal("ticket_start", parsed_ticket_start[:command])
+    assert_match("task-9", parsed_ticket_start[:planner_text_fallback])
+    assert_equal("operational", parsed_loop_start[:kind])
+    assert_equal("loop_start", parsed_loop_start[:command])
+    assert_equal("operational", parsed_loop_stop[:kind])
+    assert_equal("loop_stop", parsed_loop_stop[:command])
+    assert_nil(parsed_unknown)
+  end
+
+  def test_build_operational_reply_text_formats_ticket_list_concisely
+    handler = build_private_method_handler(show_operational_telemetry: false)
+    operational = {
+      "command" => "ticket_list",
+      "tickets" => [
+        { "id" => "task-1", "status" => "in_progress", "description" => "first ticket title" },
+        { "id" => "task-2", "status" => "review", "description" => "second ticket title" }
+      ]
+    }
+
+    reply = handler.send(
+      :build_operational_reply_text,
+      operational: operational,
+      runtime_project_id: "project-1",
+      runtime_workstream_id: "none",
+      runtime_task_id: "none",
+      runtime_state: "executing"
+    )
+
+    assert_match("Tickets for", reply)
+    assert_match("task-1", reply)
+    assert_match("in_progress", reply)
+    assert_match("first ticket title", reply)
+    assert_match("Trace: none", reply)
+  end
+
+  def test_build_operational_reply_text_appends_telemetry_when_enabled
+    handler = build_private_method_handler(show_operational_telemetry: true)
+    operational = {
+      "command" => "project_switch",
+      "terminal_reason" => "executing"
+    }
+
+    reply = handler.send(
+      :build_operational_reply_text,
+      operational: operational,
+      runtime_project_id: "project-2",
+      runtime_workstream_id: "ws-2",
+      runtime_task_id: "task-2",
+      runtime_state: "executing"
+    )
+
+    assert_match("Operational command applied.", reply)
+    assert_match("project=project-2", reply)
+    assert_match("task=task-2", reply)
+    assert_match("Trace: none", reply)
+  end
+
+  def test_confirmation_and_continue_semantic_guards
+    policy = Object.new
+    policy.define_singleton_method(:confirmation_reply_only?) do |text|
+      text.to_s.strip.downcase == "yes"
+    end
+    policy.define_singleton_method(:continue_with_current_context_semantic?) do |text|
+      text.to_s.strip.downcase == "continue with current context"
+    end
+    handler = build_private_method_handler(clarification_policy: policy)
+
+    assert_equal(true, handler.send(:confirmation_reply_only?, "yes"))
+    assert_equal(false, handler.send(:confirmation_reply_only?, "dale"))
+    assert_equal(false, handler.send(:confirmation_reply_only?, "yes and keep going"))
+
+    assert_equal(true, handler.send(:continue_with_current_context_semantic?, "continue with current context"))
+    assert_equal(false, handler.send(:continue_with_current_context_semantic?, "sin mas preguntas, continua"))
+    assert_equal(false, handler.send(:continue_with_current_context_semantic?, "no continue"))
+  end
+
+  def test_select_change_mode_and_extract_mode_override
+    handler = build_private_method_handler
+    default_decision = FakeDecision.new(skill_mode: nil)
+    direct_decision = FakeDecision.new(skill_mode: "direct")
+
+    assert_equal("direct", handler.send(:extract_mode_override, "mode:direct do work"))
+    assert_equal("structured", handler.send(:extract_mode_override, "MODE:STRUCTURED now"))
+    assert_nil(handler.send(:extract_mode_override, "no mode override"))
+
+    assert_equal({ mode: "direct", source: "override" }, handler.send(:select_change_mode, event_text: "mode:direct now", decision: default_decision))
+    assert_equal({ mode: "structured", source: "default" }, handler.send(:select_change_mode, event_text: "do work", decision: direct_decision))
+    assert_equal({ mode: "structured", source: "default" }, handler.send(:select_change_mode, event_text: "do work", decision: default_decision))
+  end
+
+  private
+
+  def build_private_method_handler(show_operational_telemetry: false, clarification_policy: nil)
+    fake_flow = Object.new
+    fake_flow.define_singleton_method(:process) do |**_kwargs|
+      TelegramRuntimeHandlerTest::FakeResult.new(
+        project: TelegramRuntimeHandlerTest::FakeProject.new(id: "project-1"),
+        workstream: TelegramRuntimeHandlerTest::FakeWorkstream.new(id: "ws-1", state: "executing"),
+        task: TelegramRuntimeHandlerTest::FakeTask.new(id: "task-1"),
+        alignment: nil,
+        action_results: []
+      )
+    end
+
+    Redwright::TelegramRuntimeHandler.new(
+      flow: fake_flow,
+      telegram_client: FakeTelegramClient.new([]),
+      out: StringIO.new,
+      err: StringIO.new,
+      blocked_retry_attempts: 1,
+      show_operational_telemetry: show_operational_telemetry,
+      clarification_policy: clarification_policy
+    )
+  end
+
 end
