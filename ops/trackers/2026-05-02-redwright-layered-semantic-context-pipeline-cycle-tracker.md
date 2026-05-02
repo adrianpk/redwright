@@ -4,36 +4,36 @@
 
 - cycle_id: `cycle-2026-05-02-redwright-layered-semantic-context-pipeline`
 - status: `in_progress`
-- state: `planned`
+- state: `awaiting_review`
 - updated: `2026-05-02`
 - active_slice: `Slice 1`
-- active_task: `T1.1`
+- active_task: `T1.3`
 - source_plan: `ops/plans/2026-05-02-redwright-layered-semantic-context-pipeline-implementation-cycle-plan.md`
 
 ## Slice Progress
 
 ### Slice 1: Capability Contract and Stable IR V1
 
-- status: `pending`
-- branch: `fix/slice-1-semantic-capability-contract-and-ir-v1`
+- status: `awaiting_review`
+- branch: `feat/slice-1-semantic-capability-contract-and-ir-v1`
 - PR: `tbd`
 - merge_target: `dev`
-- last_sync_commit: `tbd`
+- last_sync_commit: `21ccf5f`
 
 Tasks:
 
-- [ ] `T1.1 define capability contract for parser_mode/lsp_mode with explicit preferred and fallback states`
-- [ ] `T1.2 define stable IR v1 sections and deterministic field ordering`
-- [ ] `T1.3 add contract tests for schema and ordering invariants`
+- [x] `T1.1 define capability contract for parser_mode/lsp_mode with explicit preferred and fallback states`
+- [x] `T1.2 define stable IR v1 sections and deterministic field ordering`
+- [x] `T1.3 add contract tests for schema and ordering invariants`
 
 Commits:
 
-- [ ] `<sha> feat(runtime): define semantic capability contract and ir v1 schema`
-- [ ] `<sha> test(runtime): cover ir schema and deterministic ordering invariants`
+- [x] `31514e4 feat(runtime): define semantic capability contract and ir v1 schema`
+- [x] `3d01c87 test(runtime): cover ir schema and deterministic ordering invariants`
 
 Validation:
 
-- [ ] `semantic capability contract and IR schema suite pass`
+- [x] `ruby -Itest test/redwright/iteration_context_packet_builder_test.rb (pass)`
 
 ### Slice 2: Tree-sitter Structural Extraction Baseline
 
@@ -227,3 +227,4 @@ Validation:
 ## Event Log
 
 - `2026-05-02` state=`planned` note=`semantic layered context pipeline cycle tracker initialized from draft and prior semantic packet v2 baseline`
+- `2026-05-02` state=`awaiting_review` note=`Slice 1 completed with semantic capability mode contract, stable IR v1 sections, and deterministic schema ordering tests`

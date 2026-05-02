@@ -16,7 +16,7 @@
 ### Slice 1: Capability Contract and Stable IR V1
 
 - status: `pending`
-- branch: `fix/slice-1-semantic-capability-contract-and-ir-v1`
+- branch: `feat/slice-1-semantic-capability-contract-and-ir-v1`
 - objective: `define canonical semantic capability contract and deterministic IR schema`
 - tasks:
 - [ ] `T1.1 define capability contract for parser_mode/lsp_mode with explicit preferred and fallback states`
