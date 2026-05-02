@@ -3,10 +3,10 @@
 ## Metadata
 
 - cycle_id: `cycle-2026-05-02-redwright-rails-core-command-api-and-project-setup-saga`
-- status: `planned`
-- state: `planning`
+- status: `in_progress`
+- state: `awaiting_review`
 - updated: `2026-05-02`
-- active_slice: `none`
+- active_slice: `Slice 1`
 - active_task: `none`
 - source_plan: `ops/plans/2026-05-02-redwright-rails-core-command-api-and-project-setup-saga-implementation-cycle-plan.md`
 - source_spec: `ops/specs/specs/2026-05-02-redwright-rails-core-command-api-and-project-setup-saga-spec.md`
@@ -15,28 +15,28 @@
 
 ### Slice 1: Rails Application Command/Query Foundation
 
-- status: `pending`
+- status: `awaiting_review`
 - branch: `fix/slice-1-rails-command-query-foundation`
 - PR: `tbd`
 - merge_target: `dev`
-- last_sync_commit: `cc91c10`
+- last_sync_commit: `f9371a2`
 
 Tasks:
 
-- [ ] `T1.1 define Rails command/query envelope and result objects`
-- [ ] `T1.2 add Rails dispatcher with command/query registry and structured error handling`
-- [ ] `T1.3 add focused tests for envelope validation, dispatch success, and unsupported command/query errors`
+- [x] `T1.1 define Rails command/query envelope and result objects`
+- [x] `T1.2 add Rails dispatcher with command/query registry and structured error handling`
+- [x] `T1.3 add focused tests for envelope validation, dispatch success, and unsupported command/query errors`
 
 Commits:
 
-- [ ] `feat(web): add rails command query envelope contract`
-- [ ] `feat(web): add rails command query dispatcher`
-- [ ] `test(web): cover rails command query dispatch contract`
+- [x] `fce076b feat(web): add rails command query envelope contract`
+- [x] `edd0d23 feat(web): add rails command query dispatcher`
+- [x] `0b0769f test(web): cover rails command query dispatch contract`
 
 Validation:
 
-- [ ] `targeted Rails service tests (pending)`
-- [ ] `bundle exec rake test:coverage from repository root (pending before slice closure)`
+- [x] `cd apps/web && bundle exec bin/rails test test/services/command_query (pass)`
+- [x] `bundle exec rake test:coverage from repository root (pass, coverage=91.2)`
 
 ### Slice 2: Project Setup Session Persistence and State Machine
 
@@ -221,3 +221,4 @@ Validation:
 ## Event Log
 
 - `2026-05-02` state=`planning` note=`created formal spec, implementation plan, and tracker for Rails core command API plus project setup saga cycle`
+- `2026-05-02` state=`awaiting_review` slice=`Slice 1` note=`implemented Rails command/query envelope, result, registry, dispatcher, structured error handling, and focused service coverage`
