@@ -209,7 +209,7 @@ Validation:
 
 - status: `awaiting_review`
 - branch: `fix/slice-8-agent-runtime-bridge-cross-channel-parity`
-- PR: `tbd`
+- PR: `https://codeberg.org/adrianpk/redwright/pulls/252`
 - merge_target: `dev`
 - last_sync_commit: `fb14be7`
 
