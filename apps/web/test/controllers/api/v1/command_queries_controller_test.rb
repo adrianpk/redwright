@@ -39,13 +39,13 @@ class Api::V1::CommandQueriesControllerTest < ActionDispatch::IntegrationTest
     assert_equal "req-start", body.fetch("request_id")
     assert_equal "collecting_alignment", body.fetch("state")
     assert_equal "Project created; guided alignment is ready to continue.", body.fetch("summary")
-    assert_equal "Guided alignment is ready to continue.", body.fetch("next_prompt")
+    assert_equal ProjectSetup::GuidedAlignmentService.first_question, body.fetch("next_prompt")
     assert body.fetch("session_id")
     assert body.fetch("project_id")
     assert_equal ["project_setup_session_written", "project_created"], body.fetch("effects").map { |effect| effect.fetch("type") }
   end
 
-  test "advances project setup by recording a setup turn" do
+  test "advances guided alignment by recording one setup turn and returning the next question" do
     session = started_alignment_session
 
     post "/api/v1/commands",
@@ -68,12 +68,87 @@ class Api::V1::CommandQueriesControllerTest < ActionDispatch::IntegrationTest
     assert_equal "ok", body.fetch("status")
     assert_equal session.id, body.fetch("session_id")
     assert_equal "collecting_alignment", body.fetch("state")
-    assert_equal "Project setup advanced.", body.fetch("summary")
+    assert_equal "Guided alignment advanced.", body.fetch("summary")
+    assert_equal ProjectSetup::GuidedAlignmentService::QUESTIONS.fetch(1).fetch("question"), body.fetch("next_prompt")
     assert_equal "project_setup_turn_recorded", body.fetch("effects").first.fetch("type")
     assert_equal 1, session.reload.turn_counter
     turn = session.project_setup_turns.order(:turn_index).last
     assert_equal "Operators need a short feedback loop.", turn.answer
-    assert_equal({"target_users" => "operators"}, turn.normalized_fields)
+    assert_equal "primary_outcome", turn.normalized_fields.fetch("alignment_key")
+    assert_equal "operators", turn.normalized_fields.fetch("target_users")
+  end
+
+  test "completes guided alignment through api with bounded turns and artifacts" do
+    session = started_alignment_session
+    answers = [
+      "Optimize for clear project setup.",
+      "Developers and reviewer agents.",
+      "Keep review gates explicit."
+    ]
+
+    answers.each_with_index do |answer, index|
+      post "/api/v1/commands",
+        params: {
+          name: "AdvanceProjectSetup",
+          payload: {
+            session_id: session.id,
+            answer: answer
+          },
+          request_id: "req-complete-#{index}"
+        },
+        headers: actor_headers,
+        as: :json
+
+      assert_response :success
+    end
+
+    body = json_body
+    assert_equal "completed", body.fetch("state")
+    assert_equal "Guided alignment completed.", body.fetch("summary")
+    assert_equal "completed_with_alignment", body.dig("data", "terminal_reason")
+    assert body.dig("data", "alignment_document_id")
+    assert_equal ["project_setup_turn_recorded", "guided_alignment_artifacts_written", "project_setup_completed"], body.fetch("effects").map { |effect| effect.fetch("type") }
+    session.reload
+    assert_equal 3, session.turn_counter
+    assert_equal 3, session.project.project_attributes.where(source: "guided_alignment").count
+    assert session.project.documents.exists?(title: "Guided Alignment Summary", artifact_type: "draft")
+
+    post "/api/v1/commands",
+      params: {
+        name: "AdvanceProjectSetup",
+        payload: {
+          session_id: session.id,
+          answer: "Another answer must not be accepted."
+        },
+        request_id: "req-after-terminal"
+      },
+      headers: actor_headers,
+      as: :json
+
+    assert_response :unprocessable_entity
+    assert_equal "terminal_setup_session", json_body.fetch("errors").first.fetch("code")
+  end
+
+  test "replays guided alignment request id without duplicating turns" do
+    session = started_alignment_session
+    payload = {
+      name: "AdvanceProjectSetup",
+      payload: {
+        session_id: session.id,
+        answer: "Optimize for retries."
+      },
+      request_id: "req-replay"
+    }
+
+    post "/api/v1/commands", params: payload, headers: actor_headers, as: :json
+    assert_response :success
+    post "/api/v1/commands", params: payload, headers: actor_headers, as: :json
+    assert_response :success
+
+    body = json_body
+    assert_equal "project_setup_turn_reused", body.fetch("effects").first.fetch("type")
+    assert_equal 1, session.reload.turn_counter
+    assert_equal 1, session.project_setup_turns.count
   end
 
   test "cancels project setup through command api" do

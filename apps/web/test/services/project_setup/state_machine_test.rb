@@ -29,7 +29,7 @@ module ProjectSetup
     end
 
     test "terminal transition sets status reason and clears pending question" do
-      session = setup_session(current_state: "creating_project", pending_question: "Confirm?", status: "open")
+      session = setup_session(current_state: "collecting_alignment", pending_question: "Confirm?", status: "open")
       machine = StateMachine.new(session: session)
 
       result = machine.transition_to("completed", terminal_reason: "completed_with_alignment")

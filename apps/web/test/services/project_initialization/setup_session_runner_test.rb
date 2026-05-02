@@ -31,6 +31,8 @@ module ProjectInitialization
       assert_nil session.pending_question
       assert_equal false, session.metadata["guided_alignment_pending"]
       assert_equal "completed", result.guided_alignment[:setup_state]
+      assert_equal 0, session.project.project_attributes.count
+      assert_equal 0, session.project.documents.count
     end
 
     test "persists cancellation without creating project" do

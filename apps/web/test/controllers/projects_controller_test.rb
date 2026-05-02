@@ -42,7 +42,7 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
     session = project.project_setup_sessions.order(:created_at).last
     assert_equal "open", session.status
     assert_equal "collecting_alignment", session.current_state
-    assert_equal "Guided alignment is ready to continue.", session.pending_question
+    assert_equal ProjectSetup::GuidedAlignmentService.first_question, session.pending_question
   end
 
   test "create supports guided alignment opt-out" do
