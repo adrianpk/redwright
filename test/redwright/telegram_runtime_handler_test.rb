@@ -13,8 +13,10 @@ require "redwright/task_store"
 require "redwright/alignment_store"
 require "redwright/plan_spec_store"
 require "redwright/runtime_flow"
+require "redwright/server_runtime_dispatcher"
 require "redwright/telegram_ingress"
 require "redwright/telegram_runtime_handler"
+require "redwright/telegram_project_setup_adapter"
 
 class TelegramRuntimeHandlerTest < Minitest::Test
   FakeTelegramClient = Struct.new(:messages, :chat_actions) do
@@ -56,6 +58,56 @@ class TelegramRuntimeHandlerTest < Minitest::Test
   FakeActionResult = Struct.new(:action_id, :action_type, :status, :error_message, keyword_init: true)
   FakeResult = Struct.new(:project, :workstream, :task, :alignment, :action_results, keyword_init: true)
   FakeQualityCheck = Struct.new(:name, :status, keyword_init: true)
+  FakeApiResponse = Struct.new(:body, keyword_init: true)
+
+  class FakeProjectSetupClient
+    attr_reader :calls
+
+    def initialize
+      @calls = []
+    end
+
+    def command(name:, payload:, actor_identifier:, request_id:)
+      @calls << {
+        type: "command",
+        name: name,
+        payload: payload,
+        actor_identifier: actor_identifier,
+        request_id: request_id
+      }
+      body = if name == "StartProjectSetup"
+               {
+                 "status" => "ok",
+                 "summary" => "Repository input requires clarification.",
+                 "session_id" => 101,
+                 "state" => "awaiting_repository",
+                 "next_prompt" => "Repository input is ambiguous."
+               }
+             elsif name == "AdvanceProjectSetup"
+               {
+                 "status" => "ok",
+                 "summary" => "Project setup advanced.",
+                 "session_id" => 101,
+                 "state" => "awaiting_repository",
+                 "next_prompt" => "Repository input is ambiguous."
+               }
+             else
+               raise "unexpected command #{name}"
+             end
+      FakeApiResponse.new(body: body)
+    end
+
+    def query(name:, payload:, actor_identifier:, request_id:)
+      @calls << {
+        type: "query",
+        name: name,
+        payload: payload,
+        actor_identifier: actor_identifier,
+        request_id: request_id
+      }
+      FakeApiResponse.new(body: { "status" => "ok", "summary" => "ok" })
+    end
+  end
 
   def build_fake_clarification_store(cancellations)
     store = Object.new
@@ -1084,6 +1136,50 @@ class TelegramRuntimeHandlerTest < Minitest::Test
     assert_equal(1, client.messages.size)
     assert_match("Please provide a project name: /project new <name>.", client.messages.last[:text])
     assert_match("telegram clarify chat=46", out.string)
+  end
+
+  def test_handle_routes_project_setup_turns_to_rails_api_before_runtime_flow
+    Dir.mktmpdir("redwright-telegram-handler-rails-project-setup-") do |dir|
+      Dir.chdir(dir) do
+        bootstrap = Redwright::Bootstrap.new(mode: :dev).call
+        project_store = Redwright::ProjectStore.new(bootstrap.db_path)
+        fake_flow = Object.new
+        fake_flow.define_singleton_method(:process) do |**_kwargs|
+          raise "flow should not run for Rails-backed project setup"
+        end
+        runtime_dispatcher = Redwright::ServerRuntimeDispatcher.new(
+          flow: fake_flow,
+          blocked_retry_attempts: 1,
+          project_store: project_store,
+          projects_root: bootstrap.projects_root
+        )
+        setup_client = FakeProjectSetupClient.new
+        project_setup_adapter = Redwright::TelegramProjectSetupAdapter.new(client: setup_client)
+        client = FakeTelegramClient.new([])
+        out = StringIO.new
+        handler = Redwright::TelegramRuntimeHandler.new(
+          flow: fake_flow,
+          telegram_client: client,
+          out: out,
+          err: StringIO.new,
+          blocked_retry_attempts: 1,
+          operational_dispatcher: runtime_dispatcher,
+          project_setup_adapter: project_setup_adapter
+        )
+
+        handler.handle(Redwright::TelegramEvent.new(update_id: 1, chat_id: 46, user_id: 77, username: "tester", text: "/project new happy-cli"))
+        handler.handle(Redwright::TelegramEvent.new(update_id: 2, chat_id: 46, user_id: 77, username: "tester", text: "acme/happy-cli"))
+
+        assert_equal(%w[StartProjectSetup AdvanceProjectSetup], setup_client.calls.map { |call| call[:name] })
+        assert_equal(2, client.messages.size)
+        assert_match("Repository input requires clarification.", client.messages.first[:text])
+        assert_match("Project setup advanced.", client.messages.last[:text])
+        assert_match("telegram rails_project_setup chat=46 command=project_new state=awaiting_repository", out.string)
+        assert_match("telegram rails_project_setup chat=46 command=project_setup_advance state=awaiting_repository", out.string)
+        assert_equal([], project_store.list)
+        refute(File.directory?(File.join(bootstrap.projects_root, "happy-cli")))
+      end
+    end
   end
 
   def test_handle_rewrites_operational_slashes_to_explicit_planner_hints
