@@ -295,4 +295,34 @@ class IterationContextPacketBuilderTest < Minitest::Test
       assert_equal(packet.dig(:packet, :tree, :entries), ir["REPO_MAP"])
     end
   end
+
+  def test_populates_available_symbols_with_tree_sitter_mode
+    Dir.mktmpdir("redwright-iter-packet-symbols-") do |dir|
+      FileUtils.mkdir_p(File.join(dir, "lib"))
+      File.write(
+        File.join(dir, "lib", "sample.rb"),
+        <<~RUBY
+          require "json"
+          class Parser
+            def parse(input)
+            end
+          end
+        RUBY
+      )
+
+      packet = Redwright::IterationContextPacketBuilder.new.build(
+        project_path: dir,
+        task_goal: "extract symbols",
+        previous_message: "none",
+        current_errors: [],
+        parser_mode: "preferred_tree_sitter",
+        top_k_files: 3
+      )
+
+      symbols = packet.dig(:packet, :ir_v1, "AVAILABLE_SYMBOLS")
+      assert(symbols.any? { |s| s[:kind] == "import" && s[:name] == "json" })
+      assert(symbols.any? { |s| s[:kind] == "signature" && s[:name] == "parse" })
+      assert(symbols.any? { |s| s[:kind] == "type" && s[:name] == "Parser" })
+    end
+  end
 end
