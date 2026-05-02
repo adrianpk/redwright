@@ -83,7 +83,7 @@ Validation:
 
 ### Slice 4: Deterministic Fallback Extractors
 
-- status: `awaiting_review`
+- status: `completed`
 - branch: `feat/slice-4-semantic-deterministic-fallback-extractors`
 - PR: `https://codeberg.org/adrianpk/redwright/pulls/238`
 - merge_target: `dev`
@@ -106,26 +106,26 @@ Validation:
 
 ### Slice 5: Layered Retrieval and Symbol-Level Selection
 
-- status: `pending`
-- branch: `fix/slice-5-semantic-layered-symbol-selection`
-- PR: `tbd`
+- status: `awaiting_review`
+- branch: `feat/slice-5-semantic-layered-symbol-selection`
+- PR: `https://codeberg.org/adrianpk/redwright/pulls/239`
 - merge_target: `dev`
-- last_sync_commit: `tbd`
+- last_sync_commit: `08ba7ef`
 
 Tasks:
 
-- [ ] `T5.1 implement layered retrieval tiers CORE_TASK CURRENT_FILE DEPENDENCIES GLOBAL_SIGNALS`
-- [ ] `T5.2 implement symbol-scoped dependency expansion with strict bounds`
-- [ ] `T5.3 add tests for retrieval prioritization and bounded expansion`
+- [x] `T5.1 implement layered retrieval tiers CORE_TASK CURRENT_FILE DEPENDENCIES GLOBAL_SIGNALS`
+- [x] `T5.2 implement symbol-scoped dependency expansion with strict bounds`
+- [x] `T5.3 add tests for retrieval prioritization and bounded expansion`
 
 Commits:
 
-- [ ] `<sha> feat(runtime): add layered symbol-level context selection`
-- [ ] `<sha> test(runtime): cover layered retrieval prioritization and bounds`
+- [x] `f845870 feat(runtime): add layered symbol-level context selection`
+- [x] `9bfeaa0 test(runtime): cover layered retrieval prioritization and bounds`
 
 Validation:
 
-- [ ] `layered selection and bounded expansion suite pass`
+- [x] `ruby -Itest test/redwright/iteration_context_packet_builder_test.rb && ruby -Itest test/redwright/tree_sitter_structural_extractor_test.rb && ruby -Itest test/redwright/lsp_semantic_enricher_test.rb && ruby -Itest test/redwright/plain_text_structural_extractor_test.rb (pass)`
 
 ### Slice 6: Documentation-First Signal Prioritization
 
@@ -236,3 +236,6 @@ Validation:
 
 - `2026-05-02` state=`slice_merged` note=`Slice 3 merged to dev`
 - `2026-05-02` state=`awaiting_review` note=`Slice 4 completed with deterministic fallback extractor parity and graceful degradation coverage`
+
+- `2026-05-02` state=`slice_merged` note=`Slice 4 merged to dev`
+- `2026-05-02` state=`awaiting_review` note=`Slice 5 completed with layered symbol-tier selection and bounded dependency/global expansion`

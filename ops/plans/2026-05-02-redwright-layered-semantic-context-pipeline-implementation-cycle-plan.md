@@ -76,7 +76,7 @@
 ### Slice 5: Layered Retrieval and Symbol-Level Selection
 
 - status: `pending`
-- branch: `fix/slice-5-semantic-layered-symbol-selection`
+- branch: `feat/slice-5-semantic-layered-symbol-selection`
 - objective: `replace file-first selection with layered symbol-level retrieval`
 - tasks:
 - [ ] `T5.1 implement layered retrieval tiers CORE_TASK CURRENT_FILE DEPENDENCIES GLOBAL_SIGNALS`
