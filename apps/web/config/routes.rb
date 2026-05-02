@@ -2,6 +2,7 @@ Rails.application.routes.draw do
   resources :users, only: [ :new, :create ]
   resource :session
   resources :passwords, param: :token
+  resources :projects, only: [ :index, :new, :create, :show ]
   resources :boards, only: [ :index, :show ]
   resources :boards, only: [] do
     resources :tickets, only: [ :new, :create ] do

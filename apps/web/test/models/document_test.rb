@@ -65,6 +65,7 @@ class DocumentTest < ActiveSupport::TestCase
     backlog = board.columns.create!(key: "backlog", title: "Backlog", position: 0)
     ticket = board.tickets.create!(column: backlog, title: "Implement feature")
     draft = create_document(
+      project: board.project,
       artifact_type: "draft",
       title: "Feature Draft",
       body: "Draft details"

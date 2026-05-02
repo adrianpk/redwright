@@ -1,0 +1,15 @@
+<main class="projects-index">
+  <header class="projects-header">
+    <h1>Projects</h1>
+    <%= link_to "New Project", new_project_path, class: "ticket-action" %>
+  </header>
+
+  <section class="projects-list">
+    <% @projects.each do |project| %>
+      <%= link_to project_path(project), class: "board-list-card" do %>
+        <strong><%= project.name %></strong>
+        <span><%= project.repo_url %></span>
+      <% end %>
+    <% end %>
+  </section>
+</main>

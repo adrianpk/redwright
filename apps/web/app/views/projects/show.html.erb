@@ -1,0 +1,12 @@
+<main class="project-show">
+  <header>
+    <h1><%= @project.name %></h1>
+    <p><%= @project.description %></p>
+  </header>
+
+  <section>
+    <p><strong>Root path:</strong> <%= @project.root_path %></p>
+    <p><strong>Repository:</strong> <%= @project.repo_url %></p>
+    <p><strong>Stack:</strong> <%= @project.stack_slug %></p>
+  </section>
+</main>

@@ -1,0 +1,37 @@
+<main class="project-new">
+  <h1>New Project</h1>
+
+  <% if @errors.present? %>
+    <section class="form-errors">
+      <% @errors.each do |field, message| %>
+        <p><%= "#{field}: #{message}" %></p>
+      <% end %>
+    </section>
+  <% end %>
+
+  <%= form_with url: projects_path, scope: :project do |f| %>
+    <div class="field">
+      <%= f.label :name, "Project Name" %>
+      <%= f.text_field :name, value: @project_form[:name], required: true %>
+    </div>
+
+    <div class="field">
+      <%= f.label :directory_name, "Directory Name" %>
+      <%= f.text_field :directory_name, value: @project_form[:directory_name], required: true %>
+    </div>
+
+    <div class="field">
+      <%= f.label :repository_input, "Repository" %>
+      <%= f.text_field :repository_input, value: @project_form[:repository_input], required: true %>
+    </div>
+
+    <div class="field">
+      <%= f.label :guided_alignment, "Guided Alignment" %>
+      <%= f.select :guided_alignment, [["Opt in", true], ["Skip", false]], selected: @project_form[:guided_alignment] %>
+    </div>
+
+    <div class="form-actions">
+      <%= f.submit "Create Project", class: "ticket-action" %>
+    </div>
+  <% end %>
+</main>
