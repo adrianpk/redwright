@@ -6,8 +6,8 @@
 - status: `in_progress`
 - state: `awaiting_review`
 - updated: `2026-05-02`
-- active_slice: `Slice 1`
-- active_task: `T1.3`
+- active_slice: `Slice 2`
+- active_task: `T2.3`
 - source_plan: `ops/plans/2026-05-02-redwright-project-context-umbrella-model-implementation-cycle-plan.md`
 
 ## Slice Progress
@@ -37,26 +37,27 @@ Validation:
 
 ### Slice 2: Dynamic Project Attributes
 
-- status: `pending`
+- status: `completed`
 - branch: `fix/slice-2-project-attributes-dynamic-metadata`
 - PR: `tbd`
 - merge_target: `dev`
-- last_sync_commit: `tbd`
+- last_sync_commit: `c08b5aa`
 
 Tasks:
 
-- [ ] `T2.1 create project_attributes migration and associations`
-- [ ] `T2.2 add validation for weight range and source presence`
-- [ ] `T2.3 add model tests for key/value/weight/source semantics`
+- [x] `T2.1 create project_attributes migration and associations`
+- [x] `T2.2 add validation for weight range and source presence`
+- [x] `T2.3 add model tests for key/value/weight/source semantics`
 
 Commits:
 
-- [ ] `<sha> feat(web): add project attributes dynamic metadata model`
-- [ ] `<sha> test(web): cover project attribute validation and associations`
+- [x] `477778f feat(web): add project attributes persistence and project association`
+- [x] `7e5f6f8 feat(web): validate project attribute weight range and source presence`
+- [x] `d1f0602 test(web): cover project attribute validation and associations`
 
 Validation:
 
-- [ ] `cd apps/web && bundle exec bin/rails test test/models/project_attribute_test.rb`
+- [x] `cd apps/web && bundle exec bin/rails test test/models/project_attribute_test.rb (pass)`
 
 ### Slice 3: Board Project Binding
 
@@ -176,3 +177,4 @@ Validation:
 
 - `2026-05-02` state=`planned` note=`spec, implementation plan, and tracker initialized from draft and curated conversation; cycle is ready for Slice 1 branch/PR execution`
 - `2026-05-02` state=`awaiting_review` note=`Slice 1 completed with project persistence migration, project model validations, and model coverage`
+- `2026-05-02` state=`awaiting_review` note=`Slice 2 completed with project_attributes persistence, model validation contract, and focused model coverage`
