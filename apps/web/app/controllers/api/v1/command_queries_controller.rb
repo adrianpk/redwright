@@ -9,7 +9,7 @@ module Api
       private
 
       def command_query_dispatcher
-        CommandQuery::Dispatcher.new
+        CommandQuery::ApplicationDispatcher.build
       end
 
       def envelope_hash
