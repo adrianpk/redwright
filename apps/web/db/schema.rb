@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_02_113000) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_02_141000) do
   create_table "boards", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "name", null: false
@@ -62,6 +62,19 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_02_113000) do
     t.datetime "updated_at", null: false
     t.index ["board_id", "name"], name: "index_labels_on_board_id_and_name", unique: true
     t.index ["board_id"], name: "index_labels_on_board_id"
+  end
+
+  create_table "project_attributes", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "key", null: false
+    t.integer "project_id", null: false
+    t.string "source", null: false
+    t.datetime "updated_at", null: false
+    t.text "value", null: false
+    t.integer "weight", null: false
+    t.index ["project_id", "key"], name: "index_project_attributes_on_project_id_and_key"
+    t.index ["project_id", "weight"], name: "index_project_attributes_on_project_id_and_weight"
+    t.index ["project_id"], name: "index_project_attributes_on_project_id"
   end
 
   create_table "projects", force: :cascade do |t|
@@ -145,6 +158,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_02_113000) do
   add_foreign_key "document_artifact_relations", "document_artifacts", column: "to_artifact_id"
   add_foreign_key "document_artifacts", "document_artifacts", column: "source_draft_id"
   add_foreign_key "labels", "boards"
+  add_foreign_key "project_attributes", "projects"
   add_foreign_key "sessions", "users"
   add_foreign_key "ticket_artifact_links", "document_artifacts"
   add_foreign_key "ticket_artifact_links", "tickets"
