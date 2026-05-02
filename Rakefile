@@ -2,7 +2,9 @@
 
 require "shellwords"
 require "open3"
+require "fileutils"
 require_relative "lib/redwright/local_quality"
+require_relative "scripts/runtime/foreground_runner"
 
 desc "Run full test suite"
 task :test do
@@ -240,6 +242,15 @@ end
 task "test-invariants": "test:invariants"
 
 task default: :test
+
+namespace :app do
+  namespace :run do
+    desc "Run full dev stack in foreground (server + web + telegram ingress)"
+    task :foreground do
+      Redwright::Runtime::ForegroundRunner.run!
+    end
+  end
+end
 
 namespace :quality do
   def quality_helper
