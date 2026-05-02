@@ -10,12 +10,14 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_02_141000) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_02_150000) do
   create_table "boards", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "name", null: false
+    t.integer "project_id", null: false
     t.string "project_key", null: false
     t.datetime "updated_at", null: false
+    t.index ["project_id"], name: "index_boards_on_project_id"
     t.index ["project_key"], name: "index_boards_on_project_key", unique: true
   end
 
@@ -153,6 +155,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_02_141000) do
     t.index ["email_address"], name: "index_users_on_email_address", unique: true
   end
 
+  add_foreign_key "boards", "projects"
   add_foreign_key "columns", "boards"
   add_foreign_key "document_artifact_relations", "document_artifacts", column: "from_artifact_id"
   add_foreign_key "document_artifact_relations", "document_artifacts", column: "to_artifact_id"
