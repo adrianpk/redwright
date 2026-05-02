@@ -180,7 +180,7 @@ Validation:
 
 - status: `awaiting_review`
 - branch: `fix/slice-7-rails-document-ticket-board-command-api`
-- PR: `tbd`
+- PR: `https://codeberg.org/adrianpk/redwright/pulls/251`
 - merge_target: `dev`
 - last_sync_commit: `9356310`
 
