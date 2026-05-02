@@ -6,8 +6,8 @@
 - status: `in_progress`
 - state: `awaiting_review`
 - updated: `2026-05-02`
-- active_slice: `Slice 3`
-- active_task: `T3.3`
+- active_slice: `Slice 4`
+- active_task: `T4.3`
 - source_plan: `ops/plans/2026-05-02-redwright-project-context-umbrella-model-implementation-cycle-plan.md`
 
 ## Slice Progress
@@ -63,7 +63,7 @@ Validation:
 
 - status: `completed`
 - branch: `fix/slice-3-board-project-binding`
-- PR: `tbd`
+- PR: `#221`
 - merge_target: `dev`
 - last_sync_commit: `ae970bc`
 
@@ -85,26 +85,27 @@ Validation:
 
 ### Slice 4: Document Project Binding
 
-- status: `pending`
+- status: `completed`
 - branch: `fix/slice-4-document-project-binding`
 - PR: `tbd`
 - merge_target: `dev`
-- last_sync_commit: `tbd`
+- last_sync_commit: `d45c9a9`
 
 Tasks:
 
-- [ ] `T4.1 add project_id to document_artifacts with migration/backfill`
-- [ ] `T4.2 enforce artifact->project association and scoped queries`
-- [ ] `T4.3 add tests for project-scoped artifact access`
+- [x] `T4.1 add project_id to document_artifacts with migration/backfill`
+- [x] `T4.2 enforce artifact->project association and scoped queries`
+- [x] `T4.3 add tests for project-scoped artifact access`
 
 Commits:
 
-- [ ] `<sha> feat(web): bind document artifacts to projects`
-- [ ] `<sha> test(web): cover project-scoped document artifact behavior`
+- [x] `7cdd764 feat(web): add document artifacts project backfill migration`
+- [x] `52a7477 feat(web): enforce document artifact project ownership`
+- [x] `0f5986e test(web): cover project-scoped document artifact behavior`
 
 Validation:
 
-- [ ] `cd apps/web && bundle exec bin/rails test test/models/document_artifact_test.rb test/controllers/document_artifacts_controller_test.rb`
+- [x] `cd apps/web && bundle exec bin/rails test test/models/document_artifact_test.rb test/controllers/document_artifacts_controller_test.rb test/controllers/tickets_controller_test.rb (pass)`
 
 ### Slice 5: Ticket Project Context Derivation (Phase One)
 
@@ -180,3 +181,4 @@ Validation:
 - `2026-05-02` state=`awaiting_review` note=`Slice 1 completed with project persistence migration, project model validations, and model coverage`
 - `2026-05-02` state=`awaiting_review` note=`Slice 2 completed with project_attributes persistence, model validation contract, and focused model coverage`
 - `2026-05-02` state=`awaiting_review` note=`Slice 3 completed with boards.project_id backfill migration, required board->project binding, and board context test coverage`
+- `2026-05-02` state=`awaiting_review` note=`Slice 4 completed with document_artifacts.project_id backfill migration, required artifact->project binding, and project-scoped document tests`
