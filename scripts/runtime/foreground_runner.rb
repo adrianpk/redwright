@@ -2,6 +2,7 @@
 
 require "fileutils"
 require "bundler"
+require "socket"
 
 module Redwright
   module Runtime
@@ -17,6 +18,7 @@ module Redwright
         start_server
         prepare_web_database_and_users
         start_web
+        wait_for_web_port
         wait_for_server_socket
         print_runtime_banner
         start_telegram_foreground
@@ -106,13 +108,25 @@ module Redwright
 
       def start_web
         puts "Starting Rails app on port #{web_port}..."
-        @web_pid = Process.spawn(
-          web_unbundled_env,
-          "bundle exec bin/rails server -b 127.0.0.1 -p #{web_port}",
-          chdir: web_dir,
-          out: web_log,
-          err: web_log
-        )
+        Bundler.with_unbundled_env do
+          @web_pid = Process.spawn(
+            web_unbundled_env,
+            "bundle exec bin/rails server -b 127.0.0.1 -p #{web_port}",
+            chdir: web_dir,
+            out: web_log,
+            err: web_log
+          )
+        end
+      end
+
+      def wait_for_web_port
+        240.times do
+          return if tcp_port_open?("127.0.0.1", web_port.to_i)
+          raise "Rails app died during startup. Check #{web_log}\n#{tail_web_log}" unless process_alive?(@web_pid)
+
+          sleep 0.25
+        end
+        raise "Rails app not ready: http://127.0.0.1:#{web_port}\n#{tail_web_log}"
       end
 
       def wait_for_server_socket
@@ -163,6 +177,14 @@ module Redwright
         Process.kill(signal, pid)
       rescue StandardError
         nil
+      end
+
+      def tcp_port_open?(host, port)
+        socket = TCPSocket.new(host, port)
+        socket.close
+        true
+      rescue StandardError
+        false
       end
 
       def system!(*args)
@@ -234,6 +256,15 @@ module Redwright
         "Server log tail:\n#{lines.join}"
       rescue StandardError
         "Unable to read server log tail."
+      end
+
+      def tail_web_log
+        return "Web log not found." unless File.file?(web_log)
+
+        lines = File.readlines(web_log).last(40)
+        "Web log tail:\n#{lines.join}"
+      rescue StandardError
+        "Unable to read web log tail."
       end
     end
   end

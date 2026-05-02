@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "shellwords"
+
 module Redwright
   class TelegramProjectSetupAdapter
     Result = Struct.new(:handled, :command, :message, :api_response, keyword_init: true) do
@@ -373,14 +375,27 @@ module Redwright
     def parse_command(text)
       raw = text.to_s.strip
       return nil unless raw.start_with?("/project")
-      return {command: "new_missing"} if raw.match?(%r{\A/project\s+new\s*\z}i)
 
-      new_match = raw.match(%r{\A/project\s+new\s+([a-zA-Z0-9._\-]+)\s*\z}i)
-      return {command: "new", project_name: new_match[1]} if new_match
+      parts = shellsplit(raw)
+      return nil unless parts.first.to_s.downcase == "/project"
+      action = parts[1].to_s.downcase
+
+      return {command: "new_missing"} if action == "new" && parts[2].to_s.empty?
+      return {command: "new", project_name: parts[2]} if action == "new" && valid_project_name?(parts[2])
       return {command: "list"} if raw.match?(%r{\A/project\s+list\s*\z}i)
       return {command: "where"} if raw.match?(%r{\A/project\s+where\s*\z}i)
 
       nil
+    end
+
+    def shellsplit(raw)
+      Shellwords.split(raw)
+    rescue ArgumentError
+      raw.split(/\s+/)
+    end
+
+    def valid_project_name?(value)
+      value.to_s.match?(%r{\A[a-zA-Z0-9._\-]+\z})
     end
 
     def parse_ticket_command(text)
@@ -409,12 +424,24 @@ module Redwright
     end
 
     def actor_identifier_for(event)
-      user = event.user_id || event.username || "unknown"
+      user = if event.respond_to?(:user_id)
+               event.user_id
+             elsif event.respond_to?(:sender_id)
+               event.sender_id
+             end
+      user = event.username if user.nil? && event.respond_to?(:username)
+      user ||= "unknown"
       "telegram:chat:#{event.chat_id}:user:#{user}"
     end
 
     def request_id_for(event, suffix)
-      "telegram-#{event.chat_id}-#{event.update_id}-#{suffix}"
+      message_id = if event.respond_to?(:update_id)
+                     event.update_id
+                   elsif event.respond_to?(:external_message_id)
+                     event.external_message_id
+                   end
+      message_id ||= "unknown"
+      "telegram-#{event.chat_id}-#{message_id}-#{suffix}"
     end
   end
 end
