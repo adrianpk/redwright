@@ -21,10 +21,16 @@ class ProjectsController < ApplicationController
       guided_alignment: ActiveModel::Type::Boolean.new.cast(@project_form[:guided_alignment])
     )
 
-    orchestration = ProjectInitialization::Orchestrator.new(command: command).call
-    case orchestration.status
+    setup_result = ProjectInitialization::SetupSessionRunner.new(
+      command: command,
+      actor_identifier: setup_actor_identifier,
+      request_id: request.uuid,
+      source_channel: "web"
+    ).call
+
+    case setup_result.status
     when :invalid_command
-      @errors = orchestration.errors
+      @errors = setup_result.errors
       return render :new, status: :unprocessable_entity
     when :repository_resolution_ambiguous
       @errors = {repository_input: "requires clarification"}
@@ -33,18 +39,12 @@ class ProjectsController < ApplicationController
     when :initialization_cancelled
       redirect_to projects_path, notice: "Project initialization cancelled."
       return
-    when :repository_resolved
-      result = ProjectInitialization::Executor.new(
-        command: command,
-        resolved_repository: orchestration.repository.slice(:canonical, :source),
-        lifecycle: ProjectInitialization::ActiveRecordLifecycle.new
-      ).call
-
-      handle_execution_result(result)
+    when :initialization_completed
+      handle_execution_result(setup_result)
       return
     end
 
-    flash.now[:alert] = "Unsupported initialization state: #{orchestration.status}."
+    flash.now[:alert] = "Unsupported initialization state: #{setup_result.status}."
     render :new, status: :unprocessable_entity
   end
 
@@ -63,12 +63,16 @@ class ProjectsController < ApplicationController
     params.require(:project).permit(:name, :directory_name, :repository_input, :guided_alignment)
   end
 
+  def setup_actor_identifier
+    current_user&.email_address || "anonymous-web-user"
+  end
+
   def handle_execution_result(result)
     case result.status
     when :initialization_completed
       project = Project.find(result.project[:id])
-      notice = if result.guided_alignment[:requested]
-        "Project created. Guided alignment opted in."
+      notice = if result.guided_alignment[:setup_state] == "collecting_alignment"
+        "Project created. Guided alignment is ready to continue."
       else
         "Project created. Guided alignment skipped by user choice."
       end
