@@ -14,7 +14,7 @@ module ProjectInitialization
       assert_equal({}, result.repository)
     end
 
-    test "returns repository resolution required for valid command" do
+    test "returns repository resolved for explicit repository input" do
       command = Command.new(
         project_name: "InventoryService",
         directory_name: "inventory-service",
@@ -24,12 +24,42 @@ module ProjectInitialization
 
       result = Orchestrator.new(command: command).call
 
-      assert_equal :repository_resolution_required, result.status
-      assert_equal :resolve_repository, result.next_action
-      assert_equal "InventoryService", result.project[:name]
-      assert_equal "inventory-service", result.project[:directory_name]
-      assert_equal "git@codeberg.org:acme/inventory-service.git", result.repository[:input]
+      assert_equal :repository_resolved, result.status
+      assert_equal :confirm_repository, result.next_action
+      assert_equal "git@codeberg.org:acme/inventory-service.git", result.repository[:canonical]
+      assert_equal :explicit_url, result.repository[:source]
       assert_equal false, result.guided_alignment[:requested]
+      assert_equal({}, result.errors)
+    end
+
+    test "returns focused clarification state for ambiguous repository input" do
+      command = Command.new(
+        project_name: "InventoryService",
+        directory_name: "inventory-service",
+        repository_input: "inventory-service"
+      )
+
+      result = Orchestrator.new(command: command).call
+
+      assert_equal :repository_resolution_ambiguous, result.status
+      assert_equal :clarify_repository, result.next_action
+      assert_equal :unsupported_or_incomplete_repository_identifier, result.repository[:clarification][:reason]
+    end
+
+    test "returns cancellation state and guarantees no side effects" do
+      command = Command.new(
+        project_name: "InventoryService",
+        directory_name: "inventory-service",
+        repository_input: "cancel"
+      )
+
+      result = Orchestrator.new(command: command).call
+
+      assert_equal :initialization_cancelled, result.status
+      assert_equal :abort_initialization, result.next_action
+      assert_equal false, result.project[:created]
+      assert_equal false, result.repository[:created]
+      assert_equal false, result.guided_alignment[:executed]
       assert_equal({}, result.errors)
     end
 
@@ -37,7 +67,7 @@ module ProjectInitialization
       command = Command.new(
         project_name: "InventoryService",
         directory_name: "inventory-service",
-        repository_input: "inventory-service"
+        repository_input: "acme/inventory-service"
       )
 
       payload = Orchestrator.new(command: command).call.to_h
