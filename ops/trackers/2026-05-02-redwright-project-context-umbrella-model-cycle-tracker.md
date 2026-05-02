@@ -6,8 +6,8 @@
 - status: `in_progress`
 - state: `awaiting_review`
 - updated: `2026-05-02`
-- active_slice: `Slice 2`
-- active_task: `T2.3`
+- active_slice: `Slice 3`
+- active_task: `T3.3`
 - source_plan: `ops/plans/2026-05-02-redwright-project-context-umbrella-model-implementation-cycle-plan.md`
 
 ## Slice Progress
@@ -39,7 +39,7 @@ Validation:
 
 - status: `completed`
 - branch: `fix/slice-2-project-attributes-dynamic-metadata`
-- PR: `tbd`
+- PR: `#220`
 - merge_target: `dev`
 - last_sync_commit: `c08b5aa`
 
@@ -61,26 +61,27 @@ Validation:
 
 ### Slice 3: Board Project Binding
 
-- status: `pending`
+- status: `completed`
 - branch: `fix/slice-3-board-project-binding`
 - PR: `tbd`
 - merge_target: `dev`
-- last_sync_commit: `tbd`
+- last_sync_commit: `ae970bc`
 
 Tasks:
 
-- [ ] `T3.1 add project_id to boards with migration/backfill strategy`
-- [ ] `T3.2 enforce board->project association and validation`
-- [ ] `T3.3 add board model/controller tests for required project context`
+- [x] `T3.1 add project_id to boards with migration/backfill strategy`
+- [x] `T3.2 enforce board->project association and validation`
+- [x] `T3.3 add board model/controller tests for required project context`
 
 Commits:
 
-- [ ] `<sha> feat(web): require project ownership for boards`
-- [ ] `<sha> test(web): cover board project binding rules`
+- [x] `053fa09 feat(web): add boards project_id backfill migration`
+- [x] `b24db92 feat(web): require project ownership for boards`
+- [x] `6c861db test(web): cover board project binding rules`
 
 Validation:
 
-- [ ] `cd apps/web && bundle exec bin/rails test test/models/board_test.rb test/controllers/boards_controller_test.rb`
+- [x] `cd apps/web && bundle exec bin/rails test test/models/board_test.rb test/controllers/boards_controller_test.rb (pass)`
 
 ### Slice 4: Document Project Binding
 
@@ -178,3 +179,4 @@ Validation:
 - `2026-05-02` state=`planned` note=`spec, implementation plan, and tracker initialized from draft and curated conversation; cycle is ready for Slice 1 branch/PR execution`
 - `2026-05-02` state=`awaiting_review` note=`Slice 1 completed with project persistence migration, project model validations, and model coverage`
 - `2026-05-02` state=`awaiting_review` note=`Slice 2 completed with project_attributes persistence, model validation contract, and focused model coverage`
+- `2026-05-02` state=`awaiting_review` note=`Slice 3 completed with boards.project_id backfill migration, required board->project binding, and board context test coverage`
