@@ -6,7 +6,7 @@
 - status: `in_progress`
 - state: `awaiting_review`
 - updated: `2026-05-02`
-- active_slice: `Slice 3`
+- active_slice: `Slice 4`
 - active_task: `none`
 - source_plan: `ops/plans/2026-05-02-redwright-rails-core-command-api-and-project-setup-saga-implementation-cycle-plan.md`
 - source_spec: `ops/specs/specs/2026-05-02-redwright-rails-core-command-api-and-project-setup-saga-spec.md`
@@ -66,7 +66,7 @@ Validation:
 
 ### Slice 3: Unified Rails Project Initialization Services
 
-- status: `awaiting_review`
+- status: `completed`
 - branch: `fix/slice-3-unified-rails-project-initialization-services`
 - PR: `https://codeberg.org/adrianpk/redwright/pulls/247`
 - merge_target: `dev`
@@ -93,28 +93,29 @@ Validation:
 
 ### Slice 4: Rails Project Setup Command API
 
-- status: `pending`
+- status: `awaiting_review`
 - branch: `fix/slice-4-rails-project-setup-command-api`
 - PR: `tbd`
 - merge_target: `dev`
-- last_sync_commit: `tbd`
+- last_sync_commit: `3d57b63`
 
 Tasks:
 
-- [ ] `T4.1 add /api/v1 command/query routes, controller base, request id handling, and actor context`
-- [ ] `T4.2 register project setup commands and queries in the Rails dispatcher`
-- [ ] `T4.3 add API integration tests for start, advance, cancel, status, and project listing`
+- [x] `T4.1 add /api/v1 command/query routes, controller base, request id handling, and actor context`
+- [x] `T4.2 register project setup commands and queries in the Rails dispatcher`
+- [x] `T4.3 add API integration tests for start, advance, cancel, status, and project listing`
 
 Commits:
 
-- [ ] `feat(web): add rails command query api namespace`
-- [ ] `feat(web): expose project setup commands through rails api`
-- [ ] `test(web): cover project setup command api`
+- [x] `ba69969 feat(web): add rails command query api namespace`
+- [x] `207964d feat(web): expose project setup commands through rails api`
+- [x] `808ee08 test(web): cover project setup command api`
 
 Validation:
 
-- [ ] `targeted Rails API tests (pending)`
-- [ ] `bundle exec rake test:coverage from repository root (pending before slice closure)`
+- [x] `cd apps/web && bundle exec bin/rails test test/services/command_query test/controllers/api/v1/command_queries_controller_test.rb (pass)`
+- [x] `cd apps/web && bundle exec bin/rails test (pass)`
+- [x] `bundle exec rake test:coverage from repository root (pass, coverage=91.2)`
 
 ### Slice 5: Telegram Project Setup Adapter Over Rails API
 
@@ -229,3 +230,5 @@ Validation:
 - `2026-05-02` state=`awaiting_review` slice=`Slice 2` note=`implemented Rails project setup session persistence, setup turn ordering, deterministic state transitions, terminal outcomes, and focused model/service coverage`
 - `2026-05-02` state=`slice_merged` slice=`Slice 2` note=`Slice 2 merged to dev via PR 246`
 - `2026-05-02` state=`awaiting_review` slice=`Slice 3` note=`implemented unified project initialization setup runner, routed ProjectsController through setup sessions, and added service/controller coverage for opt-in, opt-out, cancellation, ambiguity, and failed partial state`
+- `2026-05-02` state=`slice_merged` slice=`Slice 3` note=`Slice 3 merged to dev via PR 247`
+- `2026-05-02` state=`awaiting_review` slice=`Slice 4` note=`implemented Rails API command/query namespace, project setup command/query handlers, and integration coverage for start, advance, cancel, status, and project listing`
