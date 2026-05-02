@@ -2,7 +2,6 @@
 require_relative "tree_sitter_structural_extractor"
 require_relative "plain_text_structural_extractor"
 require_relative "lsp_semantic_enricher"
-require_relative "lsp_semantic_enricher"
 
 module Redwright
   class IterationContextPacketBuilder
@@ -16,6 +15,9 @@ module Redwright
     DEFAULT_TREE_VIEW = "top_level"
     DEFAULT_PARSER_MODE = "fallback_plain_text"
     DEFAULT_LSP_MODE = "fallback_disabled"
+    DEFAULT_MAX_CURRENT_FILE_SYMBOLS = 8
+    DEFAULT_MAX_DEPENDENCY_SYMBOLS = 6
+    DEFAULT_MAX_GLOBAL_SIGNAL_SYMBOLS = 4
 
     def build(
       project_path:,
@@ -64,6 +66,11 @@ module Redwright
         parser_mode: semantic_capabilities[:parser_mode],
         lsp_mode: semantic_capabilities[:lsp_mode]
       )
+      layered_selection = select_layered_symbols(
+        task_goal: task_goal,
+        current_file_path: current_file ? current_file[:path].to_s : "",
+        symbols: available_symbols
+      )
       packet = {
         version: "v2",
         task_goal: task_goal.to_s,
@@ -83,10 +90,11 @@ module Redwright
         ir_v1: build_ir_v1(
           task_goal: task_goal,
           current_file: current_file,
-          available_symbols: available_symbols,
+          available_symbols: layered_selection[:selected_symbols],
           errors: Array(current_errors).map(&:to_s),
           tree_entries: tree_entries
         ),
+        layered_selection: layered_selection,
         bounds: {
           top_k_files: bounded_top_k,
           snippet_lines: bounded_snippet_lines,
@@ -283,6 +291,12 @@ module Redwright
       packet[:bounds].each { |k, v| lines << "  - #{k}: #{v}" }
       lines << "- ir_v1_sections:"
       packet.fetch(:ir_v1, {}).each_key { |section| lines << "  - #{section}" }
+      lines << "- layered_selection:"
+      lines << "  - core_task: #{packet.dig(:layered_selection, :core_task)}"
+      lines << "  - current_file_symbols: #{packet.dig(:layered_selection, :current_file_symbols_count)}"
+      lines << "  - dependency_symbols: #{packet.dig(:layered_selection, :dependency_symbols_count)}"
+      lines << "  - global_signal_symbols: #{packet.dig(:layered_selection, :global_signal_symbols_count)}"
+      lines << "  - total_selected_symbols: #{packet.dig(:layered_selection, :total_selected_symbols)}"
       lines.join("\n")
     end
 
@@ -327,6 +341,48 @@ module Redwright
       return sorted unless lsp_mode == "preferred_lsp"
 
       LspSemanticEnricher.new.enrich(symbols: sorted)
+    end
+
+    def select_layered_symbols(task_goal:, current_file_path:, symbols:)
+      core_task = task_goal.to_s.strip
+      current_file_symbols = Array(symbols).select { |s| s[:path].to_s == current_file_path.to_s }
+      current_file_symbols = current_file_symbols.first(DEFAULT_MAX_CURRENT_FILE_SYMBOLS)
+
+      dependency_symbols = []
+      current_file_symbols.each do |symbol|
+        Array(symbol[:lsp_edges]).each do |edge|
+          candidate = Array(symbols).find do |item|
+            item[:path].to_s == edge[:path].to_s && item[:line].to_i == edge[:line].to_i
+          end
+          dependency_symbols << candidate if candidate
+        end
+      end
+      dependency_symbols = dependency_symbols.compact.uniq { |s| [s[:path], s[:line], s[:kind], s[:name]] }
+      dependency_symbols = dependency_symbols.reject { |s| s[:path].to_s == current_file_path.to_s }
+      dependency_symbols = dependency_symbols.first(DEFAULT_MAX_DEPENDENCY_SYMBOLS)
+
+      used = (current_file_symbols + dependency_symbols).map { |s| [s[:path], s[:line], s[:kind], s[:name]] }
+      global_signal_symbols = Array(symbols).reject do |s|
+        used.include?([s[:path], s[:line], s[:kind], s[:name]])
+      end.first(DEFAULT_MAX_GLOBAL_SIGNAL_SYMBOLS)
+
+      selected = []
+      selected.concat(tag_symbols(current_file_symbols, "CURRENT_FILE"))
+      selected.concat(tag_symbols(dependency_symbols, "DEPENDENCIES"))
+      selected.concat(tag_symbols(global_signal_symbols, "GLOBAL_SIGNALS"))
+
+      {
+        core_task: core_task,
+        current_file_symbols_count: current_file_symbols.size,
+        dependency_symbols_count: dependency_symbols.size,
+        global_signal_symbols_count: global_signal_symbols.size,
+        total_selected_symbols: selected.size,
+        selected_symbols: selected
+      }
+    end
+
+    def tag_symbols(symbols, layer)
+      Array(symbols).map { |s| s.merge(layer: layer) }
     end
 
     def trim_packet(packet:, max_packet_bytes:)
