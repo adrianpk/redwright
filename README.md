@@ -2,7 +2,7 @@
 
 <!-- REDWRIGHT_LOCAL_BADGES:START -->
 [![CI](https://img.shields.io/badge/CI-passing-brightgreen)](https://codeberg.org/adrianpk/redwright)
-[![coverage](https://img.shields.io/badge/coverage-89.02%-brightgreen)](badges/coverage.svg)
+[![coverage](https://img.shields.io/badge/coverage-91.23%-brightgreen)](badges/coverage.svg)
 <!-- REDWRIGHT_LOCAL_BADGES:END -->
 
 <div align="center" style="background:#FDF3E4; padding:2px 12px; border-radius:14px; margin:16px 0 24px 0;">
