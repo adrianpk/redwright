@@ -441,4 +441,81 @@ class IterationContextPacketBuilderTest < Minitest::Test
       assert_equal(false, fallback.dig(:packet, :semantic_capabilities, :lsp_preferred))
     end
   end
+
+  def test_layered_selection_prioritizes_current_file_then_dependencies
+    Dir.mktmpdir("redwright-layered-selection-priority-") do |dir|
+      FileUtils.mkdir_p(File.join(dir, "lib"))
+      File.write(
+        File.join(dir, "lib", "a.rb"),
+        <<~RUBY
+          class Parser
+            def parse(input)
+            end
+          end
+        RUBY
+      )
+      File.write(
+        File.join(dir, "lib", "b.rb"),
+        <<~RUBY
+          class Parser
+            def parse(payload)
+            end
+          end
+        RUBY
+      )
+      File.write(
+        File.join(dir, "lib", "c.rb"),
+        <<~RUBY
+          class Parser
+            def parse(data)
+            end
+          end
+        RUBY
+      )
+
+      packet = Redwright::IterationContextPacketBuilder.new.build(
+        project_path: dir,
+        task_goal: "fix parse flow",
+        previous_message: "none",
+        current_errors: [],
+        parser_mode: "preferred_tree_sitter",
+        lsp_mode: "preferred_lsp",
+        top_k_files: 5
+      )
+
+      symbols = packet.dig(:packet, :ir_v1, "AVAILABLE_SYMBOLS")
+      current_file_path = packet.dig(:packet, :ir_v1, "CURRENT_FILE", "path")
+      current_file_symbols = symbols.select { |s| s[:layer] == "CURRENT_FILE" }
+      dependency_symbols = symbols.select { |s| s[:layer] == "DEPENDENCIES" }
+
+      assert(current_file_symbols.all? { |s| s[:path] == current_file_path })
+      assert(packet.dig(:packet, :layered_selection, :dependency_symbols_count) <= 6)
+      assert(dependency_symbols.none? { |s| s[:path] == current_file_path })
+    end
+  end
+
+  def test_layered_selection_enforces_global_signal_bound
+    Dir.mktmpdir("redwright-layered-selection-bounds-") do |dir|
+      FileUtils.mkdir_p(File.join(dir, "lib"))
+      12.times do |idx|
+        File.write(
+          File.join(dir, "lib", "f#{idx}.rb"),
+          "class Parser#{idx}\n  def parse_#{idx}(input)\n  end\nend\n"
+        )
+      end
+
+      packet = Redwright::IterationContextPacketBuilder.new.build(
+        project_path: dir,
+        task_goal: "optimize parser",
+        previous_message: "none",
+        current_errors: [],
+        parser_mode: "preferred_tree_sitter",
+        lsp_mode: "fallback_disabled",
+        top_k_files: 5
+      )
+
+      assert(packet.dig(:packet, :layered_selection, :global_signal_symbols_count) <= 4)
+      assert(packet.dig(:packet, :layered_selection, :total_selected_symbols) <= (8 + 6 + 4))
+    end
+  end
 end
