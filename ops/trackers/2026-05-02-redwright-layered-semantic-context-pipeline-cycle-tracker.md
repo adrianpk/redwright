@@ -6,17 +6,17 @@
 - status: `in_progress`
 - state: `awaiting_review`
 - updated: `2026-05-02`
-- active_slice: `Slice 1`
-- active_task: `T1.3`
+- active_slice: `Slice 2`
+- active_task: `T2.3`
 - source_plan: `ops/plans/2026-05-02-redwright-layered-semantic-context-pipeline-implementation-cycle-plan.md`
 
 ## Slice Progress
 
 ### Slice 1: Capability Contract and Stable IR V1
 
-- status: `awaiting_review`
+- status: `completed`
 - branch: `feat/slice-1-semantic-capability-contract-and-ir-v1`
-- PR: `tbd`
+- PR: `https://codeberg.org/adrianpk/redwright/pulls/235`
 - merge_target: `dev`
 - last_sync_commit: `21ccf5f`
 
@@ -37,26 +37,26 @@ Validation:
 
 ### Slice 2: Tree-sitter Structural Extraction Baseline
 
-- status: `pending`
-- branch: `fix/slice-2-semantic-treesitter-structural-extraction`
+- status: `awaiting_review`
+- branch: `feat/slice-2-semantic-treesitter-structural-extraction`
 - PR: `tbd`
 - merge_target: `dev`
-- last_sync_commit: `tbd`
+- last_sync_commit: `b73fee4`
 
 Tasks:
 
-- [ ] `T2.1 add tree-sitter extraction adapter for primary repository languages`
-- [ ] `T2.2 emit structural units as symbol records in IR`
-- [ ] `T2.3 add extraction tests for signatures/imports/types coverage`
+- [x] `T2.1 add tree-sitter extraction adapter for primary repository languages`
+- [x] `T2.2 emit structural units as symbol records in IR`
+- [x] `T2.3 add extraction tests for signatures/imports/types coverage`
 
 Commits:
 
-- [ ] `<sha> feat(runtime): add tree-sitter structural extraction adapter`
-- [ ] `<sha> test(runtime): cover tree-sitter symbol extraction outputs`
+- [x] `c7fa634 feat(runtime): add tree-sitter structural extraction adapter`
+- [x] `d6e6290 test(runtime): cover tree-sitter symbol extraction outputs`
 
 Validation:
 
-- [ ] `tree-sitter structural extraction suite pass`
+- [x] `ruby -Itest test/redwright/tree_sitter_structural_extractor_test.rb && ruby -Itest test/redwright/iteration_context_packet_builder_test.rb (pass)`
 
 ### Slice 3: LSP Enrichment Layer and Cross-File Semantics
 
@@ -228,3 +228,5 @@ Validation:
 
 - `2026-05-02` state=`planned` note=`semantic layered context pipeline cycle tracker initialized from draft and prior semantic packet v2 baseline`
 - `2026-05-02` state=`awaiting_review` note=`Slice 1 completed with semantic capability mode contract, stable IR v1 sections, and deterministic schema ordering tests`
+- `2026-05-02` state=`slice_merged` note=`Slice 1 merged to dev`
+- `2026-05-02` state=`awaiting_review` note=`Slice 2 completed with tree-sitter structural extraction adapter and AVAILABLE_SYMBOLS emission in IR v1`

@@ -31,7 +31,7 @@
 ### Slice 2: Tree-sitter Structural Extraction Baseline
 
 - status: `pending`
-- branch: `fix/slice-2-semantic-treesitter-structural-extraction`
+- branch: `feat/slice-2-semantic-treesitter-structural-extraction`
 - objective: `implement Tree-sitter-first extraction for signatures/imports/types`
 - tasks:
 - [ ] `T2.1 add tree-sitter extraction adapter for primary repository languages`
