@@ -18,6 +18,8 @@ module Redwright
     DEFAULT_MAX_CURRENT_FILE_SYMBOLS = 8
     DEFAULT_MAX_DEPENDENCY_SYMBOLS = 6
     DEFAULT_MAX_GLOBAL_SIGNAL_SYMBOLS = 4
+    DEFAULT_MAX_DOC_HINTS = 8
+    DOC_HINT_MAX_CHARS = 140
 
     def build(
       project_path:,
@@ -69,7 +71,8 @@ module Redwright
       layered_selection = select_layered_symbols(
         task_goal: task_goal,
         current_file_path: current_file ? current_file[:path].to_s : "",
-        symbols: available_symbols
+        symbols: available_symbols,
+        doc_hints: extract_doc_hints(snippets: snippets)
       )
       packet = {
         version: "v2",
@@ -91,6 +94,7 @@ module Redwright
           task_goal: task_goal,
           current_file: current_file,
           available_symbols: layered_selection[:selected_symbols],
+          doc_hints: layered_selection[:doc_hints],
           errors: Array(current_errors).map(&:to_s),
           tree_entries: tree_entries
         ),
@@ -163,6 +167,7 @@ module Redwright
           task_goal: task_goal,
           current_file: nil,
           available_symbols: [],
+          doc_hints: [],
           errors: Array(current_errors).map(&:to_s),
           tree_entries: []
         ),
@@ -297,6 +302,7 @@ module Redwright
       lines << "  - dependency_symbols: #{packet.dig(:layered_selection, :dependency_symbols_count)}"
       lines << "  - global_signal_symbols: #{packet.dig(:layered_selection, :global_signal_symbols_count)}"
       lines << "  - total_selected_symbols: #{packet.dig(:layered_selection, :total_selected_symbols)}"
+      lines << "  - doc_hints_count: #{packet.dig(:layered_selection, :doc_hints_count)}"
       lines.join("\n")
     end
 
@@ -311,7 +317,7 @@ module Redwright
       }
     end
 
-    def build_ir_v1(task_goal:, current_file:, available_symbols:, errors:, tree_entries:)
+    def build_ir_v1(task_goal:, current_file:, available_symbols:, doc_hints:, errors:, tree_entries:)
       {
         "TASK" => {
           "goal" => task_goal.to_s
@@ -321,7 +327,7 @@ module Redwright
           "snippet" => current_file ? current_file[:snippet].to_s : ""
         },
         "AVAILABLE_SYMBOLS" => Array(available_symbols),
-        "DOC_HINTS" => [],
+        "DOC_HINTS" => Array(doc_hints),
         "ERRORS" => Array(errors).map(&:to_s),
         "REPO_MAP" => Array(tree_entries).map(&:to_s)
       }
@@ -343,8 +349,9 @@ module Redwright
       LspSemanticEnricher.new.enrich(symbols: sorted)
     end
 
-    def select_layered_symbols(task_goal:, current_file_path:, symbols:)
+    def select_layered_symbols(task_goal:, current_file_path:, symbols:, doc_hints:)
       core_task = task_goal.to_s.strip
+      doc_terms = extract_doc_terms(doc_hints)
       current_file_symbols = Array(symbols).select { |s| s[:path].to_s == current_file_path.to_s }
       current_file_symbols = current_file_symbols.first(DEFAULT_MAX_CURRENT_FILE_SYMBOLS)
 
@@ -364,7 +371,9 @@ module Redwright
       used = (current_file_symbols + dependency_symbols).map { |s| [s[:path], s[:line], s[:kind], s[:name]] }
       global_signal_symbols = Array(symbols).reject do |s|
         used.include?([s[:path], s[:line], s[:kind], s[:name]])
-      end.first(DEFAULT_MAX_GLOBAL_SIGNAL_SYMBOLS)
+      end
+      global_signal_symbols = rank_symbols_by_doc_priority(global_signal_symbols, doc_terms)
+      global_signal_symbols = global_signal_symbols.first(DEFAULT_MAX_GLOBAL_SIGNAL_SYMBOLS)
 
       selected = []
       selected.concat(tag_symbols(current_file_symbols, "CURRENT_FILE"))
@@ -377,12 +386,59 @@ module Redwright
         dependency_symbols_count: dependency_symbols.size,
         global_signal_symbols_count: global_signal_symbols.size,
         total_selected_symbols: selected.size,
+        doc_hints_count: Array(doc_hints).size,
+        doc_hints: Array(doc_hints),
         selected_symbols: selected
       }
     end
 
     def tag_symbols(symbols, layer)
       Array(symbols).map { |s| s.merge(layer: layer) }
+    end
+
+    def extract_doc_hints(snippets:)
+      hints = []
+      Array(snippets).each do |entry|
+        path = entry[:path].to_s
+        next unless path.end_with?(".md")
+
+        entry[:snippet].to_s.each_line.with_index(1) do |line, idx|
+          normalized = normalize_doc_hint(line)
+          next if normalized.empty?
+
+          hints << { path: path, line: idx, text: normalized }
+          break if hints.size >= DEFAULT_MAX_DOC_HINTS
+        end
+        break if hints.size >= DEFAULT_MAX_DOC_HINTS
+      end
+      hints
+    end
+
+    def normalize_doc_hint(line)
+      value = line.to_s.strip
+      value = value.gsub(/\A[#{Regexp.escape('#*-`> ')}]+/, "").strip
+      return "" if value.empty?
+
+      value = value.gsub(/\s+/, " ")
+      return value if value.length <= DOC_HINT_MAX_CHARS
+
+      "#{value[0, DOC_HINT_MAX_CHARS]}..."
+    end
+
+    def extract_doc_terms(doc_hints)
+      Array(doc_hints)
+        .flat_map { |hint| hint[:text].to_s.downcase.scan(/[a-z_]{3,}/) }
+        .uniq
+    end
+
+    def rank_symbols_by_doc_priority(symbols, doc_terms)
+      return Array(symbols) if doc_terms.empty?
+
+      Array(symbols)
+        .sort_by do |symbol|
+          score = doc_terms.any? { |term| symbol[:name].to_s.downcase.include?(term) } ? 0 : 1
+          [score, symbol[:path].to_s, symbol[:line].to_i, symbol[:kind].to_s, symbol[:name].to_s]
+        end
     end
 
     def trim_packet(packet:, max_packet_bytes:)
