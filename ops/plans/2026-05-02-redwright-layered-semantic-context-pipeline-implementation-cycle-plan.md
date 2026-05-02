@@ -135,7 +135,7 @@
 
 ### Slice 9: Runtime Integration, Caching, and End-to-End Validation
 
-- status: `pending`
+- status: `awaiting_review`
 - branch: `fix/slice-9-semantic-runtime-integration-and-e2e`
 - objective: `integrate semantic pipeline into runtime packet builder with bounded caching and e2e verification`
 - tasks:

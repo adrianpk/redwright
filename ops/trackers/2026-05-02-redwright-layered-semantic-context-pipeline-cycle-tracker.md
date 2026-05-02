@@ -204,26 +204,31 @@ Validation:
 
 ### Slice 9: Runtime Integration, Caching, and End-to-End Validation
 
-- status: `pending`
+- status: `awaiting_review`
 - branch: `fix/slice-9-semantic-runtime-integration-and-e2e`
 - PR: `tbd`
 - merge_target: `dev`
-- last_sync_commit: `tbd`
+- last_sync_commit: `fb71a78`
 
 Tasks:
 
-- [ ] `T9.1 integrate semantic pipeline into iteration context packet assembly`
-- [ ] `T9.2 add cache for structural/symbol/doc artifacts with deterministic invalidation`
-- [ ] `T9.3 run end-to-end validation suite and update operational evidence`
+- [x] `T9.1 integrate semantic pipeline into iteration context packet assembly`
+- [x] `T9.2 add cache for structural/symbol/doc artifacts with deterministic invalidation`
+- [x] `T9.3 run end-to-end validation suite and update operational evidence`
 
 Commits:
 
-- [ ] `<sha> feat(runtime): integrate layered semantic context pipeline into runtime packet assembly`
+- [x] `a3b2dd1 feat(runtime): integrate layered semantic context pipeline into runtime packet assembly`
+- [x] `4cdc59b test(runtime): cover semantic cache invalidation and diagnostic fallback`
 - [ ] `<sha> docs(ops): close semantic context pipeline cycle with validation evidence`
 
 Validation:
 
-- [ ] `cd ~/Projects/redwright/redwright && bundle exec rake test:coverage`
+- [x] `ruby -Itest test/redwright/iteration_context_packet_builder_test.rb (pass)`
+- [x] `ruby -Itest test/redwright/tree_sitter_structural_extractor_test.rb (pass)`
+- [x] `ruby -Itest test/redwright/lsp_semantic_enricher_test.rb (pass)`
+- [x] `ruby -Itest test/redwright/plain_text_structural_extractor_test.rb (pass)`
+- [x] `cd ~/Projects/redwright/redwright && bundle exec rake test:coverage (pass, quality:coverage percent=91.2)`
 
 ## Coverage Guard
 
