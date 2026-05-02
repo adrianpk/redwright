@@ -7,6 +7,7 @@ require "minitest/autorun"
 
 $LOAD_PATH.unshift(File.expand_path("../../lib", __dir__))
 require "redwright/bootstrap"
+require "redwright/ingress_port"
 require "redwright/project_store"
 require "redwright/workstream_store"
 require "redwright/task_store"
@@ -1180,6 +1181,44 @@ class TelegramRuntimeHandlerTest < Minitest::Test
         refute(File.directory?(File.join(bootstrap.projects_root, "happy-cli")))
       end
     end
+  end
+
+  def test_handle_routes_quoted_project_new_with_description_to_rails_api_before_runtime_flow
+    fake_flow = Object.new
+    fake_flow.define_singleton_method(:process) do |**_kwargs|
+      raise "flow should not run for Rails-backed quoted project setup"
+    end
+    setup_client = FakeProjectSetupClient.new
+    project_setup_adapter = Redwright::TelegramProjectSetupAdapter.new(client: setup_client)
+    client = FakeTelegramClient.new([])
+    out = StringIO.new
+    handler = Redwright::TelegramRuntimeHandler.new(
+      flow: fake_flow,
+      telegram_client: client,
+      out: out,
+      err: StringIO.new,
+      blocked_retry_attempts: 1,
+      project_setup_adapter: project_setup_adapter
+    )
+
+    handler.handle(
+      Redwright::IngressEvent.new(
+        external_message_id: 4,
+        external_chat_id: 46,
+        sender_id: 77,
+        username: "tester",
+        transport: "telegram",
+        text: '/project new "notes-cli" "A small command line notes manager with local file storage"'
+      )
+    )
+
+    assert_equal(["StartProjectSetup"], setup_client.calls.map { |call| call[:name] })
+    assert_equal("notes-cli", setup_client.calls.first[:payload].fetch("project_name"))
+    assert_equal("telegram:chat:46:user:77", setup_client.calls.first[:actor_identifier])
+    assert_equal("telegram-46-4-start-project-setup", setup_client.calls.first[:request_id])
+    assert_equal(1, client.messages.size)
+    assert_match("Repository input requires clarification.", client.messages.last[:text])
+    assert_match("telegram rails_project_setup chat=46 command=project_new state=awaiting_repository", out.string)
   end
 
   def test_handle_project_setup_adapter_failure_does_not_fall_back_to_runtime

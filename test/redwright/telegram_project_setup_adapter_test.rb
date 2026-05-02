@@ -3,6 +3,7 @@
 require "minitest/autorun"
 
 $LOAD_PATH.unshift(File.expand_path("../../lib", __dir__))
+require "redwright/ingress_port"
 require "redwright/telegram_ingress"
 require "redwright/telegram_project_setup_adapter"
 
@@ -133,6 +134,25 @@ class TelegramProjectSetupAdapterTest < Minitest::Test
     assert_equal("acme/happy-cli", client.calls.last[:payload].fetch("answer"))
     assert_match("Next: Repository input is ambiguous.", started.message)
     assert_match("Project setup advanced.", advanced.message)
+  end
+
+  def test_routes_quoted_project_new_with_description_over_rails_api
+    client = FakeRailsClient.new
+    adapter = Redwright::TelegramProjectSetupAdapter.new(client: client)
+
+    result = adapter.handle(
+      ingress_event(1, '/project new "notes-cli" "A small command line notes manager with local file storage"'),
+      trace_id: "trc-test"
+    )
+
+    assert result.handled?
+    assert_equal(["StartProjectSetup"], client.calls.map { |call| call[:name] })
+    assert_equal("notes-cli", client.calls.first[:payload].fetch("project_name"))
+    assert_equal("notes-cli", client.calls.first[:payload].fetch("directory_name"))
+    assert_equal("notes-cli", client.calls.first[:payload].fetch("repository_input"))
+    assert_equal("telegram:chat:9:user:77", client.calls.first[:actor_identifier])
+    assert_equal("telegram-9-1-start-project-setup", client.calls.first[:request_id])
+    assert_match("Repository input requires clarification.", result.message)
   end
 
   def test_routes_project_list_and_where_through_rails_api
@@ -360,6 +380,17 @@ class TelegramProjectSetupAdapterTest < Minitest::Test
       user_id: 77,
       username: "tester",
       text: text
+    )
+  end
+
+  def ingress_event(update_id, text)
+    Redwright::IngressEvent.new(
+      external_message_id: update_id,
+      external_chat_id: 9,
+      sender_id: 77,
+      username: "tester",
+      text: text,
+      transport: "telegram"
     )
   end
 end
