@@ -16,6 +16,9 @@ class Ticket < ApplicationRecord
   scope :for_project, ->(project_id) { joins(:board).where(boards: { project_id: project_id }) }
 
   delegate :project, :project_id, to: :board
+  scope :for_project, ->(project_id) { joins(:board).where(boards: { project_id: project_id }) }
+
+  delegate :project, :project_id, to: :board
 
   def transition_to_column!(target_column)
     self.column = target_column
@@ -58,5 +61,9 @@ class Ticket < ApplicationRecord
 
   def archive!
     update!(archived_at: Time.current)
+  end
+
+  def project_context_consistent?(candidate_project_id)
+    candidate_project_id.to_i == project_id
   end
 end

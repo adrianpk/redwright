@@ -7,4 +7,6 @@ class Board < ApplicationRecord
 
   validates :name, presence: true
   validates :project_key, presence: true, uniqueness: true
+
+  scope :for_project, ->(project_id) { where(project_id: project_id) }
 end
