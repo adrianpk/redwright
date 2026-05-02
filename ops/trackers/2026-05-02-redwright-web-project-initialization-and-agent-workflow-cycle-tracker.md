@@ -6,8 +6,8 @@
 - status: `in_progress`
 - state: `awaiting_review`
 - updated: `2026-05-02`
-- active_slice: `Slice 3`
-- active_task: `T3.3`
+- active_slice: `Slice 4`
+- active_task: `T4.3`
 - source_plan: `ops/plans/2026-05-02-redwright-web-project-initialization-and-agent-workflow-implementation-cycle-plan.md`
 
 ## Slice Progress
@@ -60,7 +60,7 @@ Validation:
 
 ### Slice 3: Atomic Initialization and Failure-State Reconciliation
 
-- status: `awaiting_review`
+- status: `completed`
 - branch: `fix/slice-3-atomic-initialization-failure-reconciliation`
 - PR: `https://codeberg.org/adrianpk/redwright/pulls/230`
 - merge_target: `dev`
@@ -83,26 +83,26 @@ Validation:
 
 ### Slice 4: Document Lifecycle and Ownership Policy Enforcement
 
-- status: `pending`
+- status: `awaiting_review`
 - branch: `fix/slice-4-document-lifecycle-ownership-enforcement`
-- PR: `tbd`
+- PR: `https://codeberg.org/adrianpk/redwright/pulls/231`
 - merge_target: `dev`
-- last_sync_commit: `tbd`
+- last_sync_commit: `8663fa7`
 
 Tasks:
 
-- [ ] `T4.1 add lifecycle state/transition guards for document progression`
-- [ ] `T4.2 enforce ownership and editability policy (draft editable, spec/plan/tracking read-only)`
-- [ ] `T4.3 add tests for allowed/blocked transitions and policy enforcement`
+- [x] `T4.1 add lifecycle state/transition guards for document progression`
+- [x] `T4.2 enforce ownership and editability policy (draft editable, spec/plan/tracking read-only)`
+- [x] `T4.3 add tests for allowed/blocked transitions and policy enforcement`
 
 Commits:
 
-- [ ] `<sha> feat(web): enforce document lifecycle and ownership policy`
-- [ ] `<sha> test(web): cover document lifecycle and editability invariants`
+- [x] `7f9d103 feat(web): enforce document lifecycle and ownership policy`
+- [x] `89285e2 test(web): cover document lifecycle and editability invariants`
 
 Validation:
 
-- [ ] `document lifecycle policy suite pass`
+- [x] `cd apps/web && bundle exec bin/rails test test/models/document_test.rb test/controllers/documents_controller_test.rb (pass)`
 
 ### Slice 5: Ticket-Document-Tracking Integration Semantics
 
@@ -163,3 +163,5 @@ Validation:
 - `2026-05-02` state=`awaiting_review` note=`Slice 2 completed with repository resolver, focused ambiguity/cancellation result states, and repository resolution matrix tests`
 - `2026-05-02` state=`slice_merged` note=`Slice 2 merged to dev`
 - `2026-05-02` state=`awaiting_review` note=`Slice 3 completed with atomic executor boundary, explicit failure/incomplete states, and partial-failure regression coverage`
+- `2026-05-02` state=`slice_merged` note=`Slice 3 integrated in dev`
+- `2026-05-02` state=`awaiting_review` note=`Slice 4 completed with lifecycle immutability guard and model-level draft/spec/plan editability enforcement`
