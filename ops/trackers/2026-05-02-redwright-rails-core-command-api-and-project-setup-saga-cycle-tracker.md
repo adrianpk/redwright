@@ -95,7 +95,7 @@ Validation:
 
 - status: `awaiting_review`
 - branch: `fix/slice-4-rails-project-setup-command-api`
-- PR: `tbd`
+- PR: `https://codeberg.org/adrianpk/redwright/pulls/248`
 - merge_target: `dev`
 - last_sync_commit: `3d57b63`
 
