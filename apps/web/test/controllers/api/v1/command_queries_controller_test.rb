@@ -1,4 +1,6 @@
 require "test_helper"
+require "socket"
+require "tmpdir"
 
 class Api::V1::CommandQueriesControllerTest < ActionDispatch::IntegrationTest
   test "requires actor context" do
@@ -333,6 +335,48 @@ class Api::V1::CommandQueriesControllerTest < ActionDispatch::IntegrationTest
     assert_equal [draft.id], review_column.fetch("tickets").first.fetch("document_links").map { |link| link.fetch("document_id") }
   end
 
+  test "starts ticket execution through command api and records runtime correlation" do
+    board = create_board(project_key: "api-runtime-#{SecureRandom.hex(4)}")
+    backlog = board.columns.create!(key: "backlog", title: "Backlog", position: 0)
+    ticket = board.tickets.create!(column: backlog, title: "Runtime API Ticket", priority: :high)
+    captured_request = nil
+
+    with_runtime_socket_response(
+      {
+        "status" => "ok",
+        "project_id" => board.project.root_path,
+        "workstream_id" => "ws-api",
+        "task_id" => "task-api",
+        "state" => "executing"
+      }
+    ) do |runtime_request|
+      post "/api/v1/commands",
+        params: {
+          name: "StartTicketExecution",
+          payload: {
+            ticket_id: ticket.id
+          },
+          request_id: "req-api-runtime-start"
+        },
+        headers: actor_headers,
+        as: :json
+
+      captured_request = runtime_request.call
+    end
+
+    assert_response :success
+    body = json_body
+    assert_equal "Ticket execution started.", body.fetch("summary")
+    assert_equal "ticket_execution_started", body.fetch("effects").first.fetch("type")
+    ticket.reload
+    assert_equal "started", ticket.runtime_execution_status
+    assert_equal "ws-api", ticket.runtime_workstream_id
+    assert_equal "task-api", ticket.runtime_task_id
+    assert_equal "executing", ticket.runtime_state
+    assert_equal ticket.id, captured_request.dig("payload", "rails", "ticket_id")
+    assert_includes captured_request.dig("payload", "message"), "Runtime API Ticket"
+  end
+
   private
 
   def started_alignment_session
@@ -364,5 +408,38 @@ class Api::V1::CommandQueriesControllerTest < ActionDispatch::IntegrationTest
 
   def json_body
     JSON.parse(response.body)
+  end
+
+  def with_runtime_socket_response(payload)
+    previous_socket = ENV["REDWRIGHT_RUNTIME_SOCKET_PATH"]
+    Dir.mktmpdir("redwright-runtime-socket-") do |dir|
+      socket_path = File.join(dir, "rw.sock")
+      ENV["REDWRIGHT_RUNTIME_SOCKET_PATH"] = socket_path
+      server = UNIXServer.new(socket_path)
+      captured_request = nil
+      thread = Thread.new do
+        client = server.accept
+        line = client.gets
+        captured_request = JSON.parse(line)
+        client.write(
+          JSON.generate(
+            {
+              "type" => "ack",
+              "session_id" => captured_request.fetch("session_id"),
+              "payload" => payload
+            }
+          ) + "\n"
+        )
+      ensure
+        client&.close
+      end
+
+      yield -> { thread.join(1); captured_request }
+      thread.join(1)
+    ensure
+      server&.close
+      thread&.kill if thread&.alive?
+      ENV["REDWRIGHT_RUNTIME_SOCKET_PATH"] = previous_socket
+    end
   end
 end

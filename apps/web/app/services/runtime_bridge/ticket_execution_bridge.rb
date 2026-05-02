@@ -151,6 +151,9 @@ module RuntimeBridge
     end
 
     def default_socket_path
+      configured = ENV.fetch("REDWRIGHT_RUNTIME_SOCKET_PATH", "").strip
+      return configured unless configured.empty?
+
       Rails.root.join("..", "..", "_workspace", "redwright", "rw.sock").expand_path.to_s
     end
   end

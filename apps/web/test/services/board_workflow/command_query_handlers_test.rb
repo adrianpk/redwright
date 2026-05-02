@@ -107,7 +107,50 @@ module BoardWorkflow
       assert_equal [visible.id], result.data.fetch("tickets").map { |item| item.fetch("id") }
     end
 
+    test "starts ticket execution and persists runtime correlation" do
+      board = create_board(project_key: "board-api-execution-#{SecureRandom.hex(4)}")
+      backlog = board.columns.create!(key: "backlog", title: "Backlog", position: 0)
+      ticket = board.tickets.create!(column: backlog, title: "Executable ticket")
+      bridge = FakeTicketExecutionBridge.new
+      dispatcher = CommandQuery::Dispatcher.new
+      CommandQueryHandlers.new(ticket_execution_bridge: bridge).register(dispatcher)
+
+      result = dispatcher.call(command("StartTicketExecution", {
+        ticket_id: ticket.id
+      }, request_id: "req-start-execution"))
+
+      assert result.ok?, result.errors.inspect
+      ticket.reload
+      assert_equal "started", ticket.runtime_execution_status
+      assert_equal "runtime-exec-1", ticket.runtime_execution_id
+      assert_equal "runtime-workstream-1", ticket.runtime_workstream_id
+      assert_equal "runtime-task-1", ticket.runtime_task_id
+      assert_equal "executing", ticket.runtime_state
+      assert_equal "ticket_execution_started", result.effects.first.fetch("type")
+      assert_equal "test:board", bridge.actor_identifier
+    end
+
     private
+
+    class FakeTicketExecutionBridge
+      attr_reader :actor_identifier
+
+      def start(ticket:, request_id:, actor_identifier:)
+        @actor_identifier = actor_identifier
+        RuntimeBridge::TicketExecutionBridge::Result.new(
+          ok: true,
+          status: "started",
+          execution_id: "runtime-exec-1",
+          runtime_project_ref: ticket.project.root_path,
+          runtime_workstream_id: "runtime-workstream-1",
+          runtime_task_id: "runtime-task-1",
+          runtime_state: "executing",
+          runtime_response: {"status" => "ok"},
+          error_code: nil,
+          error_message: nil
+        )
+      end
+    end
 
     def command(name, payload, request_id:)
       envelope("command", name, payload, request_id: request_id)

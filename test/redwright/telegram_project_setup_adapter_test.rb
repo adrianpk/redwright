@@ -279,6 +279,78 @@ class TelegramProjectSetupAdapterTest < Minitest::Test
     assert_match("- invalid_project_name: project_name can't be blank", result.message)
   end
 
+  def test_routes_ticket_commands_through_rails_api_after_project_context_is_known
+    client = ScriptedRailsClient.new(
+      command_bodies: {
+        "StartProjectSetup" => {
+          "status" => "ok",
+          "summary" => "Project created; setup completed.",
+          "session_id" => 50,
+          "project_id" => 70,
+          "state" => "completed",
+          "next_prompt" => nil
+        },
+        "StartTicketExecution" => {
+          "status" => "ok",
+          "summary" => "Ticket execution started.",
+          "data" => {
+            "ticket_id" => 42,
+            "project_id" => 70,
+            "ticket" => {
+              "id" => 42,
+              "title" => "Implement bridge",
+              "runtime_execution" => {
+                "status" => "started",
+                "execution_id" => "runtime-exec-42"
+              }
+            }
+          }
+        }
+      },
+      query_bodies: {
+        "GetTicketsByProject" => {
+          "status" => "ok",
+          "summary" => "Project tickets retrieved.",
+          "data" => {
+            "tickets" => [
+              { "id" => 42, "title" => "Implement bridge", "column_key" => "backlog" }
+            ]
+          }
+        },
+        "PickNextTicket" => {
+          "status" => "ok",
+          "summary" => "Next ticket selected.",
+          "data" => {
+            "ticket_id" => 42,
+            "ticket" => {
+              "id" => 42,
+              "title" => "Implement bridge",
+              "column_key" => "backlog"
+            }
+          }
+        }
+      }
+    )
+    adapter = Redwright::TelegramProjectSetupAdapter.new(client: client)
+
+    adapter.handle(event(1, "/project new happy-cli"), trace_id: "trc-test")
+    listed = adapter.handle(event(2, "/ticket list"), trace_id: "trc-test")
+    picked = adapter.handle(event(3, "/ticket pick"), trace_id: "trc-test")
+    started = adapter.handle(event(4, "/ticket start 42"), trace_id: "trc-test")
+
+    assert listed.handled?
+    assert picked.handled?
+    assert started.handled?
+    assert_equal(%w[StartProjectSetup GetTicketsByProject PickNextTicket StartTicketExecution], client.calls.map { |call| call[:name] })
+    assert_equal(70, client.calls[1][:payload].fetch("project_id"))
+    assert_equal(70, client.calls[2][:payload].fetch("project_id"))
+    assert_equal("42", client.calls[3][:payload].fetch("ticket_id"))
+    assert_match("- 42: Implement bridge [backlog]", listed.message)
+    assert_match("Next ticket: Implement bridge (42)", picked.message)
+    assert_match("Ticket execution started.", started.message)
+    assert_match("Execution: runtime-exec-42", started.message)
+  end
+
   private
 
   def event(update_id, text)
