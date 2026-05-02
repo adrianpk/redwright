@@ -10,6 +10,8 @@ module Redwright
     MAX_TOP_K_FILES = 5
     MAX_SNIPPET_LINES = 40
     DEFAULT_TREE_VIEW = "top_level"
+    DEFAULT_PARSER_MODE = "fallback_plain_text"
+    DEFAULT_LSP_MODE = "fallback_disabled"
 
     def build(
       project_path:,
@@ -25,7 +27,9 @@ module Redwright
       max_tree_entries: DEFAULT_MAX_TREE_ENTRIES,
       max_snippet_bytes: DEFAULT_MAX_SNIPPET_BYTES,
       max_packet_bytes: DEFAULT_MAX_PACKET_BYTES,
-      tree_view: DEFAULT_TREE_VIEW
+      tree_view: DEFAULT_TREE_VIEW,
+      parser_mode: DEFAULT_PARSER_MODE,
+      lsp_mode: DEFAULT_LSP_MODE
     )
       return fallback_packet(task_goal: task_goal, current_errors: current_errors, previous_message: previous_message) unless Dir.exist?(project_path.to_s)
 
@@ -48,12 +52,15 @@ module Redwright
         { path: rel_path, snippet: snippet }
       end
 
+      semantic_capabilities = build_semantic_capabilities(parser_mode: parser_mode, lsp_mode: lsp_mode)
+      current_file = snippets.first
       packet = {
         version: "v2",
         task_goal: task_goal.to_s,
         previous_message: previous_message.to_s,
         active_clarification: active_clarification.to_s,
         last_patch_summary: last_patch_summary.to_s,
+        semantic_capabilities: semantic_capabilities,
         stack_hints: detect_stack_hints(project_path: project_path),
         errors: Array(current_errors).map(&:to_s),
         normalized_failures: Array(normalized_failures).map(&:to_s),
@@ -63,6 +70,12 @@ module Redwright
           total_entries: tree_entries.size
         },
         files: snippets,
+        ir_v1: build_ir_v1(
+          task_goal: task_goal,
+          current_file: current_file,
+          errors: Array(current_errors).map(&:to_s),
+          tree_entries: tree_entries
+        ),
         bounds: {
           top_k_files: bounded_top_k,
           snippet_lines: bounded_snippet_lines,
@@ -117,12 +130,17 @@ module Redwright
         previous_message: previous_message.to_s,
         active_clarification: active_clarification.to_s,
         last_patch_summary: last_patch_summary.to_s,
+        semantic_capabilities: build_semantic_capabilities(
+          parser_mode: DEFAULT_PARSER_MODE,
+          lsp_mode: DEFAULT_LSP_MODE
+        ),
         stack_hints: { ecosystem: "unknown", primary_language: "unknown", toolchains: [] },
         errors: Array(current_errors).map(&:to_s),
         normalized_failures: Array(normalized_failures).map(&:to_s),
         last_execution_results: normalize_execution_results(last_execution_results),
         tree: { entries: [], total_entries: 0 },
         files: [],
+        ir_v1: build_ir_v1(task_goal: task_goal, current_file: nil, errors: Array(current_errors).map(&:to_s), tree_entries: []),
         bounds: {
           top_k_files: 0,
           snippet_lines: DEFAULT_SNIPPET_LINES,
@@ -217,6 +235,8 @@ module Redwright
       lines << "- previous_message: #{packet[:previous_message]}"
       lines << "- active_clarification: #{packet[:active_clarification]}"
       lines << "- last_patch_summary: #{packet[:last_patch_summary]}"
+      lines << "- semantic_capabilities:"
+      packet[:semantic_capabilities].each { |k, v| lines << "  - #{k}: #{v}" }
       lines << "- stack_hints:"
       lines << "  - ecosystem: #{packet.dig(:stack_hints, :ecosystem)}"
       lines << "  - primary_language: #{packet.dig(:stack_hints, :primary_language)}"
@@ -244,7 +264,36 @@ module Redwright
       end
       lines << "- bounds:"
       packet[:bounds].each { |k, v| lines << "  - #{k}: #{v}" }
+      lines << "- ir_v1_sections:"
+      packet.fetch(:ir_v1, {}).each_key { |section| lines << "  - #{section}" }
       lines.join("\n")
+    end
+
+    def build_semantic_capabilities(parser_mode:, lsp_mode:)
+      normalized_parser_mode = normalize_parser_mode(parser_mode)
+      normalized_lsp_mode = normalize_lsp_mode(lsp_mode)
+      {
+        parser_mode: normalized_parser_mode,
+        lsp_mode: normalized_lsp_mode,
+        parser_preferred: normalized_parser_mode.start_with?("preferred_"),
+        lsp_preferred: normalized_lsp_mode.start_with?("preferred_")
+      }
+    end
+
+    def build_ir_v1(task_goal:, current_file:, errors:, tree_entries:)
+      {
+        "TASK" => {
+          "goal" => task_goal.to_s
+        },
+        "CURRENT_FILE" => {
+          "path" => current_file ? current_file[:path].to_s : "",
+          "snippet" => current_file ? current_file[:snippet].to_s : ""
+        },
+        "AVAILABLE_SYMBOLS" => [],
+        "DOC_HINTS" => [],
+        "ERRORS" => Array(errors).map(&:to_s),
+        "REPO_MAP" => Array(tree_entries).map(&:to_s)
+      }
     end
 
     def trim_packet(packet:, max_packet_bytes:)
@@ -282,6 +331,22 @@ module Redwright
       return "recursive" if value == "recursive"
 
       DEFAULT_TREE_VIEW
+    end
+
+    def normalize_parser_mode(parser_mode)
+      value = parser_mode.to_s.strip
+      return "preferred_tree_sitter" if value == "preferred_tree_sitter"
+      return "fallback_plain_text" if value == "fallback_plain_text"
+
+      DEFAULT_PARSER_MODE
+    end
+
+    def normalize_lsp_mode(lsp_mode)
+      value = lsp_mode.to_s.strip
+      return "preferred_lsp" if value == "preferred_lsp"
+      return "fallback_disabled" if value == "fallback_disabled"
+
+      DEFAULT_LSP_MODE
     end
 
     def detect_stack_hints(project_path:)
