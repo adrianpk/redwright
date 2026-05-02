@@ -381,4 +381,64 @@ class IterationContextPacketBuilderTest < Minitest::Test
       refute(symbols.any? { |s| s.key?(:lsp_edges) })
     end
   end
+
+  def test_uses_plain_text_fallback_extractor_when_parser_mode_is_fallback
+    Dir.mktmpdir("redwright-iter-packet-fallback-parser-") do |dir|
+      FileUtils.mkdir_p(File.join(dir, "lib"))
+      File.write(
+        File.join(dir, "lib", "sample.rb"),
+        <<~RUBY
+          require "json"
+          class Parser
+            def parse(input)
+            end
+          end
+        RUBY
+      )
+
+      packet = Redwright::IterationContextPacketBuilder.new.build(
+        project_path: dir,
+        task_goal: "fallback parser symbols",
+        previous_message: "none",
+        current_errors: [],
+        parser_mode: "fallback_plain_text",
+        lsp_mode: "fallback_disabled"
+      )
+
+      symbols = packet.dig(:packet, :ir_v1, "AVAILABLE_SYMBOLS")
+      assert(symbols.any? { |s| s[:kind] == "import" && s[:name] == "json" })
+      assert(symbols.any? { |s| s[:kind] == "signature" && s[:name] == "parse" })
+      assert(symbols.any? { |s| s[:kind] == "type" && s[:name] == "Parser" })
+    end
+  end
+
+  def test_ir_schema_parity_between_preferred_and_fallback_parser_modes
+    Dir.mktmpdir("redwright-iter-packet-parser-parity-") do |dir|
+      FileUtils.mkdir_p(File.join(dir, "lib"))
+      File.write(File.join(dir, "lib", "sample.rb"), "class Parser\n  def parse(input)\n  end\nend\n")
+
+      preferred = Redwright::IterationContextPacketBuilder.new.build(
+        project_path: dir,
+        task_goal: "preferred",
+        previous_message: "none",
+        current_errors: [],
+        parser_mode: "preferred_tree_sitter",
+        lsp_mode: "fallback_disabled"
+      )
+      fallback = Redwright::IterationContextPacketBuilder.new.build(
+        project_path: dir,
+        task_goal: "fallback",
+        previous_message: "none",
+        current_errors: [],
+        parser_mode: "fallback_plain_text",
+        lsp_mode: "fallback_disabled"
+      )
+
+      assert_equal(preferred.dig(:packet, :ir_v1).keys, fallback.dig(:packet, :ir_v1).keys)
+      assert_equal("preferred_tree_sitter", preferred.dig(:packet, :semantic_capabilities, :parser_mode))
+      assert_equal("fallback_plain_text", fallback.dig(:packet, :semantic_capabilities, :parser_mode))
+      assert_equal(false, preferred.dig(:packet, :semantic_capabilities, :lsp_preferred))
+      assert_equal(false, fallback.dig(:packet, :semantic_capabilities, :lsp_preferred))
+    end
+  end
 end
