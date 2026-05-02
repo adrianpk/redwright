@@ -105,7 +105,7 @@
 
 ### Slice 7: Two-Pass Compression and Semantic Preservation
 
-- status: `pending`
+- status: `awaiting_review`
 - branch: `fix/slice-7-semantic-two-pass-compression`
 - objective: `add two-pass compression preserving signatures/types/invariants`
 - tasks:

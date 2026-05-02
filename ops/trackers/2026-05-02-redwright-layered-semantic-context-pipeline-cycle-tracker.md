@@ -152,26 +152,29 @@ Validation:
 
 ### Slice 7: Two-Pass Compression and Semantic Preservation
 
-- status: `pending`
+- status: `awaiting_review`
 - branch: `fix/slice-7-semantic-two-pass-compression`
 - PR: `tbd`
 - merge_target: `dev`
-- last_sync_commit: `tbd`
+- last_sync_commit: `46fdce2`
 
 Tasks:
 
-- [ ] `T7.1 implement pass-1 structural aggregate and pass-2 semantic compression`
-- [ ] `T7.2 enforce preservation invariants for signatures/types/contracts`
-- [ ] `T7.3 add regression tests preventing semantic-loss compression`
+- [x] `T7.1 implement pass-1 structural aggregate and pass-2 semantic compression`
+- [x] `T7.2 enforce preservation invariants for signatures/types/contracts`
+- [x] `T7.3 add regression tests preventing semantic-loss compression`
 
 Commits:
 
-- [ ] `<sha> feat(runtime): add two-pass semantic context compression`
-- [ ] `<sha> test(runtime): enforce semantic-preservation compression invariants`
+- [x] `1531caf feat(runtime): add two-pass semantic context compression`
+- [x] `e0d16fd test(runtime): enforce semantic-preservation compression invariants`
 
 Validation:
 
-- [ ] `two-pass compression invariant suite pass`
+- [x] `ruby -Itest test/redwright/iteration_context_packet_builder_test.rb (pass)`
+- [x] `ruby -Itest test/redwright/tree_sitter_structural_extractor_test.rb (pass)`
+- [x] `ruby -Itest test/redwright/lsp_semantic_enricher_test.rb (pass)`
+- [x] `ruby -Itest test/redwright/plain_text_structural_extractor_test.rb (pass)`
 
 ### Slice 8: Structured Feedback and Error Signal Integration
 
