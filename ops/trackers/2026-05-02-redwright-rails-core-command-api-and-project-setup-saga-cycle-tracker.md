@@ -1,0 +1,223 @@
+# Cycle Tracker: RedWright Rails Core Command API and Project Setup Saga Implementation
+
+## Metadata
+
+- cycle_id: `cycle-2026-05-02-redwright-rails-core-command-api-and-project-setup-saga`
+- status: `planned`
+- state: `planning`
+- updated: `2026-05-02`
+- active_slice: `none`
+- active_task: `none`
+- source_plan: `ops/plans/2026-05-02-redwright-rails-core-command-api-and-project-setup-saga-implementation-cycle-plan.md`
+- source_spec: `ops/specs/specs/2026-05-02-redwright-rails-core-command-api-and-project-setup-saga-spec.md`
+
+## Slice Progress
+
+### Slice 1: Rails Application Command/Query Foundation
+
+- status: `pending`
+- branch: `fix/slice-1-rails-command-query-foundation`
+- PR: `tbd`
+- merge_target: `dev`
+- last_sync_commit: `cc91c10`
+
+Tasks:
+
+- [ ] `T1.1 define Rails command/query envelope and result objects`
+- [ ] `T1.2 add Rails dispatcher with command/query registry and structured error handling`
+- [ ] `T1.3 add focused tests for envelope validation, dispatch success, and unsupported command/query errors`
+
+Commits:
+
+- [ ] `feat(web): add rails command query envelope contract`
+- [ ] `feat(web): add rails command query dispatcher`
+- [ ] `test(web): cover rails command query dispatch contract`
+
+Validation:
+
+- [ ] `targeted Rails service tests (pending)`
+- [ ] `bundle exec rake test:coverage from repository root (pending before slice closure)`
+
+### Slice 2: Project Setup Session Persistence and State Machine
+
+- status: `pending`
+- branch: `fix/slice-2-project-setup-session-state-machine`
+- PR: `tbd`
+- merge_target: `dev`
+- last_sync_commit: `tbd`
+
+Tasks:
+
+- [ ] `T2.1 add ProjectSetupSession and ProjectSetupTurn migrations/models`
+- [ ] `T2.2 add setup state machine service with allowed transitions and terminal outcomes`
+- [ ] `T2.3 add model and service tests for setup state, turn ordering, cancellation, and invalid transitions`
+
+Commits:
+
+- [ ] `feat(web): add project setup session persistence`
+- [ ] `feat(web): add project setup state machine`
+- [ ] `test(web): cover project setup state persistence and transitions`
+
+Validation:
+
+- [ ] `targeted Rails model/service tests (pending)`
+- [ ] `bundle exec rake test:coverage from repository root (pending before slice closure)`
+
+### Slice 3: Unified Rails Project Initialization Services
+
+- status: `pending`
+- branch: `fix/slice-3-unified-rails-project-initialization-services`
+- PR: `tbd`
+- merge_target: `dev`
+- last_sync_commit: `tbd`
+
+Tasks:
+
+- [ ] `T3.1 adapt ProjectInitialization services to create or advance ProjectSetupSession records`
+- [ ] `T3.2 wire ProjectsController to the unified service path while preserving Rails HTML/Turbo ergonomics`
+- [ ] `T3.3 add web/service tests proving repository-first setup, opt-in/out, cancellation, and no hidden partial state`
+
+Commits:
+
+- [ ] `feat(web): bind project initialization to setup sessions`
+- [ ] `feat(web): route project creation form through unified setup service`
+- [ ] `test(web): cover unified project initialization setup flow`
+
+Validation:
+
+- [ ] `targeted Rails controller/service tests (pending)`
+- [ ] `bundle exec rake test:coverage from repository root (pending before slice closure)`
+
+### Slice 4: Rails Project Setup Command API
+
+- status: `pending`
+- branch: `fix/slice-4-rails-project-setup-command-api`
+- PR: `tbd`
+- merge_target: `dev`
+- last_sync_commit: `tbd`
+
+Tasks:
+
+- [ ] `T4.1 add /api/v1 command/query routes, controller base, request id handling, and actor context`
+- [ ] `T4.2 register project setup commands and queries in the Rails dispatcher`
+- [ ] `T4.3 add API integration tests for start, advance, cancel, status, and project listing`
+
+Commits:
+
+- [ ] `feat(web): add rails command query api namespace`
+- [ ] `feat(web): expose project setup commands through rails api`
+- [ ] `test(web): cover project setup command api`
+
+Validation:
+
+- [ ] `targeted Rails API tests (pending)`
+- [ ] `bundle exec rake test:coverage from repository root (pending before slice closure)`
+
+### Slice 5: Telegram Project Setup Adapter Over Rails API
+
+- status: `pending`
+- branch: `fix/slice-5-telegram-project-setup-rails-api-adapter`
+- PR: `tbd`
+- merge_target: `dev`
+- last_sync_commit: `tbd`
+
+Tasks:
+
+- [ ] `T5.1 add Telegram Rails API client/adapter for command/query envelopes`
+- [ ] `T5.2 route /project new, project setup replies, /project list, and /project where through Rails API where applicable`
+- [ ] `T5.3 add Telegram handler tests proving multi-turn setup and no runtime-only project creation for new projects`
+
+Commits:
+
+- [ ] `feat(telegram): add rails command api adapter`
+- [ ] `feat(telegram): route project setup commands through rails api`
+- [ ] `test(telegram): cover rails-backed project setup flow`
+
+Validation:
+
+- [ ] `targeted Telegram adapter/handler tests (pending)`
+- [ ] `bundle exec rake test:coverage from repository root (pending before slice closure)`
+
+### Slice 6: Rails-Governed Guided Alignment and Questionnaire Artifacts
+
+- status: `pending`
+- branch: `fix/slice-6-rails-guided-alignment-questionnaire-artifacts`
+- PR: `tbd`
+- merge_target: `dev`
+- last_sync_commit: `tbd`
+
+Tasks:
+
+- [ ] `T6.1 implement one-question-per-turn setup alignment service using setup turns`
+- [ ] `T6.2 persist normalized alignment output into project attributes and/or document artifacts per lifecycle rules`
+- [ ] `T6.3 add tests for bounded turns, opt-out, turn reuse, artifact creation, and terminal outcomes`
+
+Commits:
+
+- [ ] `feat(web): add rails guided alignment setup service`
+- [ ] `feat(web): persist setup alignment artifacts`
+- [ ] `test(web): cover guided alignment setup artifacts`
+
+Validation:
+
+- [ ] `targeted Rails setup alignment tests (pending)`
+- [ ] `bundle exec rake test:coverage from repository root (pending before slice closure)`
+
+### Slice 7: Rails Document, Ticket, and Board Command API
+
+- status: `pending`
+- branch: `fix/slice-7-rails-document-ticket-board-command-api`
+- PR: `tbd`
+- merge_target: `dev`
+- last_sync_commit: `tbd`
+
+Tasks:
+
+- [ ] `T7.1 register document commands/queries for draft creation, draft update, promotion, and project document listing`
+- [ ] `T7.2 register ticket/board commands/queries for create, move, pick, attach documents, and board snapshot`
+- [ ] `T7.3 add API and service tests for project consistency, document lifecycle, board transitions, and ticket/document links`
+
+Commits:
+
+- [ ] `feat(web): add document command query api handlers`
+- [ ] `feat(web): add ticket board command query api handlers`
+- [ ] `test(web): cover document ticket board command api behavior`
+
+Validation:
+
+- [ ] `targeted Rails document/ticket/board API tests (pending)`
+- [ ] `bundle exec rake test:coverage from repository root (pending before slice closure)`
+
+### Slice 8: Agent Runtime Bridge and Cross-Channel Parity
+
+- status: `pending`
+- branch: `fix/slice-8-agent-runtime-bridge-cross-channel-parity`
+- PR: `tbd`
+- merge_target: `dev`
+- last_sync_commit: `tbd`
+
+Tasks:
+
+- [ ] `T8.1 add Rails-to-runtime execution bridge contract for starting work from tickets`
+- [ ] `T8.2 persist runtime execution correlation on Rails tickets without duplicating board/application rules`
+- [ ] `T8.3 add cross-channel E2E tests for web/API/Telegram project setup and ticket execution parity`
+
+Commits:
+
+- [ ] `feat(runtime): add rails ticket execution bridge contract`
+- [ ] `feat(web): persist runtime execution correlation on tickets`
+- [ ] `test(integration): cover rails telegram runtime parity`
+
+Validation:
+
+- [ ] `targeted bridge/integration tests (pending)`
+- [ ] `bundle exec rake test:coverage from repository root (pending before cycle closure)`
+
+## Coverage Guard
+
+- baseline_coverage: `tbd before Slice 1 implementation closure`
+- target_rule: `post-slice coverage >= pre-slice coverage for new code paths`
+
+## Event Log
+
+- `2026-05-02` state=`planning` note=`created formal spec, implementation plan, and tracker for Rails core command API plus project setup saga cycle`
