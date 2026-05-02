@@ -29,4 +29,26 @@ class TicketTest < ActiveSupport::TestCase
     assert_equal assigned.id, Ticket.pick_next_for(board: board, assignee: "agent-1").id
     assert_equal high.id, Ticket.pick_next_for(board: board, assignee: "agent-2").id
   end
+
+  test "derives project context through board association" do
+    board = create_board(project_key: "factory-project-ctx")
+    backlog = board.columns.create!(key: "backlog", title: "Backlog", position: 0)
+    ticket = board.tickets.create!(column: backlog, title: "Project context")
+
+    assert_equal board.project_id, ticket.project_id
+    assert_equal board.project.id, ticket.project.id
+  end
+
+  test "for_project scope resolves tickets by board project" do
+    board_a = create_board(project_key: "factory-proj-a")
+    board_b = create_board(project_key: "factory-proj-b")
+    backlog_a = board_a.columns.create!(key: "backlog", title: "Backlog", position: 0)
+    backlog_b = board_b.columns.create!(key: "backlog", title: "Backlog", position: 0)
+    ticket_a = board_a.tickets.create!(column: backlog_a, title: "Ticket A")
+    board_b.tickets.create!(column: backlog_b, title: "Ticket B")
+
+    scoped_ids = Ticket.for_project(board_a.project_id).pluck(:id)
+    assert_includes scoped_ids, ticket_a.id
+    assert_equal 1, scoped_ids.size
+  end
 end
