@@ -39,6 +39,10 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
     assert_match "Inventory Service", response.body
     assert_equal "/workspace/projects/inventory-service", project.root_path
     assert_equal "https://github.com/acme/inventory-service.git", project.repo_url
+    session = project.project_setup_sessions.order(:created_at).last
+    assert_equal "open", session.status
+    assert_equal "collecting_alignment", session.current_state
+    assert_equal "Guided alignment is ready to continue.", session.pending_question
   end
 
   test "create supports guided alignment opt-out" do
@@ -58,6 +62,10 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to project_path(project)
     follow_redirect!
     assert_match "Billing Service", response.body
+    session = project.project_setup_sessions.order(:created_at).last
+    assert_equal "completed", session.status
+    assert_equal "completed", session.current_state
+    assert_equal "completed_without_alignment", session.terminal_reason
   end
 
   test "create rejects ambiguous repository input" do
@@ -75,5 +83,8 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :unprocessable_entity
     assert_match "requires clarification", response.body
+    session = ProjectSetupSession.order(:created_at).last
+    assert_equal "awaiting_repository", session.current_state
+    assert_nil session.project
   end
 end
