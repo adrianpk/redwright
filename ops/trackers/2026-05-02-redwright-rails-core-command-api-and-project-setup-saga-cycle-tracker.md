@@ -6,7 +6,7 @@
 - status: `in_progress`
 - state: `awaiting_review`
 - updated: `2026-05-02`
-- active_slice: `Slice 7`
+- active_slice: `Slice 8`
 - active_task: `none`
 - source_plan: `ops/plans/2026-05-02-redwright-rails-core-command-api-and-project-setup-saga-implementation-cycle-plan.md`
 - source_spec: `ops/specs/specs/2026-05-02-redwright-rails-core-command-api-and-project-setup-saga-spec.md`
@@ -178,11 +178,11 @@ Validation:
 
 ### Slice 7: Rails Document, Ticket, and Board Command API
 
-- status: `awaiting_review`
+- status: `completed`
 - branch: `fix/slice-7-rails-document-ticket-board-command-api`
 - PR: `https://codeberg.org/adrianpk/redwright/pulls/251`
 - merge_target: `dev`
-- last_sync_commit: `9356310`
+- last_sync_commit: `fb14be7`
 
 Tasks:
 
@@ -207,28 +207,32 @@ Validation:
 
 ### Slice 8: Agent Runtime Bridge and Cross-Channel Parity
 
-- status: `pending`
+- status: `awaiting_review`
 - branch: `fix/slice-8-agent-runtime-bridge-cross-channel-parity`
 - PR: `tbd`
 - merge_target: `dev`
-- last_sync_commit: `tbd`
+- last_sync_commit: `fb14be7`
 
 Tasks:
 
-- [ ] `T8.1 add Rails-to-runtime execution bridge contract for starting work from tickets`
-- [ ] `T8.2 persist runtime execution correlation on Rails tickets without duplicating board/application rules`
-- [ ] `T8.3 add cross-channel E2E tests for web/API/Telegram project setup and ticket execution parity`
+- [x] `T8.1 add Rails-to-runtime execution bridge contract for starting work from tickets`
+- [x] `T8.2 persist runtime execution correlation on Rails tickets without duplicating board/application rules`
+- [x] `T8.3 add cross-channel E2E tests for web/API/Telegram project setup and ticket execution parity`
 
 Commits:
 
-- [ ] `feat(runtime): add rails ticket execution bridge contract`
-- [ ] `feat(web): persist runtime execution correlation on tickets`
-- [ ] `test(integration): cover rails telegram runtime parity`
+- [x] `a8d9655 feat(runtime): add rails ticket execution bridge contract`
+- [x] `126dd9b feat(web): persist runtime execution correlation on tickets`
+- [x] `9e52c1f test(integration): cover rails telegram runtime parity`
 
 Validation:
 
-- [ ] `targeted bridge/integration tests (pending)`
-- [ ] `bundle exec rake test:coverage from repository root (pending before cycle closure)`
+- [x] `cd apps/web && bundle exec bin/rails test test/services/runtime_bridge/ticket_execution_bridge_test.rb (pass)`
+- [x] `cd apps/web && bundle exec bin/rails test test/services/board_workflow/command_query_handlers_test.rb (pass)`
+- [x] `cd apps/web && bundle exec bin/rails test test/controllers/api/v1/command_queries_controller_test.rb (pass)`
+- [x] `ruby -Itest test/redwright/telegram_project_setup_adapter_test.rb (pass)`
+- [x] `cd apps/web && bundle exec bin/rails test (pass)`
+- [x] `bundle exec rake test:coverage from repository root (pass, coverage=91.28)`
 
 ## Coverage Guard
 
@@ -250,3 +254,5 @@ Validation:
 - `2026-05-02` state=`awaiting_review` slice=`Slice 6` note=`implemented Rails-governed guided alignment turns, persisted project attributes and a guided alignment draft artifact, and added coverage for bounded turns, opt-out, request replay, artifact creation, and terminal outcomes`
 - `2026-05-02` state=`slice_merged` slice=`Slice 6` note=`Slice 6 merged to dev via PR 250`
 - `2026-05-02` state=`awaiting_review` slice=`Slice 7` note=`implemented Rails command/query APIs for document drafts, document promotion, project documents, ticket creation/update/move/pick, ticket-document linking, board snapshots, and project ticket listings`
+- `2026-05-02` state=`slice_merged` slice=`Slice 7` note=`Slice 7 merged to dev via PR 251`
+- `2026-05-02` state=`awaiting_review` slice=`Slice 8` note=`implemented Rails-to-runtime ticket execution bridge, persisted runtime execution correlation on tickets, routed Telegram ticket commands through Rails API, and added API/Telegram/runtime bridge parity coverage`
