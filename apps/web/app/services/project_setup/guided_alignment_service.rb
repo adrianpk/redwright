@@ -14,6 +14,9 @@ module ProjectSetup
         "question" => "What constraints, risks, or non-goals should agents preserve?"
       }
     ].freeze
+    ATTRIBUTE_SOURCE = "guided_alignment".freeze
+    ATTRIBUTE_WEIGHT = 4
+    DOCUMENT_TITLE = "Guided Alignment Summary".freeze
 
     Result = Struct.new(:ok, :session, :turn, :summary, :effects, :errors, :data, keyword_init: true) do
       def ok?
@@ -107,6 +110,7 @@ module ProjectSetup
         write_alignment_metadata!(answers: next_answers, completed: completed)
 
         if completed
+          output_data = persist_alignment_outputs!(answers: next_answers)
           StateMachine.new(session: session).transition_to!("completed", terminal_reason: "completed_with_alignment")
           result = success(
             turn: turn,
@@ -114,11 +118,19 @@ module ProjectSetup
             effects: [
               turn_recorded_effect(turn),
               {
+                "type" => "guided_alignment_artifacts_written",
+                "session_id" => session.id,
+                "project_id" => session.project_id,
+                "document_id" => output_data.fetch("alignment_document_id"),
+                "project_attribute_ids" => output_data.fetch("alignment_project_attribute_ids")
+              },
+              {
                 "type" => "project_setup_completed",
                 "session_id" => session.id,
                 "terminal_reason" => "completed_with_alignment"
               }
-            ]
+            ],
+            data: output_data
           )
         else
           next_question = QUESTIONS.fetch(question_index + 1)
@@ -189,6 +201,65 @@ module ProjectSetup
       session.save!
     end
 
+    def persist_alignment_outputs!(answers:)
+      project = session.project
+      attributes = answers.map do |answer|
+        attribute = ProjectAttribute.find_or_initialize_by(
+          project: project,
+          key: "guided_alignment.#{answer.fetch("key")}"
+        )
+        attribute.value = answer.fetch("answer")
+        attribute.weight = ATTRIBUTE_WEIGHT
+        attribute.source = ATTRIBUTE_SOURCE
+        attribute.save!
+        attribute
+      end
+      document = Document.find_or_initialize_by(
+        project: project,
+        artifact_type: "draft",
+        title: DOCUMENT_TITLE
+      )
+      document.body = alignment_document_body(answers: answers)
+      document.editable = true
+      document.save!
+
+      output_data = {
+        "alignment_document_id" => document.id,
+        "alignment_project_attribute_ids" => attributes.map(&:id),
+        "alignment_project_attribute_keys" => attributes.map(&:key)
+      }
+      metadata = session.metadata
+      metadata["guided_alignment"] = alignment_metadata.merge(
+        "document_id" => document.id,
+        "project_attribute_ids" => attributes.map(&:id),
+        "project_attribute_keys" => attributes.map(&:key)
+      )
+      session.metadata = metadata
+      session.save!
+      output_data
+    end
+
+    def alignment_document_body(answers:)
+      sections = answers.map do |answer|
+        heading = answer.fetch("key").tr("_", " ").titleize
+        "## #{heading}\n\n#{answer.fetch("answer")}"
+      end
+
+      [
+        "# #{DOCUMENT_TITLE}",
+        "",
+        "This draft captures the project setup guided alignment answers.",
+        "",
+        *sections,
+        "",
+        "## Source",
+        "",
+        "- setup_session_id: #{session.id}",
+        "- source_channel: #{session.source_channel}",
+        "- answer_count: #{answers.length}"
+      ].join("\n")
+    end
+
     def turn_fields(question:, question_index:, completed:, normalized_fields:)
       stringify_hash(normalized_fields).merge(
         "alignment_key" => question.fetch("key"),
@@ -219,7 +290,7 @@ module ProjectSetup
       "Guided alignment advanced."
     end
 
-    def success(turn:, summary:, effects:)
+    def success(turn:, summary:, effects:, data: {})
       Result.new(
         ok: true,
         session: session.reload,
@@ -227,7 +298,7 @@ module ProjectSetup
         summary: summary,
         effects: effects,
         errors: [],
-        data: {}
+        data: data
       )
     end
 
