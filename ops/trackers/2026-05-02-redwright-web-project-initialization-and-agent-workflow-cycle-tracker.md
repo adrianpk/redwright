@@ -149,7 +149,7 @@ Commits:
 Validation:
 
 - [x] `cd apps/web && bundle exec bin/rails test (pass)`
-- [x] `bundle exec rake test:coverage (not available in repository task set)`
+- [x] `cd ~/Projects/redwright/redwright && bundle exec rake test:coverage (executed from repository root)`
 
 ## Coverage Guard
 

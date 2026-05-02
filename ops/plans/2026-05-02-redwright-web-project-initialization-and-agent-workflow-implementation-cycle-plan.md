@@ -112,3 +112,6 @@
 - `ticket/board/tracking behavior boundaries are consistent and test-covered`
 - `coverage is maintained or improved against baseline`
 
+## Validation Command Context
+
+- `bundle exec rake test:coverage` must be executed from repository root (`~/Projects/redwright/redwright`).

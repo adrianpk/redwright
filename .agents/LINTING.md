@@ -27,3 +27,9 @@ Full suite should run before merge.
 
 - Do not skip tests for behavior changes.
 - Fix failing checks before declaring work complete.
+
+## Coverage Command Scope
+
+- The coverage task must be run from repository root (`~/Projects/redwright/redwright`).
+- Canonical command:
+  - `bundle exec rake test:coverage`
