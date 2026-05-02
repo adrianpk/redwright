@@ -17,7 +17,7 @@
 
 - status: `awaiting_review`
 - branch: `fix/slice-1-rails-command-query-foundation`
-- PR: `tbd`
+- PR: `https://codeberg.org/adrianpk/redwright/pulls/245`
 - merge_target: `dev`
 - last_sync_commit: `f9371a2`
 
