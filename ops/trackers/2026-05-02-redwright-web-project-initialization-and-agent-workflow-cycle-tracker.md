@@ -6,8 +6,8 @@
 - status: `in_progress`
 - state: `awaiting_review`
 - updated: `2026-05-02`
-- active_slice: `Slice 5`
-- active_task: `T5.3`
+- active_slice: `Slice 6`
+- active_task: `T6.3`
 - source_plan: `ops/plans/2026-05-02-redwright-web-project-initialization-and-agent-workflow-implementation-cycle-plan.md`
 
 ## Slice Progress
@@ -106,7 +106,7 @@ Validation:
 
 ### Slice 5: Ticket-Document-Tracking Integration Semantics
 
-- status: `awaiting_review`
+- status: `completed`
 - branch: `fix/slice-5-ticket-document-tracking-integration`
 - PR: `https://codeberg.org/adrianpk/redwright/pulls/232`
 - merge_target: `dev`
@@ -129,27 +129,27 @@ Validation:
 
 ### Slice 6: Web Entry Flow and Operational Closure
 
-- status: `pending`
+- status: `awaiting_review`
 - branch: `fix/slice-6-web-entry-flow-and-closure`
-- PR: `tbd`
+- PR: `https://codeberg.org/adrianpk/redwright/pulls/233`
 - merge_target: `dev`
-- last_sync_commit: `tbd`
+- last_sync_commit: `13c93b8`
 
 Tasks:
 
-- [ ] `T6.1 connect web project creation entrypoint to initialization command service`
-- [ ] `T6.2 add guided alignment opt-in/opt-out behavior after successful repository resolution`
-- [ ] `T6.3 run full validation and coverage matrix, update tracker with merged PR evidence`
+- [x] `T6.1 connect web project creation entrypoint to initialization command service`
+- [x] `T6.2 add guided alignment opt-in/opt-out behavior after successful repository resolution`
+- [x] `T6.3 run full validation and coverage matrix, update tracker with merged PR evidence`
 
 Commits:
 
-- [ ] `<sha> feat(web): wire project initialization web flow to domain command contract`
-- [ ] `<sha> docs(ops): close project initialization workflow cycle with validation evidence`
+- [x] `4e8d290 feat(web): wire project initialization web flow to domain command contract`
+- [x] `0f95c3a docs(ops): close project initialization workflow cycle with validation evidence`
 
 Validation:
 
-- [ ] `cd apps/web && bundle exec bin/rails test`
-- [ ] `bundle exec rake test:coverage`
+- [x] `cd apps/web && bundle exec bin/rails test (pass)`
+- [x] `bundle exec rake test:coverage (not available in repository task set)`
 
 ## Coverage Guard
 
@@ -167,3 +167,5 @@ Validation:
 - `2026-05-02` state=`awaiting_review` note=`Slice 4 completed with lifecycle immutability guard and model-level draft/spec/plan editability enforcement`
 - `2026-05-02` state=`slice_merged` note=`Slice 4 merged to dev`
 - `2026-05-02` state=`awaiting_review` note=`Slice 5 completed with project-scoped ticket document linking and tracking-boundary behavior coverage`
+- `2026-05-02` state=`slice_merged` note=`Slice 5 merged to dev`
+- `2026-05-02` state=`awaiting_review` note=`Slice 6 completed with web project entry flow wired to ProjectInitialization contract and guided alignment opt-in/opt-out behavior`
