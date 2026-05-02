@@ -3,10 +3,10 @@
 ## Metadata
 
 - cycle_id: `cycle-2026-05-02-redwright-project-context-umbrella-model`
-- status: `planned`
+- status: `completed`
 - owner: `adrianpk`
 - created: `2026-05-02`
-- updated: `2026-05-02`
+- updated: `2026-05-02 (closure)`
 - goal: `establish project as umbrella context for boards, tickets, and documents with dynamic project attributes`
 - scope: `feature`
 - source_spec: `ops/specs/specs/2026-05-02-redwright-project-context-umbrella-model-spec.md`
@@ -15,7 +15,7 @@
 
 ### Slice 1: Project Domain and Schema Foundation
 
-- status: `pending`
+- status: `completed`
 - branch: `fix/slice-1-project-domain-schema-foundation`
 - objective: `introduce projects table/model and baseline validations`
 - tasks:
@@ -30,7 +30,7 @@
 
 ### Slice 2: Dynamic Project Attributes
 
-- status: `pending`
+- status: `completed`
 - branch: `fix/slice-2-project-attributes-dynamic-metadata`
 - objective: `add weighted key/value project metadata`
 - tasks:
@@ -45,7 +45,7 @@
 
 ### Slice 3: Board Project Binding
 
-- status: `pending`
+- status: `completed`
 - branch: `fix/slice-3-board-project-binding`
 - objective: `bind boards to project as required ownership context`
 - tasks:
@@ -60,7 +60,7 @@
 
 ### Slice 4: Document Project Binding
 
-- status: `pending`
+- status: `completed`
 - branch: `fix/slice-4-document-project-binding`
 - objective: `bind document artifacts to project context`
 - tasks:
@@ -75,7 +75,7 @@
 
 ### Slice 5: Ticket Project Context Derivation (Phase One)
 
-- status: `pending`
+- status: `completed`
 - branch: `fix/slice-5-ticket-project-context-derivation`
 - objective: `provide ticket project context via board linkage without ticket schema change`
 - tasks:
@@ -90,7 +90,7 @@
 
 ### Slice 6: Query and Invariant Hardening
 
-- status: `pending`
+- status: `completed`
 - branch: `fix/slice-6-project-scope-query-and-invariant-hardening`
 - objective: `harden project-scoped query paths and prepare phase-two ticket binding contract`
 - tasks:
@@ -106,7 +106,7 @@
 
 ### Slice 7: Operational Closure and Documentation Sync
 
-- status: `pending`
+- status: `completed`
 - branch: `fix/slice-7-project-context-operational-closure`
 - objective: `close implementation cycle with operational evidence and docs sync`
 - tasks:

@@ -6,8 +6,8 @@
 - status: `in_progress`
 - state: `awaiting_review`
 - updated: `2026-05-02`
-- active_slice: `Slice 6`
-- active_task: `T6.3`
+- active_slice: `Slice 7`
+- active_task: `T7.3`
 - source_plan: `ops/plans/2026-05-02-redwright-project-context-umbrella-model-implementation-cycle-plan.md`
 
 ## Slice Progress
@@ -16,7 +16,7 @@
 
 - status: `completed`
 - branch: `fix/slice-1-project-domain-schema-foundation`
-- PR: `#tbd`
+- PR: `#218`
 - merge_target: `dev`
 - last_sync_commit: `a146df4`
 
@@ -135,7 +135,7 @@ Validation:
 
 - status: `completed`
 - branch: `fix/slice-6-project-scope-query-and-invariant-hardening`
-- PR: `tbd`
+- PR: `#225`
 - merge_target: `dev`
 - last_sync_commit: `e58a330`
 
@@ -156,25 +156,25 @@ Validation:
 
 ### Slice 7: Operational Closure and Documentation Sync
 
-- status: `pending`
+- status: `completed`
 - branch: `fix/slice-7-project-context-operational-closure`
 - PR: `tbd`
 - merge_target: `dev`
-- last_sync_commit: `tbd`
+- last_sync_commit: `818e4ab`
 
 Tasks:
 
-- [ ] `T7.1 run focused validation matrix for project-scoped flows`
-- [ ] `T7.2 update tracker with merged PR references and validation evidence`
-- [ ] `T7.3 sync relevant docs if contract details changed during implementation`
+- [x] `T7.1 run focused validation matrix for project-scoped flows`
+- [x] `T7.2 update tracker with merged PR references and validation evidence`
+- [x] `T7.3 sync relevant docs if contract details changed during implementation`
 
 Commits:
 
-- [ ] `<sha> docs(ops): record project context implementation closure evidence`
+- [x] `<pending> docs(ops): record project context implementation closure evidence`
 
 Validation:
 
-- [ ] `focused matrix pass recorded in tracker`
+- [x] `cd apps/web && bundle exec bin/rails test test/models/project_test.rb test/models/project_attribute_test.rb test/models/board_test.rb test/models/document_artifact_test.rb test/models/ticket_test.rb test/controllers/boards_controller_test.rb test/controllers/document_artifacts_controller_test.rb test/controllers/tickets_controller_test.rb (pass)`
 
 ## Event Log
 
@@ -185,3 +185,4 @@ Validation:
 - `2026-05-02` state=`awaiting_review` note=`Slice 4 completed with document_artifacts.project_id backfill migration, required artifact->project binding, and project-scoped document tests`
 - `2026-05-02` state=`awaiting_review` note=`Slice 5 completed with ticket project derivation through board and pick query project context exposure`
 - `2026-05-02` state=`awaiting_review` note=`Slice 6 completed with project-scoped query helpers, optional ticket project invariant contract, and isolation regression coverage`
+- `2026-05-02` state=`awaiting_review` note=`Slice 7 operational closure recorded with focused validation matrix and merged PR evidence for slices 1..6`
