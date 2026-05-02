@@ -68,7 +68,7 @@ Validation:
 
 - status: `awaiting_review`
 - branch: `fix/slice-3-unified-rails-project-initialization-services`
-- PR: `tbd`
+- PR: `https://codeberg.org/adrianpk/redwright/pulls/247`
 - merge_target: `dev`
 - last_sync_commit: `a928421`
 
