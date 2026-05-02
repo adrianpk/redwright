@@ -1,5 +1,6 @@
 class Document < ApplicationRecord
   TYPES = %w[draft spec plan_tracker].freeze
+  EDITABLE_TYPES = %w[draft].freeze
 
   belongs_to :project
   belongs_to :source_draft, class_name: "Document", optional: true
@@ -27,6 +28,8 @@ class Document < ApplicationRecord
   validates :title, presence: true
   validates :body, presence: true
   validate :source_draft_contract
+  validate :editable_policy_contract
+  validate :lifecycle_transition_contract, on: :update
 
   scope :by_type, ->(type) { where(artifact_type: type) }
   scope :for_project, ->(project_id) { where(project_id: project_id) }
@@ -59,5 +62,19 @@ class Document < ApplicationRecord
     return unless source_draft && project_id && source_draft.project_id != project_id
 
     errors.add(:source_draft, "must belong to the same project")
+  end
+
+  def editable_policy_contract
+    if EDITABLE_TYPES.include?(artifact_type)
+      errors.add(:editable, "must be true for draft artifacts") if editable != true
+    elsif editable != false
+      errors.add(:editable, "must be false for non-draft artifacts")
+    end
+  end
+
+  def lifecycle_transition_contract
+    return unless artifact_type_changed?
+
+    errors.add(:artifact_type, "is immutable after creation")
   end
 end
