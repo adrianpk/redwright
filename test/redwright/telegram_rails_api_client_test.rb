@@ -64,4 +64,31 @@ class TelegramRailsApiClientTest < Minitest::Test
     assert_equal("ListProjects", captured.first[:body].fetch("name"))
     assert_equal("req-2", response.body.fetch("request_id"))
   end
+
+  def test_returns_structured_error_for_invalid_json_response
+    transport = lambda do |uri:, headers:, body:|
+      FakeResponse.new(code: "502", body: "not-json")
+    end
+    client = Redwright::TelegramRailsApiClient.new(
+      base_url: "http://127.0.0.1:3000/api/v1",
+      transport: transport
+    )
+
+    response = client.query(
+      name: "ListProjects",
+      payload: [],
+      actor_identifier: "telegram:chat:9:user:1",
+      request_id: "req-invalid-json"
+    )
+
+    refute response.ok?
+    assert_equal("error", response.body.fetch("status"))
+    assert_equal("invalid_json", response.body.fetch("errors").first.fetch("code"))
+  end
+
+  def test_requires_base_url
+    assert_raises(ArgumentError) do
+      Redwright::TelegramRailsApiClient.new(base_url: " ")
+    end
+  end
 end

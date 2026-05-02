@@ -91,6 +91,26 @@ class TelegramProjectSetupAdapterTest < Minitest::Test
     end
   end
 
+  class ScriptedRailsClient
+    attr_reader :calls
+
+    def initialize(command_bodies: {}, query_bodies: {})
+      @command_bodies = command_bodies
+      @query_bodies = query_bodies
+      @calls = []
+    end
+
+    def command(name:, payload:, actor_identifier:, request_id:)
+      @calls << { type: "command", name: name, payload: payload, actor_identifier: actor_identifier, request_id: request_id }
+      FakeApiResponse.new(body: @command_bodies.fetch(name))
+    end
+
+    def query(name:, payload:, actor_identifier:, request_id:)
+      @calls << { type: "query", name: name, payload: payload, actor_identifier: actor_identifier, request_id: request_id }
+      FakeApiResponse.new(body: @query_bodies.fetch(name))
+    end
+  end
+
   def test_starts_and_advances_project_setup_over_rails_api
     client = FakeRailsClient.new
     adapter = Redwright::TelegramProjectSetupAdapter.new(client: client)
@@ -136,6 +156,127 @@ class TelegramProjectSetupAdapterTest < Minitest::Test
     result = adapter.handle(event(1, "build something"), trace_id: "trc-test")
 
     refute result.handled?
+  end
+
+  def test_handles_project_new_missing_without_api_call
+    client = FakeRailsClient.new
+    adapter = Redwright::TelegramProjectSetupAdapter.new(client: client)
+
+    result = adapter.handle(event(1, "/project new"), trace_id: "trc-test")
+
+    assert result.handled?
+    assert_equal("project_new_missing", result.command)
+    assert_match("Please provide a project name", result.message)
+    assert_equal([], client.calls)
+  end
+
+  def test_ignores_unknown_project_slash_without_active_session
+    client = FakeRailsClient.new
+    adapter = Redwright::TelegramProjectSetupAdapter.new(client: client)
+
+    result = adapter.handle(event(1, "/project switch alpha"), trace_id: "trc-test")
+
+    refute result.handled?
+    assert_equal([], client.calls)
+  end
+
+  def test_where_without_active_context_is_handled_without_api_call
+    client = FakeRailsClient.new
+    adapter = Redwright::TelegramProjectSetupAdapter.new(client: client)
+
+    result = adapter.handle(event(1, "/project where"), trace_id: "trc-test")
+
+    assert result.handled?
+    assert_match("No active Rails project setup session", result.message)
+    assert_equal([], client.calls)
+  end
+
+  def test_terminal_setup_retains_project_context_for_where
+    client = ScriptedRailsClient.new(
+      command_bodies: {
+        "StartProjectSetup" => {
+          "status" => "ok",
+          "summary" => "Project created; setup completed.",
+          "session_id" => 50,
+          "project_id" => 70,
+          "state" => "completed",
+          "next_prompt" => nil
+        }
+      },
+      query_bodies: {
+        "GetProject" => {
+          "status" => "ok",
+          "summary" => "Project retrieved.",
+          "data" => {
+            "project" => {
+              "id" => 70,
+              "name" => "happy-cli",
+              "repo_url" => "https://github.com/acme/happy-cli.git"
+            }
+          }
+        }
+      }
+    )
+    adapter = Redwright::TelegramProjectSetupAdapter.new(client: client)
+
+    adapter.handle(event(1, "/project new happy-cli"), trace_id: "trc-test")
+    current = adapter.handle(event(2, "/project where"), trace_id: "trc-test")
+
+    assert current.handled?
+    assert_equal(%w[StartProjectSetup GetProject], client.calls.map { |call| call[:name] })
+    assert_match("Active Rails project: happy-cli (70)", current.message)
+    assert_match("Repository: https://github.com/acme/happy-cli.git", current.message)
+  end
+
+  def test_renders_project_lookup_failure
+    client = ScriptedRailsClient.new(
+      command_bodies: {
+        "StartProjectSetup" => {
+          "status" => "ok",
+          "summary" => "Project created; setup completed.",
+          "session_id" => 51,
+          "project_id" => 71,
+          "state" => "completed"
+        }
+      },
+      query_bodies: {
+        "GetProject" => {
+          "status" => "error",
+          "summary" => "project was not found",
+          "data" => {}
+        }
+      }
+    )
+    adapter = Redwright::TelegramProjectSetupAdapter.new(client: client)
+
+    adapter.handle(event(1, "/project new missing-project"), trace_id: "trc-test")
+    current = adapter.handle(event(2, "/project where"), trace_id: "trc-test")
+
+    assert_match("Project lookup failed: project was not found", current.message)
+  end
+
+  def test_renders_api_error_details
+    client = ScriptedRailsClient.new(
+      command_bodies: {
+        "StartProjectSetup" => {
+          "status" => "error",
+          "summary" => "Project setup command is invalid.",
+          "errors" => [
+            {
+              "code" => "invalid_project_name",
+              "message" => "project_name can't be blank"
+            }
+          ]
+        }
+      }
+    )
+    adapter = Redwright::TelegramProjectSetupAdapter.new(client: client)
+
+    result = adapter.handle(event(1, "/project new bad"), trace_id: "trc-test")
+
+    assert result.handled?
+    assert_match("Project setup error: Project setup command is invalid.", result.message)
+    assert_match("- invalid_project_name: project_name can't be blank", result.message)
   end
 
   private

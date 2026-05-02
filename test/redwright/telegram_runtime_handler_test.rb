@@ -1182,6 +1182,33 @@ class TelegramRuntimeHandlerTest < Minitest::Test
     end
   end
 
+  def test_handle_project_setup_adapter_failure_does_not_fall_back_to_runtime
+    fake_flow = Object.new
+    fake_flow.define_singleton_method(:process) do |**_kwargs|
+      raise "flow should not run after Rails project setup adapter failure"
+    end
+    failing_adapter = Object.new
+    failing_adapter.define_singleton_method(:handle) do |*_args, **_kwargs|
+      raise "rails api down"
+    end
+    client = FakeTelegramClient.new([])
+    out = StringIO.new
+    handler = Redwright::TelegramRuntimeHandler.new(
+      flow: fake_flow,
+      telegram_client: client,
+      out: out,
+      err: StringIO.new,
+      blocked_retry_attempts: 1,
+      project_setup_adapter: failing_adapter
+    )
+
+    handler.handle(Redwright::TelegramEvent.new(update_id: 3, chat_id: 46, user_id: 77, username: "tester", text: "/project new happy-cli"))
+
+    assert_equal(1, client.messages.size)
+    assert_match("Rails project setup API failed: rails api down", client.messages.last[:text])
+    assert_match("telegram rails_project_setup_error chat=46", out.string)
+  end
+
   def test_handle_rewrites_operational_slashes_to_explicit_planner_hints
     fake_flow = Object.new
     captured = []
