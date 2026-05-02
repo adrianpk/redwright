@@ -6,7 +6,9 @@ class DocumentArtifactsController < ApplicationController
     selected_type = params[:type].to_s
     selected_type = "draft" unless allowed_types.include?(selected_type)
     @selected_type = selected_type
-    @artifacts = DocumentArtifact.where(artifact_type: selected_type).order(updated_at: :desc, created_at: :desc)
+    artifacts = DocumentArtifact.where(artifact_type: selected_type)
+    artifacts = artifacts.for_project(params[:project_id]) if params[:project_id].present?
+    @artifacts = artifacts.order(updated_at: :desc, created_at: :desc)
   end
 
   def show
@@ -14,11 +16,11 @@ class DocumentArtifactsController < ApplicationController
   end
 
   def new
-    @artifact = DocumentArtifact.new(artifact_type: "draft", editable: true)
+    @artifact = DocumentArtifact.new(artifact_type: "draft", editable: true, project: default_project)
   end
 
   def create
-    @artifact = DocumentArtifact.new(draft_params.merge(artifact_type: "draft", editable: true))
+    @artifact = DocumentArtifact.new(draft_params.merge(artifact_type: "draft", editable: true, project: default_project))
     if @artifact.save
       redirect_to document_artifact_path(@artifact), notice: "Draft created."
     else
@@ -70,5 +72,14 @@ class DocumentArtifactsController < ApplicationController
 
   def read_only_artifact?(artifact)
     %w[spec plan_tracker].include?(artifact.artifact_type)
+  end
+
+  def default_project
+    Project.find_or_create_by!(root_path: "/workspace/projects/document-artifacts") do |project|
+      project.name = "Document Artifacts"
+      project.description = "Default project context for document artifacts flows"
+      project.repo_url = "https://codeberg.org/acme/document-artifacts"
+      project.stack_slug = "ruby"
+    end
   end
 end

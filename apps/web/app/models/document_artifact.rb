@@ -1,6 +1,7 @@
 class DocumentArtifact < ApplicationRecord
   TYPES = %w[draft spec plan_tracker].freeze
 
+  belongs_to :project
   belongs_to :source_draft, class_name: "DocumentArtifact", optional: true
 
   has_many :derived_specs,
@@ -28,6 +29,7 @@ class DocumentArtifact < ApplicationRecord
   validate :source_draft_contract
 
   scope :by_type, ->(type) { where(artifact_type: type) }
+  scope :for_project, ->(project_id) { where(project_id: project_id) }
 
   def related_artifacts
     outgoing = outgoing_relations.includes(:to_artifact).map do |relation|
@@ -48,8 +50,12 @@ class DocumentArtifact < ApplicationRecord
       errors.add(:source_draft, "is only valid for spec artifacts")
     end
 
-    return unless source_draft && source_draft.artifact_type != "draft"
+    if source_draft && source_draft.artifact_type != "draft"
+      errors.add(:source_draft, "must reference a draft artifact")
+    end
 
-    errors.add(:source_draft, "must reference a draft artifact")
+    return unless source_draft && project_id && source_draft.project_id != project_id
+
+    errors.add(:source_draft, "must belong to the same project")
   end
 end

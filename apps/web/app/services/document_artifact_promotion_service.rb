@@ -10,6 +10,7 @@ class DocumentArtifactPromotionService
       artifact_type: "spec",
       title: @draft.title,
       body: @draft.body,
+      project: @draft.project,
       source_draft: @draft,
       editable: false
     )
