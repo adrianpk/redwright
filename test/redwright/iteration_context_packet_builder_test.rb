@@ -518,4 +518,56 @@ class IterationContextPacketBuilderTest < Minitest::Test
       assert(packet.dig(:packet, :layered_selection, :total_selected_symbols) <= (8 + 6 + 4))
     end
   end
+
+  def test_doc_hints_are_compact_and_normalized
+    Dir.mktmpdir("redwright-doc-hints-compact-") do |dir|
+      FileUtils.mkdir_p(File.join(dir, "lib"))
+      File.write(
+        File.join(dir, "README.md"),
+        <<~MD
+          # Parse Pipeline
+          -   parse payload into normalized tokens for runtime selection and stable replay with explicit contracts
+          > keep deterministic ordering for semantic context
+        MD
+      )
+      File.write(File.join(dir, "lib", "sample.rb"), "class Sample\n  def parse_payload(input)\n  end\nend\n")
+
+      packet = Redwright::IterationContextPacketBuilder.new.build(
+        project_path: dir,
+        task_goal: "improve parser context",
+        previous_message: "none",
+        current_errors: [],
+        parser_mode: "preferred_tree_sitter",
+        top_k_files: 5
+      )
+
+      doc_hints = packet.dig(:packet, :ir_v1, "DOC_HINTS")
+      assert_operator(doc_hints.size, :>, 0)
+      assert(doc_hints.all? { |hint| hint[:text].is_a?(String) && !hint[:text].empty? && hint[:text].size <= 143 })
+      assert_equal(doc_hints.size, packet.dig(:packet, :layered_selection, :doc_hints_count))
+    end
+  end
+
+  def test_docs_first_prioritizes_global_signals_by_document_terms
+    Dir.mktmpdir("redwright-doc-priority-global-signals-") do |dir|
+      FileUtils.mkdir_p(File.join(dir, "lib"))
+      File.write(File.join(dir, "README.md"), "# Parser focus\nprioritize parse_token behavior for context\n")
+      File.write(File.join(dir, "lib", "a.rb"), "class Current\n  def current_run(input)\n  end\nend\n")
+      File.write(File.join(dir, "lib", "b.rb"), "class Relevant\n  def parse_token(payload)\n  end\nend\n")
+      File.write(File.join(dir, "lib", "c.rb"), "class Noise\n  def execute_misc(data)\n  end\nend\n")
+
+      packet = Redwright::IterationContextPacketBuilder.new.build(
+        project_path: dir,
+        task_goal: "stabilize runtime flow",
+        previous_message: "none",
+        current_errors: [],
+        parser_mode: "preferred_tree_sitter",
+        lsp_mode: "fallback_disabled",
+        top_k_files: 5
+      )
+
+      global_symbols = packet.dig(:packet, :ir_v1, "AVAILABLE_SYMBOLS").select { |s| s[:layer] == "GLOBAL_SIGNALS" }
+      assert(global_symbols.any? { |symbol| symbol[:name].to_s.include?("parse_token") })
+    end
+  end
 end
