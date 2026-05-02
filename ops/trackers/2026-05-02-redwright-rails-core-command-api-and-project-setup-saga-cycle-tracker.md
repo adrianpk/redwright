@@ -6,7 +6,7 @@
 - status: `in_progress`
 - state: `awaiting_review`
 - updated: `2026-05-02`
-- active_slice: `Slice 2`
+- active_slice: `Slice 3`
 - active_task: `none`
 - source_plan: `ops/plans/2026-05-02-redwright-rails-core-command-api-and-project-setup-saga-implementation-cycle-plan.md`
 - source_spec: `ops/specs/specs/2026-05-02-redwright-rails-core-command-api-and-project-setup-saga-spec.md`
@@ -40,7 +40,7 @@ Validation:
 
 ### Slice 2: Project Setup Session Persistence and State Machine
 
-- status: `awaiting_review`
+- status: `completed`
 - branch: `fix/slice-2-project-setup-session-state-machine`
 - PR: `https://codeberg.org/adrianpk/redwright/pulls/246`
 - merge_target: `dev`
@@ -66,28 +66,30 @@ Validation:
 
 ### Slice 3: Unified Rails Project Initialization Services
 
-- status: `pending`
+- status: `awaiting_review`
 - branch: `fix/slice-3-unified-rails-project-initialization-services`
 - PR: `tbd`
 - merge_target: `dev`
-- last_sync_commit: `tbd`
+- last_sync_commit: `a928421`
 
 Tasks:
 
-- [ ] `T3.1 adapt ProjectInitialization services to create or advance ProjectSetupSession records`
-- [ ] `T3.2 wire ProjectsController to the unified service path while preserving Rails HTML/Turbo ergonomics`
-- [ ] `T3.3 add web/service tests proving repository-first setup, opt-in/out, cancellation, and no hidden partial state`
+- [x] `T3.1 adapt ProjectInitialization services to create or advance ProjectSetupSession records`
+- [x] `T3.2 wire ProjectsController to the unified service path while preserving Rails HTML/Turbo ergonomics`
+- [x] `T3.3 add web/service tests proving repository-first setup, opt-in/out, cancellation, and no hidden partial state`
 
 Commits:
 
-- [ ] `feat(web): bind project initialization to setup sessions`
-- [ ] `feat(web): route project creation form through unified setup service`
-- [ ] `test(web): cover unified project initialization setup flow`
+- [x] `742c200 feat(web): bind project initialization to setup sessions`
+- [x] `0c1896c feat(web): route project creation form through unified setup service`
+- [x] `a6bb7bd test(web): cover unified project initialization setup flow`
 
 Validation:
 
-- [ ] `targeted Rails controller/service tests (pending)`
-- [ ] `bundle exec rake test:coverage from repository root (pending before slice closure)`
+- [x] `cd apps/web && bundle exec bin/rails test test/services/project_initialization/setup_session_runner_test.rb (pass)`
+- [x] `cd apps/web && bundle exec bin/rails test test/controllers/projects_controller_test.rb (pass)`
+- [x] `cd apps/web && bundle exec bin/rails test (pass)`
+- [x] `bundle exec rake test:coverage from repository root (pass, coverage=91.2)`
 
 ### Slice 4: Rails Project Setup Command API
 
@@ -225,3 +227,5 @@ Validation:
 - `2026-05-02` state=`awaiting_review` slice=`Slice 1` note=`implemented Rails command/query envelope, result, registry, dispatcher, structured error handling, and focused service coverage`
 - `2026-05-02` state=`slice_merged` slice=`Slice 1` note=`Slice 1 merged to dev via PR 245`
 - `2026-05-02` state=`awaiting_review` slice=`Slice 2` note=`implemented Rails project setup session persistence, setup turn ordering, deterministic state transitions, terminal outcomes, and focused model/service coverage`
+- `2026-05-02` state=`slice_merged` slice=`Slice 2` note=`Slice 2 merged to dev via PR 246`
+- `2026-05-02` state=`awaiting_review` slice=`Slice 3` note=`implemented unified project initialization setup runner, routed ProjectsController through setup sessions, and added service/controller coverage for opt-in, opt-out, cancellation, ambiguity, and failed partial state`
