@@ -122,4 +122,14 @@ class DocumentArtifactTest < ActiveSupport::TestCase
     assert_not artifact.valid?
     assert_includes artifact.errors[:source_draft], "must belong to the same project"
   end
+
+  test "for_project scope isolates document artifacts by project" do
+    project_a = create_project(key: "doc-scope-a")
+    project_b = create_project(key: "doc-scope-b")
+    artifact_a = create_document_artifact(project: project_a, title: "Artifact A")
+    create_document_artifact(project: project_b, title: "Artifact B")
+
+    scoped_ids = DocumentArtifact.for_project(project_a.id).pluck(:id)
+    assert_equal [artifact_a.id], scoped_ids
+  end
 end

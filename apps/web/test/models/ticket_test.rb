@@ -51,4 +51,13 @@ class TicketTest < ActiveSupport::TestCase
     assert_includes scoped_ids, ticket_a.id
     assert_equal 1, scoped_ids.size
   end
+
+  test "project context optional invariant matches board project" do
+    board = create_board(project_key: "factory-invariant")
+    backlog = board.columns.create!(key: "backlog", title: "Backlog", position: 0)
+    ticket = board.tickets.create!(column: backlog, title: "Invariant ticket")
+
+    assert ticket.project_context_consistent?(board.project_id)
+    assert_not ticket.project_context_consistent?(board.project_id + 1)
+  end
 end
