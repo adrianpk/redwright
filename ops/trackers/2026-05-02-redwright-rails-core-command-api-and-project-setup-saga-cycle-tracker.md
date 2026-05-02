@@ -150,7 +150,7 @@ Validation:
 
 - status: `awaiting_review`
 - branch: `fix/slice-6-rails-guided-alignment-questionnaire-artifacts`
-- PR: `tbd`
+- PR: `https://codeberg.org/adrianpk/redwright/pulls/250`
 - merge_target: `dev`
 - last_sync_commit: `cf26501`
 
