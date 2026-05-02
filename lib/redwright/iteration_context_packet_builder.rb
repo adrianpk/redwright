@@ -73,7 +73,11 @@ module Redwright
         task_goal: task_goal,
         current_file_path: current_file ? current_file[:path].to_s : "",
         symbols: available_symbols,
-        doc_hints: extract_doc_hints(snippets: snippets)
+        doc_hints: extract_doc_hints(snippets: snippets),
+        diagnostic_signals: extract_diagnostic_signals(
+          normalized_failures: normalized_failures,
+          last_execution_results: last_execution_results
+        )
       )
       packet = {
         version: "v2",
@@ -304,6 +308,7 @@ module Redwright
       lines << "  - global_signal_symbols: #{packet.dig(:layered_selection, :global_signal_symbols_count)}"
       lines << "  - total_selected_symbols: #{packet.dig(:layered_selection, :total_selected_symbols)}"
       lines << "  - doc_hints_count: #{packet.dig(:layered_selection, :doc_hints_count)}"
+      lines << "  - diagnostic_signals_count: #{packet.dig(:layered_selection, :diagnostic_signals_count)}"
       lines << "  - compression_pass1_count: #{packet.dig(:layered_selection, :compression_passes, :pass1_structural_count)}"
       lines << "  - compression_pass2_count: #{packet.dig(:layered_selection, :compression_passes, :pass2_compressed_count)}"
       lines << "  - invariants_signatures: #{packet.dig(:layered_selection, :preserved_invariants, :signatures)}"
@@ -355,9 +360,10 @@ module Redwright
       LspSemanticEnricher.new.enrich(symbols: sorted)
     end
 
-    def select_layered_symbols(task_goal:, current_file_path:, symbols:, doc_hints:)
+    def select_layered_symbols(task_goal:, current_file_path:, symbols:, doc_hints:, diagnostic_signals:)
       core_task = task_goal.to_s.strip
       doc_terms = extract_doc_terms(doc_hints)
+      diagnostic_terms = extract_diagnostic_terms(diagnostic_signals)
       current_file_symbols = Array(symbols).select { |s| s[:path].to_s == current_file_path.to_s }
       current_file_symbols = current_file_symbols.first(DEFAULT_MAX_CURRENT_FILE_SYMBOLS)
 
@@ -378,7 +384,11 @@ module Redwright
       global_signal_symbols = Array(symbols).reject do |s|
         used.include?([s[:path], s[:line], s[:kind], s[:name]])
       end
-      global_signal_symbols = rank_symbols_by_doc_priority(global_signal_symbols, doc_terms)
+      global_signal_symbols = rank_symbols_by_signal_priority(
+        symbols: global_signal_symbols,
+        doc_terms: doc_terms,
+        diagnostic_terms: diagnostic_terms
+      )
       global_signal_symbols = global_signal_symbols.first(DEFAULT_MAX_GLOBAL_SIGNAL_SYMBOLS)
 
       selected = []
@@ -396,6 +406,8 @@ module Redwright
         compression_passes: compression[:passes],
         preserved_invariants: compression[:preserved_invariants],
         doc_hints_count: Array(doc_hints).size,
+        diagnostic_signals_count: Array(diagnostic_signals).size,
+        diagnostic_signals: Array(diagnostic_signals),
         doc_hints: Array(doc_hints),
         selected_symbols: compression[:compressed_symbols]
       }
@@ -440,14 +452,57 @@ module Redwright
         .uniq
     end
 
-    def rank_symbols_by_doc_priority(symbols, doc_terms)
-      return Array(symbols) if doc_terms.empty?
+    def rank_symbols_by_signal_priority(symbols:, doc_terms:, diagnostic_terms:)
+      return Array(symbols) if doc_terms.empty? && diagnostic_terms.empty?
 
       Array(symbols)
         .sort_by do |symbol|
-          score = doc_terms.any? { |term| symbol[:name].to_s.downcase.include?(term) } ? 0 : 1
-          [score, symbol[:path].to_s, symbol[:line].to_i, symbol[:kind].to_s, symbol[:name].to_s]
+          name = symbol[:name].to_s.downcase
+          doc_score = doc_terms.any? { |term| name.include?(term) } ? 0 : 1
+          diag_score = diagnostic_terms.any? { |term| name.include?(term) } ? 0 : 1
+          [diag_score, doc_score, symbol[:path].to_s, symbol[:line].to_i, symbol[:kind].to_s, symbol[:name].to_s]
         end
+    end
+
+    def extract_diagnostic_signals(normalized_failures:, last_execution_results:)
+      structured = Array(normalized_failures).filter_map { |failure| parse_diagnostic_tuple(failure) }
+      return structured if structured.any?
+
+      Array(last_execution_results).filter_map { |entry| parse_diagnostic_tuple(entry[:summary]) }
+    end
+
+    def parse_diagnostic_tuple(value)
+      text = value.to_s.strip
+      return nil if text.empty?
+
+      match = text.match(/\A(?<file>[^:\s]+):(?<line>\d+):(?<code>[A-Z0-9_]+)\s+(?<message>.+)\z/)
+      return nil unless match
+
+      {
+        file: match[:file],
+        line: match[:line].to_i,
+        code: match[:code],
+        message: compact_message(match[:message])
+      }
+    end
+
+    def compact_message(message)
+      value = message.to_s.gsub(/\s+/, " ").strip
+      return value if value.size <= 140
+
+      "#{value[0, 140]}..."
+    end
+
+    def extract_diagnostic_terms(diagnostic_signals)
+      Array(diagnostic_signals)
+        .flat_map do |signal|
+          [
+            signal[:code].to_s.downcase,
+            signal[:message].to_s.downcase
+          ]
+        end
+        .flat_map { |text| text.scan(/[a-z_]{3,}/) }
+        .uniq
     end
 
     def compress_selected_symbols(symbols)
