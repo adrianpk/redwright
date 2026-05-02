@@ -4,10 +4,10 @@
 
 - cycle_id: `cycle-2026-05-01-redwright-runtime-line-coverage-51-series`
 - status: `in_progress`
-- state: `planning_completed`
-- updated: `2026-05-01`
+- state: `awaiting_review`
+- updated: `2026-05-02`
 - active_slice: `Slice 1`
-- active_task: `T1.1`
+- active_task: `review`
 
 ## Coverage Baseline
 
@@ -23,7 +23,7 @@
 
 ### Slice 1: Handler and Dispatcher Branch Expansion
 
-- status: `pending`
+- status: `awaiting_review`
 - branch: `fix/slice-1-coverage-handler-dispatcher`
 - PR: `tbd`
 - merge_target: `dev`
@@ -32,20 +32,26 @@
 
 Tasks:
 
-- [ ] `T1.1 add branch matrix tests for telegram_runtime_handler including error and control edge paths`
-- [ ] `T1.2 add deep branch tests for server_runtime_dispatcher operational/read-only paths`
-- [ ] `T1.3 validate net coverage increase >= +5.00 points`
+- [x] `T1.1 add branch matrix tests for telegram_runtime_handler including error and control edge paths`
+- [x] `T1.2 add deep branch tests for server_runtime_dispatcher operational/read-only paths`
+- [x] `T1.3 validate net coverage increase >= +5.00 points`
 
 Commits:
 
-- [ ] `<sha> test(runtime): expand telegram handler branch coverage`
-- [ ] `<sha> test(runtime): expand server dispatcher branch coverage`
-- [ ] `<sha> chore(quality): refresh coverage artifacts after slice 1`
+- [x] `<pending-sha> test(runtime): expand telegram handler and control-router branch coverage`
+- [x] `<pending-sha> test(runtime): expand server dispatcher operational parser branch coverage`
+- [x] `<pending-sha> test(quality): run minitest before computing runtime line coverage`
 
 Validation:
 
-- [ ] `bundle exec rake quality:coverage`
-- [ ] `bundle exec rake badges:build`
+- [x] `bundle exec rake quality:coverage`
+- [x] `bundle exec rake badges:build`
+
+Outcome:
+
+- baseline_percent: `25.12`
+- current_percent: `89.02`
+- delta: `+63.90`
 
 ### Slice 2: Runtime Flow and Executor Deep Paths
 
