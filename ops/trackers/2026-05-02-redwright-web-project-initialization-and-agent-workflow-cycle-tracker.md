@@ -6,8 +6,8 @@
 - status: `in_progress`
 - state: `awaiting_review`
 - updated: `2026-05-02`
-- active_slice: `Slice 4`
-- active_task: `T4.3`
+- active_slice: `Slice 5`
+- active_task: `T5.3`
 - source_plan: `ops/plans/2026-05-02-redwright-web-project-initialization-and-agent-workflow-implementation-cycle-plan.md`
 
 ## Slice Progress
@@ -83,7 +83,7 @@ Validation:
 
 ### Slice 4: Document Lifecycle and Ownership Policy Enforcement
 
-- status: `awaiting_review`
+- status: `completed`
 - branch: `fix/slice-4-document-lifecycle-ownership-enforcement`
 - PR: `https://codeberg.org/adrianpk/redwright/pulls/231`
 - merge_target: `dev`
@@ -106,26 +106,26 @@ Validation:
 
 ### Slice 5: Ticket-Document-Tracking Integration Semantics
 
-- status: `pending`
+- status: `awaiting_review`
 - branch: `fix/slice-5-ticket-document-tracking-integration`
-- PR: `tbd`
+- PR: `https://codeberg.org/adrianpk/redwright/pulls/232`
 - merge_target: `dev`
-- last_sync_commit: `tbd`
+- last_sync_commit: `99a0058`
 
 Tasks:
 
-- [ ] `T5.1 enforce ticket references to document chain entities with project consistency`
-- [ ] `T5.2 add tracking progress integration without forced board state churn`
-- [ ] `T5.3 add tests for ticket/board/tracking boundary semantics`
+- [x] `T5.1 enforce ticket references to document chain entities with project consistency`
+- [x] `T5.2 add tracking progress integration without forced board state churn`
+- [x] `T5.3 add tests for ticket/board/tracking boundary semantics`
 
 Commits:
 
-- [ ] `<sha> feat(web): align ticket-board-tracking workflow semantics`
-- [ ] `<sha> test(web): cover ticket document-chain and tracking boundary behavior`
+- [x] `7d85cea feat(web): align ticket-board-tracking workflow semantics`
+- [x] `90bdf0e test(web): cover ticket document-chain and tracking boundary behavior`
 
 Validation:
 
-- [ ] `ticket-board-tracking boundary suite pass`
+- [x] `cd apps/web && bundle exec bin/rails test test/models/ticket_test.rb test/models/ticket_document_link_test.rb test/controllers/tickets_controller_test.rb (pass)`
 
 ### Slice 6: Web Entry Flow and Operational Closure
 
@@ -165,3 +165,5 @@ Validation:
 - `2026-05-02` state=`awaiting_review` note=`Slice 3 completed with atomic executor boundary, explicit failure/incomplete states, and partial-failure regression coverage`
 - `2026-05-02` state=`slice_merged` note=`Slice 3 integrated in dev`
 - `2026-05-02` state=`awaiting_review` note=`Slice 4 completed with lifecycle immutability guard and model-level draft/spec/plan editability enforcement`
+- `2026-05-02` state=`slice_merged` note=`Slice 4 merged to dev`
+- `2026-05-02` state=`awaiting_review` note=`Slice 5 completed with project-scoped ticket document linking and tracking-boundary behavior coverage`
