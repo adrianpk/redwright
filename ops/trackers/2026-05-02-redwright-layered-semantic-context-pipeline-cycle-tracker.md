@@ -178,26 +178,29 @@ Validation:
 
 ### Slice 8: Structured Feedback and Error Signal Integration
 
-- status: `pending`
+- status: `awaiting_review`
 - branch: `fix/slice-8-semantic-structured-feedback-signals`
 - PR: `tbd`
 - merge_target: `dev`
-- last_sync_commit: `tbd`
+- last_sync_commit: `00642ee`
 
 Tasks:
 
-- [ ] `T8.1 extend feedback normalizer to compact file/line/code/message tuples`
-- [ ] `T8.2 inject diagnostic signals into layered retrieval scoring`
-- [ ] `T8.3 add tests for structured-feedback impact on context selection`
+- [x] `T8.1 extend feedback normalizer to compact file/line/code/message tuples`
+- [x] `T8.2 inject diagnostic signals into layered retrieval scoring`
+- [x] `T8.3 add tests for structured-feedback impact on context selection`
 
 Commits:
 
-- [ ] `<sha> feat(runtime): add structured feedback signals for semantic context selection`
-- [ ] `<sha> test(runtime): cover diagnostic normalization and selection influence`
+- [x] `2c0bfeb feat(runtime): add structured feedback signals for semantic context selection`
+- [x] `da4ce9f test(runtime): cover diagnostic normalization and selection influence`
 
 Validation:
 
-- [ ] `structured feedback integration suite pass`
+- [x] `ruby -Itest test/redwright/iteration_context_packet_builder_test.rb (pass)`
+- [x] `ruby -Itest test/redwright/tree_sitter_structural_extractor_test.rb (pass)`
+- [x] `ruby -Itest test/redwright/lsp_semantic_enricher_test.rb (pass)`
+- [x] `ruby -Itest test/redwright/plain_text_structural_extractor_test.rb (pass)`
 
 ### Slice 9: Runtime Integration, Caching, and End-to-End Validation
 

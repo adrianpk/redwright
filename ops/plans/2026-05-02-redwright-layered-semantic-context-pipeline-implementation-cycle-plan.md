@@ -120,7 +120,7 @@
 
 ### Slice 8: Structured Feedback and Error Signal Integration
 
-- status: `pending`
+- status: `awaiting_review`
 - branch: `fix/slice-8-semantic-structured-feedback-signals`
 - objective: `normalize execution feedback into structured diagnostics and feed selection`
 - tasks:
