@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+require_relative "tree_sitter_structural_extractor"
 
 module Redwright
   class IterationContextPacketBuilder
@@ -54,6 +55,11 @@ module Redwright
 
       semantic_capabilities = build_semantic_capabilities(parser_mode: parser_mode, lsp_mode: lsp_mode)
       current_file = snippets.first
+      available_symbols = extract_available_symbols(
+        project_path: project_path,
+        snippets: snippets,
+        parser_mode: semantic_capabilities[:parser_mode]
+      )
       packet = {
         version: "v2",
         task_goal: task_goal.to_s,
@@ -73,6 +79,7 @@ module Redwright
         ir_v1: build_ir_v1(
           task_goal: task_goal,
           current_file: current_file,
+          available_symbols: available_symbols,
           errors: Array(current_errors).map(&:to_s),
           tree_entries: tree_entries
         ),
@@ -140,7 +147,13 @@ module Redwright
         last_execution_results: normalize_execution_results(last_execution_results),
         tree: { entries: [], total_entries: 0 },
         files: [],
-        ir_v1: build_ir_v1(task_goal: task_goal, current_file: nil, errors: Array(current_errors).map(&:to_s), tree_entries: []),
+        ir_v1: build_ir_v1(
+          task_goal: task_goal,
+          current_file: nil,
+          available_symbols: [],
+          errors: Array(current_errors).map(&:to_s),
+          tree_entries: []
+        ),
         bounds: {
           top_k_files: 0,
           snippet_lines: DEFAULT_SNIPPET_LINES,
@@ -280,7 +293,7 @@ module Redwright
       }
     end
 
-    def build_ir_v1(task_goal:, current_file:, errors:, tree_entries:)
+    def build_ir_v1(task_goal:, current_file:, available_symbols:, errors:, tree_entries:)
       {
         "TASK" => {
           "goal" => task_goal.to_s
@@ -289,11 +302,21 @@ module Redwright
           "path" => current_file ? current_file[:path].to_s : "",
           "snippet" => current_file ? current_file[:snippet].to_s : ""
         },
-        "AVAILABLE_SYMBOLS" => [],
+        "AVAILABLE_SYMBOLS" => Array(available_symbols),
         "DOC_HINTS" => [],
         "ERRORS" => Array(errors).map(&:to_s),
         "REPO_MAP" => Array(tree_entries).map(&:to_s)
       }
+    end
+
+    def extract_available_symbols(project_path:, snippets:, parser_mode:)
+      return [] unless parser_mode == "preferred_tree_sitter"
+
+      extractor = TreeSitterStructuralExtractor.new
+      symbols = snippets.flat_map do |entry|
+        extractor.extract(project_path: project_path, rel_path: entry[:path])
+      end
+      symbols.sort_by { |item| [item[:path].to_s, item[:line].to_i, item[:kind].to_s, item[:name].to_s] }
     end
 
     def trim_packet(packet:, max_packet_bytes:)
