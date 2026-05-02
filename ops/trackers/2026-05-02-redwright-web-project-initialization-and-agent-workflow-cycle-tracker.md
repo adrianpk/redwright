@@ -6,8 +6,8 @@
 - status: `in_progress`
 - state: `awaiting_review`
 - updated: `2026-05-02`
-- active_slice: `Slice 1`
-- active_task: `T1.3`
+- active_slice: `Slice 2`
+- active_task: `T2.3`
 - source_plan: `ops/plans/2026-05-02-redwright-web-project-initialization-and-agent-workflow-implementation-cycle-plan.md`
 
 ## Slice Progress
@@ -37,26 +37,26 @@ Validation:
 
 ### Slice 2: Repository Resolution, Ambiguity, and Cancellation Semantics
 
-- status: `pending`
+- status: `awaiting_review`
 - branch: `fix/slice-2-repository-resolution-and-cancellation`
-- PR: `tbd`
+- PR: `https://codeberg.org/adrianpk/redwright/pulls/229`
 - merge_target: `dev`
-- last_sync_commit: `tbd`
+- last_sync_commit: `eba99c5`
 
 Tasks:
 
-- [ ] `T2.1 implement repository resolver for explicit/implicit repository inputs`
-- [ ] `T2.2 implement focused ambiguity clarification result states`
-- [ ] `T2.3 implement cancellation semantic path with no-side-effect guarantee`
+- [x] `T2.1 implement repository resolver for explicit/implicit repository inputs`
+- [x] `T2.2 implement focused ambiguity clarification result states`
+- [x] `T2.3 implement cancellation semantic path with no-side-effect guarantee`
 
 Commits:
 
-- [ ] `<sha> feat(web): enforce repository resolution before project creation`
-- [ ] `<sha> test(web): cover repository ambiguity and cancellation semantics`
+- [x] `46660ba feat(web): enforce repository resolution before project creation`
+- [x] `fd561ab test(web): cover repository ambiguity and cancellation semantics`
 
 Validation:
 
-- [ ] `repository resolution and cancellation test matrix pass`
+- [x] `cd apps/web && bundle exec bin/rails test test/services/project_initialization/command_test.rb test/services/project_initialization/repository_resolver_test.rb test/services/project_initialization/orchestrator_test.rb (pass)`
 
 ### Slice 3: Atomic Initialization and Failure-State Reconciliation
 
@@ -160,3 +160,4 @@ Validation:
 
 - `2026-05-02` state=`planned` note=`6-slice implementation and tracker created from formal project initialization and workflow spec`
 - `2026-05-02` state=`awaiting_review` note=`Slice 1 completed with project initialization command contract, repository-first orchestrator boundary, and deterministic result-shape tests`
+- `2026-05-02` state=`awaiting_review` note=`Slice 2 completed with repository resolver, focused ambiguity/cancellation result states, and repository resolution matrix tests`
