@@ -132,4 +132,73 @@ class DocumentTest < ActiveSupport::TestCase
     scoped_ids = Document.for_project(project_a.id).pluck(:id)
     assert_equal [artifact_a.id], scoped_ids
   end
+
+  test "draft must remain editable" do
+    artifact = Document.new(
+      project: create_project(key: "doc-draft-editable"),
+      artifact_type: "draft",
+      title: "Draft One",
+      body: "Initial content",
+      editable: false
+    )
+
+    assert_not artifact.valid?
+    assert_includes artifact.errors[:editable], "must be true for draft artifacts"
+  end
+
+  test "spec must be read-only" do
+    draft = create_document(artifact_type: "draft", title: "Draft One", body: "Draft body")
+    artifact = Document.new(
+      project: draft.project,
+      artifact_type: "spec",
+      title: "Spec One",
+      body: "Spec content",
+      source_draft: draft,
+      editable: true
+    )
+
+    assert_not artifact.valid?
+    assert_includes artifact.errors[:editable], "must be false for non-draft artifacts"
+  end
+
+  test "plan tracker must be read-only" do
+    artifact = Document.new(
+      project: create_project(key: "doc-plan-read-only"),
+      artifact_type: "plan_tracker",
+      title: "Plan One",
+      body: "Plan content",
+      editable: true
+    )
+
+    assert_not artifact.valid?
+    assert_includes artifact.errors[:editable], "must be false for non-draft artifacts"
+  end
+
+  test "artifact_type is immutable after creation" do
+    artifact = create_document(artifact_type: "draft", title: "Draft Mutable", body: "Draft content")
+
+    updated = artifact.update(artifact_type: "plan_tracker", editable: false)
+
+    assert_equal false, updated
+    assert_includes artifact.errors[:artifact_type], "is immutable after creation"
+    assert_equal "draft", artifact.reload.artifact_type
+  end
+
+  test "non-draft artifact cannot be updated to editable true" do
+    draft = create_document(artifact_type: "draft", title: "Draft Source", body: "Draft body")
+    spec = create_document(
+      project: draft.project,
+      artifact_type: "spec",
+      title: "Spec Locked",
+      body: "Spec content",
+      source_draft: draft,
+      editable: false
+    )
+
+    updated = spec.update(editable: true)
+
+    assert_equal false, updated
+    assert_includes spec.errors[:editable], "must be false for non-draft artifacts"
+    assert_equal false, spec.reload.editable
+  end
 end
