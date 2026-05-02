@@ -18,6 +18,7 @@ module Redwright
     DEFAULT_MAX_CURRENT_FILE_SYMBOLS = 8
     DEFAULT_MAX_DEPENDENCY_SYMBOLS = 6
     DEFAULT_MAX_GLOBAL_SIGNAL_SYMBOLS = 4
+    DEFAULT_MAX_COMPRESSED_SYMBOLS = 10
     DEFAULT_MAX_DOC_HINTS = 8
     DOC_HINT_MAX_CHARS = 140
 
@@ -303,6 +304,11 @@ module Redwright
       lines << "  - global_signal_symbols: #{packet.dig(:layered_selection, :global_signal_symbols_count)}"
       lines << "  - total_selected_symbols: #{packet.dig(:layered_selection, :total_selected_symbols)}"
       lines << "  - doc_hints_count: #{packet.dig(:layered_selection, :doc_hints_count)}"
+      lines << "  - compression_pass1_count: #{packet.dig(:layered_selection, :compression_passes, :pass1_structural_count)}"
+      lines << "  - compression_pass2_count: #{packet.dig(:layered_selection, :compression_passes, :pass2_compressed_count)}"
+      lines << "  - invariants_signatures: #{packet.dig(:layered_selection, :preserved_invariants, :signatures)}"
+      lines << "  - invariants_types: #{packet.dig(:layered_selection, :preserved_invariants, :types)}"
+      lines << "  - invariants_contracts: #{packet.dig(:layered_selection, :preserved_invariants, :contracts)}"
       lines.join("\n")
     end
 
@@ -379,16 +385,19 @@ module Redwright
       selected.concat(tag_symbols(current_file_symbols, "CURRENT_FILE"))
       selected.concat(tag_symbols(dependency_symbols, "DEPENDENCIES"))
       selected.concat(tag_symbols(global_signal_symbols, "GLOBAL_SIGNALS"))
+      compression = compress_selected_symbols(selected)
 
       {
         core_task: core_task,
         current_file_symbols_count: current_file_symbols.size,
         dependency_symbols_count: dependency_symbols.size,
         global_signal_symbols_count: global_signal_symbols.size,
-        total_selected_symbols: selected.size,
+        total_selected_symbols: compression[:compressed_symbols].size,
+        compression_passes: compression[:passes],
+        preserved_invariants: compression[:preserved_invariants],
         doc_hints_count: Array(doc_hints).size,
         doc_hints: Array(doc_hints),
-        selected_symbols: selected
+        selected_symbols: compression[:compressed_symbols]
       }
     end
 
@@ -441,20 +450,119 @@ module Redwright
         end
     end
 
+    def compress_selected_symbols(symbols)
+      pass1_structural = structural_aggregate(symbols)
+      pass2_compressed = semantic_compress(pass1_structural)
+      {
+        passes: {
+          pass1_structural_count: pass1_structural.size,
+          pass2_compressed_count: pass2_compressed.size
+        },
+        preserved_invariants: {
+          signatures: pass2_compressed.any? { |s| s[:kind].to_s == "signature" },
+          types: pass2_compressed.any? { |s| s[:kind].to_s == "type" },
+          contracts: pass2_compressed.any? { |s| s[:kind].to_s == "import" || s[:kind].to_s == "signature" }
+        },
+        compressed_symbols: pass2_compressed
+      }
+    end
+
+    def structural_aggregate(symbols)
+      Array(symbols)
+        .compact
+        .uniq { |s| [s[:path], s[:line], s[:kind], s[:name], s[:layer]] }
+        .sort_by { |s| [s[:layer].to_s, s[:path].to_s, s[:line].to_i, s[:kind].to_s, s[:name].to_s] }
+    end
+
+    def semantic_compress(symbols)
+      kept = []
+      grouped = Array(symbols).group_by { |s| s[:kind].to_s }
+
+      %w[signature type import].each do |kind|
+        kept.concat(Array(grouped[kind]).first(3))
+      end
+      kept.concat(Array(symbols).reject { |s| %w[signature type import].include?(s[:kind].to_s) }.first(DEFAULT_MAX_COMPRESSED_SYMBOLS))
+      kept = kept.compact.uniq { |s| [s[:path], s[:line], s[:kind], s[:name], s[:layer]] }
+
+      return kept.first(DEFAULT_MAX_COMPRESSED_SYMBOLS) if invariants_satisfied?(kept)
+
+      enforced = enforce_invariants(source: symbols, kept: kept)
+      enforced.first(DEFAULT_MAX_COMPRESSED_SYMBOLS)
+    end
+
+    def invariants_satisfied?(symbols)
+      kinds = Array(symbols).map { |s| s[:kind].to_s }
+      kinds.include?("signature") && kinds.include?("type") && (kinds.include?("import") || kinds.include?("signature"))
+    end
+
+    def enforce_invariants(source:, kept:)
+      ensured = Array(kept).dup
+      {
+        "signature" => Array(source).find { |s| s[:kind].to_s == "signature" },
+        "type" => Array(source).find { |s| s[:kind].to_s == "type" },
+        "contract" => Array(source).find { |s| %w[import signature].include?(s[:kind].to_s) }
+      }.each_value do |candidate|
+        ensured << candidate if candidate
+      end
+      ensured.compact.uniq { |s| [s[:path], s[:line], s[:kind], s[:name], s[:layer]] }
+    end
+
     def trim_packet(packet:, max_packet_bytes:)
       trimmed = Marshal.load(Marshal.dump(packet))
       while serialize_packet(trimmed).bytesize > max_packet_bytes
+        if trimmed.dig(:ir_v1, "AVAILABLE_SYMBOLS").to_a.size > 0
+          trimmed[:ir_v1]["AVAILABLE_SYMBOLS"].pop
+          trimmed[:layered_selection][:selected_symbols] = trimmed[:ir_v1]["AVAILABLE_SYMBOLS"]
+          trimmed[:layered_selection][:total_selected_symbols] = trimmed[:ir_v1]["AVAILABLE_SYMBOLS"].size
+          recompute_compression_metadata(trimmed[:layered_selection])
+          next
+        end
+        if trimmed.dig(:ir_v1, "DOC_HINTS").to_a.size > 0
+          trimmed[:ir_v1]["DOC_HINTS"].pop
+          trimmed[:layered_selection][:doc_hints] = trimmed[:ir_v1]["DOC_HINTS"]
+          trimmed[:layered_selection][:doc_hints_count] = trimmed[:ir_v1]["DOC_HINTS"].size
+          next
+        end
         if trimmed[:files].size > 1
           trimmed[:files].pop
+          next
+        end
+        if trimmed[:files].size == 1 && trimmed[:files][0][:snippet].to_s.bytesize > 0
+          snippet = trimmed[:files][0][:snippet].to_s
+          next_bytes = [snippet.bytesize / 2, 0].max
+          trimmed[:files][0][:snippet] = snippet.byteslice(0, next_bytes)
+          trimmed[:ir_v1]["CURRENT_FILE"]["snippet"] = trimmed[:files][0][:snippet]
           next
         end
         if trimmed.dig(:tree, :entries).size > 1
           trimmed[:tree][:entries].pop
           next
         end
+        if trimmed[:errors].to_a.size > 0
+          trimmed[:errors].pop
+          trimmed[:ir_v1]["ERRORS"] = trimmed[:errors]
+          next
+        end
+        if trimmed[:normalized_failures].to_a.size > 0
+          trimmed[:normalized_failures].pop
+          next
+        end
         break
       end
       trimmed
+    end
+
+    def recompute_compression_metadata(layered_selection)
+      symbols = Array(layered_selection[:selected_symbols])
+      layered_selection[:compression_passes] = {
+        pass1_structural_count: symbols.size,
+        pass2_compressed_count: symbols.size
+      }
+      layered_selection[:preserved_invariants] = {
+        signatures: symbols.any? { |s| s[:kind].to_s == "signature" },
+        types: symbols.any? { |s| s[:kind].to_s == "type" },
+        contracts: symbols.any? { |s| s[:kind].to_s == "import" || s[:kind].to_s == "signature" }
+      }
     end
 
     def normalize_execution_results(results)
