@@ -6,6 +6,7 @@ class TicketDocumentLink < ApplicationRecord
 
   validates :role, inclusion: { in: ROLES }
   validates :document_id, uniqueness: { scope: :ticket_id }
+  validates :role, uniqueness: { scope: :ticket_id }, unless: -> { role == "reference" }
   validate :project_consistency
   validate :role_document_type_contract
 
