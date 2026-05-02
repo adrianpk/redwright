@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_02_150000) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_02_162000) do
   create_table "boards", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "name", null: false
@@ -49,10 +49,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_02_150000) do
     t.text "body", null: false
     t.datetime "created_at", null: false
     t.boolean "editable", default: true, null: false
+    t.integer "project_id", null: false
     t.integer "source_draft_id"
     t.string "title", null: false
     t.datetime "updated_at", null: false
     t.index ["artifact_type"], name: "index_document_artifacts_on_artifact_type"
+    t.index ["project_id"], name: "index_document_artifacts_on_project_id"
     t.index ["source_draft_id"], name: "index_document_artifacts_on_source_draft_id"
   end
 
@@ -160,6 +162,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_02_150000) do
   add_foreign_key "document_artifact_relations", "document_artifacts", column: "from_artifact_id"
   add_foreign_key "document_artifact_relations", "document_artifacts", column: "to_artifact_id"
   add_foreign_key "document_artifacts", "document_artifacts", column: "source_draft_id"
+  add_foreign_key "document_artifacts", "projects"
   add_foreign_key "labels", "boards"
   add_foreign_key "project_attributes", "projects"
   add_foreign_key "sessions", "users"
