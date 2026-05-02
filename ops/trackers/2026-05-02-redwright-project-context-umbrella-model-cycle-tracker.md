@@ -6,8 +6,8 @@
 - status: `in_progress`
 - state: `awaiting_review`
 - updated: `2026-05-02`
-- active_slice: `Slice 5`
-- active_task: `T5.3`
+- active_slice: `Slice 6`
+- active_task: `T6.3`
 - source_plan: `ops/plans/2026-05-02-redwright-project-context-umbrella-model-implementation-cycle-plan.md`
 
 ## Slice Progress
@@ -111,7 +111,7 @@ Validation:
 
 - status: `completed`
 - branch: `fix/slice-5-ticket-project-context-derivation`
-- PR: `tbd`
+- PR: `#224`
 - merge_target: `dev`
 - last_sync_commit: `3a4a7b0`
 
@@ -133,26 +133,26 @@ Validation:
 
 ### Slice 6: Query and Invariant Hardening
 
-- status: `pending`
+- status: `completed`
 - branch: `fix/slice-6-project-scope-query-and-invariant-hardening`
 - PR: `tbd`
 - merge_target: `dev`
-- last_sync_commit: `tbd`
+- last_sync_commit: `e58a330`
 
 Tasks:
 
-- [ ] `T6.1 add project-scoped query helpers for boards/tickets/documents/attributes`
-- [ ] `T6.2 formalize invariant checks for optional future tickets.project_id`
-- [ ] `T6.3 add regression tests for cross-project isolation by context`
+- [x] `T6.1 add project-scoped query helpers for boards/tickets/documents/attributes`
+- [x] `T6.2 formalize invariant checks for optional future tickets.project_id`
+- [x] `T6.3 add regression tests for cross-project isolation by context`
 
 Commits:
 
-- [ ] `<sha> feat(web): add project-scoped query and invariant helpers`
-- [ ] `<sha> test(web): add project context isolation regression coverage`
+- [x] `061e82c feat(web): add project-scoped query and invariant helpers`
+- [x] `b5d5f51 test(web): add project context isolation regression coverage`
 
 Validation:
 
-- [ ] `cd apps/web && bundle exec bin/rails test test/models/project_test.rb test/models/ticket_test.rb test/models/document_artifact_test.rb`
+- [x] `cd apps/web && bundle exec bin/rails test test/models/project_test.rb test/models/ticket_test.rb test/models/document_artifact_test.rb (pass)`
 
 ### Slice 7: Operational Closure and Documentation Sync
 
@@ -184,3 +184,4 @@ Validation:
 - `2026-05-02` state=`awaiting_review` note=`Slice 3 completed with boards.project_id backfill migration, required board->project binding, and board context test coverage`
 - `2026-05-02` state=`awaiting_review` note=`Slice 4 completed with document_artifacts.project_id backfill migration, required artifact->project binding, and project-scoped document tests`
 - `2026-05-02` state=`awaiting_review` note=`Slice 5 completed with ticket project derivation through board and pick query project context exposure`
+- `2026-05-02` state=`awaiting_review` note=`Slice 6 completed with project-scoped query helpers, optional ticket project invariant contract, and isolation regression coverage`
