@@ -2,7 +2,7 @@ require "test_helper"
 
 class TicketTest < ActiveSupport::TestCase
   test "transition_to_column stamps review and merge phase times" do
-    board = Board.create!(name: "Factory", project_key: "factory")
+    board = create_board(project_key: "factory")
     backlog = board.columns.create!(key: "backlog", title: "Backlog", position: 0)
     review = board.columns.create!(key: "review", title: "Review", position: 1)
     merged = board.columns.create!(key: "merged", title: "Merged", position: 2)
@@ -18,7 +18,7 @@ class TicketTest < ActiveSupport::TestCase
   end
 
   test "pick_next_for prefers assignee and falls back to highest priority" do
-    board = Board.create!(name: "Factory", project_key: "factory")
+    board = create_board(project_key: "factory")
     backlog = board.columns.create!(key: "backlog", title: "Backlog", position: 0)
     board.columns.create!(key: "merged", title: "Merged", position: 1)
 

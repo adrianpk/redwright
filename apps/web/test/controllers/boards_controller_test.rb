@@ -2,7 +2,7 @@ require "test_helper"
 
 class BoardsControllerTest < ActionDispatch::IntegrationTest
   test "index redirects to login without authentication" do
-    Board.create!(name: "Factory", project_key: "factory")
+    create_board(project_key: "factory")
 
     get boards_path
     assert_redirected_to new_session_path
@@ -15,7 +15,7 @@ class BoardsControllerTest < ActionDispatch::IntegrationTest
       password_confirmation: "password-123",
       roles: [ "admin" ]
     )
-    Board.create!(name: "Factory", project_key: "factory")
+    create_board(project_key: "factory")
 
     sign_in_as(user)
     get boards_path
@@ -32,7 +32,7 @@ class BoardsControllerTest < ActionDispatch::IntegrationTest
       password_confirmation: "password-123",
       roles: [ "admin" ]
     )
-    board = Board.create!(name: "Factory", project_key: "factory")
+    board = create_board(project_key: "factory")
     backlog = board.columns.create!(key: "backlog", title: "Backlog", position: 0)
     review = board.columns.create!(key: "review", title: "Review", position: 1)
     approved = board.columns.create!(key: "approved", title: "Approved", position: 2)

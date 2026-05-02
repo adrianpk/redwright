@@ -11,7 +11,7 @@ class DocumentCanvasNavigationFlowTest < ActionDispatch::IntegrationTest
 
   test "board and document canvas are mutually reachable from top navigation" do
     admin = create_admin_user!
-    Board.create!(name: "Factory", project_key: "factory-nav")
+    create_board(project_key: "factory-nav")
     sign_in_as(admin)
 
     get boards_path

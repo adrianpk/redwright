@@ -58,7 +58,7 @@ class DocumentArtifactTest < ActiveSupport::TestCase
   end
 
   test "ticket can optionally link artifacts" do
-    board = Board.create!(name: "Factory", project_key: "factory-artifacts")
+    board = create_board(project_key: "factory-artifacts")
     backlog = board.columns.create!(key: "backlog", title: "Backlog", position: 0)
     ticket = board.tickets.create!(column: backlog, title: "Implement feature")
     draft = DocumentArtifact.create!(

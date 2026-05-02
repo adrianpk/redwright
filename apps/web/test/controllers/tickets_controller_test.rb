@@ -23,7 +23,7 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
   test "create persists ticket from board form" do
     admin = create_admin_user!
     sign_in_as(admin)
-    board = Board.create!(name: "Factory", project_key: "factory-create")
+    board = create_board(project_key: "factory-create")
     backlog = board.columns.create!(key: "backlog", title: "Backlog", position: 0)
 
     post board_tickets_path(board), params: {
@@ -45,7 +45,7 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
   test "create can link artifacts optionally" do
     admin = create_admin_user!
     sign_in_as(admin)
-    board = Board.create!(name: "Factory", project_key: "factory-create-links")
+    board = create_board(project_key: "factory-create-links")
     backlog = board.columns.create!(key: "backlog", title: "Backlog", position: 0)
     draft = DocumentArtifact.create!(artifact_type: "draft", title: "Draft Link", body: "draft")
     spec = DocumentArtifact.create!(artifact_type: "spec", title: "Spec Link", body: "spec", source_draft: draft, editable: false)
@@ -69,7 +69,7 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
   test "update edits existing ticket" do
     admin = create_admin_user!
     sign_in_as(admin)
-    board = Board.create!(name: "Factory", project_key: "factory-update")
+    board = create_board(project_key: "factory-update")
     backlog = board.columns.create!(key: "backlog", title: "Backlog", position: 0)
     ticket = board.tickets.create!(column: backlog, title: "Old title")
 
@@ -85,7 +85,7 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
   test "update can replace linked artifacts and allow empty list" do
     admin = create_admin_user!
     sign_in_as(admin)
-    board = Board.create!(name: "Factory", project_key: "factory-update-links")
+    board = create_board(project_key: "factory-update-links")
     backlog = board.columns.create!(key: "backlog", title: "Backlog", position: 0)
     draft = DocumentArtifact.create!(artifact_type: "draft", title: "Draft A", body: "draft")
     spec = DocumentArtifact.create!(artifact_type: "spec", title: "Spec A", body: "spec", source_draft: draft, editable: false)
@@ -117,7 +117,7 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
   test "move updates ticket column and returns turbo stream" do
     admin = create_admin_user!
     sign_in_as(admin)
-    board = Board.create!(name: "Factory", project_key: "factory")
+    board = create_board(project_key: "factory")
     backlog = board.columns.create!(key: "backlog", title: "Backlog", position: 0)
     review = board.columns.create!(key: "review", title: "Review", position: 1)
     ticket = board.tickets.create!(column: backlog, title: "Create model")
@@ -133,7 +133,7 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
   test "pick returns assignee-prioritized ticket" do
     admin = create_admin_user!
     sign_in_as(admin)
-    board = Board.create!(name: "Factory", project_key: "factory")
+    board = create_board(project_key: "factory")
     backlog = board.columns.create!(key: "backlog", title: "Backlog", position: 0)
     board.tickets.create!(column: backlog, title: "General high", priority: :high)
     selected = board.tickets.create!(column: backlog, title: "Mine medium", priority: :medium, assignee: "agent-1")
@@ -148,7 +148,7 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
   test "archive removes ticket from board scope" do
     admin = create_admin_user!
     sign_in_as(admin)
-    board = Board.create!(name: "Factory", project_key: "factory-archive")
+    board = create_board(project_key: "factory-archive")
     backlog = board.columns.create!(key: "backlog", title: "Backlog", position: 0)
     ticket = board.tickets.create!(column: backlog, title: "Archive me")
 
@@ -162,7 +162,7 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
   test "destroy removes ticket from database" do
     admin = create_admin_user!
     sign_in_as(admin)
-    board = Board.create!(name: "Factory", project_key: "factory-delete")
+    board = create_board(project_key: "factory-delete")
     backlog = board.columns.create!(key: "backlog", title: "Backlog", position: 0)
     ticket = board.tickets.create!(column: backlog, title: "Delete me")
 
@@ -176,7 +176,7 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
     create_admin_user!
     programmer = create_programmer_user!
     sign_in_as(programmer)
-    board = Board.create!(name: "Factory", project_key: "factory-assign-create")
+    board = create_board(project_key: "factory-assign-create")
     backlog = board.columns.create!(key: "backlog", title: "Backlog", position: 0)
 
     post board_tickets_path(board), params: {
@@ -195,7 +195,7 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
     create_admin_user!
     programmer = create_programmer_user!
     sign_in_as(programmer)
-    board = Board.create!(name: "Factory", project_key: "factory-non-admin-create")
+    board = create_board(project_key: "factory-non-admin-create")
     backlog = board.columns.create!(key: "backlog", title: "Backlog", position: 0)
 
     post board_tickets_path(board), params: {
@@ -216,7 +216,7 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
     create_admin_user!
     programmer = create_programmer_user!
     sign_in_as(programmer)
-    board = Board.create!(name: "Factory", project_key: "factory-governance")
+    board = create_board(project_key: "factory-governance")
     backlog = board.columns.create!(key: "backlog", title: "Backlog", position: 0)
     ticket = board.tickets.create!(column: backlog, title: "Governance target")
 
@@ -233,7 +233,7 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
     create_admin_user!
     programmer = create_programmer_user!
     sign_in_as(programmer)
-    board = Board.create!(name: "Factory", project_key: "factory-non-admin-update")
+    board = create_board(project_key: "factory-non-admin-update")
     backlog = board.columns.create!(key: "backlog", title: "Backlog", position: 0)
     ticket = board.tickets.create!(column: backlog, title: "Old title", assignee: "")
 
@@ -248,7 +248,7 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
   test "new returns modal frame payload for turbo frame requests" do
     admin = create_admin_user!
     sign_in_as(admin)
-    board = Board.create!(name: "Factory", project_key: "factory-modal-new")
+    board = create_board(project_key: "factory-modal-new")
     board.columns.create!(key: "backlog", title: "Backlog", position: 0)
 
     get new_board_ticket_path(board), headers: { "Turbo-Frame" => "modal" }
@@ -260,7 +260,7 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
   test "edit returns modal frame payload for turbo frame requests" do
     admin = create_admin_user!
     sign_in_as(admin)
-    board = Board.create!(name: "Factory", project_key: "factory-modal-edit")
+    board = create_board(project_key: "factory-modal-edit")
     backlog = board.columns.create!(key: "backlog", title: "Backlog", position: 0)
     ticket = board.tickets.create!(column: backlog, title: "Modal target")
 

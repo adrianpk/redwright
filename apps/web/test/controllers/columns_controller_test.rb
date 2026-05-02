@@ -2,7 +2,7 @@ require "test_helper"
 
 class ColumnsControllerTest < ActionDispatch::IntegrationTest
   test "reorder updates board column positions" do
-    board = Board.create!(name: "Factory", project_key: "factory-cols")
+    board = create_board(project_key: "factory-cols")
     c1 = board.columns.create!(key: "backlog", title: "Backlog", position: 0)
     c2 = board.columns.create!(key: "review", title: "Review", position: 1)
     c3 = board.columns.create!(key: "merged", title: "Merged", position: 2)
