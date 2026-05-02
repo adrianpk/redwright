@@ -42,7 +42,7 @@ Validation:
 
 - status: `awaiting_review`
 - branch: `fix/slice-2-project-setup-session-state-machine`
-- PR: `tbd`
+- PR: `https://codeberg.org/adrianpk/redwright/pulls/246`
 - merge_target: `dev`
 - last_sync_commit: `aebe21c`
 
