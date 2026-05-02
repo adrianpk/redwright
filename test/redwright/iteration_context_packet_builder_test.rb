@@ -627,4 +627,52 @@ class IterationContextPacketBuilderTest < Minitest::Test
       assert_equal(true, preserved[:contracts])
     end
   end
+
+  def test_normalizes_structured_diagnostic_signals_from_failures
+    Dir.mktmpdir("redwright-diagnostic-signals-") do |dir|
+      FileUtils.mkdir_p(File.join(dir, "lib"))
+      File.write(File.join(dir, "lib", "sample.rb"), "class Parser\n  def parse_payload(input)\n  end\nend\n")
+
+      packet = Redwright::IterationContextPacketBuilder.new.build(
+        project_path: dir,
+        task_goal: "fix diagnostic-driven selection",
+        previous_message: "none",
+        current_errors: [],
+        normalized_failures: ["lib/sample.rb:2:RUBY_STYLE parse_payload should use keyword args"],
+        parser_mode: "preferred_tree_sitter",
+        top_k_files: 5
+      )
+
+      signals = packet.dig(:packet, :layered_selection, :diagnostic_signals)
+      assert_equal(1, signals.size)
+      assert_equal("lib/sample.rb", signals[0][:file])
+      assert_equal(2, signals[0][:line])
+      assert_equal("RUBY_STYLE", signals[0][:code])
+      assert_operator(signals[0][:message].size, :<=, 143)
+    end
+  end
+
+  def test_diagnostic_terms_influence_global_signal_selection
+    Dir.mktmpdir("redwright-diagnostic-priority-signals-") do |dir|
+      FileUtils.mkdir_p(File.join(dir, "lib"))
+      File.write(File.join(dir, "README.md"), "# parser notes\n")
+      File.write(File.join(dir, "lib", "a.rb"), "class Current\n  def current_run(input)\n  end\nend\n")
+      File.write(File.join(dir, "lib", "b.rb"), "class Target\n  def parse_payload(input)\n  end\nend\n")
+      File.write(File.join(dir, "lib", "c.rb"), "class Noise\n  def execute_misc(data)\n  end\nend\n")
+
+      packet = Redwright::IterationContextPacketBuilder.new.build(
+        project_path: dir,
+        task_goal: "select symbols with diagnostics",
+        previous_message: "none",
+        current_errors: [],
+        normalized_failures: ["lib/b.rb:2:PARSE_FAIL parse_payload mismatch on payload schema"],
+        parser_mode: "preferred_tree_sitter",
+        top_k_files: 5
+      )
+
+      global_symbols = packet.dig(:packet, :ir_v1, "AVAILABLE_SYMBOLS").select { |s| s[:layer] == "GLOBAL_SIGNALS" }
+      assert(global_symbols.any? { |symbol| symbol[:name].to_s.include?("parse_payload") })
+      assert_equal(1, packet.dig(:packet, :layered_selection, :diagnostic_signals_count))
+    end
+  end
 end
