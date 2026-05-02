@@ -225,6 +225,114 @@ class Api::V1::CommandQueriesControllerTest < ActionDispatch::IntegrationTest
     assert_includes project_ids, project.id
   end
 
+  test "creates and promotes documents through command api" do
+    project = create_project(key: "api-docs-#{SecureRandom.hex(4)}")
+
+    post "/api/v1/commands",
+      params: {
+        name: "CreateDocument",
+        payload: {
+          project_id: project.id,
+          title: "API Draft",
+          body: "Draft body"
+        },
+        request_id: "req-api-doc-create"
+      },
+      headers: actor_headers,
+      as: :json
+
+    assert_response :success
+    draft_id = json_body.fetch("data").fetch("document_id")
+
+    post "/api/v1/commands",
+      params: {
+        name: "PromoteDraftToSpec",
+        payload: {
+          document_id: draft_id
+        },
+        request_id: "req-api-doc-promote"
+      },
+      headers: actor_headers,
+      as: :json
+
+    assert_response :success
+    body = json_body
+    assert_equal "Document draft promoted to spec.", body.fetch("summary")
+    assert_equal "spec", body.fetch("data").fetch("document").fetch("artifact_type")
+    assert_equal "document_promoted", body.fetch("effects").first.fetch("type")
+  end
+
+  test "creates moves attaches and snapshots tickets through command api" do
+    board = create_board(project_key: "api-board-#{SecureRandom.hex(4)}")
+    backlog = board.columns.create!(key: "backlog", title: "Backlog", position: 0)
+    review = board.columns.create!(key: "review", title: "Review", position: 1)
+    draft = create_document(project: board.project, title: "API Ticket Draft")
+
+    post "/api/v1/commands",
+      params: {
+        name: "CreateTicket",
+        payload: {
+          board_id: board.id,
+          column_id: backlog.id,
+          title: "API Ticket",
+          priority: "high"
+        },
+        request_id: "req-api-ticket-create"
+      },
+      headers: actor_headers,
+      as: :json
+
+    assert_response :success
+    ticket_id = json_body.fetch("data").fetch("ticket_id")
+
+    post "/api/v1/commands",
+      params: {
+        name: "AttachDocumentToTicket",
+        payload: {
+          ticket_id: ticket_id,
+          document_id: draft.id
+        },
+        request_id: "req-api-ticket-attach"
+      },
+      headers: actor_headers,
+      as: :json
+
+    assert_response :success
+    assert_equal "document_attached_to_ticket", json_body.fetch("effects").first.fetch("type")
+
+    post "/api/v1/commands",
+      params: {
+        name: "MoveTicket",
+        payload: {
+          ticket_id: ticket_id,
+          column_id: review.id
+        },
+        request_id: "req-api-ticket-move"
+      },
+      headers: actor_headers,
+      as: :json
+
+    assert_response :success
+    assert_equal review.id, Ticket.find(ticket_id).column_id
+
+    post "/api/v1/queries",
+      params: {
+        name: "GetBoard",
+        payload: {
+          board_id: board.id
+        },
+        request_id: "req-api-board"
+      },
+      headers: actor_headers,
+      as: :json
+
+    assert_response :success
+    body = json_body
+    review_column = body.fetch("data").fetch("board").fetch("columns").find { |column| column.fetch("key") == "review" }
+    assert_equal [ticket_id], review_column.fetch("tickets").map { |ticket| ticket.fetch("id") }
+    assert_equal [draft.id], review_column.fetch("tickets").first.fetch("document_links").map { |link| link.fetch("document_id") }
+  end
+
   private
 
   def started_alignment_session

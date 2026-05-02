@@ -1,0 +1,130 @@
+require "test_helper"
+
+module BoardWorkflow
+  class CommandQueryHandlersTest < ActiveSupport::TestCase
+    test "creates moves picks and snapshots tickets through dispatcher" do
+      board = create_board(project_key: "board-api-#{SecureRandom.hex(4)}")
+      backlog = board.columns.create!(key: "backlog", title: "Backlog", position: 0)
+      review = board.columns.create!(key: "review", title: "Review", position: 1)
+      draft = create_document(project: board.project, artifact_type: "draft", title: "Reference Draft", body: "draft")
+      spec = create_document(project: board.project, artifact_type: "spec", title: "Primary Spec", body: "spec", source_draft: draft, editable: false)
+      dispatcher = CommandQuery::ApplicationDispatcher.build
+
+      created = dispatcher.call(command("CreateTicket", {
+        board_id: board.id,
+        column_id: backlog.id,
+        title: "Implement command API",
+        description: "Expose board workflow",
+        priority: "high",
+        assignee: "agent-coder",
+        document_ids: [draft.id, spec.id]
+      }, request_id: "req-ticket-create"))
+
+      assert created.ok?, created.errors.inspect
+      ticket = Ticket.find(created.data.fetch("ticket_id"))
+      assert_equal "high", ticket.priority
+      assert_equal [draft.id, spec.id].sort, ticket.document_ids.sort
+      assert_equal "reference", ticket.ticket_document_links.find_by(document_id: draft.id).role
+      assert_equal "primary_spec", ticket.ticket_document_links.find_by(document_id: spec.id).role
+
+      moved = dispatcher.call(command("MoveTicket", {
+        ticket_id: ticket.id,
+        column_key: "review"
+      }, request_id: "req-ticket-move"))
+
+      assert moved.ok?, moved.errors.inspect
+      assert_equal review.id, ticket.reload.column_id
+      assert_not_nil ticket.review_started_at
+      assert_equal "ticket_moved", moved.effects.first.fetch("type")
+
+      picked = dispatcher.call(query("PickNextTicket", {
+        board_id: board.id,
+        assignee: "agent-coder"
+      }, request_id: "req-ticket-pick"))
+
+      assert picked.ok?, picked.errors.inspect
+      assert_equal ticket.id, picked.data.fetch("ticket_id")
+
+      snapshot = dispatcher.call(query("GetBoard", {
+        board_id: board.id
+      }, request_id: "req-board-snapshot"))
+
+      assert snapshot.ok?, snapshot.errors.inspect
+      review_column = snapshot.data.dig("board", "columns").find { |column| column.fetch("key") == "review" }
+      assert_equal [ticket.id], review_column.fetch("tickets").map { |item| item.fetch("id") }
+      assert_equal [draft.id, spec.id].sort, review_column.fetch("tickets").first.fetch("document_links").map { |item| item.fetch("document_id") }.sort
+    end
+
+    test "updates and attaches ticket documents while enforcing project consistency" do
+      board = create_board(project_key: "board-api-attach-#{SecureRandom.hex(4)}")
+      backlog = board.columns.create!(key: "backlog", title: "Backlog", position: 0)
+      ticket = board.tickets.create!(column: backlog, title: "Attach target")
+      draft = create_document(project: board.project, artifact_type: "draft", title: "Draft")
+      foreign = create_document(project: create_project(key: "foreign-doc-#{SecureRandom.hex(4)}"), artifact_type: "draft", title: "Foreign")
+      dispatcher = CommandQuery::ApplicationDispatcher.build
+
+      attached = dispatcher.call(command("AttachDocumentToTicket", {
+        ticket_id: ticket.id,
+        document_id: draft.id
+      }, request_id: "req-ticket-attach"))
+
+      assert attached.ok?, attached.errors.inspect
+      assert_equal [draft.id], ticket.reload.document_ids
+
+      updated = dispatcher.call(command("UpdateTicket", {
+        ticket_id: ticket.id,
+        title: "Attach target updated",
+        document_ids: []
+      }, request_id: "req-ticket-update"))
+
+      assert updated.ok?, updated.errors.inspect
+      assert_equal "Attach target updated", ticket.reload.title
+      assert_empty ticket.document_ids
+
+      rejected = dispatcher.call(command("AttachDocumentToTicket", {
+        ticket_id: ticket.id,
+        document_id: foreign.id
+      }, request_id: "req-ticket-foreign-doc"))
+
+      assert rejected.error?
+      assert_equal "invalid_document", rejected.errors.first.fetch(:code)
+      assert_empty ticket.reload.document_ids
+    end
+
+    test "lists visible project tickets" do
+      board = create_board(project_key: "board-api-project-tickets-#{SecureRandom.hex(4)}")
+      backlog = board.columns.create!(key: "backlog", title: "Backlog", position: 0)
+      done = board.columns.create!(key: "done", title: "Done", position: 1)
+      visible = board.tickets.create!(column: backlog, title: "Visible ticket", priority: :high)
+      archived = board.tickets.create!(column: done, title: "Archived ticket")
+      archived.archive!
+
+      result = CommandQuery::ApplicationDispatcher.build.call(query("GetTicketsByProject", {
+        project_id: board.project_id
+      }, request_id: "req-project-tickets"))
+
+      assert result.ok?, result.errors.inspect
+      assert_equal [visible.id], result.data.fetch("tickets").map { |item| item.fetch("id") }
+    end
+
+    private
+
+    def command(name, payload, request_id:)
+      envelope("command", name, payload, request_id: request_id)
+    end
+
+    def query(name, payload, request_id:)
+      envelope("query", name, payload, request_id: request_id)
+    end
+
+    def envelope(kind, name, payload, request_id:)
+      {
+        "kind" => kind,
+        "name" => name,
+        "payload" => payload,
+        "execution_context" => {"actor_identifier" => "test:board", "source_channel" => "test"},
+        "request_id" => request_id
+      }
+    end
+  end
+end
