@@ -6,6 +6,9 @@ module ProjectInitialization
       repository_resolved
       repository_resolution_ambiguous
       initialization_cancelled
+      initialization_completed
+      initialization_failed
+      initialization_incomplete
     ].freeze
 
     attr_reader :status, :next_action, :project, :repository, :guided_alignment, :errors
@@ -105,6 +108,91 @@ module ProjectInitialization
           executed: false
         },
         errors: {}
+      )
+    end
+
+    def self.initialization_completed(command, resolved_repository, context)
+      new(
+        status: :initialization_completed,
+        next_action: :initialization_done,
+        project: {
+          name: command.project_name,
+          directory_name: command.directory_name,
+          id: context[:project][:id],
+          created: true
+        },
+        repository: {
+          input: command.repository_input,
+          canonical: resolved_repository[:canonical],
+          source: resolved_repository[:source],
+          id: context[:repository][:id],
+          created: true
+        },
+        guided_alignment: {
+          requested: command.guided_alignment,
+          executed: false
+        },
+        errors: {}
+      )
+    end
+
+    def self.initialization_failed(command, resolved_repository, context, message, reconciliation)
+      new(
+        status: :initialization_failed,
+        next_action: :report_failure,
+        project: {
+          name: command.project_name,
+          directory_name: command.directory_name,
+          id: context[:project]&.[](:id),
+          created: !context[:project].nil?
+        },
+        repository: {
+          input: command.repository_input,
+          canonical: resolved_repository[:canonical],
+          source: resolved_repository[:source],
+          id: context[:repository]&.[](:id),
+          created: !context[:repository].nil?
+        },
+        guided_alignment: {
+          requested: command.guided_alignment,
+          executed: false
+        },
+        errors: {
+          initialization: {
+            message: message,
+            reconciliation: reconciliation
+          }
+        }
+      )
+    end
+
+    def self.initialization_incomplete(command, resolved_repository, context, message, reconciliation)
+      new(
+        status: :initialization_incomplete,
+        next_action: :manual_reconciliation_required,
+        project: {
+          name: command.project_name,
+          directory_name: command.directory_name,
+          id: context[:project]&.[](:id),
+          created: !context[:project].nil?
+        },
+        repository: {
+          input: command.repository_input,
+          canonical: resolved_repository[:canonical],
+          source: resolved_repository[:source],
+          id: context[:repository]&.[](:id),
+          created: !context[:repository].nil?
+        },
+        guided_alignment: {
+          requested: command.guided_alignment,
+          executed: false
+        },
+        errors: {
+          initialization: {
+            message: message,
+            reconciliation: reconciliation
+          }
+        }
       )
     end
 
