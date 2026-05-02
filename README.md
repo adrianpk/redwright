@@ -16,25 +16,13 @@ Telegram and local TUI are the current interactive surfaces. The agent reads boa
 
 Personal metaphors and naming associations are not usually explained. It is not our favorite thing to do, but we are not dogmatic about it. RedWright is a playful mix: `Red` is the color of Ruby, and Ruby is the language used for this implementation; `Wright` evokes the idea of a craftsperson building with care; and the initials `R` + `W` point to the harness approach: the agent operates through simple primitives, starting from read and write.
 
-## Product Focus
+## Software Factory
 
-RedWright addresses a concrete operational problem: coordinating multiple AI coding agents without losing control over delivery.
+RedWright addresses a specific operational problem: coordinating multiple AI coding agents without losing control over delivery. Execution happens inside isolated sandboxes, while a Kanban board defines what runs, in which order, and under what priority. Work is expressed as tickets moving through a familiar lifecycle, which keeps the system predictable and observable. In its current form, execution is deliberately constrained to a single agent, allowing the execution model to be defined with precision before introducing concurrency.
 
-Agents execute inside isolated sandboxes or containers, while the Kanban board acts as the control plane that determines what runs, in which order, and with what priority. Work is expressed through tickets following a familiar lifecycle, allowing tasks to be created, prioritized, and assigned in a way that remains predictable and observable.
+The system is designed to evolve into configurable multi-agent execution, where specialized roles such as programmer, reviewer, merger, and QA collaborate, potentially using different models per role. Execution can be triggered per ticket or run continuously, completing the full lifecycle before selecting the next task based on priority. The system remains strictly ticket-centric: if work appears without a ticket, one is created to track its progression and preserve consistency.
 
-At the moment, execution is intentionally constrained: a single agent operates at a time. This makes it easier to define the execution model precisely before expanding it into agent pools or teams.
-
-The target model evolves this into configurable multi-agent execution, where specialized roles such as programmer, reviewer, merger, and QA collaborate, optionally using different models per role when that leads to better outcomes.
-
-The Kanban board is the most natural interface for local, desktop-based operation, but the same workflow is fully accessible through Telegram, which currently serves as the primary control channel in daily, production-like usage.
-
-Supporting multiple channels from the start is intentionally avoided. Spreading the same operational surface across several entry points (Slack, email, others) would multiply the cost of every correction and iteration. Telegram is the preferred operational path today, and the system is being shaped around real usage there before expanding outward.
-
-The TUI is intentionally minimal and will remain so, but in its current state it is still a rough prototype and will receive further attention and refinement in the near term.
-
-Execution can be triggered for a specific ticket, or run as a continuous loop where the full lifecycle is completed (program, review, merge) before automatically selecting the next assigned ticket based on priority. If work is introduced without an explicit ticket, the agent will create one to track its evolution, keeping the system strictly ticket-centric.
-
-Much of this is already in progress, and several parts are already functional, but refinement is still ongoing. This readme should be read as an advanced statement of intent grounded in active implementation.
+The Kanban board serves as the primary interface for local operation, while Telegram acts as the main control channel in practice. Expanding to additional channels is intentionally deferred to avoid multiplying the cost of iteration across parallel entry points. The TUI is minimal. It is still a prototype and rough at the edges. It will be refined. Much of the system already works, but it is still being shaped. This is a statement of intent built on work in progress.
 
 ## Start Here
 
