@@ -22,6 +22,10 @@ module Redwright
     DEFAULT_MAX_DOC_HINTS = 8
     DOC_HINT_MAX_CHARS = 140
 
+    def initialize
+      @semantic_cache = {}
+    end
+
     def build(
       project_path:,
       task_goal:,
@@ -63,22 +67,28 @@ module Redwright
 
       semantic_capabilities = build_semantic_capabilities(parser_mode: parser_mode, lsp_mode: lsp_mode)
       current_file = snippets.first
-      available_symbols = extract_available_symbols(
+      diagnostic_signals = extract_diagnostic_signals(
+        normalized_failures: normalized_failures,
+        last_execution_results: last_execution_results
+      )
+      doc_hints = extract_doc_hints(snippets: snippets)
+      cache_result = fetch_semantic_artifacts(
         project_path: project_path,
         snippets: snippets,
         parser_mode: semantic_capabilities[:parser_mode],
-        lsp_mode: semantic_capabilities[:lsp_mode]
+        lsp_mode: semantic_capabilities[:lsp_mode],
+        doc_hints: doc_hints,
+        diagnostic_signals: diagnostic_signals
       )
+      available_symbols = cache_result[:available_symbols]
       layered_selection = select_layered_symbols(
         task_goal: task_goal,
         current_file_path: current_file ? current_file[:path].to_s : "",
         symbols: available_symbols,
-        doc_hints: extract_doc_hints(snippets: snippets),
-        diagnostic_signals: extract_diagnostic_signals(
-          normalized_failures: normalized_failures,
-          last_execution_results: last_execution_results
-        )
+        doc_hints: doc_hints,
+        diagnostic_signals: diagnostic_signals
       )
+      layered_selection[:cache] = cache_result[:cache]
       packet = {
         version: "v2",
         task_goal: task_goal.to_s,
@@ -302,18 +312,23 @@ module Redwright
       lines << "- ir_v1_sections:"
       packet.fetch(:ir_v1, {}).each_key { |section| lines << "  - #{section}" }
       lines << "- layered_selection:"
-      lines << "  - core_task: #{packet.dig(:layered_selection, :core_task)}"
-      lines << "  - current_file_symbols: #{packet.dig(:layered_selection, :current_file_symbols_count)}"
-      lines << "  - dependency_symbols: #{packet.dig(:layered_selection, :dependency_symbols_count)}"
-      lines << "  - global_signal_symbols: #{packet.dig(:layered_selection, :global_signal_symbols_count)}"
-      lines << "  - total_selected_symbols: #{packet.dig(:layered_selection, :total_selected_symbols)}"
-      lines << "  - doc_hints_count: #{packet.dig(:layered_selection, :doc_hints_count)}"
-      lines << "  - diagnostic_signals_count: #{packet.dig(:layered_selection, :diagnostic_signals_count)}"
-      lines << "  - compression_pass1_count: #{packet.dig(:layered_selection, :compression_passes, :pass1_structural_count)}"
-      lines << "  - compression_pass2_count: #{packet.dig(:layered_selection, :compression_passes, :pass2_compressed_count)}"
-      lines << "  - invariants_signatures: #{packet.dig(:layered_selection, :preserved_invariants, :signatures)}"
-      lines << "  - invariants_types: #{packet.dig(:layered_selection, :preserved_invariants, :types)}"
-      lines << "  - invariants_contracts: #{packet.dig(:layered_selection, :preserved_invariants, :contracts)}"
+      if packet.dig(:layered_selection, :compact_serialization)
+        lines << "  - total_selected_symbols: #{packet.dig(:layered_selection, :total_selected_symbols)}"
+      else
+        lines << "  - core_task: #{packet.dig(:layered_selection, :core_task)}"
+        lines << "  - current_file_symbols: #{packet.dig(:layered_selection, :current_file_symbols_count)}"
+        lines << "  - dependency_symbols: #{packet.dig(:layered_selection, :dependency_symbols_count)}"
+        lines << "  - global_signal_symbols: #{packet.dig(:layered_selection, :global_signal_symbols_count)}"
+        lines << "  - total_selected_symbols: #{packet.dig(:layered_selection, :total_selected_symbols)}"
+        lines << "  - doc_hints_count: #{packet.dig(:layered_selection, :doc_hints_count)}"
+        lines << "  - diagnostic_signals_count: #{packet.dig(:layered_selection, :diagnostic_signals_count)}"
+        lines << "  - compression_pass1_count: #{packet.dig(:layered_selection, :compression_passes, :pass1_structural_count)}"
+        lines << "  - compression_pass2_count: #{packet.dig(:layered_selection, :compression_passes, :pass2_compressed_count)}"
+        lines << "  - invariants_signatures: #{packet.dig(:layered_selection, :preserved_invariants, :signatures)}"
+        lines << "  - invariants_types: #{packet.dig(:layered_selection, :preserved_invariants, :types)}"
+        lines << "  - invariants_contracts: #{packet.dig(:layered_selection, :preserved_invariants, :contracts)}"
+        lines << "  - cache_status: #{packet.dig(:layered_selection, :cache, :status)}"
+      end
       lines.join("\n")
     end
 
@@ -505,6 +520,50 @@ module Redwright
         .uniq
     end
 
+    def fetch_semantic_artifacts(project_path:, snippets:, parser_mode:, lsp_mode:, doc_hints:, diagnostic_signals:)
+      key = semantic_cache_key(
+        project_path: project_path,
+        snippets: snippets,
+        parser_mode: parser_mode,
+        lsp_mode: lsp_mode,
+        doc_hints: doc_hints,
+        diagnostic_signals: diagnostic_signals
+      )
+      if @semantic_cache.key?(key)
+        cached = @semantic_cache[key]
+        return {
+          available_symbols: cached[:available_symbols],
+          cache: { status: "hit", key: key }
+        }
+      end
+
+      available_symbols = extract_available_symbols(
+        project_path: project_path,
+        snippets: snippets,
+        parser_mode: parser_mode,
+        lsp_mode: lsp_mode
+      )
+      @semantic_cache[key] = { available_symbols: available_symbols }
+      {
+        available_symbols: available_symbols,
+        cache: { status: "miss", key: key }
+      }
+    end
+
+    def semantic_cache_key(project_path:, snippets:, parser_mode:, lsp_mode:, doc_hints:, diagnostic_signals:)
+      snippet_fingerprint = Array(snippets).map do |entry|
+        [entry[:path].to_s, entry[:snippet].to_s.hash]
+      end
+      [
+        project_path.to_s,
+        parser_mode.to_s,
+        lsp_mode.to_s,
+        snippet_fingerprint,
+        Array(doc_hints).map { |h| [h[:path], h[:line], h[:text]] },
+        Array(diagnostic_signals).map { |d| [d[:file], d[:line], d[:code], d[:message]] }
+      ].hash.to_s
+    end
+
     def compress_selected_symbols(symbols)
       pass1_structural = structural_aggregate(symbols)
       pass2_compressed = semantic_compress(pass1_structural)
@@ -600,6 +659,10 @@ module Redwright
         end
         if trimmed[:normalized_failures].to_a.size > 0
           trimmed[:normalized_failures].pop
+          next
+        end
+        if !trimmed.dig(:layered_selection, :compact_serialization)
+          trimmed[:layered_selection][:compact_serialization] = true
           next
         end
         break
