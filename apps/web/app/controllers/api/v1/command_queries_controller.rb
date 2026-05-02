@@ -3,7 +3,7 @@ module Api
     class CommandQueriesController < BaseController
       def create
         result = command_query_dispatcher.call(envelope_hash)
-        render json: response_body(result), status: response_status(result)
+        render json: command_query_response_body(result), status: response_status(result)
       end
 
       private
@@ -22,7 +22,7 @@ module Api
         }
       end
 
-      def response_body(result)
+      def command_query_response_body(result)
         result.to_h.merge(
           session_id: result.data["session_id"],
           project_id: result.data["project_id"],
