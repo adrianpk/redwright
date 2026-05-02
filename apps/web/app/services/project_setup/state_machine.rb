@@ -9,7 +9,7 @@ module ProjectSetup
       "awaiting_alignment_opt_in" => %w[collecting_alignment ready_to_create cancelled],
       "collecting_alignment" => %w[collecting_alignment ready_to_create cancelled],
       "ready_to_create" => %w[creating_project cancelled],
-      "creating_project" => %w[completed failed needs_reconciliation],
+      "creating_project" => %w[collecting_alignment completed failed needs_reconciliation],
       "completed" => [],
       "cancelled" => [],
       "failed" => [],
