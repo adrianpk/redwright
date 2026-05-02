@@ -6,8 +6,8 @@
 - status: `in_progress`
 - state: `awaiting_review`
 - updated: `2026-05-02`
-- active_slice: `Slice 4`
-- active_task: `T4.3`
+- active_slice: `Slice 5`
+- active_task: `T5.3`
 - source_plan: `ops/plans/2026-05-02-redwright-project-context-umbrella-model-implementation-cycle-plan.md`
 
 ## Slice Progress
@@ -87,7 +87,7 @@ Validation:
 
 - status: `completed`
 - branch: `fix/slice-4-document-project-binding`
-- PR: `tbd`
+- PR: `#222`
 - merge_target: `dev`
 - last_sync_commit: `d45c9a9`
 
@@ -109,26 +109,27 @@ Validation:
 
 ### Slice 5: Ticket Project Context Derivation (Phase One)
 
-- status: `pending`
+- status: `completed`
 - branch: `fix/slice-5-ticket-project-context-derivation`
 - PR: `tbd`
 - merge_target: `dev`
-- last_sync_commit: `tbd`
+- last_sync_commit: `3a4a7b0`
 
 Tasks:
 
-- [ ] `T5.1 add ticket-level project context resolver through board`
-- [ ] `T5.2 expose project context in runtime/query surfaces`
-- [ ] `T5.3 add tests for derived project consistency in ticket flows`
+- [x] `T5.1 add ticket-level project context resolver through board`
+- [x] `T5.2 expose project context in runtime/query surfaces`
+- [x] `T5.3 add tests for derived project consistency in ticket flows`
 
 Commits:
 
-- [ ] `<sha> feat(web): derive ticket project context through board association`
-- [ ] `<sha> test(web): verify ticket project context derivation`
+- [x] `fa275db feat(web): add ticket project context resolver through board`
+- [x] `d2b33dc feat(web): expose ticket project context in pick query surface`
+- [x] `8c044d3 test(web): verify ticket project context derivation`
 
 Validation:
 
-- [ ] `cd apps/web && bundle exec bin/rails test test/models/ticket_test.rb test/controllers/tickets_controller_test.rb`
+- [x] `cd apps/web && bundle exec bin/rails test test/models/ticket_test.rb test/controllers/tickets_controller_test.rb (pass)`
 
 ### Slice 6: Query and Invariant Hardening
 
@@ -182,3 +183,4 @@ Validation:
 - `2026-05-02` state=`awaiting_review` note=`Slice 2 completed with project_attributes persistence, model validation contract, and focused model coverage`
 - `2026-05-02` state=`awaiting_review` note=`Slice 3 completed with boards.project_id backfill migration, required board->project binding, and board context test coverage`
 - `2026-05-02` state=`awaiting_review` note=`Slice 4 completed with document_artifacts.project_id backfill migration, required artifact->project binding, and project-scoped document tests`
+- `2026-05-02` state=`awaiting_review` note=`Slice 5 completed with ticket project derivation through board and pick query project context exposure`
