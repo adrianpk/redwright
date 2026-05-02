@@ -325,4 +325,60 @@ class IterationContextPacketBuilderTest < Minitest::Test
       assert(symbols.any? { |s| s[:kind] == "type" && s[:name] == "Parser" })
     end
   end
+
+  def test_enriches_available_symbols_when_lsp_mode_is_preferred
+    Dir.mktmpdir("redwright-iter-packet-lsp-") do |dir|
+      FileUtils.mkdir_p(File.join(dir, "lib"))
+      File.write(
+        File.join(dir, "lib", "a.rb"),
+        <<~RUBY
+          class Parser
+            def parse(input)
+            end
+          end
+        RUBY
+      )
+      File.write(
+        File.join(dir, "lib", "b.rb"),
+        <<~RUBY
+          class Parser
+            def parse(payload)
+            end
+          end
+        RUBY
+      )
+
+      packet = Redwright::IterationContextPacketBuilder.new.build(
+        project_path: dir,
+        task_goal: "enrich symbols",
+        previous_message: "none",
+        current_errors: [],
+        parser_mode: "preferred_tree_sitter",
+        lsp_mode: "preferred_lsp",
+        top_k_files: 5
+      )
+
+      symbols = packet.dig(:packet, :ir_v1, "AVAILABLE_SYMBOLS")
+      assert(symbols.any? { |s| s.key?(:lsp_edges) && !s[:lsp_edges].empty? })
+    end
+  end
+
+  def test_does_not_enrich_symbols_when_lsp_mode_is_fallback
+    Dir.mktmpdir("redwright-iter-packet-no-lsp-") do |dir|
+      FileUtils.mkdir_p(File.join(dir, "lib"))
+      File.write(File.join(dir, "lib", "sample.rb"), "class Parser\n  def parse(input)\n  end\nend\n")
+
+      packet = Redwright::IterationContextPacketBuilder.new.build(
+        project_path: dir,
+        task_goal: "no lsp",
+        previous_message: "none",
+        current_errors: [],
+        parser_mode: "preferred_tree_sitter",
+        lsp_mode: "fallback_disabled"
+      )
+
+      symbols = packet.dig(:packet, :ir_v1, "AVAILABLE_SYMBOLS")
+      refute(symbols.any? { |s| s.key?(:lsp_edges) })
+    end
+  end
 end
