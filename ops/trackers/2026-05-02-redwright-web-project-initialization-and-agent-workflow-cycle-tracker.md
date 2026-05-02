@@ -6,8 +6,8 @@
 - status: `in_progress`
 - state: `awaiting_review`
 - updated: `2026-05-02`
-- active_slice: `Slice 2`
-- active_task: `T2.3`
+- active_slice: `Slice 3`
+- active_task: `T3.3`
 - source_plan: `ops/plans/2026-05-02-redwright-web-project-initialization-and-agent-workflow-implementation-cycle-plan.md`
 
 ## Slice Progress
@@ -37,7 +37,7 @@ Validation:
 
 ### Slice 2: Repository Resolution, Ambiguity, and Cancellation Semantics
 
-- status: `awaiting_review`
+- status: `completed`
 - branch: `fix/slice-2-repository-resolution-and-cancellation`
 - PR: `https://codeberg.org/adrianpk/redwright/pulls/229`
 - merge_target: `dev`
@@ -60,26 +60,26 @@ Validation:
 
 ### Slice 3: Atomic Initialization and Failure-State Reconciliation
 
-- status: `pending`
+- status: `awaiting_review`
 - branch: `fix/slice-3-atomic-initialization-failure-reconciliation`
-- PR: `tbd`
+- PR: `https://codeberg.org/adrianpk/redwright/pulls/230`
 - merge_target: `dev`
-- last_sync_commit: `tbd`
+- last_sync_commit: `dc1e9fb`
 
 Tasks:
 
-- [ ] `T3.1 define initialization transaction boundary and reconciliation hooks`
-- [ ] `T3.2 implement explicit failed/incomplete outcome states for partial success paths`
-- [ ] `T3.3 add regression tests for partial repository/project/workspace failures`
+- [x] `T3.1 define initialization transaction boundary and reconciliation hooks`
+- [x] `T3.2 implement explicit failed/incomplete outcome states for partial success paths`
+- [x] `T3.3 add regression tests for partial repository/project/workspace failures`
 
 Commits:
 
-- [ ] `<sha> feat(web): add initialization atomicity and reconciliation states`
-- [ ] `<sha> test(web): cover initialization failure and rollback paths`
+- [x] `1d9299c feat(web): add initialization atomicity and reconciliation states`
+- [x] `2ce2d02 test(web): cover initialization failure and rollback paths`
 
 Validation:
 
-- [ ] `failure-mode regression matrix pass`
+- [x] `cd apps/web && bundle exec bin/rails test test/services/project_initialization/command_test.rb test/services/project_initialization/repository_resolver_test.rb test/services/project_initialization/orchestrator_test.rb test/services/project_initialization/executor_test.rb (pass)`
 
 ### Slice 4: Document Lifecycle and Ownership Policy Enforcement
 
@@ -161,3 +161,5 @@ Validation:
 - `2026-05-02` state=`planned` note=`6-slice implementation and tracker created from formal project initialization and workflow spec`
 - `2026-05-02` state=`awaiting_review` note=`Slice 1 completed with project initialization command contract, repository-first orchestrator boundary, and deterministic result-shape tests`
 - `2026-05-02` state=`awaiting_review` note=`Slice 2 completed with repository resolver, focused ambiguity/cancellation result states, and repository resolution matrix tests`
+- `2026-05-02` state=`slice_merged` note=`Slice 2 merged to dev`
+- `2026-05-02` state=`awaiting_review` note=`Slice 3 completed with atomic executor boundary, explicit failure/incomplete states, and partial-failure regression coverage`
