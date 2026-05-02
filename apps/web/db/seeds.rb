@@ -1,6 +1,14 @@
-board = Board.find_or_create_by!(project_key: "demo-factory") do |b|
-  b.name = "Demo Factory Board"
+project = Project.find_or_create_by!(root_path: "/tmp/redwright-demo-factory") do |p|
+  p.name = "Demo Factory"
+  p.description = "Default local demo project for board bootstrap."
+  p.repo_url = "https://example.local/redwright/demo-factory.git"
+  p.stack_slug = "ruby"
 end
+
+board = Board.find_or_initialize_by(project_key: "demo-factory")
+board.project = project
+board.name = "Demo Factory Board" if board.name.blank?
+board.save!
 
 columns = [
   [ "backlog", "Backlog" ],
