@@ -6,7 +6,7 @@
 - status: `in_progress`
 - state: `awaiting_review`
 - updated: `2026-05-02`
-- active_slice: `Slice 6`
+- active_slice: `Slice 7`
 - active_task: `none`
 - source_plan: `ops/plans/2026-05-02-redwright-rails-core-command-api-and-project-setup-saga-implementation-cycle-plan.md`
 - source_spec: `ops/specs/specs/2026-05-02-redwright-rails-core-command-api-and-project-setup-saga-spec.md`
@@ -148,11 +148,11 @@ Validation:
 
 ### Slice 6: Rails-Governed Guided Alignment and Questionnaire Artifacts
 
-- status: `awaiting_review`
+- status: `completed`
 - branch: `fix/slice-6-rails-guided-alignment-questionnaire-artifacts`
 - PR: `https://codeberg.org/adrianpk/redwright/pulls/250`
 - merge_target: `dev`
-- last_sync_commit: `cf26501`
+- last_sync_commit: `9356310`
 
 Tasks:
 
@@ -178,28 +178,32 @@ Validation:
 
 ### Slice 7: Rails Document, Ticket, and Board Command API
 
-- status: `pending`
+- status: `awaiting_review`
 - branch: `fix/slice-7-rails-document-ticket-board-command-api`
 - PR: `tbd`
 - merge_target: `dev`
-- last_sync_commit: `tbd`
+- last_sync_commit: `9356310`
 
 Tasks:
 
-- [ ] `T7.1 register document commands/queries for draft creation, draft update, promotion, and project document listing`
-- [ ] `T7.2 register ticket/board commands/queries for create, move, pick, attach documents, and board snapshot`
-- [ ] `T7.3 add API and service tests for project consistency, document lifecycle, board transitions, and ticket/document links`
+- [x] `T7.1 register document commands/queries for draft creation, draft update, promotion, and project document listing`
+- [x] `T7.2 register ticket/board commands/queries for create, move, pick, attach documents, and board snapshot`
+- [x] `T7.3 add API and service tests for project consistency, document lifecycle, board transitions, and ticket/document links`
 
 Commits:
 
-- [ ] `feat(web): add document command query api handlers`
-- [ ] `feat(web): add ticket board command query api handlers`
-- [ ] `test(web): cover document ticket board command api behavior`
+- [x] `e58e958 feat(web): add document command query api handlers`
+- [x] `69d7856 feat(web): add ticket board command query api handlers`
+- [x] `119e2e9 test(web): cover document ticket board command api behavior`
 
 Validation:
 
-- [ ] `targeted Rails document/ticket/board API tests (pending)`
-- [ ] `bundle exec rake test:coverage from repository root (pending before slice closure)`
+- [x] `cd apps/web && bundle exec bin/rails test test/services/document_management/command_query_handlers_test.rb (pass)`
+- [x] `cd apps/web && bundle exec bin/rails test test/services/board_workflow/command_query_handlers_test.rb (pass)`
+- [x] `cd apps/web && bundle exec bin/rails test test/controllers/api/v1/command_queries_controller_test.rb (pass)`
+- [x] `cd apps/web && bundle exec bin/rails test test/controllers/tickets_controller_test.rb (pass)`
+- [x] `cd apps/web && bundle exec bin/rails test (pass)`
+- [x] `bundle exec rake test:coverage from repository root (pass, coverage=91.28)`
 
 ### Slice 8: Agent Runtime Bridge and Cross-Channel Parity
 
@@ -244,3 +248,5 @@ Validation:
 - `2026-05-02` state=`awaiting_review` slice=`Slice 5` note=`implemented Telegram Rails API client/adapter, routed Telegram project setup commands and replies through Rails API when configured, and added coverage proving no runtime-only project creation for Rails-backed project setup`
 - `2026-05-02` state=`slice_merged` slice=`Slice 5` note=`Slice 5 merged to dev via PR 249`
 - `2026-05-02` state=`awaiting_review` slice=`Slice 6` note=`implemented Rails-governed guided alignment turns, persisted project attributes and a guided alignment draft artifact, and added coverage for bounded turns, opt-out, request replay, artifact creation, and terminal outcomes`
+- `2026-05-02` state=`slice_merged` slice=`Slice 6` note=`Slice 6 merged to dev via PR 250`
+- `2026-05-02` state=`awaiting_review` slice=`Slice 7` note=`implemented Rails command/query APIs for document drafts, document promotion, project documents, ticket creation/update/move/pick, ticket-document linking, board snapshots, and project ticket listings`
