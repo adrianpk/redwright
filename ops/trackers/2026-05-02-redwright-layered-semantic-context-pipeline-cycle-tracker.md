@@ -131,7 +131,7 @@ Validation:
 
 - status: `awaiting_review`
 - branch: `fix/slice-6-semantic-documentation-priority`
-- PR: `tbd`
+- PR: `https://codeberg.org/adrianpk/redwright/pulls/240`
 - merge_target: `dev`
 - last_sync_commit: `557f579`
 
