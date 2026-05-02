@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_02_162000) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_02_213500) do
   create_table "boards", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "name", null: false
@@ -79,6 +79,41 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_02_162000) do
     t.index ["project_id", "key"], name: "index_project_attributes_on_project_id_and_key"
     t.index ["project_id", "weight"], name: "index_project_attributes_on_project_id_and_weight"
     t.index ["project_id"], name: "index_project_attributes_on_project_id"
+  end
+
+  create_table "project_setup_sessions", force: :cascade do |t|
+    t.string "actor_identifier", null: false
+    t.datetime "created_at", null: false
+    t.string "current_state", default: "collecting_context", null: false
+    t.text "metadata_json", default: "{}", null: false
+    t.text "pending_question"
+    t.integer "project_id"
+    t.string "repository_input"
+    t.string "request_id", null: false
+    t.text "resolved_repository_json", default: "{}", null: false
+    t.string "source_channel", default: "web", null: false
+    t.string "status", default: "open", null: false
+    t.string "terminal_reason"
+    t.integer "turn_counter", default: 0, null: false
+    t.datetime "updated_at", null: false
+    t.index ["current_state"], name: "index_project_setup_sessions_on_current_state"
+    t.index ["project_id"], name: "index_project_setup_sessions_on_project_id"
+    t.index ["request_id"], name: "index_project_setup_sessions_on_request_id"
+    t.index ["status", "updated_at"], name: "index_project_setup_sessions_on_status_and_updated_at"
+  end
+
+  create_table "project_setup_turns", force: :cascade do |t|
+    t.text "answer", null: false
+    t.datetime "created_at", null: false
+    t.text "normalized_fields_json", default: "{}", null: false
+    t.integer "project_setup_session_id", null: false
+    t.text "question", null: false
+    t.string "request_id"
+    t.string "source_channel", null: false
+    t.integer "turn_index", null: false
+    t.datetime "updated_at", null: false
+    t.index ["project_setup_session_id", "turn_index"], name: "idx_project_setup_turns_unique_session_turn", unique: true
+    t.index ["project_setup_session_id"], name: "index_project_setup_turns_on_project_setup_session_id"
   end
 
   create_table "projects", force: :cascade do |t|
@@ -165,6 +200,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_02_162000) do
   add_foreign_key "documents", "projects"
   add_foreign_key "labels", "boards"
   add_foreign_key "project_attributes", "projects"
+  add_foreign_key "project_setup_sessions", "projects"
+  add_foreign_key "project_setup_turns", "project_setup_sessions"
   add_foreign_key "sessions", "users"
   add_foreign_key "ticket_document_links", "documents"
   add_foreign_key "ticket_document_links", "tickets"
