@@ -113,32 +113,7 @@ class TicketsController < ApplicationController
   end
 
   def sync_ticket_document_links(ticket, document_ids)
-    current_links = ticket.ticket_document_links.index_by(&:document_id)
-    remove_ids = current_links.keys - document_ids
-
-    ticket.ticket_document_links.where(document_id: remove_ids).delete_all if remove_ids.any?
-
-    Document.where(id: document_ids).find_each do |document|
-      role = link_role_for(document)
-      link = current_links[document.id]
-
-      if link
-        link.update!(role: role) if link.role != role
-      else
-        ticket.ticket_document_links.create!(document: document, role: role)
-      end
-    end
-  end
-
-  def link_role_for(document)
-    case document.artifact_type
-    when "spec"
-      "primary_spec"
-    when "plan_tracker"
-      "plan_tracker"
-    else
-      "reference"
-    end
+    TicketManagement::DocumentLinkSyncService.new(ticket: ticket, document_ids: document_ids).call
   end
 
   def default_column
