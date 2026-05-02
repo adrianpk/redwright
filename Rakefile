@@ -194,6 +194,43 @@ namespace :test do
     sh "bundle exec ruby -Itest test/redwright/daemon_telegram_invariant_test.rb"
   end
 
+  desc "Run runtime line coverage with progress indicator and concise summary"
+  task :coverage do
+    combined = +""
+    status = nil
+
+    Open3.popen3("bundle exec ruby -Itest test/support/coverage_runner.rb") do |_stdin, stdout, stderr, wait_thr|
+      heartbeat = Thread.new do
+        while wait_thr.alive?
+          print "."
+          $stdout.flush
+          sleep 0.5
+        end
+      end
+
+      out_thread = Thread.new { stdout.read.to_s }
+      err_thread = Thread.new { stderr.read.to_s }
+
+      status = wait_thr.value
+      heartbeat.join
+      puts
+
+      combined = out_thread.value + "\n" + err_thread.value
+    end
+
+    coverage = combined.lines.select { |line| line.match?(/^quality:coverage percent=/) }.last
+    finished = combined.lines.select { |line| line.match?(/^Finished in /) }.last
+    summary = combined.lines.select { |line| line.match?(/^[0-9]+ runs, [0-9]+ assertions,/) }.last
+    puts coverage if coverage
+    puts finished if finished
+    puts summary if summary
+
+    unless status.success?
+      puts combined.lines.last(40).join
+    end
+    abort("test:coverage failed") unless status.success?
+  end
+
   desc "Run simulated ingress e2e with traces and persistent test workspace for inspection"
   task :simulated_e2e_trace do
     sh "REDWRIGHT_TRACE=1 KEEP_TEST_WORKSPACE=1 bundle exec ruby -Itest test/redwright/simulated_ingress_e2e_test.rb"
