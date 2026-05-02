@@ -13,6 +13,9 @@ class Ticket < ApplicationRecord
   scope :visible_on_board, -> { where(archived_at: nil) }
   scope :ordered_for_board, -> { order(priority: :desc, created_at: :asc) }
   scope :active, -> { visible_on_board.joins(:column).where.not(columns: { key: [ "merged", "done" ] }) }
+  scope :for_project, ->(project_id) { joins(:board).where(boards: { project_id: project_id }) }
+
+  delegate :project, :project_id, to: :board
 
   def transition_to_column!(target_column)
     self.column = target_column
