@@ -570,4 +570,61 @@ class IterationContextPacketBuilderTest < Minitest::Test
       assert(global_symbols.any? { |symbol| symbol[:name].to_s.include?("parse_token") })
     end
   end
+
+  def test_two_pass_compression_emits_pass_counters
+    Dir.mktmpdir("redwright-two-pass-compression-counters-") do |dir|
+      FileUtils.mkdir_p(File.join(dir, "lib"))
+      File.write(File.join(dir, "README.md"), "# parser contract\n")
+      10.times do |idx|
+        File.write(
+          File.join(dir, "lib", "f#{idx}.rb"),
+          "class Type#{idx}\n  def signature_#{idx}(input)\n  end\nend\n"
+        )
+      end
+
+      packet = Redwright::IterationContextPacketBuilder.new.build(
+        project_path: dir,
+        task_goal: "compress semantic context",
+        previous_message: "none",
+        current_errors: [],
+        parser_mode: "preferred_tree_sitter",
+        top_k_files: 5
+      )
+
+      pass1 = packet.dig(:packet, :layered_selection, :compression_passes, :pass1_structural_count)
+      pass2 = packet.dig(:packet, :layered_selection, :compression_passes, :pass2_compressed_count)
+      assert_operator(pass1, :>=, pass2)
+      assert_operator(pass2, :<=, 10)
+    end
+  end
+
+  def test_two_pass_compression_preserves_semantic_invariants
+    Dir.mktmpdir("redwright-two-pass-compression-invariants-") do |dir|
+      FileUtils.mkdir_p(File.join(dir, "lib"))
+      File.write(
+        File.join(dir, "lib", "sample.rb"),
+        <<~RUBY
+          require "json"
+          class Parser
+            def parse_payload(input)
+            end
+          end
+        RUBY
+      )
+
+      packet = Redwright::IterationContextPacketBuilder.new.build(
+        project_path: dir,
+        task_goal: "preserve semantic context",
+        previous_message: "none",
+        current_errors: [],
+        parser_mode: "preferred_tree_sitter",
+        top_k_files: 5
+      )
+
+      preserved = packet.dig(:packet, :layered_selection, :preserved_invariants)
+      assert_equal(true, preserved[:signatures])
+      assert_equal(true, preserved[:types])
+      assert_equal(true, preserved[:contracts])
+    end
+  end
 end
