@@ -675,4 +675,85 @@ class IterationContextPacketBuilderTest < Minitest::Test
       assert_equal(1, packet.dig(:packet, :layered_selection, :diagnostic_signals_count))
     end
   end
+
+  def test_diagnostic_signals_fallback_to_execution_results_summary
+    Dir.mktmpdir("redwright-diagnostic-signals-fallback-") do |dir|
+      FileUtils.mkdir_p(File.join(dir, "lib"))
+      File.write(File.join(dir, "lib", "sample.rb"), "class Parser\n  def parse_payload(input)\n  end\nend\n")
+
+      packet = Redwright::IterationContextPacketBuilder.new.build(
+        project_path: dir,
+        task_goal: "fallback diagnostic extraction",
+        previous_message: "none",
+        current_errors: [],
+        normalized_failures: [],
+        last_execution_results: [
+          { command: "bundle exec rake", status: "error", exit_code: 1, summary: "lib/sample.rb:2:PARSE_FAIL parse_payload mismatch on schema" }
+        ],
+        parser_mode: "preferred_tree_sitter",
+        top_k_files: 5
+      )
+
+      signals = packet.dig(:packet, :layered_selection, :diagnostic_signals)
+      assert_equal(1, signals.size)
+      assert_equal("PARSE_FAIL", signals[0][:code])
+      assert_equal(2, signals[0][:line])
+    end
+  end
+
+  def test_semantic_cache_reports_miss_then_hit_for_same_inputs
+    Dir.mktmpdir("redwright-semantic-cache-hit-") do |dir|
+      FileUtils.mkdir_p(File.join(dir, "lib"))
+      File.write(File.join(dir, "lib", "sample.rb"), "class Parser\n  def parse_payload(input)\n  end\nend\n")
+      builder = Redwright::IterationContextPacketBuilder.new
+
+      first = builder.build(
+        project_path: dir,
+        task_goal: "cache test",
+        previous_message: "none",
+        current_errors: [],
+        parser_mode: "preferred_tree_sitter"
+      )
+      second = builder.build(
+        project_path: dir,
+        task_goal: "cache test",
+        previous_message: "none",
+        current_errors: [],
+        parser_mode: "preferred_tree_sitter"
+      )
+
+      assert_equal("miss", first.dig(:packet, :layered_selection, :cache, :status))
+      assert_equal("hit", second.dig(:packet, :layered_selection, :cache, :status))
+      assert_equal(first.dig(:packet, :layered_selection, :cache, :key), second.dig(:packet, :layered_selection, :cache, :key))
+    end
+  end
+
+  def test_semantic_cache_invalidates_when_snippet_content_changes
+    Dir.mktmpdir("redwright-semantic-cache-invalidation-") do |dir|
+      FileUtils.mkdir_p(File.join(dir, "lib"))
+      sample_path = File.join(dir, "lib", "sample.rb")
+      File.write(sample_path, "class Parser\n  def parse_payload(input)\n  end\nend\n")
+      builder = Redwright::IterationContextPacketBuilder.new
+
+      first = builder.build(
+        project_path: dir,
+        task_goal: "cache invalidation test",
+        previous_message: "none",
+        current_errors: [],
+        parser_mode: "preferred_tree_sitter"
+      )
+      File.write(sample_path, "class Parser\n  def parse_payload(input)\n  end\n  def parse_extra(data)\n  end\nend\n")
+      second = builder.build(
+        project_path: dir,
+        task_goal: "cache invalidation test",
+        previous_message: "none",
+        current_errors: [],
+        parser_mode: "preferred_tree_sitter"
+      )
+
+      assert_equal("miss", first.dig(:packet, :layered_selection, :cache, :status))
+      assert_equal("miss", second.dig(:packet, :layered_selection, :cache, :status))
+      refute_equal(first.dig(:packet, :layered_selection, :cache, :key), second.dig(:packet, :layered_selection, :cache, :key))
+    end
+  end
 end
