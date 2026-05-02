@@ -64,6 +64,8 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to board_path(board)
     created = board.tickets.order(:created_at).last
     assert_equal [draft.id, spec.id].sort, created.document_ids.sort
+    assert_equal "reference", created.ticket_document_links.find_by(document_id: draft.id).role
+    assert_equal "primary_spec", created.ticket_document_links.find_by(document_id: spec.id).role
   end
 
   test "update edits existing ticket" do
@@ -103,6 +105,9 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
 
     assert_redirected_to board_path(board)
     assert_equal [spec.id, plan.id].sort, ticket.reload.document_ids.sort
+    assert_equal backlog.id, ticket.column_id
+    assert_equal "primary_spec", ticket.ticket_document_links.find_by(document_id: spec.id).role
+    assert_equal "plan_tracker", ticket.ticket_document_links.find_by(document_id: plan.id).role
 
     patch ticket_path(ticket), params: {
       ticket: {
