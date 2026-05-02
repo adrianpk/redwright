@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 require_relative "tree_sitter_structural_extractor"
+require_relative "lsp_semantic_enricher"
 
 module Redwright
   class IterationContextPacketBuilder
@@ -58,7 +59,8 @@ module Redwright
       available_symbols = extract_available_symbols(
         project_path: project_path,
         snippets: snippets,
-        parser_mode: semantic_capabilities[:parser_mode]
+        parser_mode: semantic_capabilities[:parser_mode],
+        lsp_mode: semantic_capabilities[:lsp_mode]
       )
       packet = {
         version: "v2",
@@ -309,14 +311,17 @@ module Redwright
       }
     end
 
-    def extract_available_symbols(project_path:, snippets:, parser_mode:)
+    def extract_available_symbols(project_path:, snippets:, parser_mode:, lsp_mode:)
       return [] unless parser_mode == "preferred_tree_sitter"
 
       extractor = TreeSitterStructuralExtractor.new
       symbols = snippets.flat_map do |entry|
         extractor.extract(project_path: project_path, rel_path: entry[:path])
       end
-      symbols.sort_by { |item| [item[:path].to_s, item[:line].to_i, item[:kind].to_s, item[:name].to_s] }
+      sorted = symbols.sort_by { |item| [item[:path].to_s, item[:line].to_i, item[:kind].to_s, item[:name].to_s] }
+      return sorted unless lsp_mode == "preferred_lsp"
+
+      LspSemanticEnricher.new.enrich(symbols: sorted)
     end
 
     def trim_packet(packet:, max_packet_bytes:)
