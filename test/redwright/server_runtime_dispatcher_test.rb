@@ -63,7 +63,7 @@ class ServerRuntimeDispatcherTest < Minitest::Test
           }
         )
 
-        assert_equal("ok", response["status"])
+        assert_equal("ok", response["status"], response.inspect)
         assert_equal(project.id, response["project_id"])
         assert_equal("executing", response["state"])
         assert_equal(1, response["action_results"].size)
@@ -135,7 +135,7 @@ class ServerRuntimeDispatcherTest < Minitest::Test
           }
         )
 
-        assert_equal("ok", response["status"])
+        assert_equal("ok", response["status"], response.inspect)
         project = project_store.resolve(response["project_id"])
         refute_nil(project)
         assert_equal("happy-cli", project.name)
@@ -994,6 +994,120 @@ class ServerRuntimeDispatcherTest < Minitest::Test
     end
   end
 
+  def test_call_raises_for_unsupported_ctl_command
+    dispatcher = Redwright::ServerRuntimeDispatcher.new(flow: Object.new)
+
+    assert_raises(ArgumentError) do
+      dispatcher.call("type" => "ctl", "payload" => { "command" => "reboot" })
+    end
+  end
+
+  def test_send_dispatch_parses_explicit_operational_intent_repo_clone_and_uses_inferred_name
+    Dir.mktmpdir("redwright-server-dispatcher-explicit-clone-") do |dir|
+      Dir.chdir(dir) do
+        bootstrap = Redwright::Bootstrap.new(mode: :dev).call
+        project_store = Redwright::ProjectStore.new(bootstrap.db_path)
+
+        fake_flow = Object.new
+        captured = {}
+        fake_flow.define_singleton_method(:process) do |**kwargs|
+          captured.merge!(kwargs)
+          ServerRuntimeDispatcherTest::FakeResult.new(
+            project: ServerRuntimeDispatcherTest::FakeProject.new(id: "project-1"),
+            workstream: ServerRuntimeDispatcherTest::FakeWorkstream.new(id: "ws-1", state: "executing"),
+            task: ServerRuntimeDispatcherTest::FakeTask.new(id: "task-1"),
+            action_results: []
+          )
+        end
+
+        dispatcher = Redwright::ServerRuntimeDispatcher.new(
+          flow: fake_flow,
+          blocked_retry_attempts: 1,
+          project_store: project_store,
+          projects_root: bootstrap.projects_root
+        )
+
+        clone_dir = File.join(bootstrap.projects_root, "hello")
+        FileUtils.mkdir_p(File.join(clone_dir, ".git"))
+
+        response = dispatcher.call(
+          "type" => "send",
+          "session_id" => "telegram-ops",
+          "payload" => {
+            "channel" => "telegram",
+            "project_ref" => "",
+            "intent" => "change",
+            "message" => "ignored by explicit op",
+            "operational_intent" => "repo_clone",
+            "operational_args" => { "repo_url" => "https://example.com/acme/hello.git" },
+            "actions" => []
+          }
+        )
+
+        assert_equal("ok", response["status"])
+        assert_equal("project-1", response["project_id"])
+        assert_equal("hello", project_store.list.first.name)
+        assert_equal("Ticket request: Clone repository 'https://example.com/acme/hello.git' and set project 'hello' active.", captured[:message])
+      end
+    end
+  end
+
+  def test_send_dispatch_parses_ticket_and_loop_operational_slashes
+    Dir.mktmpdir("redwright-server-dispatcher-ticket-loop-") do |dir|
+      Dir.chdir(dir) do
+        bootstrap = Redwright::Bootstrap.new(mode: :dev).call
+        project_store = Redwright::ProjectStore.new(bootstrap.db_path)
+        path = File.join(bootstrap.projects_root, "alpha")
+        FileUtils.mkdir_p(path)
+        project_store.register(path: path, aliases: ["alpha"])
+
+        fake_flow = Object.new
+        messages = []
+        fake_flow.define_singleton_method(:process) do |**kwargs|
+          messages << kwargs[:message]
+          ServerRuntimeDispatcherTest::FakeResult.new(
+            project: ServerRuntimeDispatcherTest::FakeProject.new(id: "project-1"),
+            workstream: ServerRuntimeDispatcherTest::FakeWorkstream.new(id: "ws-1", state: "executing"),
+            task: ServerRuntimeDispatcherTest::FakeTask.new(id: "task-1"),
+            action_results: []
+          )
+        end
+
+        dispatcher = Redwright::ServerRuntimeDispatcher.new(
+          flow: fake_flow,
+          blocked_retry_attempts: 1,
+          project_store: project_store,
+          projects_root: bootstrap.projects_root
+        )
+
+        ["/ticket pick", "/ticket start task-123", "/loop start", "/loop stop"].each do |text|
+          response = dispatcher.call(
+            "type" => "send",
+            "session_id" => "telegram-loop",
+            "payload" => {
+              "channel" => "telegram",
+              "project_ref" => "alpha",
+              "intent" => "change",
+              "message" => text,
+              "actions" => []
+            }
+          )
+          assert_equal("ok", response["status"], response.inspect)
+        end
+
+        assert_equal(
+          [
+            "Ticket request: Pick next ticket and start execution.",
+            "Ticket request: Start working on ticket task-123.",
+            "Ticket request: Enable ticket loop mode and continue with the next eligible ticket.",
+            "Ticket request: Stop ticket loop mode after current task boundary."
+          ],
+          messages
+        )
+      end
+    end
+  end
+
   def test_send_dispatch_project_where_returns_error_without_active_project
     Dir.mktmpdir("redwright-server-dispatcher-project-where-missing-") do |dir|
       Dir.chdir(dir) do
@@ -1023,7 +1137,47 @@ class ServerRuntimeDispatcherTest < Minitest::Test
     end
   end
 
+  def test_dispatcher_private_parsers_and_helpers_cover_edge_paths
+    dispatcher = Redwright::ServerRuntimeDispatcher.new(flow: Object.new)
+
+    assert_equal({ command: "list" }, dispatcher.send(:parse_explicit_operational, intent: "project_list", args: {}))
+    assert_equal({ command: "where" }, dispatcher.send(:parse_explicit_operational, intent: "project_where", args: {}))
+    assert_equal({ command: "status" }, dispatcher.send(:parse_explicit_operational, intent: "repo_status", args: {}))
+    assert_equal({ command: "undo" }, dispatcher.send(:parse_explicit_operational, intent: "repo_undo", args: {}))
+    assert_equal({ command: "switch", name: "rw" }, dispatcher.send(:parse_explicit_operational, intent: "project_switch", args: { "project_ref" => "rw" }))
+    assert_equal({ command: "clone", url: "https://example.com/acme/app.git", name: "app" }, dispatcher.send(:parse_explicit_operational, intent: "repo_clone", args: { "repo_url" => "https://example.com/acme/app.git" }))
+    assert_nil(dispatcher.send(:parse_explicit_operational, intent: "repo_clone", args: {}))
+
+    assert_equal({ command: "list" }, dispatcher.send(:parse_operational_slash, "/project list"))
+    assert_equal({ command: "where" }, dispatcher.send(:parse_operational_slash, "/project where"))
+    assert_equal({ command: "switch", name: "alpha" }, dispatcher.send(:parse_operational_slash, "/project switch alpha"))
+    assert_equal({ command: "status" }, dispatcher.send(:parse_operational_slash, "/repo status"))
+    assert_equal({ command: "undo" }, dispatcher.send(:parse_operational_slash, "/repo undo"))
+    assert_equal({ command: "ticket_list" }, dispatcher.send(:parse_operational_slash, "/ticket list"))
+    assert_equal({ command: "ticket_pick" }, dispatcher.send(:parse_operational_slash, "/ticket pick"))
+    assert_equal({ command: "loop_start" }, dispatcher.send(:parse_operational_slash, "/loop start"))
+    assert_equal({ command: "loop_stop" }, dispatcher.send(:parse_operational_slash, "/loop stop"))
+    assert_nil(dispatcher.send(:parse_operational_slash, "/loop maybe"))
+
+    assert_equal({ ticketized: false, message: "" }, dispatcher.send(:ticketize_ad_hoc_message, channel: "telegram", message: " "))
+    assert_equal({ ticketized: false, message: "/ticket list" }, dispatcher.send(:ticketize_ad_hoc_message, channel: "telegram", message: "/ticket list"))
+    assert_equal({ ticketized: false, message: "run thing" }, dispatcher.send(:ticketize_ad_hoc_message, channel: "web", message: "run thing"))
+    assert_equal({ ticketized: true, message: "Ticket request: run thing" }, dispatcher.send(:ticketize_ad_hoc_message, channel: "telegram", message: "run thing"))
+
+    assert_equal("hello-world", dispatcher.send(:normalize_slug, "Hello World"))
+    assert_equal("project", dispatcher.send(:normalize_slug, "!!!"))
+    assert_equal("github", dispatcher.send(:infer_provider_from_url, "https://github.com/acme/rw.git"))
+    assert_equal("codeberg", dispatcher.send(:infer_provider_from_url, "https://codeberg.org/acme/rw.git"))
+    assert_equal("gitlab", dispatcher.send(:infer_provider_from_url, "https://gitlab.com/acme/rw.git"))
+    assert_equal("unknown", dispatcher.send(:infer_provider_from_url, "invalid-url"))
+  end
+
   private
+
+  FakeProject = Struct.new(:id, keyword_init: true)
+  FakeWorkstream = Struct.new(:id, :state, keyword_init: true)
+  FakeTask = Struct.new(:id, keyword_init: true)
+  FakeResult = Struct.new(:project, :workstream, :task, :action_results, :terminal_reason, keyword_init: true)
 
   def run_cmd!(cmd)
     out, err, status = Open3.capture3(cmd)
