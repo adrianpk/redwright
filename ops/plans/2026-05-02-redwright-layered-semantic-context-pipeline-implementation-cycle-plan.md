@@ -61,7 +61,7 @@
 ### Slice 4: Deterministic Fallback Extractors
 
 - status: `pending`
-- branch: `fix/slice-4-semantic-deterministic-fallback-extractors`
+- branch: `feat/slice-4-semantic-deterministic-fallback-extractors`
 - objective: `ensure no-block fallback behavior when Tree-sitter or LSP is unavailable`
 - tasks:
 - [ ] `T4.1 add plain-text heuristic extractor fallback preserving IR schema`

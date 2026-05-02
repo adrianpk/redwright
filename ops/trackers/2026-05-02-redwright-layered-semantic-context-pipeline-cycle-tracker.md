@@ -83,26 +83,26 @@ Validation:
 
 ### Slice 4: Deterministic Fallback Extractors
 
-- status: `pending`
-- branch: `fix/slice-4-semantic-deterministic-fallback-extractors`
-- PR: `tbd`
+- status: `awaiting_review`
+- branch: `feat/slice-4-semantic-deterministic-fallback-extractors`
+- PR: `https://codeberg.org/adrianpk/redwright/pulls/238`
 - merge_target: `dev`
-- last_sync_commit: `tbd`
+- last_sync_commit: `149d917`
 
 Tasks:
 
-- [ ] `T4.1 add plain-text heuristic extractor fallback preserving IR schema`
-- [ ] `T4.2 implement capability downgrade states without runtime abort`
-- [ ] `T4.3 add fallback tests for schema parity and graceful degradation`
+- [x] `T4.1 add plain-text heuristic extractor fallback preserving IR schema`
+- [x] `T4.2 implement capability downgrade states without runtime abort`
+- [x] `T4.3 add fallback tests for schema parity and graceful degradation`
 
 Commits:
 
-- [ ] `<sha> feat(runtime): add deterministic semantic fallback extractors`
-- [ ] `<sha> test(runtime): cover capability downgrade and schema parity`
+- [x] `4021138 feat(runtime): add deterministic semantic fallback extractors`
+- [x] `4f4229e test(runtime): cover capability downgrade and schema parity`
 
 Validation:
 
-- [ ] `fallback extractor parity suite pass`
+- [x] `ruby -Itest test/redwright/plain_text_structural_extractor_test.rb && ruby -Itest test/redwright/iteration_context_packet_builder_test.rb && ruby -Itest test/redwright/lsp_semantic_enricher_test.rb (pass)`
 
 ### Slice 5: Layered Retrieval and Symbol-Level Selection
 
@@ -233,3 +233,6 @@ Validation:
 
 - `2026-05-02` state=`slice_merged` note=`Slice 2 merged to dev`
 - `2026-05-02` state=`awaiting_review` note=`Slice 3 completed with deterministic LSP enrichment edges and symbol-level IR integration tests`
+
+- `2026-05-02` state=`slice_merged` note=`Slice 3 merged to dev`
+- `2026-05-02` state=`awaiting_review` note=`Slice 4 completed with deterministic fallback extractor parity and graceful degradation coverage`
