@@ -206,7 +206,7 @@ Validation:
 
 - status: `awaiting_review`
 - branch: `fix/slice-9-semantic-runtime-integration-and-e2e`
-- PR: `tbd`
+- PR: `https://codeberg.org/adrianpk/redwright/pulls/243`
 - merge_target: `dev`
 - last_sync_commit: `fb71a78`
 
@@ -220,7 +220,7 @@ Commits:
 
 - [x] `a3b2dd1 feat(runtime): integrate layered semantic context pipeline into runtime packet assembly`
 - [x] `4cdc59b test(runtime): cover semantic cache invalidation and diagnostic fallback`
-- [ ] `<sha> docs(ops): close semantic context pipeline cycle with validation evidence`
+- [x] `559a777 docs(ops): close semantic context pipeline cycle with validation evidence`
 
 Validation:
 
