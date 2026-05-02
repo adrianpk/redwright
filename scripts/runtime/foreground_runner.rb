@@ -138,7 +138,13 @@ module Redwright
         puts "Press Ctrl+C to stop all processes."
         Signal.trap("INT") { stop_processes; exit(130) }
         Signal.trap("TERM") { stop_processes; exit(143) }
-        @telegram_pid = Process.spawn("env REDWRIGHT_TRACE=1 bundle exec ruby bin/redwright daemon run --dev --ingress telegram")
+        @telegram_pid = Process.spawn(
+          {
+            "REDWRIGHT_TRACE" => "1",
+            "REDWRIGHT_RAILS_API_URL" => "http://127.0.0.1:#{web_port}/api/v1"
+          },
+          "bundle exec ruby bin/redwright daemon run --dev --ingress telegram"
+        )
         Process.wait(@telegram_pid)
       end
 

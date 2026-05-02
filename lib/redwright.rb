@@ -26,6 +26,8 @@ require_relative "redwright/app_config"
 require_relative "redwright/daemon_runner"
 require_relative "redwright/turn_message_queue"
 require_relative "redwright/telegram_client"
+require_relative "redwright/telegram_rails_api_client"
+require_relative "redwright/telegram_project_setup_adapter"
 require_relative "redwright/telegram_ingress"
 require_relative "redwright/ingress_port"
 require_relative "redwright/telegram_ingress_adapter"
@@ -409,6 +411,7 @@ module Redwright
             task_store: task_store,
             action_execution_store: action_execution_store
           )
+          project_setup_adapter = telegram_project_setup_adapter_from_env
           handler = TelegramRuntimeHandler.new(
             flow: flow,
             telegram_client: telegram_client,
@@ -427,7 +430,8 @@ module Redwright
             quality_gate_runner: quality_gate_runner,
             send_json_envelope: config.telegram.send_json_envelope,
             max_change_turn_seconds: config.alignment.max_turn_seconds,
-            operational_dispatcher: runtime_dispatcher
+            operational_dispatcher: runtime_dispatcher,
+            project_setup_adapter: project_setup_adapter
           )
           cursor = nil
           if run_once
@@ -665,6 +669,15 @@ module Redwright
       1
     ensure
       lock&.release! if sub == "run"
+    end
+
+    def telegram_project_setup_adapter_from_env
+      base_url = ENV.fetch("REDWRIGHT_RAILS_API_URL", "").strip
+      return nil if base_url.empty?
+
+      TelegramProjectSetupAdapter.new(
+        client: TelegramRailsApiClient.new(base_url: base_url)
+      )
     end
 
     def print_project_record(record)

@@ -56,7 +56,8 @@ module Redwright
       clarification_policy: nil,
       semantic_adapter: nil,
       operational_dispatcher: nil,
-      show_operational_telemetry: false
+      show_operational_telemetry: false,
+      project_setup_adapter: nil
     )
       @flow = flow
       @telegram_client = telegram_client
@@ -97,6 +98,7 @@ module Redwright
       @semantic_adapter = semantic_adapter || IngressSemanticCompatibilityAdapter.new
       @operational_dispatcher = operational_dispatcher
       @show_operational_telemetry = show_operational_telemetry == true
+      @project_setup_adapter = project_setup_adapter
     end
 
     def handle(event)
@@ -109,6 +111,8 @@ module Redwright
             chat_id: event.chat_id,
             text: event.text
           })
+
+          return if handle_project_setup_adapter(event)
 
           resolution = resolve_context(event: event)
           unless resolution.resolved
@@ -583,6 +587,33 @@ module Redwright
       return TelegramContextResolver::Resolution.new(resolved: true, project_ref: nil, project_path: nil, workstream_id: nil, question: nil) unless @context_resolver
 
       @context_resolver.resolve(chat_id: event.chat_id, text: event.text)
+    end
+
+    def handle_project_setup_adapter(event)
+      return false unless @project_setup_adapter
+
+      result = @project_setup_adapter.handle(event, trace_id: Trace.current_trace_id || "none")
+      return false unless result&.handled?
+
+      @telegram_client.send_message(chat_id: event.chat_id, text: result.message.to_s)
+      @out.puts(
+        "telegram rails_project_setup chat=#{event.chat_id} command=#{result.command} " \
+        "state=#{project_setup_state_from(result.api_response)}"
+      )
+      true
+    rescue StandardError => e
+      error_message = "Rails project setup API failed: #{e.message}"
+      @telegram_client.send_message(
+        chat_id: event.chat_id,
+        text: @message_renderer.error(message: error_message, trace_id: Trace.current_trace_id || "none")
+      )
+      @out.puts("telegram rails_project_setup_error chat=#{event.chat_id}: #{e.class}: #{e.message}")
+      true
+    end
+
+    def project_setup_state_from(api_response)
+      body = api_response.is_a?(Hash) ? api_response : {}
+      body["state"] || body.dig("data", "state") || "none"
     end
 
     def load_prompt_context(project_path:)
