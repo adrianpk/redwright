@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_01_172000) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_02_113000) do
   create_table "boards", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "name", null: false
@@ -62,6 +62,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_01_172000) do
     t.datetime "updated_at", null: false
     t.index ["board_id", "name"], name: "index_labels_on_board_id_and_name", unique: true
     t.index ["board_id"], name: "index_labels_on_board_id"
+  end
+
+  create_table "projects", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.text "description", null: false
+    t.string "name", null: false
+    t.string "repo_url", null: false
+    t.string "root_path", null: false
+    t.string "stack_slug", null: false
+    t.datetime "updated_at", null: false
+    t.index ["repo_url"], name: "index_projects_on_repo_url", unique: true
+    t.index ["root_path"], name: "index_projects_on_root_path", unique: true
   end
 
   create_table "sessions", force: :cascade do |t|
