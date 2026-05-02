@@ -46,7 +46,7 @@
 ### Slice 3: LSP Enrichment Layer and Cross-File Semantics
 
 - status: `pending`
-- branch: `fix/slice-3-semantic-lsp-enrichment-layer`
+- branch: `feat/slice-3-semantic-lsp-enrichment-layer`
 - objective: `add LSP enrichment for references/types with bounded cross-file expansion`
 - tasks:
 - [ ] `T3.1 add lsp enrichment adapter for references and type hints`

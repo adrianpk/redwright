@@ -60,26 +60,26 @@ Validation:
 
 ### Slice 3: LSP Enrichment Layer and Cross-File Semantics
 
-- status: `pending`
-- branch: `fix/slice-3-semantic-lsp-enrichment-layer`
-- PR: `tbd`
+- status: `awaiting_review`
+- branch: `feat/slice-3-semantic-lsp-enrichment-layer`
+- PR: `https://codeberg.org/adrianpk/redwright/pulls/237`
 - merge_target: `dev`
-- last_sync_commit: `tbd`
+- last_sync_commit: `dea22de`
 
 Tasks:
 
-- [ ] `T3.1 add lsp enrichment adapter for references and type hints`
-- [ ] `T3.2 attach enriched edges to symbol-level IR nodes`
-- [ ] `T3.3 add tests for enrichment boundaries and deterministic output shape`
+- [x] `T3.1 add lsp enrichment adapter for references and type hints`
+- [x] `T3.2 attach enriched edges to symbol-level IR nodes`
+- [x] `T3.3 add tests for enrichment boundaries and deterministic output shape`
 
 Commits:
 
-- [ ] `<sha> feat(runtime): add lsp semantic enrichment layer`
-- [ ] `<sha> test(runtime): cover lsp enrichment boundaries and output determinism`
+- [x] `fe9f7aa feat(runtime): add lsp semantic enrichment layer`
+- [x] `76f2612 test(runtime): cover lsp enrichment boundaries and output determinism`
 
 Validation:
 
-- [ ] `lsp enrichment boundary suite pass`
+- [x] `ruby -Itest test/redwright/lsp_semantic_enricher_test.rb && ruby -Itest test/redwright/iteration_context_packet_builder_test.rb (pass)`
 
 ### Slice 4: Deterministic Fallback Extractors
 
@@ -230,3 +230,6 @@ Validation:
 - `2026-05-02` state=`awaiting_review` note=`Slice 1 completed with semantic capability mode contract, stable IR v1 sections, and deterministic schema ordering tests`
 - `2026-05-02` state=`slice_merged` note=`Slice 1 merged to dev`
 - `2026-05-02` state=`awaiting_review` note=`Slice 2 completed with tree-sitter structural extraction adapter and AVAILABLE_SYMBOLS emission in IR v1`
+
+- `2026-05-02` state=`slice_merged` note=`Slice 2 merged to dev`
+- `2026-05-02` state=`awaiting_review` note=`Slice 3 completed with deterministic LSP enrichment edges and symbol-level IR integration tests`
