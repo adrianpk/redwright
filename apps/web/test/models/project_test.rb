@@ -77,12 +77,12 @@ class ProjectTest < ActiveSupport::TestCase
     other_board.tickets.create!(column: other_backlog, title: "Other ticket")
     project_attr = ProjectAttribute.create!(project: project, key: "lang", value: "ruby", weight: 5, source: "user")
     ProjectAttribute.create!(project: other_project, key: "lang", value: "go", weight: 5, source: "user")
-    artifact = create_document_artifact(project: project, title: "Scoped artifact")
-    create_document_artifact(project: other_project, title: "Other artifact")
+    artifact = create_document(project: project, title: "Scoped artifact")
+    create_document(project: other_project, title: "Other artifact")
 
     assert_equal [board.id], project.boards_scope.pluck(:id)
     assert_equal [ticket.id], project.tickets_scope.pluck(:id)
-    assert_equal [artifact.id], project.document_artifacts_scope.pluck(:id)
+    assert_equal [artifact.id], project.documents_scope.pluck(:id)
     assert_equal [project_attr.id], project.project_attributes_scope.pluck(:id)
   end
 end

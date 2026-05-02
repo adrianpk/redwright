@@ -22,7 +22,7 @@ Rails.application.routes.draw do
       delete :destroy
     end
   end
-  resources :document_artifacts, only: [ :index, :show, :new, :create, :edit, :update ] do
+  resources :documents, only: [ :index, :show, :new, :create, :edit, :update ] do
     member do
       post :promote
     end

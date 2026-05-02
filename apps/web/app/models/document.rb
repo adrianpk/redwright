@@ -1,27 +1,27 @@
-class DocumentArtifact < ApplicationRecord
+class Document < ApplicationRecord
   TYPES = %w[draft spec plan_tracker].freeze
 
   belongs_to :project
-  belongs_to :source_draft, class_name: "DocumentArtifact", optional: true
+  belongs_to :source_draft, class_name: "Document", optional: true
 
   has_many :derived_specs,
-           class_name: "DocumentArtifact",
+           class_name: "Document",
            foreign_key: :source_draft_id,
            inverse_of: :source_draft,
            dependent: :nullify
 
   has_many :outgoing_relations,
-           class_name: "DocumentArtifactRelation",
+           class_name: "DocumentRelation",
            foreign_key: :from_artifact_id,
            inverse_of: :from_artifact,
            dependent: :destroy
   has_many :incoming_relations,
-           class_name: "DocumentArtifactRelation",
+           class_name: "DocumentRelation",
            foreign_key: :to_artifact_id,
            inverse_of: :to_artifact,
            dependent: :destroy
-  has_many :ticket_artifact_links, dependent: :destroy
-  has_many :tickets, through: :ticket_artifact_links
+  has_many :ticket_document_links, dependent: :destroy
+  has_many :tickets, through: :ticket_document_links
 
   validates :artifact_type, inclusion: { in: TYPES }
   validates :title, presence: true
@@ -31,7 +31,7 @@ class DocumentArtifact < ApplicationRecord
   scope :by_type, ->(type) { where(artifact_type: type) }
   scope :for_project, ->(project_id) { where(project_id: project_id) }
 
-  def related_artifacts
+  def related_documents
     outgoing = outgoing_relations.includes(:to_artifact).map do |relation|
       [relation.relation_type, relation.to_artifact]
     end
@@ -40,6 +40,8 @@ class DocumentArtifact < ApplicationRecord
     end
     (outgoing + incoming).uniq { |relation_type, artifact| [relation_type, artifact.id] }
   end
+
+  alias_method :related_artifacts, :related_documents
 
   private
 

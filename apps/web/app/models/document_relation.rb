@@ -1,8 +1,8 @@
-class DocumentArtifactRelation < ApplicationRecord
+class DocumentRelation < ApplicationRecord
   RELATION_TYPES = %w[derives_from references tracks].freeze
 
-  belongs_to :from_artifact, class_name: "DocumentArtifact"
-  belongs_to :to_artifact, class_name: "DocumentArtifact"
+  belongs_to :from_artifact, class_name: "Document"
+  belongs_to :to_artifact, class_name: "Document"
 
   validates :relation_type, inclusion: { in: RELATION_TYPES }
   validates :to_artifact_id, uniqueness: { scope: [ :from_artifact_id, :relation_type ] }

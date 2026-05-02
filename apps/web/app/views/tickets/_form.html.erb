@@ -34,13 +34,13 @@
   </div>
 
   <div class="field">
-    <%= f.label :document_artifact_ids, "Linked Documents" %>
+    <%= f.label :document_ids, "Linked Documents" %>
     <p class="field-hint">Optional for quick tickets and small fixes.</p>
-    <%= f.collection_select :document_artifact_ids,
-                            @available_artifacts || [],
+    <%= f.collection_select :document_ids,
+                            @available_documents || [],
                             :id,
-                            ->(artifact) { "#{artifact.title} (#{artifact.artifact_type})" },
-                            { selected: ticket.document_artifact_ids },
+                            ->(document) { "#{document.title} (#{document.artifact_type})" },
+                            { selected: ticket.document_ids },
                             { multiple: true, size: 6 } %>
   </div>
 

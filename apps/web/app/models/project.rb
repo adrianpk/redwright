@@ -1,7 +1,7 @@
 class Project < ApplicationRecord
   has_many :boards, dependent: :restrict_with_error
   has_many :project_attributes, dependent: :delete_all
-  has_many :document_artifacts, dependent: :restrict_with_error
+  has_many :documents, dependent: :restrict_with_error
 
   validates :name, presence: true
   validates :description, presence: true
@@ -17,8 +17,8 @@ class Project < ApplicationRecord
     Ticket.for_project(id)
   end
 
-  def document_artifacts_scope
-    document_artifacts.order(updated_at: :desc, created_at: :desc)
+  def documents_scope
+    documents.order(updated_at: :desc, created_at: :desc)
   end
 
   def project_attributes_scope

@@ -6,11 +6,11 @@
   <% if ticket.description.present? %>
     <p><%= ticket.description %></p>
   <% end %>
-  <% if ticket.document_artifacts.any? %>
+  <% if ticket.documents.any? %>
     <div class="ticket-artifact-links">
-      <% ticket.document_artifacts.each do |artifact| %>
+      <% ticket.documents.each do |artifact| %>
         <div>
-          <%= link_to "#{artifact.title} (#{artifact.artifact_type})", document_artifact_path(artifact) %>
+          <%= link_to "#{artifact.title} (#{artifact.artifact_type})", document_path(artifact) %>
         </div>
       <% end %>
     </div>

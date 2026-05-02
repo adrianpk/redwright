@@ -21,16 +21,16 @@ module ProjectBoardTestHelper
     Board.create!(name: name, project_key: project_key, project: (project || create_project(key: project_key)))
   end
 
-  def create_document_artifact(project: nil, **attrs)
-    artifact_project = project || create_project(name: "Docs Project", key: "docs-#{SecureRandom.hex(4)}")
+  def create_document(project: nil, **attrs)
+    document_project = project || create_project(name: "Docs Project", key: "docs-#{SecureRandom.hex(4)}")
     defaults = {
       artifact_type: "draft",
       title: "Draft #{SecureRandom.hex(3)}",
       body: "Draft body",
       editable: true,
-      project: artifact_project
+      project: document_project
     }
-    DocumentArtifact.create!(defaults.merge(attrs))
+    Document.create!(defaults.merge(attrs))
   end
 end
 

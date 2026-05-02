@@ -1,8 +1,8 @@
 require "test_helper"
 
-class DocumentArtifactTest < ActiveSupport::TestCase
+class DocumentTest < ActiveSupport::TestCase
   test "draft is valid without source_draft" do
-    artifact = DocumentArtifact.new(
+    artifact = Document.new(
       project: create_project(key: "doc-draft-valid"),
       artifact_type: "draft",
       title: "Draft One",
@@ -13,7 +13,7 @@ class DocumentArtifactTest < ActiveSupport::TestCase
   end
 
   test "spec requires source draft" do
-    artifact = DocumentArtifact.new(
+    artifact = Document.new(
       project: create_project(key: "doc-spec-requires-source"),
       artifact_type: "spec",
       title: "Spec One",
@@ -25,13 +25,13 @@ class DocumentArtifactTest < ActiveSupport::TestCase
   end
 
   test "spec source must be a draft artifact" do
-    plan = create_document_artifact(
+    plan = create_document(
       artifact_type: "plan_tracker",
       title: "Plan",
       body: "Execution plan",
       editable: false
     )
-    artifact = DocumentArtifact.new(
+    artifact = Document.new(
       project: create_project(key: "doc-spec-source-must-be-draft"),
       artifact_type: "spec",
       title: "Spec One",
@@ -44,13 +44,13 @@ class DocumentArtifactTest < ActiveSupport::TestCase
   end
 
   test "relation rejects self-reference" do
-    draft = create_document_artifact(
+    draft = create_document(
       artifact_type: "draft",
       title: "Draft One",
       body: "Initial content"
     )
 
-    relation = DocumentArtifactRelation.new(
+    relation = DocumentRelation.new(
       from_artifact: draft,
       to_artifact: draft,
       relation_type: "references"
@@ -64,25 +64,25 @@ class DocumentArtifactTest < ActiveSupport::TestCase
     board = create_board(project_key: "factory-artifacts")
     backlog = board.columns.create!(key: "backlog", title: "Backlog", position: 0)
     ticket = board.tickets.create!(column: backlog, title: "Implement feature")
-    draft = create_document_artifact(
+    draft = create_document(
       artifact_type: "draft",
       title: "Feature Draft",
       body: "Draft details"
     )
 
-    link = TicketArtifactLink.create!(ticket: ticket, document_artifact: draft, role: "reference")
-    assert_equal 1, ticket.reload.document_artifacts.count
-    assert_equal draft.id, ticket.document_artifacts.first.id
+    link = TicketDocumentLink.create!(ticket: ticket, document: draft, role: "reference")
+    assert_equal 1, ticket.reload.documents.count
+    assert_equal draft.id, ticket.documents.first.id
     assert_equal "reference", link.role
   end
 
   test "related_artifacts returns outgoing and incoming relation edges" do
-    draft = create_document_artifact(
+    draft = create_document(
       artifact_type: "draft",
       title: "Draft Base",
       body: "Draft details"
     )
-    spec = create_document_artifact(
+    spec = create_document(
       project: draft.project,
       artifact_type: "spec",
       title: "Spec Derived",
@@ -90,15 +90,15 @@ class DocumentArtifactTest < ActiveSupport::TestCase
       source_draft: draft,
       editable: false
     )
-    plan = create_document_artifact(
+    plan = create_document(
       artifact_type: "plan_tracker",
       title: "Plan Linked",
       body: "Plan details",
       editable: false
     )
 
-    DocumentArtifactRelation.create!(from_artifact: spec, to_artifact: draft, relation_type: "derives_from")
-    DocumentArtifactRelation.create!(from_artifact: spec, to_artifact: plan, relation_type: "tracks")
+    DocumentRelation.create!(from_artifact: spec, to_artifact: draft, relation_type: "derives_from")
+    DocumentRelation.create!(from_artifact: spec, to_artifact: plan, relation_type: "tracks")
 
     pairs = spec.related_artifacts.map { |relation_type, artifact| [relation_type, artifact.id] }
     assert_includes pairs, [ "derives_from", draft.id ]
@@ -108,9 +108,9 @@ class DocumentArtifactTest < ActiveSupport::TestCase
   test "spec source_draft must be in the same project" do
     project_a = create_project(key: "doc-proj-a")
     project_b = create_project(key: "doc-proj-b")
-    draft = create_document_artifact(project: project_a, artifact_type: "draft", title: "Draft A")
+    draft = create_document(project: project_a, artifact_type: "draft", title: "Draft A")
 
-    artifact = DocumentArtifact.new(
+    artifact = Document.new(
       project: project_b,
       artifact_type: "spec",
       title: "Spec B",
@@ -126,10 +126,10 @@ class DocumentArtifactTest < ActiveSupport::TestCase
   test "for_project scope isolates document artifacts by project" do
     project_a = create_project(key: "doc-scope-a")
     project_b = create_project(key: "doc-scope-b")
-    artifact_a = create_document_artifact(project: project_a, title: "Artifact A")
-    create_document_artifact(project: project_b, title: "Artifact B")
+    artifact_a = create_document(project: project_a, title: "Artifact A")
+    create_document(project: project_b, title: "Artifact B")
 
-    scoped_ids = DocumentArtifact.for_project(project_a.id).pluck(:id)
+    scoped_ids = Document.for_project(project_a.id).pluck(:id)
     assert_equal [artifact_a.id], scoped_ids
   end
 end

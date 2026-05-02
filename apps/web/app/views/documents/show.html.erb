@@ -1,6 +1,6 @@
 <main class="document-artifacts-show">
   <p class="document-artifact-breadcrumb">
-    <%= link_to "Drafts", document_artifacts_path(type: "draft") %>
+    <%= link_to "Drafts", documents_path(type: "draft") %>
   </p>
   <header class="document-artifacts-header">
     <h1><%= @artifact.title %></h1>
@@ -19,7 +19,7 @@
         <% @related_artifacts.each do |relation_type, related_artifact| %>
           <li>
             <%= relation_type %>:
-            <%= link_to "#{related_artifact.title} (#{related_artifact.artifact_type})", document_artifact_path(related_artifact) %>
+            <%= link_to "#{related_artifact.title} (#{related_artifact.artifact_type})", document_path(related_artifact) %>
           </li>
         <% end %>
       </ul>
@@ -27,10 +27,10 @@
   </section>
 
   <% if @artifact.artifact_type == "draft" %>
-    <p class="document-artifact-inline-actions"><%= link_to "Edit Draft", edit_document_artifact_path(@artifact), class: "ticket-action" %></p>
+    <p class="document-artifact-inline-actions"><%= link_to "Edit Draft", edit_document_path(@artifact), class: "ticket-action" %></p>
     <p class="document-artifact-inline-actions">
       <%= button_to "Promote to Spec",
-                    promote_document_artifact_path(@artifact),
+                    promote_document_path(@artifact),
                     method: :post,
                     class: "ticket-action",
                     form: { data: { turbo_confirm: "Promote this draft to a spec?" } } %>

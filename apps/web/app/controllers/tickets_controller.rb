@@ -6,7 +6,7 @@ class TicketsController < ApplicationController
 
   def new
     @ticket = @board.tickets.new(column: default_column)
-    @available_artifacts = DocumentArtifact.for_project(@board.project_id).order(updated_at: :desc, created_at: :desc)
+    @available_documents = Document.for_project(@board.project_id).order(updated_at: :desc, created_at: :desc)
     render :new, layout: false if turbo_frame_request?
   end
 
@@ -14,7 +14,7 @@ class TicketsController < ApplicationController
     @ticket = @board.tickets.new(ticket_params)
     @ticket.column ||= default_column
     if @ticket.save
-      sync_ticket_artifact_links(@ticket, selected_artifact_ids)
+      sync_ticket_document_links(@ticket, selected_document_ids)
       load_board_context(@board)
       respond_to do |format|
         format.turbo_stream { render "boards/update" }
@@ -26,13 +26,13 @@ class TicketsController < ApplicationController
   end
 
   def edit
-    @available_artifacts = DocumentArtifact.for_project(@ticket.project_id).order(updated_at: :desc, created_at: :desc)
+    @available_documents = Document.for_project(@ticket.project_id).order(updated_at: :desc, created_at: :desc)
     render :edit, layout: false if turbo_frame_request?
   end
 
   def update
     if @ticket.update(ticket_params)
-      sync_ticket_artifact_links(@ticket, selected_artifact_ids)
+      sync_ticket_document_links(@ticket, selected_document_ids)
       load_board_context(@ticket.board)
       respond_to do |format|
         format.turbo_stream { render "boards/update" }
@@ -98,28 +98,28 @@ class TicketsController < ApplicationController
   def load_board_context(board)
     @board = board
     @columns = @board.columns.order(:position)
-    @tickets_by_column = @board.tickets.visible_on_board.ordered_for_board.includes(:labels, :document_artifacts).group_by(&:column_id)
+    @tickets_by_column = @board.tickets.visible_on_board.ordered_for_board.includes(:labels, :documents).group_by(&:column_id)
   end
 
   def ticket_params
     params.require(:ticket).permit(:title, :description, :priority, :assignee, :column_id)
   end
 
-  def selected_artifact_ids
-    raw = params.dig(:ticket, :document_artifact_ids)
+  def selected_document_ids
+    raw = params.dig(:ticket, :document_ids)
     return [] unless raw.respond_to?(:to_a)
 
     raw.to_a.map(&:to_i).select(&:positive?).uniq
   end
 
-  def sync_ticket_artifact_links(ticket, artifact_ids)
-    current_ids = ticket.document_artifact_ids
-    remove_ids = current_ids - artifact_ids
-    add_ids = artifact_ids - current_ids
+  def sync_ticket_document_links(ticket, document_ids)
+    current_ids = ticket.document_ids
+    remove_ids = current_ids - document_ids
+    add_ids = document_ids - current_ids
 
-    ticket.ticket_artifact_links.where(document_artifact_id: remove_ids).delete_all if remove_ids.any?
-    add_ids.each do |artifact_id|
-      ticket.ticket_artifact_links.create!(document_artifact_id: artifact_id, role: "reference")
+    ticket.ticket_document_links.where(document_id: remove_ids).delete_all if remove_ids.any?
+    add_ids.each do |document_id|
+      ticket.ticket_document_links.create!(document_id: document_id, role: "reference")
     end
   end
 

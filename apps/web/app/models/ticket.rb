@@ -3,8 +3,8 @@ class Ticket < ApplicationRecord
   belongs_to :column
   has_many :ticket_labels, dependent: :destroy
   has_many :labels, through: :ticket_labels
-  has_many :ticket_artifact_links, dependent: :destroy
-  has_many :document_artifacts, through: :ticket_artifact_links
+  has_many :ticket_document_links, dependent: :destroy
+  has_many :documents, through: :ticket_document_links
 
   enum :priority, { low: 0, medium: 1, high: 2 }, default: :medium
 
@@ -13,9 +13,6 @@ class Ticket < ApplicationRecord
   scope :visible_on_board, -> { where(archived_at: nil) }
   scope :ordered_for_board, -> { order(priority: :desc, created_at: :asc) }
   scope :active, -> { visible_on_board.joins(:column).where.not(columns: { key: [ "merged", "done" ] }) }
-  scope :for_project, ->(project_id) { joins(:board).where(boards: { project_id: project_id }) }
-
-  delegate :project, :project_id, to: :board
   scope :for_project, ->(project_id) { joins(:board).where(boards: { project_id: project_id }) }
 
   delegate :project, :project_id, to: :board

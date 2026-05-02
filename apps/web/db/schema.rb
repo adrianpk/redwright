@@ -33,18 +33,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_02_162000) do
     t.index ["board_id"], name: "index_columns_on_board_id"
   end
 
-  create_table "document_artifact_relations", force: :cascade do |t|
+  create_table "document_relations", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.integer "from_artifact_id", null: false
     t.string "relation_type", null: false
     t.integer "to_artifact_id", null: false
     t.datetime "updated_at", null: false
-    t.index ["from_artifact_id", "to_artifact_id", "relation_type"], name: "idx_document_artifact_relations_unique_edge", unique: true
-    t.index ["from_artifact_id"], name: "index_document_artifact_relations_on_from_artifact_id"
-    t.index ["to_artifact_id"], name: "index_document_artifact_relations_on_to_artifact_id"
+    t.index ["from_artifact_id", "to_artifact_id", "relation_type"], name: "idx_document_relations_unique_edge", unique: true
+    t.index ["from_artifact_id"], name: "index_document_relations_on_from_artifact_id"
+    t.index ["to_artifact_id"], name: "index_document_relations_on_to_artifact_id"
   end
 
-  create_table "document_artifacts", force: :cascade do |t|
+  create_table "documents", force: :cascade do |t|
     t.string "artifact_type", null: false
     t.text "body", null: false
     t.datetime "created_at", null: false
@@ -53,9 +53,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_02_162000) do
     t.integer "source_draft_id"
     t.string "title", null: false
     t.datetime "updated_at", null: false
-    t.index ["artifact_type"], name: "index_document_artifacts_on_artifact_type"
-    t.index ["project_id"], name: "index_document_artifacts_on_project_id"
-    t.index ["source_draft_id"], name: "index_document_artifacts_on_source_draft_id"
+    t.index ["artifact_type"], name: "index_documents_on_artifact_type"
+    t.index ["project_id"], name: "index_documents_on_project_id"
+    t.index ["source_draft_id"], name: "index_documents_on_source_draft_id"
   end
 
   create_table "labels", force: :cascade do |t|
@@ -102,15 +102,15 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_02_162000) do
     t.index ["user_id"], name: "index_sessions_on_user_id"
   end
 
-  create_table "ticket_artifact_links", force: :cascade do |t|
+  create_table "ticket_document_links", force: :cascade do |t|
     t.datetime "created_at", null: false
-    t.integer "document_artifact_id", null: false
+    t.integer "document_id", null: false
     t.string "role", default: "reference", null: false
     t.integer "ticket_id", null: false
     t.datetime "updated_at", null: false
-    t.index ["document_artifact_id"], name: "index_ticket_artifact_links_on_document_artifact_id"
-    t.index ["ticket_id", "document_artifact_id"], name: "idx_ticket_artifact_links_unique_ticket_artifact", unique: true
-    t.index ["ticket_id"], name: "index_ticket_artifact_links_on_ticket_id"
+    t.index ["document_id"], name: "index_ticket_document_links_on_document_id"
+    t.index ["ticket_id", "document_id"], name: "idx_ticket_document_links_unique_ticket_artifact", unique: true
+    t.index ["ticket_id"], name: "index_ticket_document_links_on_ticket_id"
   end
 
   create_table "ticket_labels", force: :cascade do |t|
@@ -159,15 +159,15 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_02_162000) do
 
   add_foreign_key "boards", "projects"
   add_foreign_key "columns", "boards"
-  add_foreign_key "document_artifact_relations", "document_artifacts", column: "from_artifact_id"
-  add_foreign_key "document_artifact_relations", "document_artifacts", column: "to_artifact_id"
-  add_foreign_key "document_artifacts", "document_artifacts", column: "source_draft_id"
-  add_foreign_key "document_artifacts", "projects"
+  add_foreign_key "document_relations", "documents", column: "from_artifact_id"
+  add_foreign_key "document_relations", "documents", column: "to_artifact_id"
+  add_foreign_key "documents", "documents", column: "source_draft_id"
+  add_foreign_key "documents", "projects"
   add_foreign_key "labels", "boards"
   add_foreign_key "project_attributes", "projects"
   add_foreign_key "sessions", "users"
-  add_foreign_key "ticket_artifact_links", "document_artifacts"
-  add_foreign_key "ticket_artifact_links", "tickets"
+  add_foreign_key "ticket_document_links", "documents"
+  add_foreign_key "ticket_document_links", "tickets"
   add_foreign_key "ticket_labels", "labels"
   add_foreign_key "ticket_labels", "tickets"
   add_foreign_key "tickets", "boards"

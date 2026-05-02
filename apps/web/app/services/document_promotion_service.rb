@@ -1,4 +1,4 @@
-class DocumentArtifactPromotionService
+class DocumentPromotionService
   def initialize(draft:)
     @draft = draft
   end
@@ -6,7 +6,7 @@ class DocumentArtifactPromotionService
   def call
     raise ArgumentError, "artifact is not a draft" unless @draft.artifact_type == "draft"
 
-    spec = DocumentArtifact.create!(
+    spec = Document.create!(
       artifact_type: "spec",
       title: @draft.title,
       body: @draft.body,
@@ -15,7 +15,7 @@ class DocumentArtifactPromotionService
       editable: false
     )
 
-    DocumentArtifactRelation.create!(
+    DocumentRelation.create!(
       from_artifact: spec,
       to_artifact: @draft,
       relation_type: "derives_from"
