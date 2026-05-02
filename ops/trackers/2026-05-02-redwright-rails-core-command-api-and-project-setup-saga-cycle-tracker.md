@@ -3,10 +3,10 @@
 ## Metadata
 
 - cycle_id: `cycle-2026-05-02-redwright-rails-core-command-api-and-project-setup-saga`
-- status: `completed`
-- state: `completed`
+- status: `awaiting_review`
+- state: `post_slice_tuning`
 - updated: `2026-05-02`
-- active_slice: `none`
+- active_slice: `Slice 9`
 - active_task: `none`
 - source_plan: `ops/plans/2026-05-02-redwright-rails-core-command-api-and-project-setup-saga-implementation-cycle-plan.md`
 - source_spec: `ops/specs/specs/2026-05-02-redwright-rails-core-command-api-and-project-setup-saga-spec.md`
@@ -234,13 +234,41 @@ Validation:
 - [x] `cd apps/web && bundle exec bin/rails test (pass)`
 - [x] `bundle exec rake test:coverage from repository root (pass, coverage=91.28)`
 
+### Slice 9: Telegram Project New Quoted Saga Routing
+
+- status: `awaiting_review`
+- type: `post_slice_tuning`
+- branch: `fix/slice-9-telegram-project-new-quoted-saga-routing`
+- PR: `tbd`
+- merge_target: `dev`
+- last_sync_commit: `e95a33b`
+
+Tasks:
+
+- [x] `T9.1 capture post-slice tuning evidence for quoted Telegram project creation falling through to runtime`
+- [x] `T9.2 route quoted /project new commands through the Rails setup adapter before planner/runtime dispatch`
+- [x] `T9.3 add regression tests and coverage validation for the observed Telegram command shape`
+
+Commits:
+
+- [x] `cb202d3 fix(telegram): harden rails setup routing in foreground`
+- [x] `4f486b2 test(telegram): cover quoted project setup routing`
+
+Validation:
+
+- [x] `bundle exec ruby bin/redwright trace show --dev trc-96f22d35 (pass, trace shows runtime project_new path for quoted /project new)`
+- [x] `ruby -wc lib/redwright/telegram_project_setup_adapter.rb (pass)`
+- [x] `ruby -Itest test/redwright/telegram_project_setup_adapter_test.rb (pass)`
+- [x] `ruby -Itest test/redwright/telegram_runtime_handler_test.rb (pass)`
+- [x] `bundle exec rake test:coverage from repository root (pass, coverage=91.29)`
+
 ## Coverage Guard
 
 - baseline_coverage: `91.2`
 - target_rule: `post-slice coverage >= pre-slice coverage for new code paths`
-- final_coverage: `91.28`
-- tuning_needed: `no`
-- tuning_evidence: `all planned slices completed with coverage guard passing; no post-slice tuning defects were recorded during cycle closure`
+- final_coverage: `91.29`
+- tuning_needed: `yes`
+- tuning_evidence: `manual Telegram check showed a quoted /project new command with a description returning the legacy runtime response; runtime trace trc-96f22d35 confirmed planner/runtime project_new execution instead of Rails setup adapter handling`
 
 ## Event Log
 
@@ -261,3 +289,5 @@ Validation:
 - `2026-05-02` state=`awaiting_review` slice=`Slice 8` note=`implemented Rails-to-runtime ticket execution bridge, persisted runtime execution correlation on tickets, routed Telegram ticket commands through Rails API, and added API/Telegram/runtime bridge parity coverage`
 - `2026-05-02` state=`slice_merged` slice=`Slice 8` note=`Slice 8 merged to dev via PR 252`
 - `2026-05-02` state=`completed` note=`completed all 8 planned slices for the Rails core command API and project setup saga cycle`
+- `2026-05-02` state=`post_slice_tuning` slice=`Slice 9` note=`manual Telegram verification found quoted /project new commands falling through to runtime project creation instead of Rails setup saga routing`
+- `2026-05-02` state=`awaiting_review` slice=`Slice 9` note=`quoted Telegram project creation commands are routed through the Rails setup adapter before planner/runtime dispatch, with targeted tests and coverage passing`
