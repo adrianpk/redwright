@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 require_relative "tree_sitter_structural_extractor"
+require_relative "plain_text_structural_extractor"
+require_relative "lsp_semantic_enricher"
 require_relative "lsp_semantic_enricher"
 
 module Redwright
@@ -312,9 +314,12 @@ module Redwright
     end
 
     def extract_available_symbols(project_path:, snippets:, parser_mode:, lsp_mode:)
-      return [] unless parser_mode == "preferred_tree_sitter"
+      extractor = if parser_mode == "preferred_tree_sitter"
+        TreeSitterStructuralExtractor.new
+      else
+        PlainTextStructuralExtractor.new
+      end
 
-      extractor = TreeSitterStructuralExtractor.new
       symbols = snippets.flat_map do |entry|
         extractor.extract(project_path: project_path, rel_path: entry[:path])
       end
