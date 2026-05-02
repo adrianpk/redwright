@@ -239,7 +239,7 @@ Validation:
 - status: `awaiting_review`
 - type: `post_slice_tuning`
 - branch: `fix/slice-9-telegram-project-new-quoted-saga-routing`
-- PR: `tbd`
+- PR: `https://codeberg.org/adrianpk/redwright/pulls/253`
 - merge_target: `dev`
 - last_sync_commit: `e95a33b`
 
