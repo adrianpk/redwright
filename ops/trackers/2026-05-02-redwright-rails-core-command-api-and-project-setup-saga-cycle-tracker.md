@@ -121,7 +121,7 @@ Validation:
 
 - status: `awaiting_review`
 - branch: `fix/slice-5-telegram-project-setup-rails-api-adapter`
-- PR: `tbd`
+- PR: `https://codeberg.org/adrianpk/redwright/pulls/249`
 - merge_target: `dev`
 - last_sync_commit: `508e141`
 
