@@ -144,7 +144,7 @@ Tasks:
 Commits:
 
 - [x] `4e8d290 feat(web): wire project initialization web flow to domain command contract`
-- [x] `0f95c3a docs(ops): close project initialization workflow cycle with validation evidence`
+- [x] `0816e5b docs(ops): close project initialization workflow cycle with validation evidence`
 
 Validation:
 
