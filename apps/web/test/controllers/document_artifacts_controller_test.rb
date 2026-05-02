@@ -52,7 +52,7 @@ class DocumentArtifactsControllerTest < ActionDispatch::IntegrationTest
   test "promote draft to spec with lineage and relation" do
     admin = create_admin_user!
     sign_in_as(admin)
-    draft = DocumentArtifact.create!(
+    draft = create_document_artifact(
       artifact_type: "draft",
       title: "Draft for Promotion",
       body: "Draft content"
@@ -72,9 +72,10 @@ class DocumentArtifactsControllerTest < ActionDispatch::IntegrationTest
   test "index filters by artifact type for spec and plan tracker" do
     admin = create_admin_user!
     sign_in_as(admin)
-    DocumentArtifact.create!(artifact_type: "draft", title: "Draft One", body: "draft")
-    DocumentArtifact.create!(artifact_type: "spec", title: "Spec One", body: "spec", source_draft: DocumentArtifact.by_type("draft").first, editable: false)
-    DocumentArtifact.create!(artifact_type: "plan_tracker", title: "Plan One", body: "plan", editable: false)
+    project = create_project(key: "docs-type-filter")
+    draft = create_document_artifact(project: project, artifact_type: "draft", title: "Draft One", body: "draft")
+    create_document_artifact(project: project, artifact_type: "spec", title: "Spec One", body: "spec", source_draft: draft, editable: false)
+    create_document_artifact(project: project, artifact_type: "plan_tracker", title: "Plan One", body: "plan", editable: false)
 
     get document_artifacts_path(type: "spec")
     assert_response :success
@@ -102,9 +103,9 @@ class DocumentArtifactsControllerTest < ActionDispatch::IntegrationTest
   test "spec and plan_tracker cannot be edited in phase one" do
     admin = create_admin_user!
     sign_in_as(admin)
-    draft = DocumentArtifact.create!(artifact_type: "draft", title: "Draft for Spec", body: "draft")
-    spec = DocumentArtifact.create!(artifact_type: "spec", title: "Spec Locked", body: "spec", source_draft: draft, editable: false)
-    plan = DocumentArtifact.create!(artifact_type: "plan_tracker", title: "Plan Locked", body: "plan", editable: false)
+    draft = create_document_artifact(artifact_type: "draft", title: "Draft for Spec", body: "draft")
+    spec = create_document_artifact(project: draft.project, artifact_type: "spec", title: "Spec Locked", body: "spec", source_draft: draft, editable: false)
+    plan = create_document_artifact(artifact_type: "plan_tracker", title: "Plan Locked", body: "plan", editable: false)
 
     get edit_document_artifact_path(spec)
     assert_redirected_to document_artifact_path(spec)
@@ -120,9 +121,9 @@ class DocumentArtifactsControllerTest < ActionDispatch::IntegrationTest
   test "show renders related artifacts section and linked entries" do
     admin = create_admin_user!
     sign_in_as(admin)
-    draft = DocumentArtifact.create!(artifact_type: "draft", title: "Draft Base", body: "draft")
-    spec = DocumentArtifact.create!(artifact_type: "spec", title: "Spec Derived", body: "spec", source_draft: draft, editable: false)
-    plan = DocumentArtifact.create!(artifact_type: "plan_tracker", title: "Plan Linked", body: "plan", editable: false)
+    draft = create_document_artifact(artifact_type: "draft", title: "Draft Base", body: "draft")
+    spec = create_document_artifact(project: draft.project, artifact_type: "spec", title: "Spec Derived", body: "spec", source_draft: draft, editable: false)
+    plan = create_document_artifact(artifact_type: "plan_tracker", title: "Plan Linked", body: "plan", editable: false)
     DocumentArtifactRelation.create!(from_artifact: spec, to_artifact: draft, relation_type: "derives_from")
     DocumentArtifactRelation.create!(from_artifact: spec, to_artifact: plan, relation_type: "tracks")
 
@@ -133,5 +134,19 @@ class DocumentArtifactsControllerTest < ActionDispatch::IntegrationTest
     assert_match "Draft Base (draft)", response.body
     assert_match "tracks:", response.body
     assert_match "Plan Linked (plan_tracker)", response.body
+  end
+
+  test "index can be scoped by project_id" do
+    admin = create_admin_user!
+    sign_in_as(admin)
+    project_a = create_project(key: "docs-scope-a")
+    project_b = create_project(key: "docs-scope-b")
+    create_document_artifact(project: project_a, artifact_type: "draft", title: "Draft A", body: "A")
+    create_document_artifact(project: project_b, artifact_type: "draft", title: "Draft B", body: "B")
+
+    get document_artifacts_path(type: "draft", project_id: project_a.id)
+    assert_response :success
+    assert_match "Draft A", response.body
+    refute_match "Draft B", response.body
   end
 end

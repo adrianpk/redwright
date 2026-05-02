@@ -47,8 +47,8 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
     sign_in_as(admin)
     board = create_board(project_key: "factory-create-links")
     backlog = board.columns.create!(key: "backlog", title: "Backlog", position: 0)
-    draft = DocumentArtifact.create!(artifact_type: "draft", title: "Draft Link", body: "draft")
-    spec = DocumentArtifact.create!(artifact_type: "spec", title: "Spec Link", body: "spec", source_draft: draft, editable: false)
+    draft = create_document_artifact(artifact_type: "draft", title: "Draft Link", body: "draft")
+    spec = create_document_artifact(project: draft.project, artifact_type: "spec", title: "Spec Link", body: "spec", source_draft: draft, editable: false)
 
     post board_tickets_path(board), params: {
       ticket: {
@@ -87,9 +87,9 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
     sign_in_as(admin)
     board = create_board(project_key: "factory-update-links")
     backlog = board.columns.create!(key: "backlog", title: "Backlog", position: 0)
-    draft = DocumentArtifact.create!(artifact_type: "draft", title: "Draft A", body: "draft")
-    spec = DocumentArtifact.create!(artifact_type: "spec", title: "Spec A", body: "spec", source_draft: draft, editable: false)
-    plan = DocumentArtifact.create!(artifact_type: "plan_tracker", title: "Plan A", body: "plan", editable: false)
+    draft = create_document_artifact(artifact_type: "draft", title: "Draft A", body: "draft")
+    spec = create_document_artifact(project: draft.project, artifact_type: "spec", title: "Spec A", body: "spec", source_draft: draft, editable: false)
+    plan = create_document_artifact(artifact_type: "plan_tracker", title: "Plan A", body: "plan", editable: false)
     ticket = board.tickets.create!(column: backlog, title: "Old title")
     ticket.ticket_artifact_links.create!(document_artifact: draft, role: "reference")
 
