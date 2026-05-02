@@ -4,11 +4,17 @@ require "coverage"
 require "json"
 require "fileutils"
 
+# Prevent minitest/autorun from running automatically while files are required.
+ENV["MT_NO_AUTORUN"] = "1"
+require "minitest"
+
 Coverage.start
 
 Dir[File.expand_path("../**/*_test.rb", __dir__)].sort.each do |path|
   require path
 end
+
+tests_ok = Minitest.run
 
 result = Coverage.result
 lines_total = 0
@@ -37,7 +43,7 @@ percent = if lines_total.zero?
 
 payload = {
   "name" => "coverage",
-  "status" => percent >= minimum_percent ? "pass" : "fail",
+  "status" => tests_ok && percent >= minimum_percent ? "pass" : "fail",
   "minimum_line_percent" => minimum_percent,
   "metric" => "runtime_line_coverage_percent",
   "line_percent" => percent,
