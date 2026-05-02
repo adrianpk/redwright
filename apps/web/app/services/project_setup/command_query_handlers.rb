@@ -40,12 +40,25 @@ module ProjectSetup
     def advance_project_setup(payload:, context:, request_id:)
       session = find_session(value_from(payload, "session_id"))
       return missing_session_result(request_id: request_id) unless session
-      return terminal_session_result(session, request_id: request_id) if session.terminal?
 
       answer = value_from(payload, "answer").to_s.strip
       return invalid_payload_result(request_id: request_id, message: "answer is required") if answer.empty?
 
+      alignment_replay = GuidedAlignmentService.new(session: session).replay(request_id: request_id)
+      return guided_alignment_result(alignment_replay, request_id: request_id) if alignment_replay
       normalized_fields = hash_from(value_from(payload, "normalized_fields"))
+      if session.current_state == "collecting_alignment"
+        alignment_result = GuidedAlignmentService.new(session: session).advance!(
+          answer: answer,
+          normalized_fields: normalized_fields,
+          source_channel: source_channel_from(context),
+          request_id: request_id
+        )
+        return guided_alignment_result(alignment_result, request_id: request_id)
+      end
+
+      return terminal_session_result(session, request_id: request_id) if session.terminal?
+
       turn = StateMachine.new(session: session).record_turn!(
         question: session.pending_question.presence || "Advance project setup",
         answer: answer,
@@ -245,6 +258,19 @@ module ProjectSetup
         "turn_counter" => session.turn_counter,
         "terminal_reason" => session.terminal_reason
       }
+    end
+
+    def guided_alignment_result(result, request_id:)
+      data = session_data(result.session.reload, summary: result.summary).merge(result.data)
+      return CommandQuery::Result.ok(request_id: request_id, data: data, effects: result.effects) if result.ok?
+
+      CommandQuery::Result.new(
+        status: "error",
+        request_id: request_id,
+        data: data,
+        effects: result.effects,
+        errors: result.errors
+      )
     end
 
     def project_data(project)

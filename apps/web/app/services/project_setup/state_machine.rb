@@ -7,7 +7,7 @@ module ProjectSetup
       "awaiting_repository" => %w[awaiting_repository_confirmation cancelled],
       "awaiting_repository_confirmation" => %w[awaiting_alignment_opt_in ready_to_create cancelled],
       "awaiting_alignment_opt_in" => %w[collecting_alignment ready_to_create cancelled],
-      "collecting_alignment" => %w[collecting_alignment ready_to_create cancelled],
+      "collecting_alignment" => %w[collecting_alignment ready_to_create completed cancelled],
       "ready_to_create" => %w[creating_project cancelled],
       "creating_project" => %w[collecting_alignment completed failed needs_reconciliation],
       "completed" => [],

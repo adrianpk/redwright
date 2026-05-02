@@ -1,6 +1,6 @@
 module ProjectInitialization
   class SetupSessionRunner
-    ALIGNMENT_QUESTION = "Guided alignment is ready to continue.".freeze
+    ALIGNMENT_QUESTION = ProjectSetup::GuidedAlignmentService.first_question.freeze
     REPOSITORY_CLARIFICATION = "Repository input is ambiguous. Use URL, git@host:owner/repo, or owner/repo.".freeze
 
     Result = Struct.new(:initialization_result, :setup_session, keyword_init: true) do
