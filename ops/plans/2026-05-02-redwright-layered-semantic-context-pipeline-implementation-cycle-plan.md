@@ -90,7 +90,7 @@
 
 ### Slice 6: Documentation-First Signal Prioritization
 
-- status: `pending`
+- status: `awaiting_review`
 - branch: `fix/slice-6-semantic-documentation-priority`
 - objective: `prioritize contracts/docs signals over implementation snippets when both exist`
 - tasks:

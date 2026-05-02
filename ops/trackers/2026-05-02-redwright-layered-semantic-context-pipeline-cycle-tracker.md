@@ -129,26 +129,26 @@ Validation:
 
 ### Slice 6: Documentation-First Signal Prioritization
 
-- status: `pending`
+- status: `awaiting_review`
 - branch: `fix/slice-6-semantic-documentation-priority`
 - PR: `tbd`
 - merge_target: `dev`
-- last_sync_commit: `tbd`
+- last_sync_commit: `557f579`
 
 Tasks:
 
-- [ ] `T6.1 add doc hint extraction and normalization contract`
-- [ ] `T6.2 integrate doc-priority scoring into layered retrieval`
-- [ ] `T6.3 add tests for docs-first precedence and compact hint payloads`
+- [x] `T6.1 add doc hint extraction and normalization contract`
+- [x] `T6.2 integrate doc-priority scoring into layered retrieval`
+- [x] `T6.3 add tests for docs-first precedence and compact hint payloads`
 
 Commits:
 
-- [ ] `<sha> feat(runtime): prioritize documentation signals in semantic context selection`
-- [ ] `<sha> test(runtime): cover documentation-priority retrieval behavior`
+- [x] `7fac098 feat(runtime): prioritize documentation signals in semantic context selection`
+- [x] `0518728 test(runtime): cover documentation-priority retrieval behavior`
 
 Validation:
 
-- [ ] `docs-first retrieval suite pass`
+- [x] `ruby -Itest test/redwright/iteration_context_packet_builder_test.rb && ruby -Itest test/redwright/tree_sitter_structural_extractor_test.rb && ruby -Itest test/redwright/lsp_semantic_enricher_test.rb && ruby -Itest test/redwright/plain_text_structural_extractor_test.rb (pass)`
 
 ### Slice 7: Two-Pass Compression and Semantic Preservation
 
