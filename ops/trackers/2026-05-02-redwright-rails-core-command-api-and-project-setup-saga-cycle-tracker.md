@@ -3,10 +3,10 @@
 ## Metadata
 
 - cycle_id: `cycle-2026-05-02-redwright-rails-core-command-api-and-project-setup-saga`
-- status: `in_progress`
-- state: `awaiting_review`
+- status: `completed`
+- state: `completed`
 - updated: `2026-05-02`
-- active_slice: `Slice 8`
+- active_slice: `none`
 - active_task: `none`
 - source_plan: `ops/plans/2026-05-02-redwright-rails-core-command-api-and-project-setup-saga-implementation-cycle-plan.md`
 - source_spec: `ops/specs/specs/2026-05-02-redwright-rails-core-command-api-and-project-setup-saga-spec.md`
@@ -207,11 +207,11 @@ Validation:
 
 ### Slice 8: Agent Runtime Bridge and Cross-Channel Parity
 
-- status: `awaiting_review`
+- status: `completed`
 - branch: `fix/slice-8-agent-runtime-bridge-cross-channel-parity`
 - PR: `https://codeberg.org/adrianpk/redwright/pulls/252`
 - merge_target: `dev`
-- last_sync_commit: `fb14be7`
+- last_sync_commit: `bc08a86`
 
 Tasks:
 
@@ -238,6 +238,9 @@ Validation:
 
 - baseline_coverage: `91.2`
 - target_rule: `post-slice coverage >= pre-slice coverage for new code paths`
+- final_coverage: `91.28`
+- tuning_needed: `no`
+- tuning_evidence: `all planned slices completed with coverage guard passing; no post-slice tuning defects were recorded during cycle closure`
 
 ## Event Log
 
@@ -256,3 +259,5 @@ Validation:
 - `2026-05-02` state=`awaiting_review` slice=`Slice 7` note=`implemented Rails command/query APIs for document drafts, document promotion, project documents, ticket creation/update/move/pick, ticket-document linking, board snapshots, and project ticket listings`
 - `2026-05-02` state=`slice_merged` slice=`Slice 7` note=`Slice 7 merged to dev via PR 251`
 - `2026-05-02` state=`awaiting_review` slice=`Slice 8` note=`implemented Rails-to-runtime ticket execution bridge, persisted runtime execution correlation on tickets, routed Telegram ticket commands through Rails API, and added API/Telegram/runtime bridge parity coverage`
+- `2026-05-02` state=`slice_merged` slice=`Slice 8` note=`Slice 8 merged to dev via PR 252`
+- `2026-05-02` state=`completed` note=`completed all 8 planned slices for the Rails core command API and project setup saga cycle`
