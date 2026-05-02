@@ -6,7 +6,7 @@
 - status: `in_progress`
 - state: `awaiting_review`
 - updated: `2026-05-02`
-- active_slice: `Slice 1`
+- active_slice: `Slice 2`
 - active_task: `none`
 - source_plan: `ops/plans/2026-05-02-redwright-rails-core-command-api-and-project-setup-saga-implementation-cycle-plan.md`
 - source_spec: `ops/specs/specs/2026-05-02-redwright-rails-core-command-api-and-project-setup-saga-spec.md`
@@ -15,7 +15,7 @@
 
 ### Slice 1: Rails Application Command/Query Foundation
 
-- status: `awaiting_review`
+- status: `completed`
 - branch: `fix/slice-1-rails-command-query-foundation`
 - PR: `https://codeberg.org/adrianpk/redwright/pulls/245`
 - merge_target: `dev`
@@ -40,28 +40,29 @@ Validation:
 
 ### Slice 2: Project Setup Session Persistence and State Machine
 
-- status: `pending`
+- status: `awaiting_review`
 - branch: `fix/slice-2-project-setup-session-state-machine`
 - PR: `tbd`
 - merge_target: `dev`
-- last_sync_commit: `tbd`
+- last_sync_commit: `aebe21c`
 
 Tasks:
 
-- [ ] `T2.1 add ProjectSetupSession and ProjectSetupTurn migrations/models`
-- [ ] `T2.2 add setup state machine service with allowed transitions and terminal outcomes`
-- [ ] `T2.3 add model and service tests for setup state, turn ordering, cancellation, and invalid transitions`
+- [x] `T2.1 add ProjectSetupSession and ProjectSetupTurn migrations/models`
+- [x] `T2.2 add setup state machine service with allowed transitions and terminal outcomes`
+- [x] `T2.3 add model and service tests for setup state, turn ordering, cancellation, and invalid transitions`
 
 Commits:
 
-- [ ] `feat(web): add project setup session persistence`
-- [ ] `feat(web): add project setup state machine`
-- [ ] `test(web): cover project setup state persistence and transitions`
+- [x] `65ed479 feat(web): add project setup session persistence`
+- [x] `a0dc5d9 feat(web): add project setup state machine`
+- [x] `393667e test(web): cover project setup state persistence and transitions`
 
 Validation:
 
-- [ ] `targeted Rails model/service tests (pending)`
-- [ ] `bundle exec rake test:coverage from repository root (pending before slice closure)`
+- [x] `cd apps/web && bundle exec bin/rails test test/models/project_setup_session_test.rb test/models/project_setup_turn_test.rb test/services/project_setup/state_machine_test.rb (pass)`
+- [x] `cd apps/web && bundle exec bin/rails test (pass)`
+- [x] `bundle exec rake test:coverage from repository root (pass, coverage=91.2)`
 
 ### Slice 3: Unified Rails Project Initialization Services
 
@@ -215,10 +216,12 @@ Validation:
 
 ## Coverage Guard
 
-- baseline_coverage: `tbd before Slice 1 implementation closure`
+- baseline_coverage: `91.2`
 - target_rule: `post-slice coverage >= pre-slice coverage for new code paths`
 
 ## Event Log
 
 - `2026-05-02` state=`planning` note=`created formal spec, implementation plan, and tracker for Rails core command API plus project setup saga cycle`
 - `2026-05-02` state=`awaiting_review` slice=`Slice 1` note=`implemented Rails command/query envelope, result, registry, dispatcher, structured error handling, and focused service coverage`
+- `2026-05-02` state=`slice_merged` slice=`Slice 1` note=`Slice 1 merged to dev via PR 245`
+- `2026-05-02` state=`awaiting_review` slice=`Slice 2` note=`implemented Rails project setup session persistence, setup turn ordering, deterministic state transitions, terminal outcomes, and focused model/service coverage`
