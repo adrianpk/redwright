@@ -3,37 +3,37 @@
 ## Metadata
 
 - cycle_id: `cycle-2026-05-02-redwright-web-project-initialization-and-agent-workflow`
-- status: `planned`
-- state: `ready_for_execution`
+- status: `in_progress`
+- state: `awaiting_review`
 - updated: `2026-05-02`
 - active_slice: `Slice 1`
-- active_task: `T1.1`
+- active_task: `T1.3`
 - source_plan: `ops/plans/2026-05-02-redwright-web-project-initialization-and-agent-workflow-implementation-cycle-plan.md`
 
 ## Slice Progress
 
 ### Slice 1: Project Initialization Domain Command Contract
 
-- status: `pending`
+- status: `completed`
 - branch: `fix/slice-1-project-init-domain-command-contract`
 - PR: `tbd`
 - merge_target: `dev`
-- last_sync_commit: `tbd`
+- last_sync_commit: `7227f9f`
 
 Tasks:
 
-- [ ] `T1.1 define project initialization command input/output contract`
-- [ ] `T1.2 implement repository-first orchestration service skeleton`
-- [ ] `T1.3 add unit tests for command validation and deterministic command result shape`
+- [x] `T1.1 define project initialization command input/output contract`
+- [x] `T1.2 implement repository-first orchestration service skeleton`
+- [x] `T1.3 add unit tests for command validation and deterministic command result shape`
 
 Commits:
 
-- [ ] `<sha> feat(web): add project initialization command contract`
-- [ ] `<sha> test(web): cover project initialization command contract`
+- [x] `f2ad563 feat(web): add project initialization command contract`
+- [x] `529a6a0 test(web): cover project initialization command contract`
 
 Validation:
 
-- [ ] `targeted unit contract tests pass`
+- [x] `cd apps/web && bundle exec bin/rails test test/services/project_initialization/command_test.rb test/services/project_initialization/orchestrator_test.rb (pass)`
 
 ### Slice 2: Repository Resolution, Ambiguity, and Cancellation Semantics
 
@@ -159,4 +159,4 @@ Validation:
 ## Event Log
 
 - `2026-05-02` state=`planned` note=`6-slice implementation and tracker created from formal project initialization and workflow spec`
-
+- `2026-05-02` state=`awaiting_review` note=`Slice 1 completed with project initialization command contract, repository-first orchestrator boundary, and deterministic result-shape tests`
