@@ -1,4 +1,11 @@
 Rails.application.routes.draw do
+  namespace :api do
+    namespace :v1 do
+      post "commands", to: "command_queries#create", defaults: { kind: "command" }
+      post "queries", to: "command_queries#create", defaults: { kind: "query" }
+    end
+  end
+
   resources :users, only: [ :new, :create ]
   resource :session
   resources :passwords, param: :token
