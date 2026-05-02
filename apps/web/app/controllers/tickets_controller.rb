@@ -6,7 +6,7 @@ class TicketsController < ApplicationController
 
   def new
     @ticket = @board.tickets.new(column: default_column)
-    @available_artifacts = DocumentArtifact.order(updated_at: :desc, created_at: :desc)
+    @available_artifacts = DocumentArtifact.for_project(@board.project_id).order(updated_at: :desc, created_at: :desc)
     render :new, layout: false if turbo_frame_request?
   end
 
@@ -26,7 +26,7 @@ class TicketsController < ApplicationController
   end
 
   def edit
-    @available_artifacts = DocumentArtifact.order(updated_at: :desc, created_at: :desc)
+    @available_artifacts = DocumentArtifact.for_project(@ticket.project_id).order(updated_at: :desc, created_at: :desc)
     render :edit, layout: false if turbo_frame_request?
   end
 
@@ -77,7 +77,8 @@ class TicketsController < ApplicationController
         title: ticket.title,
         priority: ticket.priority,
         assignee: ticket.assignee,
-        column_key: ticket.column.key
+        column_key: ticket.column.key,
+        project_id: ticket.project_id
       }
     else
       render json: { id: nil }, status: :ok
