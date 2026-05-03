@@ -27,6 +27,7 @@ The Kanban board serves as the primary interface for local operation, while Tele
 ## Start Here
 
 - Concept: [What Is RedWright?](docs/explanation/what-is-redwright.md)
+- User guide: [RedWright User Guide](docs/how-to/user-guide/index.md)
 - Run guide: [Run RedWright](docs/how-to/run-redwright.md)
 - Technical reference: [Runtime Capabilities](docs/reference/runtime-capabilities.md)
 - Semantic contract: [Application Semantics v1](docs/reference/application-semantics-v1.md)
