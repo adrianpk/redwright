@@ -4,7 +4,7 @@
 
 - cycle_id: `cycle-2026-05-03-redwright-project-protocol-templates`
 - status: `in_progress`
-- state: `slice_3_merged`
+- state: `slice_4_pr_open`
 - updated: `2026-05-03`
 - active_slice: `none`
 - active_task: `none`
@@ -99,7 +99,7 @@ Commits:
 - [x] `94af421 feat(web): initialize project protocols during setup`
 - [x] `f0586cb feat(web): add project protocol setup fallback`
 - [x] `5bb6774 test(integration): cover project protocol setup`
-- [ ] `pending docs(ops): update project protocol slice 3 status`
+- [x] `d7e62f6 docs(ops): update project protocol slice 3 status`
 
 Validation:
 
@@ -108,32 +108,32 @@ Validation:
 
 ### Slice 4: Filesystem Materialization
 
-- status: `planned`
+- status: `pr_open`
 - branch: `fix/slice-4-project-protocol-materialization`
-- PR: `pending`
+- PR: `#277 https://codeberg.org/adrianpk/redwright/pulls/277`
 - merge_target: `dev`
-- last_sync_commit: `pending`
+- last_sync_commit: `57db404`
 
 Tasks:
 
-- [ ] `T4.1 define canonical filesystem projection for the fixed protocol file skeleton`
-- [ ] `T4.2 generate AGENTS.md as the lightweight root entrypoint`
-- [ ] `T4.3 generate PLAYBOOKS.md as the playbook index`
-- [ ] `T4.4 generate detailed protocol documents under .agents/`
-- [ ] `T4.5 update materialized files automatically when Rails-backed protocol documents change`
-- [ ] `T4.6 add tests for initial materialization, update propagation, root placement, and one-way sync behavior`
+- [x] `T4.1 define canonical filesystem projection for the fixed protocol file skeleton`
+- [x] `T4.2 generate AGENTS.md as the lightweight root entrypoint`
+- [x] `T4.3 generate PLAYBOOKS.md as the playbook index`
+- [x] `T4.4 generate detailed protocol documents under .agents/`
+- [x] `T4.5 update materialized files automatically when Rails-backed protocol documents change`
+- [x] `T4.6 add tests for initial materialization, update propagation, root placement, and one-way sync behavior`
 
 Commits:
 
-- [ ] `pending feat(runtime): materialize project protocol files`
-- [ ] `pending feat(web): sync project protocols to workspace`
-- [ ] `pending test(integration): cover project protocol materialization`
+- [x] `9281b9e feat(runtime): materialize project protocol files`
+- [x] `a90d466 feat(web): sync project protocols to workspace`
+- [x] `57db404 test(integration): cover project protocol materialization`
 - [ ] `pending docs(ops): update project protocol slice 4 status`
 
 Validation:
 
-- [ ] `pending bundle exec bin/rails test <targeted materialization paths>`
-- [ ] `pending bundle exec bin/rails test`
+- [x] `bundle exec bin/rails test test/services/project_protocols/filesystem_materializer_test.rb test/services/project_protocols/initialization_service_test.rb test/services/project_protocols/composer_test.rb test/services/project_protocols/command_query_composition_test.rb test/services/project_protocols/command_query_handlers_test.rb test/models/project_protocol_test.rb test/models/project_test.rb test/services/project_setup/context_loop_service_test.rb test/integration/project_setup_conversational_e2e_test.rb test/integration/project_setup_telegram_e2e_test.rb test/controllers/api/v1/command_queries_controller_test.rb` (pass)
+- [x] `bundle exec bin/rails test` (pass)
 
 ### Slice 5: Project Protocol Management Surface
 
@@ -212,3 +212,5 @@ Validation:
 - `2026-05-03` state=`slice_3_implemented` note=`implemented setup-time protocol initialization, protocol generation/session metadata exposure, library-aware overlay resolution, fallback protocol persistence, targeted setup validation, and full Rails validation on fix/slice-3-project-protocol-setup`
 - `2026-05-03` state=`slice_3_pr_open` note=`opened Codeberg PR #276 from fix/slice-3-project-protocol-setup into dev`
 - `2026-05-03` state=`slice_3_merged` note=`PR #276 merged into dev; Slice 3 is closed and Slice 4 remains pending explicit start`
+- `2026-05-03` state=`slice_4_implemented` note=`implemented protocol filesystem materialization into AGENTS.md and .agents paths, one-way Rails-to-workspace sync, manifest protocol metadata, stale file cleanup, setup workspace integration, and targeted/full Rails validation on fix/slice-4-project-protocol-materialization`
+- `2026-05-03` state=`slice_4_pr_open` note=`opened Codeberg PR #277 from fix/slice-4-project-protocol-materialization into dev`

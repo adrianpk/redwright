@@ -84,17 +84,17 @@
 
 ### Slice 4: Filesystem Materialization
 
-- status: `planned`
+- status: `pr_open`
 - branch: `fix/slice-4-project-protocol-materialization`
 - pr_title: `feat(slice-4): materialize project protocols`
 - objective: `materialize Rails-owned Project Protocols automatically into AGENTS.md, .agents/*, and PLAYBOOKS.md using the existing repository pattern`
 - tasks:
-- [ ] `T4.1 define canonical filesystem projection for the fixed protocol file skeleton`
-- [ ] `T4.2 generate AGENTS.md as the lightweight root entrypoint`
-- [ ] `T4.3 generate PLAYBOOKS.md as the playbook index`
-- [ ] `T4.4 generate detailed protocol documents under .agents/`
-- [ ] `T4.5 update materialized files automatically when Rails-backed protocol documents change`
-- [ ] `T4.6 add tests for initial materialization, update propagation, root placement, and one-way sync behavior`
+- [x] `T4.1 define canonical filesystem projection for the fixed protocol file skeleton`
+- [x] `T4.2 generate AGENTS.md as the lightweight root entrypoint`
+- [x] `T4.3 generate PLAYBOOKS.md as the playbook index`
+- [x] `T4.4 generate detailed protocol documents under .agents/`
+- [x] `T4.5 update materialized files automatically when Rails-backed protocol documents change`
+- [x] `T4.6 add tests for initial materialization, update propagation, root placement, and one-way sync behavior`
 - acceptance:
 - `protocol files are created automatically in repository root and .agents/`
 - `AGENTS.md stays lightweight and references the deeper protocol tree`
