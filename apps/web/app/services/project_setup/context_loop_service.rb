@@ -17,6 +17,7 @@ module ProjectSetup
     DEFAULT_RUNTIME_CONTAINER_PROFILE = "ephemeral_docker".freeze
     DEFAULT_AGENT_WORKFLOW_MODE = "manual".freeze
     STARTER_TICKET_TITLE = "Prepare initial implementation plan".freeze
+    RUNTIME_CONTAINERS_READINESS_TICKET_TITLE = "Review Runtime Containers readiness".freeze
     STARTER_TICKET_ASSIGNEE = "agent-coder".freeze
     BOARD_COLUMNS = [
       ["backlog", "Backlog"],
@@ -298,6 +299,8 @@ module ProjectSetup
       board = nil
       document = nil
       starter_ticket = nil
+      runtime_generation = nil
+      runtime_readiness_ticket = nil
       workspace = nil
       attribute_ids = []
       StateMachine.new(session: session).transition_to!("ready_to_create")
@@ -309,16 +312,30 @@ module ProjectSetup
       board = ensure_default_board!(project)
       attribute_ids = materialize_project_attributes!(project)
       document = write_setup_summary_document!(project)
+      runtime_generation = initialize_runtime_containers!(project)
       starter_ticket = ensure_starter_workflow_ticket!(project: project, board: board, document: document)
-      workspace = materialize_local_workspace(project, starter_ticket: starter_ticket)
+      runtime_readiness_ticket = ensure_runtime_containers_readiness_ticket!(
+        project: project,
+        board: board,
+        document: document,
+        runtime_generation: runtime_generation
+      )
+      workspace = materialize_local_workspace(
+        project,
+        starter_ticket: starter_ticket,
+        runtime_containers_readiness_ticket: runtime_readiness_ticket
+      )
       reconcile_starter_ticket_description!(starter_ticket, project, workspace)
+      reconcile_runtime_containers_readiness_ticket_description!(runtime_readiness_ticket, project, runtime_generation)
       finalize_session_metadata!(
         project: project,
         board: board,
         document: document,
         starter_ticket: starter_ticket,
+        runtime_containers_readiness_ticket: runtime_readiness_ticket,
         attribute_ids: attribute_ids,
-        workspace: workspace
+        workspace: workspace,
+        runtime_generation: runtime_generation
       )
       StateMachine.new(session: session).transition_to!("completed", terminal_reason: "completed_without_alignment")
       SagaState.new(session: session).mark_completed!(
@@ -351,11 +368,11 @@ module ProjectSetup
             "document_id" => document.id
           },
           {
-            "type" => "default_board_structure_written",
-            "session_id" => session.id,
-            "project_id" => project.id,
-            "board_id" => board.id
-          }
+          "type" => "default_board_structure_written",
+          "session_id" => session.id,
+          "project_id" => project.id,
+          "board_id" => board.id
+        }
         ]
       )
       if starter_ticket
@@ -365,6 +382,25 @@ module ProjectSetup
           "project_id" => project.id,
           "board_id" => board.id,
           "ticket_id" => starter_ticket.id
+        }
+      end
+      if runtime_generation
+        effects << {
+          "type" => "runtime_containers_initialized",
+          "session_id" => session.id,
+          "project_id" => project.id,
+          "runtime_container_id" => project.runtime_container&.id,
+          "readiness" => project.runtime_container&.readiness,
+          "generator_source" => runtime_generation.generator_source
+        }
+      end
+      if runtime_readiness_ticket
+        effects << {
+          "type" => "runtime_containers_readiness_ticket_written",
+          "session_id" => session.id,
+          "project_id" => project.id,
+          "board_id" => board.id,
+          "ticket_id" => runtime_readiness_ticket.id
         }
       end
       if workspace && workspace["materialized"] == true
@@ -395,8 +431,10 @@ module ProjectSetup
           board: board,
           document: document,
           starter_ticket: starter_ticket,
+          runtime_containers_readiness_ticket: runtime_readiness_ticket,
           attribute_ids: attribute_ids,
-          workspace: workspace
+          workspace: workspace,
+          runtime_generation: runtime_generation
         )
       )
     end
@@ -655,8 +693,36 @@ module ProjectSetup
       ticket
     end
 
-    def materialize_local_workspace(project, starter_ticket:)
-      LocalWorkspaceMaterializer.new(session: session, project: project, starter_ticket: starter_ticket).call
+    def initialize_runtime_containers!(project)
+      RuntimeContainers::GenerationService.new(project: project).call
+    end
+
+    def ensure_runtime_containers_readiness_ticket!(project:, board:, document:, runtime_generation:)
+      runtime_container = project.reload.runtime_container
+      return nil unless runtime_container
+      return nil if runtime_container.readiness == "ready"
+
+      column = board.columns.find_by!(key: "backlog")
+      ticket = board.tickets.find_or_initialize_by(title: RUNTIME_CONTAINERS_READINESS_TICKET_TITLE)
+      ticket.column ||= column
+      ticket.description = runtime_containers_readiness_ticket_description(project, runtime_generation)
+      ticket.priority = runtime_container.readiness == "blocked" ? :high : :medium
+      ticket.assignee ||= STARTER_TICKET_ASSIGNEE
+      ticket.save!
+
+      link = ticket.ticket_document_links.find_or_initialize_by(document: document)
+      link.role = "reference"
+      link.save!
+      ticket
+    end
+
+    def materialize_local_workspace(project, starter_ticket:, runtime_containers_readiness_ticket:)
+      LocalWorkspaceMaterializer.new(
+        session: session,
+        project: project,
+        starter_ticket: starter_ticket,
+        runtime_containers_readiness_ticket: runtime_containers_readiness_ticket
+      ).call
     end
 
     def reconcile_starter_ticket_description!(starter_ticket, project, workspace)
@@ -664,6 +730,13 @@ module ProjectSetup
 
       starter_ticket.description = starter_ticket_description(project, workspace: workspace)
       starter_ticket.save!
+    end
+
+    def reconcile_runtime_containers_readiness_ticket_description!(ticket, project, runtime_generation)
+      return unless ticket
+
+      ticket.description = runtime_containers_readiness_ticket_description(project, runtime_generation)
+      ticket.save!
     end
 
     def starter_ticket_description(project, workspace: nil)
@@ -684,6 +757,26 @@ module ProjectSetup
         "Framework: #{slot_value("framework")}",
         "Libraries: #{slot_value("libraries")}",
         "Runtime container profile: #{slot_value("runtime_container_profile")}"
+      ].compact.join("\n")
+    end
+
+    def runtime_containers_readiness_ticket_description(project, runtime_generation)
+      state = project.reload.runtime_container_state
+      missing_information = Array(state["missing_information"]).map { |item| "- #{item}" }
+      risks = Array(state["risks"]).map do |risk|
+        risk.is_a?(Hash) ? "- #{risk["severity"]}: #{risk["message"]}" : "- #{risk}"
+      end
+
+      [
+        "Review and complete the project Runtime Containers configuration before sandbox-required ticket execution starts.",
+        "Project: #{project.name}",
+        "Runtime Containers profile: #{state["profile"]}",
+        "Readiness: #{state["readiness"]}",
+        "Validation: #{state["validation_status"]}",
+        "Generator source: #{runtime_generation&.generator_source}",
+        "Validation command: #{state["validation_command"]}",
+        ("Missing information:\n#{missing_information.join("\n")}" if missing_information.any?),
+        ("Risks:\n#{risks.join("\n")}" if risks.any?)
       ].compact.join("\n")
     end
 
@@ -709,12 +802,15 @@ module ProjectSetup
       lines.join("\n")
     end
 
-    def finalize_session_metadata!(project:, board:, document:, starter_ticket:, attribute_ids:, workspace:)
+    def finalize_session_metadata!(project:, board:, document:, starter_ticket:, runtime_containers_readiness_ticket:, attribute_ids:, workspace:, runtime_generation:)
       metadata = session.metadata
       metadata["project_id"] = project.id
       metadata["board_id"] = board.id
       metadata["setup_summary_document_id"] = document.id
       metadata["starter_ticket_id"] = starter_ticket&.id if starter_ticket
+      metadata["runtime_containers_readiness_ticket_id"] = runtime_containers_readiness_ticket&.id if runtime_containers_readiness_ticket
+      metadata["runtime_containers_generation"] = runtime_generation_metadata(runtime_generation)
+      metadata["runtime_containers"] = project.reload.runtime_container_state
       metadata["setup_project_attribute_ids"] = attribute_ids
       metadata["guided_alignment_pending"] = false
       metadata["repository_placeholder"] = project.repo_url if repository_slot_missing?
@@ -728,12 +824,26 @@ module ProjectSetup
       session.save!
     end
 
-    def materialization_data(project:, board:, document:, starter_ticket:, attribute_ids:, workspace:)
+    def runtime_generation_metadata(runtime_generation)
+      return {} unless runtime_generation
+
+      {
+        "persisted" => runtime_generation.persisted?,
+        "generator_source" => runtime_generation.generator_source,
+        "fallback_reason" => runtime_generation.fallback_reason,
+        "errors" => runtime_generation.errors
+      }
+    end
+
+    def materialization_data(project:, board:, document:, starter_ticket:, runtime_containers_readiness_ticket:, attribute_ids:, workspace:, runtime_generation:)
       data = {
         "project" => project_data(project),
         "board_id" => board.id,
         "setup_summary_document_id" => document.id,
         "starter_ticket_id" => starter_ticket&.id,
+        "runtime_containers_readiness_ticket_id" => runtime_containers_readiness_ticket&.id,
+        "runtime_containers" => project.reload.runtime_container_state,
+        "runtime_containers_generation" => runtime_generation_metadata(runtime_generation),
         "setup_project_attribute_ids" => attribute_ids
       }
       data["workspace"] = workspace if workspace
@@ -751,6 +861,9 @@ module ProjectSetup
         "board_id" => metadata["board_id"],
         "setup_summary_document_id" => metadata["setup_summary_document_id"],
         "starter_ticket_id" => metadata["starter_ticket_id"],
+        "runtime_containers_readiness_ticket_id" => metadata["runtime_containers_readiness_ticket_id"],
+        "runtime_containers" => metadata["runtime_containers"] || project.runtime_container_state,
+        "runtime_containers_generation" => metadata["runtime_containers_generation"] || {},
         "setup_project_attribute_ids" => metadata["setup_project_attribute_ids"] || []
       }
       data["workspace"] = metadata["workspace"] if metadata["workspace"].is_a?(Hash)

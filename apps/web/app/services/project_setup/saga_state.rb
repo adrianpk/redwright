@@ -101,6 +101,7 @@ module ProjectSetup
           "reason" => value_from(workspace, "reason", ""),
           "linked_ticket_ids" => linked_ticket_ids_from(workspace, starter_ticket)
         },
+        "runtime_containers" => runtime_containers_state_from(workspace),
         "ticket_operation" => {
           "status" => "available",
           "project_id" => project.id,
@@ -179,6 +180,9 @@ module ProjectSetup
           "runnable" => false,
           "reason" => "initial implementation has not started"
         },
+        "runtime_containers" => {
+          "status" => "pending"
+        },
         "ticket_operation" => {
           "status" => ticket_operation_status
         }
@@ -251,6 +255,20 @@ module ProjectSetup
       ids = [] unless ids.is_a?(Array)
       ids << starter_ticket.id if starter_ticket && !ids.include?(starter_ticket.id)
       ids
+    end
+
+    def runtime_containers_state_from(workspace)
+      state = value_from(workspace, "runtime_containers", {})
+      state = {} unless state.is_a?(Hash)
+
+      {
+        "status" => state["status"].presence || "missing",
+        "id" => state["id"],
+        "readiness" => state["readiness"].presence || "missing",
+        "validation_status" => state["validation_status"].presence || "not_run",
+        "profile" => state["profile"].presence || "default",
+        "readiness_ticket_id" => value_from(workspace, "runtime_containers_readiness_ticket_id", nil)
+      }
     end
 
     def value_from(hash, key, fallback)

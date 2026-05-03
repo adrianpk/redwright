@@ -16,10 +16,11 @@ module ProjectSetup
     URFAVE_CLI_MODULE = "github.com/urfave/cli/v2".freeze
     URFAVE_CLI_VERSION = "v2.27.6".freeze
 
-    def initialize(session:, project:, starter_ticket: nil, projects_root: nil)
+    def initialize(session:, project:, starter_ticket: nil, runtime_containers_readiness_ticket: nil, projects_root: nil)
       @session = session
       @project = project
       @starter_ticket = starter_ticket
+      @runtime_containers_readiness_ticket = runtime_containers_readiness_ticket
       @projects_root = projects_root.presence || ENV["REDWRIGHT_LOCAL_PROJECTS_ROOT"].presence || default_projects_root
       @scaffold_profile = nil
       @validation_result = nil
@@ -65,6 +66,10 @@ module ProjectSetup
         "repo_url" => @project.repo_url,
         "scaffold_profile" => scaffold_profile_key,
         "scaffold_files" => scaffold_files,
+        "runtime_container_id" => @project.runtime_container&.id,
+        "runtime_container_readiness" => @project.runtime_container_state.fetch("readiness"),
+        "runtime_containers" => @project.runtime_container_state,
+        "runtime_containers_readiness_ticket_id" => @runtime_containers_readiness_ticket&.id,
         "linked_ticket_ids" => linked_ticket_ids
       }
     end
@@ -95,6 +100,10 @@ module ProjectSetup
         "repo_url" => @project.repo_url,
         "scaffold_profile" => "",
         "scaffold_files" => [],
+        "runtime_container_id" => @project.runtime_container&.id,
+        "runtime_container_readiness" => @project.runtime_container_state.fetch("readiness"),
+        "runtime_containers" => @project.runtime_container_state,
+        "runtime_containers_readiness_ticket_id" => @runtime_containers_readiness_ticket&.id,
         "linked_ticket_ids" => linked_ticket_ids
       }
     end
@@ -143,6 +152,7 @@ module ProjectSetup
         "runtime" => {
           "container_profile" => slot_value("runtime_container_profile")
         },
+        "runtime_containers" => runtime_containers_payload,
         "workflow" => {
           "agent_workflow_mode" => slot_value("agent_workflow_mode"),
           "linked_ticket_ids" => linked_ticket_ids
@@ -252,6 +262,14 @@ module ProjectSetup
       return "- Initial implementation ticket: #{@starter_ticket.id}" if @starter_ticket
 
       "- Initial implementation ticket: pending"
+    end
+
+    def runtime_containers_payload
+      {
+        "runtime_container_id" => @project.runtime_container&.id,
+        "state" => @project.runtime_container_state,
+        "readiness_ticket_id" => @runtime_containers_readiness_ticket&.id
+      }
     end
 
     def scaffold_profile
@@ -536,7 +554,7 @@ module ProjectSetup
     end
 
     def linked_ticket_ids
-      @starter_ticket ? [@starter_ticket.id] : []
+      [@starter_ticket&.id, @runtime_containers_readiness_ticket&.id].compact.uniq
     end
 
     def go_cli_context?
