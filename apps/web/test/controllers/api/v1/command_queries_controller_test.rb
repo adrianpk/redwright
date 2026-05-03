@@ -352,6 +352,56 @@ class Api::V1::CommandQueriesControllerTest < ActionDispatch::IntegrationTest
     }
   end
 
+  test "go cli project setup returns scaffold materialization through command api" do
+    with_local_projects_root do |projects_root|
+      post "/api/v1/commands",
+        params: {
+          name: "StartProjectSetup",
+          payload: {
+            project_name: "API Go CLI",
+            description: "A small Go command line application.",
+            guided_alignment: true
+          },
+          request_id: "req-api-go-cli-start"
+        },
+        headers: actor_headers,
+        as: :json
+      assert_response :success
+      session_id = json_body.fetch("session_id")
+
+      post "/api/v1/commands",
+        params: {
+          name: "AdvanceProjectSetup",
+          payload: {
+            session_id: session_id,
+            answer: "CLI in Go with the standard library",
+            normalized_fields: {
+              project_type: "CLI",
+              language_runtime: "Go 1.22",
+              framework: "none",
+              libraries: "standard library"
+            }
+          },
+          request_id: "req-api-go-cli-context"
+        },
+        headers: actor_headers,
+        as: :json
+
+      assert_response :success
+      body = json_body
+      assert_equal "completed", body.fetch("state")
+      workspace = body.dig("data", "workspace")
+      assert_equal File.join(projects_root, "api-go-cli"), workspace.fetch("path")
+      assert_equal "go_cli", workspace.fetch("scaffold_profile")
+      assert_equal %w[go.mod main.go main_test.go], workspace.fetch("scaffold_files")
+      assert_equal workspace.fetch("materialization_status"), body.fetch("setup_saga").fetch("materialization").fetch("status")
+      assert_equal workspace.fetch("validation_status"), body.fetch("setup_saga").fetch("materialization").fetch("validation_status")
+      assert File.file?(File.join(workspace.fetch("path"), "go.mod"))
+      assert File.file?(File.join(workspace.fetch("path"), "main.go"))
+      assert File.file?(File.join(workspace.fetch("path"), "main_test.go"))
+    end
+  end
+
   test "skip cannot bypass blocking project name and cancel leaves no project" do
     post "/api/v1/commands",
       params: {
@@ -764,6 +814,20 @@ class Api::V1::CommandQueriesControllerTest < ActionDispatch::IntegrationTest
 
   def json_body
     JSON.parse(response.body)
+  end
+
+  def with_local_projects_root
+    previous = ENV["REDWRIGHT_LOCAL_PROJECTS_ROOT"]
+    Dir.mktmpdir("redwright-local-projects-") do |dir|
+      ENV["REDWRIGHT_LOCAL_PROJECTS_ROOT"] = dir
+      yield dir
+    ensure
+      if previous.nil?
+        ENV.delete("REDWRIGHT_LOCAL_PROJECTS_ROOT")
+      else
+        ENV["REDWRIGHT_LOCAL_PROJECTS_ROOT"] = previous
+      end
+    end
   end
 
   def with_runtime_socket_response(payload)

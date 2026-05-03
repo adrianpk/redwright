@@ -444,6 +444,84 @@ module ProjectSetup
       end
     end
 
+    test "go cli setup materializes scaffold files and validation outcome" do
+      with_local_projects_root do |projects_root|
+        session = context_session
+        session.assign_setup_slot(key: "project_name", value: "hanoi-cli", source: "payload")
+        session.assign_setup_slot(key: "description", value: "A CLI that solves Tower of Hanoi.", source: "payload")
+        session.assign_setup_slot(key: "project_type", value: "CLI", source: "user_answer")
+        session.assign_setup_slot(key: "language_runtime", value: "Go 1.22", source: "user_answer")
+        session.assign_setup_slot(key: "framework", value: "none", source: "user_answer")
+        session.metadata = session.metadata.merge(
+          "next_prompt_intent" => prompt_intent("libraries")
+        )
+        session.save!
+
+        result = ContextLoopService.new(session: session).advance!(
+          answer: "standard library",
+          normalized_fields: {"libraries" => "standard library"},
+          source_channel: "telegram",
+          request_id: "req-context-service-go-cli-scaffold"
+        )
+
+        assert result.ok?
+        workspace = result.data.fetch("workspace")
+        path = workspace.fetch("path")
+        assert_equal File.join(projects_root, "hanoi-cli"), path
+        assert_equal "go_cli", workspace.fetch("scaffold_profile")
+        assert_equal %w[go.mod main.go main_test.go], workspace.fetch("scaffold_files")
+        assert File.file?(File.join(path, "go.mod"))
+        assert File.file?(File.join(path, "main.go"))
+        assert File.file?(File.join(path, "main_test.go"))
+        assert_includes File.read(File.join(path, "go.mod")), "module example.com/redwright/hanoi-cli"
+        assert_includes File.read(File.join(path, "main.go")), "func main()"
+        assert_includes File.read(File.join(path, "main_test.go")), "TestRunPrintsProjectName"
+
+        manifest = YAML.safe_load(File.read(workspace.fetch("manifest_path")))
+        assert_equal "go_cli", manifest.dig("scaffold", "profile")
+        assert_equal "example.com/redwright/hanoi-cli", manifest.dig("scaffold", "module_path")
+        assert_equal %w[go.mod main.go main_test.go], manifest.dig("scaffold", "files")
+        assert_equal "go test ./...", manifest.dig("validation", "command")
+        assert_includes %w[passed skipped failed], manifest.dig("validation", "status")
+        assert_equal manifest.dig("validation", "status"), workspace.fetch("validation_status")
+        assert_equal manifest.dig("materialization", "runnable"), workspace.fetch("runnable")
+        assert_equal manifest.dig("materialization", "status"), session.reload.metadata.fetch("setup_saga").fetch("materialization").fetch("status")
+        assert_includes File.read(workspace.fetch("readme_path")), "go run ."
+      end
+    end
+
+    test "go cli setup records urfave cli dependency without external validation" do
+      with_local_projects_root do
+        session = context_session
+        session.assign_setup_slot(key: "project_name", value: "cobraless-cli", source: "payload")
+        session.assign_setup_slot(key: "description", value: "A CLI that exercises optional library scaffolding.", source: "payload")
+        session.assign_setup_slot(key: "project_type", value: "CLI", source: "user_answer")
+        session.assign_setup_slot(key: "language_runtime", value: "Go 1.22", source: "user_answer")
+        session.assign_setup_slot(key: "framework", value: "none", source: "user_answer")
+        session.metadata = session.metadata.merge(
+          "next_prompt_intent" => prompt_intent("libraries")
+        )
+        session.save!
+
+        result = ContextLoopService.new(session: session).advance!(
+          answer: "urfave/cli",
+          normalized_fields: {"libraries" => "urfave/cli"},
+          source_channel: "telegram",
+          request_id: "req-context-service-go-cli-urfave"
+        )
+
+        assert result.ok?
+        workspace = result.data.fetch("workspace")
+        path = workspace.fetch("path")
+        assert_includes File.read(File.join(path, "go.mod")), "require github.com/urfave/cli/v2"
+        assert_includes File.read(File.join(path, "main.go")), "\"github.com/urfave/cli/v2\""
+        manifest = YAML.safe_load(File.read(workspace.fetch("manifest_path")))
+        assert_equal ["github.com/urfave/cli/v2"], manifest.dig("scaffold", "dependencies")
+        assert_equal "skipped", manifest.dig("validation", "status")
+        assert_equal "validation is skipped for scaffold profiles with external dependencies", manifest.dig("validation", "reason")
+      end
+    end
+
     private
 
     def context_session
