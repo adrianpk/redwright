@@ -210,7 +210,17 @@ class Api::V1::CommandQueriesControllerTest < ActionDispatch::IntegrationTest
     assert session.project.boards.exists?(name: "pocket-ledger Board")
     assert_equal %w[backlog in_progress review approved merged], session.project.boards.first.columns.order(:position).pluck(:key)
     assert_equal(
-      %w[setup_context.description setup_context.framework setup_context.language_runtime setup_context.libraries setup_context.project_name setup_context.project_type setup_context.stack],
+      %w[
+        setup_context.agent_workflow_mode
+        setup_context.description
+        setup_context.framework
+        setup_context.language_runtime
+        setup_context.libraries
+        setup_context.project_name
+        setup_context.project_type
+        setup_context.runtime_container_profile
+        setup_context.stack
+      ],
       session.project.project_attributes.order(:key).pluck(:key)
     )
     assert_equal(
