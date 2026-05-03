@@ -3,6 +3,7 @@ module CommandQuery
     def self.build
       dispatcher = Dispatcher.new
       ProjectSetup::CommandQueryHandlers.register(dispatcher)
+      RuntimeContainers::CommandQueryHandlers.register(dispatcher)
       DocumentManagement::CommandQueryHandlers.register(dispatcher)
       BoardWorkflow::CommandQueryHandlers.register(dispatcher)
       dispatcher

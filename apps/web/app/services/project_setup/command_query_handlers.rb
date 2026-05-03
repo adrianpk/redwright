@@ -330,7 +330,8 @@ module ProjectSetup
         "description" => project.description,
         "root_path" => project.root_path,
         "repo_url" => project.repo_url,
-        "stack_slug" => project.stack_slug
+        "stack_slug" => project.stack_slug,
+        "runtime_containers" => project.runtime_container_state
       }
       if include_setup_saga
         latest_session = project.project_setup_sessions.order(created_at: :desc, id: :desc).first
