@@ -2,6 +2,8 @@
 
 require "shellwords"
 
+require_relative "project_setup_prompt_renderer"
+
 module Redwright
   class TelegramProjectSetupAdapter
     Result = Struct.new(:handled, :command, :message, :api_response, keyword_init: true) do
@@ -12,14 +14,17 @@ module Redwright
 
     TERMINAL_STATES = %w[completed cancelled failed needs_reconciliation].freeze
 
-    def initialize(client:)
+    def initialize(client:, prompt_renderer: ProjectSetupPromptRenderer.new)
       @client = client
+      @prompt_renderer = prompt_renderer
       @session_ids_by_chat = {}
       @project_ids_by_chat = {}
       @ticket_ids_by_chat = {}
     end
 
     def handle(event, trace_id:)
+      return advance_active_session(event: event, trace_id: trace_id) if active_session_id(event.chat_id) && setup_control_command?(event.text)
+
       command = parse_command(event.text)
       return handle_project_command(event: event, command: command, trace_id: trace_id) if command
       ticket_command = parse_ticket_command(event.text)
@@ -89,7 +94,7 @@ module Redwright
       Result.new(
         handled: true,
         command: "project_new",
-        message: render_setup_response(body: body, trace_id: trace_id),
+        message: render_setup_response(body: body, trace_id: trace_id, user_text: event.text),
         api_response: body
       )
     end
@@ -112,7 +117,7 @@ module Redwright
       Result.new(
         handled: true,
         command: "project_setup_advance",
-        message: render_setup_response(body: body, trace_id: trace_id),
+        message: render_setup_response(body: body, trace_id: trace_id, user_text: event.text),
         api_response: body
       )
     end
@@ -147,7 +152,7 @@ module Redwright
         return Result.new(
           handled: true,
           command: "project_where",
-          message: render_setup_response(body: body, trace_id: trace_id),
+          message: render_setup_response(body: body, trace_id: trace_id, user_text: event.text),
           api_response: body
         )
       end
@@ -235,27 +240,8 @@ module Redwright
       )
     end
 
-    def render_setup_response(body:, trace_id:)
-      if body.fetch("status", "") == "error"
-        return [
-          "Project setup error: #{summary_from(body)}",
-          *error_lines_from(body),
-          "Trace: #{trace_id}"
-        ].join("\n")
-      end
-
-      parts = [
-        summary_from(body),
-        "State: #{body['state'] || body.dig('data', 'state') || 'unknown'}"
-      ]
-      session_id = body["session_id"] || body.dig("data", "session_id")
-      project_id = body["project_id"] || body.dig("data", "project_id")
-      next_prompt = body["next_prompt"] || body.dig("data", "next_prompt")
-      parts << "Session: #{session_id}" if session_id
-      parts << "Project: #{project_id}" if project_id
-      parts << "Next: #{next_prompt}" unless next_prompt.to_s.empty?
-      parts << "Trace: #{trace_id}"
-      parts.join("\n")
+    def render_setup_response(body:, trace_id:, user_text:)
+      @prompt_renderer.render(body: body, user_text: user_text, trace_id: trace_id)
     end
 
     def render_project_list(body:, trace_id:)
@@ -455,6 +441,10 @@ module Redwright
 
     def slash?(text)
       text.to_s.strip.start_with?("/")
+    end
+
+    def setup_control_command?(text)
+      %w[/skip /done /cancel].include?(text.to_s.strip.downcase)
     end
 
     def actor_identifier_for(event)

@@ -25,7 +25,7 @@ class TelegramProjectSetupAdapterTest < Minitest::Test
         actor_identifier: actor_identifier,
         request_id: request_id
       }
-      FakeApiResponse.new(body: command_body(name))
+      FakeApiResponse.new(body: command_body(name, payload))
     end
 
     def query(name:, payload:, actor_identifier:, request_id:)
@@ -41,9 +41,16 @@ class TelegramProjectSetupAdapterTest < Minitest::Test
 
     private
 
-    def command_body(name)
+    def command_body(name, payload)
       case name
       when "StartProjectSetup"
+        slot = if payload["project_name"].to_s.empty?
+                 "project_name"
+               elsif payload["description"].to_s.empty?
+                 "description"
+               else
+                 "project_type"
+               end
         {
           "status" => "ok",
           "summary" => "Project setup started.",
@@ -54,7 +61,7 @@ class TelegramProjectSetupAdapterTest < Minitest::Test
           "data" => {
             "next_prompt_intent" => {
               "kind" => "setup_slot_question",
-              "slot" => "description",
+              "slot" => slot,
               "locale" => "auto",
               "llm_required" => true
             }
@@ -63,11 +70,19 @@ class TelegramProjectSetupAdapterTest < Minitest::Test
       when "AdvanceProjectSetup"
         {
           "status" => "ok",
-          "summary" => "Project setup advanced.",
+          "summary" => "Project setup context updated.",
           "session_id" => 41,
           "project_id" => nil,
-          "state" => "awaiting_repository",
-          "next_prompt" => "Repository input is ambiguous."
+          "state" => "collecting_context",
+          "next_prompt" => nil,
+          "data" => {
+            "next_prompt_intent" => {
+              "kind" => "setup_slot_question",
+              "slot" => "project_type",
+              "locale" => "auto",
+              "llm_required" => true
+            }
+          }
         }
       else
         raise "unexpected command #{name}"
@@ -141,7 +156,7 @@ class TelegramProjectSetupAdapterTest < Minitest::Test
     assert_equal(41, client.calls.last[:payload].fetch("session_id"))
     assert_equal("acme/happy-cli", client.calls.last[:payload].fetch("answer"))
     refute_match(/^Next:/, started.message)
-    assert_match("Project setup advanced.", advanced.message)
+    assert_match("What type of project", advanced.message)
   end
 
   def test_routes_quoted_project_new_with_description_over_rails_api
@@ -161,7 +176,7 @@ class TelegramProjectSetupAdapterTest < Minitest::Test
     refute_includes(client.calls.first[:payload].keys, "repository_input")
     assert_equal("telegram:chat:9:user:77", client.calls.first[:actor_identifier])
     assert_equal("telegram-9-1-start-project-setup", client.calls.first[:request_id])
-    assert_match("Project setup started.", result.message)
+    assert_match("What type of project", result.message)
   end
 
   def test_routes_project_new_with_repository_url_as_optional_repository_context
@@ -214,7 +229,54 @@ class TelegramProjectSetupAdapterTest < Minitest::Test
     assert_equal(["StartProjectSetup"], client.calls.map { |call| call[:name] })
     refute_includes(client.calls.first[:payload].keys, "project_name")
     refute_includes(client.calls.first[:payload].keys, "repository_input")
-    assert_match("Project setup started.", result.message)
+    assert_match("What should I call this project?", result.message)
+  end
+
+  def test_routes_setup_control_slash_to_active_session
+    client = ScriptedRailsClient.new(
+      command_bodies: {
+        "StartProjectSetup" => {
+          "status" => "ok",
+          "summary" => "Project setup started.",
+          "session_id" => 41,
+          "project_id" => nil,
+          "state" => "collecting_context",
+          "data" => {
+            "next_prompt_intent" => {
+              "kind" => "setup_slot_question",
+              "slot" => "description",
+              "locale" => "auto",
+              "llm_required" => true
+            }
+          }
+        },
+        "AdvanceProjectSetup" => {
+          "status" => "ok",
+          "summary" => "Project created; setup completed.",
+          "session_id" => 41,
+          "project_id" => 74,
+          "state" => "completed",
+          "data" => {
+            "project" => {
+              "id" => 74,
+              "name" => "tiny-index"
+            }
+          }
+        }
+      }
+    )
+    adapter = Redwright::TelegramProjectSetupAdapter.new(client: client)
+
+    adapter.handle(event(1, "/project new tiny-index"), trace_id: "trc-test")
+    result = adapter.handle(event(2, "/done"), trace_id: "trc-test")
+
+    assert result.handled?
+    assert_equal(%w[StartProjectSetup AdvanceProjectSetup], client.calls.map { |call| call[:name] })
+    assert_equal("/done", client.calls.last[:payload].fetch("answer"))
+    assert_match("Project setup is complete.", result.message)
+    refute_match(/\bState:/, result.message)
+    refute_match(/\bSession:/, result.message)
+    refute_match(/\bTrace:/, result.message)
   end
 
   def test_ignores_unknown_project_slash_without_active_session

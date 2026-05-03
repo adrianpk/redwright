@@ -77,6 +77,13 @@ class TelegramRuntimeHandlerTest < Minitest::Test
         request_id: request_id
       }
       body = if name == "StartProjectSetup"
+               slot = if payload["project_name"].to_s.empty?
+                        "project_name"
+                      elsif payload["description"].to_s.empty?
+                        "description"
+                      else
+                        "project_type"
+                      end
                {
                  "status" => "ok",
                  "summary" => "Project setup started.",
@@ -86,7 +93,7 @@ class TelegramRuntimeHandlerTest < Minitest::Test
                  "data" => {
                    "next_prompt_intent" => {
                      "kind" => "setup_slot_question",
-                     "slot" => "description",
+                     "slot" => slot,
                      "locale" => "auto",
                      "llm_required" => true
                    }
@@ -95,10 +102,18 @@ class TelegramRuntimeHandlerTest < Minitest::Test
              elsif name == "AdvanceProjectSetup"
                {
                  "status" => "ok",
-                 "summary" => "Project setup advanced.",
+                 "summary" => "Project setup context updated.",
                  "session_id" => 101,
-                 "state" => "awaiting_repository",
-                 "next_prompt" => "Repository input is ambiguous."
+                 "state" => "collecting_context",
+                 "next_prompt" => nil,
+                 "data" => {
+                   "next_prompt_intent" => {
+                     "kind" => "setup_slot_question",
+                     "slot" => "project_type",
+                     "locale" => "auto",
+                     "llm_required" => true
+                   }
+                 }
                }
              else
                raise "unexpected command #{name}"
@@ -1181,10 +1196,10 @@ class TelegramRuntimeHandlerTest < Minitest::Test
 
         assert_equal(%w[StartProjectSetup AdvanceProjectSetup], setup_client.calls.map { |call| call[:name] })
         assert_equal(2, client.messages.size)
-        assert_match("Project setup started.", client.messages.first[:text])
-        assert_match("Project setup advanced.", client.messages.last[:text])
+        assert_match("What should this project do?", client.messages.first[:text])
+        assert_match("What type of project", client.messages.last[:text])
         assert_match("telegram rails_project_setup chat=46 command=project_new state=collecting_context", out.string)
-        assert_match("telegram rails_project_setup chat=46 command=project_setup_advance state=awaiting_repository", out.string)
+        assert_match("telegram rails_project_setup chat=46 command=project_setup_advance state=collecting_context", out.string)
         assert_equal([], project_store.list)
         refute(File.directory?(File.join(bootstrap.projects_root, "happy-cli")))
       end
@@ -1227,7 +1242,7 @@ class TelegramRuntimeHandlerTest < Minitest::Test
     assert_equal("telegram:chat:46:user:77", setup_client.calls.first[:actor_identifier])
     assert_equal("telegram-46-4-start-project-setup", setup_client.calls.first[:request_id])
     assert_equal(1, client.messages.size)
-    assert_match("Project setup started.", client.messages.last[:text])
+    assert_match("What type of project", client.messages.last[:text])
     assert_match("telegram rails_project_setup chat=46 command=project_new state=collecting_context", out.string)
   end
 

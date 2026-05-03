@@ -411,7 +411,10 @@ module Redwright
             task_store: task_store,
             action_execution_store: action_execution_store
           )
-          project_setup_adapter = telegram_project_setup_adapter_from_env
+          project_setup_adapter = telegram_project_setup_adapter_from_env(
+            model_name: model_candidate.name,
+            llm_client: llm_client_for(model_candidate.provider)
+          )
           handler = TelegramRuntimeHandler.new(
             flow: flow,
             telegram_client: telegram_client,
@@ -671,12 +674,17 @@ module Redwright
       lock&.release! if sub == "run"
     end
 
-    def telegram_project_setup_adapter_from_env
+    def telegram_project_setup_adapter_from_env(model_name: "none", llm_client: nil)
       base_url = ENV.fetch("REDWRIGHT_RAILS_API_URL", "").strip
       return nil if base_url.empty?
 
       TelegramProjectSetupAdapter.new(
-        client: TelegramRailsApiClient.new(base_url: base_url)
+        client: TelegramRailsApiClient.new(base_url: base_url),
+        prompt_renderer: ProjectSetupPromptRenderer.new(
+          llm_client: llm_client,
+          model: model_name,
+          debug: ENV.fetch("REDWRIGHT_TELEGRAM_SETUP_DEBUG", "") == "1"
+        )
       )
     end
 
