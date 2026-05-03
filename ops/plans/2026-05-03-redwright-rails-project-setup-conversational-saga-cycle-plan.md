@@ -107,7 +107,7 @@
 
 ### Slice 5: Agent Workflow and Runtime Container Context Bridge
 
-- status: `ready_for_pr`
+- status: `merged`
 - branch: `fix/slice-5-project-setup-agent-workflow-context`
 - pr_title: `feat(slice-5): project setup agent workflow context`
 - objective: `make setup context available to agent workflow through Rails tickets, project attributes, and runtime bridge settings`
@@ -127,7 +127,7 @@
 
 ### Slice 6: End-to-End Regression Closure
 
-- status: `pending`
+- status: `in_progress`
 - branch: `fix/slice-6-project-setup-conversational-e2e`
 - pr_title: `feat(slice-6): project setup conversational e2e`
 - objective: `close the cycle with end-to-end coverage and tracker/report updates`
