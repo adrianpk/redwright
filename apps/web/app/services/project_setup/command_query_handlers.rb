@@ -72,7 +72,11 @@ module ProjectSetup
         return guided_alignment_result(alignment_result, request_id: request_id)
       end
 
-      return terminal_session_result(session, request_id: request_id) if session.terminal?
+      if session.terminal?
+        return completed_context_session_result(session, request_id: request_id) if completion_control?(answer) && completed_context_session?(session)
+
+        return terminal_session_result(session, request_id: request_id)
+      end
 
       turn = StateMachine.new(session: session).record_turn!(
         question: session.pending_question.presence || "Advance project setup",
@@ -326,6 +330,41 @@ module ProjectSetup
         "repo_url" => project.repo_url,
         "stack_slug" => project.stack_slug
       }
+    end
+
+    def completed_context_session_result(session, request_id:)
+      CommandQuery::Result.ok(
+        request_id: request_id,
+        data: completed_context_session_data(session),
+        effects: [
+          {
+            "type" => "project_setup_completion_reused",
+            "session_id" => session.id,
+            "project_id" => session.project_id
+          }
+        ]
+      )
+    end
+
+    def completed_context_session_data(session)
+      metadata = session.metadata
+      session_data(session, summary: "Project created; setup completed.").merge(
+        "project" => metadata["materialized_project"] || project_data(session.project),
+        "board_id" => metadata["board_id"],
+        "setup_summary_document_id" => metadata["setup_summary_document_id"],
+        "starter_ticket_id" => metadata["starter_ticket_id"],
+        "setup_project_attribute_ids" => metadata["setup_project_attribute_ids"] || []
+      )
+    end
+
+    def completed_context_session?(session)
+      session.current_state == "completed" &&
+        session.project_id.present? &&
+        session.metadata["setup_completion_materialized"] == true
+    end
+
+    def completion_control?(answer)
+      %w[/done done].include?(answer.to_s.strip.downcase)
     end
 
     def terminal_session_result(session, request_id:)

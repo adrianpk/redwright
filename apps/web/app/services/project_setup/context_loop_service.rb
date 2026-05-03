@@ -42,16 +42,20 @@ module ProjectSetup
       turn = context_turn_for_request(request_id)
       return nil unless turn
 
+      effects = [
+        {
+          "type" => "project_setup_turn_reused",
+          "session_id" => session.id,
+          "turn_index" => turn.turn_index
+        }
+      ]
+      effects << completion_reused_effect if completion_materialized?
+
       success(
         turn: turn,
         summary: summary_for(session),
-        effects: [
-          {
-            "type" => "project_setup_turn_reused",
-            "session_id" => session.id,
-            "turn_index" => turn.turn_index
-          }
-        ]
+        effects: effects,
+        data: completion_materialization_data
       )
     end
 
@@ -324,13 +328,13 @@ module ProjectSetup
         turn: turn,
         summary: "Project created; setup completed.",
         effects: effects,
-        data: {
-          "project" => project_data(project),
-          "board_id" => board.id,
-          "setup_summary_document_id" => document.id,
-          "starter_ticket_id" => starter_ticket&.id,
-          "setup_project_attribute_ids" => attribute_ids
-        }
+        data: materialization_data(
+          project: project,
+          board: board,
+          document: document,
+          starter_ticket: starter_ticket,
+          attribute_ids: attribute_ids
+        )
       )
     end
 
@@ -484,6 +488,8 @@ module ProjectSetup
     end
 
     def create_project!
+      return session.project if session.project
+
       name = slot_value("project_name")
       directory_name = unique_directory_name(directory_name_from(name))
       repo_url = repository_url_for(directory_name)
@@ -498,13 +504,15 @@ module ProjectSetup
 
     def ensure_default_board!(project)
       project_key = unique_project_key(directory_name_from(project.name))
-      board = Board.create!(
-        project: project,
-        name: "#{project.name} Board",
-        project_key: project_key
-      )
+      board = project.boards.find_or_initialize_by(name: "#{project.name} Board")
+      board.project_key ||= project_key
+      board.save!
+
       BOARD_COLUMNS.each_with_index do |(key, title), index|
-        board.columns.create!(key: key, title: title, position: index)
+        column = board.columns.find_or_initialize_by(key: key)
+        column.title = title
+        column.position = index
+        column.save!
       end
       board
     end
@@ -596,8 +604,50 @@ module ProjectSetup
       metadata["setup_project_attribute_ids"] = attribute_ids
       metadata["guided_alignment_pending"] = false
       metadata["repository_placeholder"] = project.repo_url if repository_slot_missing?
+      metadata["materialized_setup_context"] = session.setup_context
+      metadata["materialized_project"] = project_data(project)
+      metadata["materialized_repository_url"] = project.repo_url
+      metadata["setup_completion_materialized"] = true
+      metadata["setup_completion_materialized_at"] ||= Time.current.iso8601
       session.metadata = metadata
       session.save!
+    end
+
+    def materialization_data(project:, board:, document:, starter_ticket:, attribute_ids:)
+      {
+        "project" => project_data(project),
+        "board_id" => board.id,
+        "setup_summary_document_id" => document.id,
+        "starter_ticket_id" => starter_ticket&.id,
+        "setup_project_attribute_ids" => attribute_ids
+      }
+    end
+
+    def completion_materialization_data
+      metadata = session.metadata
+      project = session.project
+      return {} unless project
+      return {} unless metadata["setup_completion_materialized"] == true
+
+      {
+        "project" => metadata["materialized_project"] || project_data(project),
+        "board_id" => metadata["board_id"],
+        "setup_summary_document_id" => metadata["setup_summary_document_id"],
+        "starter_ticket_id" => metadata["starter_ticket_id"],
+        "setup_project_attribute_ids" => metadata["setup_project_attribute_ids"] || []
+      }
+    end
+
+    def completion_materialized?
+      session.metadata["setup_completion_materialized"] == true && session.project_id.present?
+    end
+
+    def completion_reused_effect
+      {
+        "type" => "project_setup_completion_reused",
+        "session_id" => session.id,
+        "project_id" => session.project_id
+      }
     end
 
     def repository_url_for(directory_name)

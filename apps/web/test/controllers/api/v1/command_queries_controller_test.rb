@@ -273,6 +273,77 @@ class Api::V1::CommandQueriesControllerTest < ActionDispatch::IntegrationTest
     assert_equal "tiny-index", session.project.name
   end
 
+  test "done after context completion returns existing materialized project without duplicates" do
+    post "/api/v1/commands",
+      params: {
+        name: "StartProjectSetup",
+        payload: {
+          project_name: "terminal-replay",
+          description: "A project for terminal replay coverage.",
+          guided_alignment: true
+        },
+        request_id: "req-terminal-replay-start"
+      },
+      headers: actor_headers,
+      as: :json
+    assert_response :success
+    session_id = json_body.fetch("session_id")
+
+    post "/api/v1/commands",
+      params: {
+        name: "AdvanceProjectSetup",
+        payload: {
+          session_id: session_id,
+          answer: "/done"
+        },
+        request_id: "req-terminal-replay-done"
+      },
+      headers: actor_headers,
+      as: :json
+    assert_response :success
+    session = ProjectSetupSession.find(session_id)
+    project = session.project
+    counts = {
+      projects: Project.where(id: project.id).count,
+      attributes: project.project_attributes.count,
+      documents: project.documents.count,
+      boards: project.boards.count,
+      columns: project.boards.sum { |board| board.columns.count },
+      tickets: project.tickets_scope.count
+    }
+
+    post "/api/v1/commands",
+      params: {
+        name: "AdvanceProjectSetup",
+        payload: {
+          session_id: session_id,
+          answer: "/done"
+        },
+        request_id: "req-terminal-replay-done-again"
+      },
+      headers: actor_headers,
+      as: :json
+
+    assert_response :success
+    body = json_body
+    assert_equal "ok", body.fetch("status")
+    assert_equal "completed", body.fetch("state")
+    assert_equal "Project created; setup completed.", body.fetch("summary")
+    assert_equal project.id, body.fetch("project_id")
+    assert_equal project.id, body.dig("data", "project", "id")
+    assert_equal session.metadata.fetch("board_id"), body.dig("data", "board_id")
+    assert_equal session.metadata.fetch("setup_summary_document_id"), body.dig("data", "setup_summary_document_id")
+    assert_equal ["project_setup_completion_reused"], body.fetch("effects").map { |effect| effect.fetch("type") }
+    assert_equal counts, {
+      projects: Project.where(id: project.id).count,
+      attributes: project.project_attributes.reload.count,
+      documents: project.documents.reload.count,
+      boards: project.boards.reload.count,
+      columns: project.boards.sum { |board| board.columns.reload.count },
+      tickets: project.tickets_scope.reload.count
+    }
+  end
+
   test "skip cannot bypass blocking project name and cancel leaves no project" do
     post "/api/v1/commands",
       params: {

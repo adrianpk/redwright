@@ -186,6 +186,91 @@ module ProjectSetup
       assert_includes result.effects.map { |effect| effect.fetch("type") }, "setup_starter_ticket_written"
     end
 
+    test "completion materializes every collected setup slot into rails state and metadata" do
+      session = context_session
+      session.assign_setup_slot(key: "project_name", value: "context-rich", source: "payload")
+      session.assign_setup_slot(key: "description", value: "A local CLI with explicit setup context.", source: "payload")
+      session.assign_setup_slot(key: "project_type", value: "cli", source: "user_answer")
+      session.assign_setup_slot(key: "language_runtime", value: "Ruby 3.4", source: "user_answer")
+      session.assign_setup_slot(key: "repository", value: "https://example.com/acme/context-rich.git", source: "user_answer")
+      session.assign_setup_slot(key: "framework", value: "none", source: "user_answer")
+      session.metadata = session.metadata.merge(
+        "next_prompt_intent" => prompt_intent("libraries")
+      )
+      session.save!
+
+      result = ContextLoopService.new(session: session).advance!(
+        answer: "Thor, SQLite, layered services, conventional commits",
+        normalized_fields: {
+          "libraries" => "Thor and SQLite",
+          "patterns" => "layered services",
+          "conventions" => "conventional commits",
+          "runtime_container_profile" => "ephemeral_docker",
+          "agent_workflow_mode" => "agent_assisted"
+        },
+        source_channel: "telegram",
+        request_id: "req-context-service-all-slots"
+      )
+
+      assert result.ok?
+      project = session.reload.project
+      expected_values = {
+        "setup_context.project_name" => "context-rich",
+        "setup_context.description" => "A local CLI with explicit setup context.",
+        "setup_context.project_type" => "cli",
+        "setup_context.language_runtime" => "Ruby 3.4",
+        "setup_context.repository" => "https://example.com/acme/context-rich.git",
+        "setup_context.framework" => "none",
+        "setup_context.libraries" => "Thor and SQLite",
+        "setup_context.patterns" => "layered services",
+        "setup_context.conventions" => "conventional commits",
+        "setup_context.runtime_container_profile" => "ephemeral_docker",
+        "setup_context.agent_workflow_mode" => "agent_assisted",
+        "setup_context.stack" => "Ruby 3.4"
+      }
+      actual_values = project.project_attributes.index_by(&:key).transform_values(&:value)
+      expected_values.each do |key, value|
+        assert_equal value, actual_values.fetch(key)
+      end
+      materialized = session.metadata.fetch("materialized_setup_context")
+      assert_equal "context-rich", materialized.fetch("slots").fetch("project_name").fetch("value")
+      assert_equal "conventional commits", materialized.fetch("slots").fetch("conventions").fetch("value")
+      assert_equal project.id, session.metadata.fetch("project_id")
+      assert_equal result.data.fetch("project").fetch("repo_url"), session.metadata.fetch("materialized_repository_url")
+    end
+
+    test "completion replay reuses existing materialized rails state" do
+      session = context_session
+      session.assign_setup_slot(key: "project_name", value: "replay-rich", source: "payload")
+      session.assign_setup_slot(key: "description", value: "A setup replay coverage project.", source: "payload")
+      session.assign_setup_slot(key: "project_type", value: "cli", source: "user_answer")
+      session.assign_setup_slot(key: "language_runtime", value: "Ruby 3.4", source: "user_answer")
+      session.assign_setup_slot(key: "framework", value: "none", source: "user_answer")
+      session.metadata = session.metadata.merge(
+        "next_prompt_intent" => prompt_intent("libraries")
+      )
+      session.save!
+      service = ContextLoopService.new(session: session)
+
+      first = service.advance!(
+        answer: "Thor and SQLite",
+        normalized_fields: {"libraries" => "Thor and SQLite", "agent_workflow_mode" => "agent_assisted"},
+        source_channel: "telegram",
+        request_id: "req-context-service-completion-replay"
+      )
+      counts = materialized_counts(first.session.reload.project)
+
+      replay = service.replay(request_id: "req-context-service-completion-replay")
+
+      assert replay.ok?
+      assert_equal ["project_setup_turn_reused", "project_setup_completion_reused"], replay.effects.map { |effect| effect.fetch("type") }
+      assert_equal counts, materialized_counts(first.session.reload.project)
+      assert_equal first.data.fetch("project").fetch("id"), replay.data.fetch("project").fetch("id")
+      assert_equal first.data.fetch("board_id"), replay.data.fetch("board_id")
+      assert_equal first.data.fetch("setup_summary_document_id"), replay.data.fetch("setup_summary_document_id")
+      assert_equal first.data.fetch("starter_ticket_id"), replay.data.fetch("starter_ticket_id")
+    end
+
     private
 
     def context_session
@@ -202,6 +287,18 @@ module ProjectSetup
         "slot" => slot,
         "locale" => "auto",
         "llm_required" => true
+      }
+    end
+
+    def materialized_counts(project)
+      {
+        projects: Project.where(id: project.id).count,
+        attributes: project.project_attributes.count,
+        documents: project.documents.count,
+        boards: project.boards.count,
+        columns: project.boards.sum { |board| board.columns.count },
+        tickets: project.tickets_scope.count,
+        links: TicketDocumentLink.joins(:ticket).where(tickets: {board_id: project.boards.select(:id)}).count
       }
     end
   end
