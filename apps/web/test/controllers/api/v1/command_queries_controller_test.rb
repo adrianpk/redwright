@@ -230,6 +230,7 @@ class Api::V1::CommandQueriesControllerTest < ActionDispatch::IntegrationTest
         "setup_context_materialized",
         "setup_summary_document_written",
         "default_board_structure_written",
+        "local_workspace_materialized",
         "project_setup_completed"
       ],
       body.fetch("effects").map { |effect| effect.fetch("type") }

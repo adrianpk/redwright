@@ -353,7 +353,8 @@ module ProjectSetup
         "board_id" => metadata["board_id"],
         "setup_summary_document_id" => metadata["setup_summary_document_id"],
         "starter_ticket_id" => metadata["starter_ticket_id"],
-        "setup_project_attribute_ids" => metadata["setup_project_attribute_ids"] || []
+        "setup_project_attribute_ids" => metadata["setup_project_attribute_ids"] || [],
+        "workspace" => metadata["workspace"]
       )
     end
 

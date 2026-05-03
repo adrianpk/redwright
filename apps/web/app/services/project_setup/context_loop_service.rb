@@ -258,6 +258,7 @@ module ProjectSetup
       board = nil
       document = nil
       starter_ticket = nil
+      workspace = nil
       attribute_ids = []
       StateMachine.new(session: session).transition_to!("ready_to_create")
       StateMachine.new(session: session).transition_to!("creating_project")
@@ -268,12 +269,14 @@ module ProjectSetup
       attribute_ids = materialize_project_attributes!(project)
       document = write_setup_summary_document!(project)
       starter_ticket = ensure_starter_workflow_ticket!(project: project, board: board, document: document)
+      workspace = materialize_local_workspace(project)
       finalize_session_metadata!(
         project: project,
         board: board,
         document: document,
         starter_ticket: starter_ticket,
-        attribute_ids: attribute_ids
+        attribute_ids: attribute_ids,
+        workspace: workspace
       )
       StateMachine.new(session: session).transition_to!("completed", terminal_reason: "completed_without_alignment")
 
@@ -314,6 +317,15 @@ module ProjectSetup
           "ticket_id" => starter_ticket.id
         }
       end
+      if workspace && workspace["materialized"] == true
+        effects << {
+          "type" => "local_workspace_materialized",
+          "session_id" => session.id,
+          "project_id" => project.id,
+          "path" => workspace["path"],
+          "manifest_path" => workspace["manifest_path"]
+        }
+      end
       effects.concat(
         [
           {
@@ -333,7 +345,8 @@ module ProjectSetup
           board: board,
           document: document,
           starter_ticket: starter_ticket,
-          attribute_ids: attribute_ids
+          attribute_ids: attribute_ids,
+          workspace: workspace
         )
       )
     end
@@ -567,6 +580,10 @@ module ProjectSetup
       ticket
     end
 
+    def materialize_local_workspace(project)
+      LocalWorkspaceMaterializer.new(session: session, project: project).call
+    end
+
     def starter_ticket_description(project)
       [
         "Use the project setup context to produce the initial implementation plan.",
@@ -595,7 +612,7 @@ module ProjectSetup
       lines.join("\n")
     end
 
-    def finalize_session_metadata!(project:, board:, document:, starter_ticket:, attribute_ids:)
+    def finalize_session_metadata!(project:, board:, document:, starter_ticket:, attribute_ids:, workspace:)
       metadata = session.metadata
       metadata["project_id"] = project.id
       metadata["board_id"] = board.id
@@ -609,18 +626,21 @@ module ProjectSetup
       metadata["materialized_repository_url"] = project.repo_url
       metadata["setup_completion_materialized"] = true
       metadata["setup_completion_materialized_at"] ||= Time.current.iso8601
+      metadata["workspace"] = workspace if workspace
       session.metadata = metadata
       session.save!
     end
 
-    def materialization_data(project:, board:, document:, starter_ticket:, attribute_ids:)
-      {
+    def materialization_data(project:, board:, document:, starter_ticket:, attribute_ids:, workspace:)
+      data = {
         "project" => project_data(project),
         "board_id" => board.id,
         "setup_summary_document_id" => document.id,
         "starter_ticket_id" => starter_ticket&.id,
         "setup_project_attribute_ids" => attribute_ids
       }
+      data["workspace"] = workspace if workspace
+      data
     end
 
     def completion_materialization_data
@@ -629,13 +649,15 @@ module ProjectSetup
       return {} unless project
       return {} unless metadata["setup_completion_materialized"] == true
 
-      {
+      data = {
         "project" => metadata["materialized_project"] || project_data(project),
         "board_id" => metadata["board_id"],
         "setup_summary_document_id" => metadata["setup_summary_document_id"],
         "starter_ticket_id" => metadata["starter_ticket_id"],
         "setup_project_attribute_ids" => metadata["setup_project_attribute_ids"] || []
       }
+      data["workspace"] = metadata["workspace"] if metadata["workspace"].is_a?(Hash)
+      data
     end
 
     def completion_materialized?

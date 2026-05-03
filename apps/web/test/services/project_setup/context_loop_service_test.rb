@@ -1,4 +1,6 @@
 require "test_helper"
+require "tmpdir"
+require "yaml"
 
 module ProjectSetup
   class ContextLoopServiceTest < ActiveSupport::TestCase
@@ -271,6 +273,81 @@ module ProjectSetup
       assert_equal first.data.fetch("starter_ticket_id"), replay.data.fetch("starter_ticket_id")
     end
 
+    test "completion materializes local workspace and manifest for local setup" do
+      with_local_projects_root do |projects_root|
+        session = context_session
+        session.assign_setup_slot(key: "project_name", value: "workspace-rich", source: "payload")
+        session.assign_setup_slot(key: "description", value: "A CLI that writes local notes.", source: "payload")
+        session.assign_setup_slot(key: "project_type", value: "cli", source: "user_answer")
+        session.assign_setup_slot(key: "language_runtime", value: "Ruby 3.4", source: "user_answer")
+        session.assign_setup_slot(key: "framework", value: "none", source: "user_answer")
+        session.metadata = session.metadata.merge(
+          "next_prompt_intent" => prompt_intent("libraries")
+        )
+        session.save!
+
+        result = ContextLoopService.new(session: session).advance!(
+          answer: "Thor and SQLite",
+          normalized_fields: {
+            "libraries" => "Thor and SQLite",
+            "patterns" => "service objects",
+            "conventions" => "conventional commits"
+          },
+          source_channel: "telegram",
+          request_id: "req-context-service-workspace"
+        )
+
+        assert result.ok?
+        workspace = result.data.fetch("workspace")
+        manifest_path = workspace.fetch("manifest_path")
+        assert_equal File.join(projects_root, "workspace-rich"), workspace.fetch("path")
+        assert_equal "_workspace/Projects/workspace-rich", workspace.fetch("relative_path")
+        assert_equal "/workspace/projects/workspace-rich", workspace.fetch("runtime_root_path")
+        assert File.directory?(workspace.fetch("path"))
+        assert File.file?(manifest_path)
+
+        manifest = YAML.safe_load(File.read(manifest_path))
+        assert_equal 1, manifest.fetch("schema_version")
+        assert_equal "workspace-rich", manifest.dig("project", "name")
+        assert_equal "rails_project_setup", manifest.dig("project", "created_via")
+        assert_equal result.session.project.id, manifest.dig("rails", "project_id")
+        assert_equal "/workspace/projects/workspace-rich", manifest.dig("rails", "root_path")
+        assert_equal "Ruby 3.4", manifest.dig("setup_context", "slots", "language_runtime", "value")
+        assert_equal "Thor and SQLite", manifest.dig("setup_context", "slots", "libraries", "value")
+        assert_equal "service objects", manifest.dig("setup_context", "slots", "patterns", "value")
+        assert_equal workspace, result.session.metadata.fetch("workspace")
+        assert_includes result.effects.map { |effect| effect.fetch("type") }, "local_workspace_materialized"
+      end
+    end
+
+    test "local workspace materialization is idempotent" do
+      with_local_projects_root do
+        session = context_session
+        session.assign_setup_slot(key: "project_name", value: "workspace-replay", source: "payload")
+        session.metadata = session.metadata.merge(
+          "next_prompt_intent" => prompt_intent("description")
+        )
+        session.save!
+        service = ContextLoopService.new(session: session)
+
+        first = service.advance!(
+          answer: "/done",
+          normalized_fields: {},
+          source_channel: "telegram",
+          request_id: "req-context-service-workspace-replay"
+        )
+        manifest_path = first.data.fetch("workspace").fetch("manifest_path")
+        first_manifest = File.read(manifest_path)
+
+        replay = service.replay(request_id: "req-context-service-workspace-replay")
+
+        assert replay.ok?
+        assert_equal first.data.fetch("workspace"), replay.data.fetch("workspace")
+        assert_equal first_manifest, File.read(manifest_path)
+        assert_equal ["project_setup_turn_reused", "project_setup_completion_reused"], replay.effects.map { |effect| effect.fetch("type") }
+      end
+    end
+
     private
 
     def context_session
@@ -300,6 +377,20 @@ module ProjectSetup
         tickets: project.tickets_scope.count,
         links: TicketDocumentLink.joins(:ticket).where(tickets: {board_id: project.boards.select(:id)}).count
       }
+    end
+
+    def with_local_projects_root
+      previous = ENV["REDWRIGHT_LOCAL_PROJECTS_ROOT"]
+      Dir.mktmpdir("redwright-local-projects-") do |dir|
+        ENV["REDWRIGHT_LOCAL_PROJECTS_ROOT"] = dir
+        yield dir
+      ensure
+        if previous.nil?
+          ENV.delete("REDWRIGHT_LOCAL_PROJECTS_ROOT")
+        else
+          ENV["REDWRIGHT_LOCAL_PROJECTS_ROOT"] = previous
+        end
+      end
     end
   end
 end
