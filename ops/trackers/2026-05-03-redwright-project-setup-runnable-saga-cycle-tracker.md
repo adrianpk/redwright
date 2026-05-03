@@ -80,7 +80,7 @@ Validation:
 
 - status: `reviewing`
 - branch: `fix/slice-3-project-setup-materialization-outcome`
-- PR: `pending`
+- PR: `https://codeberg.org/adrianpk/redwright/pulls/265`
 - merge_target: `dev`
 - last_sync_commit: `3630d0f`
 
@@ -97,6 +97,7 @@ Commits:
 - [x] `df84d44 feat(web): record setup materialization outcomes`
 - [x] `c3f82d2 feat(web): create planned setup fallback artifacts`
 - [x] `38c2714 test(web): cover setup materialization fallback`
+- [x] `89844a9 docs(ops): track slice 3 materialization outcome`
 
 Validation:
 
@@ -171,3 +172,4 @@ Validation:
 - `2026-05-03` state=`slice_2_reviewing` note=`started from origin/dev@ec38edf after Slice 1 merge, added persisted setup saga state, exposed it through Rails command/query responses, rendered it in /project where, and validated full Rails tests plus repository coverage`
 - `2026-05-03` state=`slice_2_reviewing` note=`opened Slice 2 PR #264 against dev with no reported conflicts`
 - `2026-05-03` state=`slice_3_reviewing` note=`started from origin/dev@3630d0f after Slice 2 merge, added explicit planned materialization outcomes, fallback workspace README/setup notes, starter implementation ticket reconciliation, and validated syntax, targeted tests, full Rails tests, and repository coverage`
+- `2026-05-03` state=`slice_3_reviewing` note=`opened Slice 3 PR #265 against dev with no reported conflicts`
