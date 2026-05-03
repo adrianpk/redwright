@@ -107,17 +107,17 @@
 
 ### Slice 5: Project Protocol Management Surface
 
-- status: `planned`
+- status: `pr_open`
 - branch: `fix/slice-5-project-protocol-management`
-- pr_title: `feat(slice-5): manage project protocols`
+- pr_title: `Project Protocols web management surface`
 - objective: `expose Protocols as a first-class project area with Markdown document editing focused on the concrete project protocol`
 - tasks:
-- [ ] `T5.1 expose Protocols as a project area distinct from Documents`
-- [ ] `T5.2 render the protocol document list in canonical order`
-- [ ] `T5.3 allow Markdown editing of concrete Project Protocol documents`
-- [ ] `T5.4 keep user-facing UX constrained without review-state or regeneration controls`
-- [ ] `T5.5 ensure manual Rails edits propagate to filesystem projection`
-- [ ] `T5.6 add tests for protocol reads, writes, ordering, and materialization coupling`
+- [x] `T5.1 expose Protocols as a project area distinct from Documents`
+- [x] `T5.2 render the protocol document list in canonical order`
+- [x] `T5.3 allow Markdown editing of concrete Project Protocol documents`
+- [x] `T5.4 keep user-facing UX constrained without review-state or regeneration controls`
+- [x] `T5.5 ensure manual Rails edits propagate to filesystem projection`
+- [x] `T5.6 add tests for protocol reads, writes, ordering, and materialization coupling`
 - acceptance:
 - `Protocols is a distinct project area`
 - `users can inspect and edit the concrete Project Protocol in Markdown`

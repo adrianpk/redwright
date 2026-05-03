@@ -4,7 +4,7 @@
 
 - cycle_id: `cycle-2026-05-03-redwright-project-protocol-templates`
 - status: `in_progress`
-- state: `slice_4_merged`
+- state: `slice_5_pr_open`
 - updated: `2026-05-03`
 - active_slice: `none`
 - active_task: `none`
@@ -128,7 +128,7 @@ Commits:
 - [x] `9281b9e feat(runtime): materialize project protocol files`
 - [x] `a90d466 feat(web): sync project protocols to workspace`
 - [x] `57db404 test(integration): cover project protocol materialization`
-- [ ] `pending docs(ops): update project protocol slice 4 status`
+- [x] `0f8831b docs(ops): update project protocol slice 4 status`
 
 Validation:
 
@@ -137,32 +137,32 @@ Validation:
 
 ### Slice 5: Project Protocol Management Surface
 
-- status: `planned`
+- status: `pr_open`
 - branch: `fix/slice-5-project-protocol-management`
-- PR: `pending`
+- PR: `#278 https://codeberg.org/adrianpk/redwright/pulls/278`
 - merge_target: `dev`
-- last_sync_commit: `pending`
+- last_sync_commit: `df23cba`
 
 Tasks:
 
-- [ ] `T5.1 expose Protocols as a project area distinct from Documents`
-- [ ] `T5.2 render the protocol document list in canonical order`
-- [ ] `T5.3 allow Markdown editing of concrete Project Protocol documents`
-- [ ] `T5.4 keep user-facing UX constrained without review-state or regeneration controls`
-- [ ] `T5.5 ensure manual Rails edits propagate to filesystem projection`
-- [ ] `T5.6 add tests for protocol reads, writes, ordering, and materialization coupling`
+- [x] `T5.1 expose Protocols as a project area distinct from Documents`
+- [x] `T5.2 render the protocol document list in canonical order`
+- [x] `T5.3 allow Markdown editing of concrete Project Protocol documents`
+- [x] `T5.4 keep user-facing UX constrained without review-state or regeneration controls`
+- [x] `T5.5 ensure manual Rails edits propagate to filesystem projection`
+- [x] `T5.6 add tests for protocol reads, writes, ordering, and materialization coupling`
 
 Commits:
 
-- [ ] `pending feat(web): add project protocols area`
-- [ ] `pending feat(web): edit project protocol documents`
-- [ ] `pending test(web): cover project protocol management`
+- [x] `5c8fc94 feat(web): add project protocols area`
+- [x] `8d8eac8 feat(web): edit project protocol documents`
+- [x] `df23cba test(web): cover project protocol management`
 - [ ] `pending docs(ops): update project protocol slice 5 status`
 
 Validation:
 
-- [ ] `pending bundle exec bin/rails test <targeted project protocol management paths>`
-- [ ] `pending bundle exec bin/rails test`
+- [x] `bundle exec bin/rails test test/controllers/project_protocols_controller_test.rb test/controllers/projects_controller_test.rb test/controllers/documents_controller_test.rb test/services/project_protocols/filesystem_materializer_test.rb test/services/project_protocols/initialization_service_test.rb test/services/project_protocols/composer_test.rb test/services/project_protocols/command_query_composition_test.rb test/services/project_protocols/command_query_handlers_test.rb test/models/project_protocol_test.rb test/models/project_test.rb test/services/project_setup/context_loop_service_test.rb test/integration/project_setup_conversational_e2e_test.rb test/integration/project_setup_telegram_e2e_test.rb test/controllers/api/v1/command_queries_controller_test.rb` (pass)
+- [x] `bundle exec bin/rails test` (pass)
 
 ### Slice 6: Template Administration Follow-Up and Cycle Closure
 
@@ -215,3 +215,5 @@ Validation:
 - `2026-05-03` state=`slice_4_implemented` note=`implemented protocol filesystem materialization into AGENTS.md and .agents paths, one-way Rails-to-workspace sync, manifest protocol metadata, stale file cleanup, setup workspace integration, and targeted/full Rails validation on fix/slice-4-project-protocol-materialization`
 - `2026-05-03` state=`slice_4_pr_open` note=`opened Codeberg PR #277 from fix/slice-4-project-protocol-materialization into dev`
 - `2026-05-04` state=`slice_4_merged` note=`PR #277 merged into dev; Slice 4 is closed and Slice 5 remains pending explicit start`
+- `2026-05-04` state=`slice_5_implemented` note=`implemented project-scoped Protocols web area, canonical document listing, Markdown editing surface, project area navigation, and targeted/full Rails validation on fix/slice-5-project-protocol-management`
+- `2026-05-04` state=`slice_5_pr_open` note=`opened Codeberg PR #278 from fix/slice-5-project-protocol-management into dev`
