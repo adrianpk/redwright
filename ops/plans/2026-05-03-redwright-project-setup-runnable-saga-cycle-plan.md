@@ -41,7 +41,7 @@
 
 ### Slice 2: Explicit Setup Saga State and Query Surface
 
-- status: `reviewing`
+- status: `completed`
 - branch: `fix/slice-2-project-setup-saga-state`
 - pr_title: `feat(slice-2): project setup saga state`
 - objective: `persist and expose explicit setup stages for questionnaire, materialization, initial implementation, and ticket operation`
@@ -62,16 +62,16 @@
 
 ### Slice 3: Materialization Outcome and Planned Fallback
 
-- status: `planned`
+- status: `reviewing`
 - branch: `fix/slice-3-project-setup-materialization-outcome`
 - pr_title: `feat(slice-3): project setup materialization outcome`
 - objective: `make materialization produce explicit runnable/planned/failed outcomes and useful planned fallback artifacts`
 - tasks:
-- [ ] `T3.1 extend workspace manifest with materialization status, initial implementation status, validation status, and linked ticket ids`
-- [ ] `T3.2 create or update README/setup notes during local workspace materialization`
-- [ ] `T3.3 create starter implementation ticket when the project is not yet runnable`
-- [ ] `T3.4 ensure unsupported stack/archetype combinations become materialized_planned with reason`
-- [ ] `T3.5 add idempotency tests for manifest, README, document, board, and starter ticket reconciliation`
+- [x] `T3.1 extend workspace manifest with materialization status, initial implementation status, validation status, and linked ticket ids`
+- [x] `T3.2 create or update README/setup notes during local workspace materialization`
+- [x] `T3.3 create starter implementation ticket when the project is not yet runnable`
+- [x] `T3.4 ensure unsupported stack/archetype combinations become materialized_planned with reason`
+- [x] `T3.5 add idempotency tests for manifest, README, document, board, and starter ticket reconciliation`
 - acceptance:
 - `unsupported setups no longer present as ambiguous created projects`
 - `planned fallback workspaces have README/setup notes and starter tickets`

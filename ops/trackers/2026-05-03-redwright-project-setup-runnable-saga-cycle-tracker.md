@@ -4,10 +4,10 @@
 
 - cycle_id: `cycle-2026-05-03-redwright-project-setup-runnable-saga`
 - status: `in_progress`
-- state: `slice_2_reviewing`
+- state: `slice_3_reviewing`
 - updated: `2026-05-03`
-- active_slice: `Slice 2`
-- active_task: `waiting for Slice 2 PR review`
+- active_slice: `Slice 3`
+- active_task: `waiting for Slice 3 PR review`
 - source_plan: `ops/plans/2026-05-03-redwright-project-setup-runnable-saga-cycle-plan.md`
 - source_spec: `ops/specs/specs/2026-05-03-redwright-project-setup-runnable-saga-spec.md`
 - source_draft: `ops/specs/drafts/2026-05-03-redwright-project-setup-runnable-saga-draft.md`
@@ -47,11 +47,11 @@ Validation:
 
 ### Slice 2: Explicit Setup Saga State and Query Surface
 
-- status: `reviewing`
+- status: `completed`
 - branch: `fix/slice-2-project-setup-saga-state`
 - PR: `https://codeberg.org/adrianpk/redwright/pulls/264`
 - merge_target: `dev`
-- last_sync_commit: `ec38edf`
+- last_sync_commit: `3630d0f`
 
 Tasks:
 
@@ -78,27 +78,33 @@ Validation:
 
 ### Slice 3: Materialization Outcome and Planned Fallback
 
-- status: `planned`
+- status: `reviewing`
 - branch: `fix/slice-3-project-setup-materialization-outcome`
 - PR: `pending`
 - merge_target: `dev`
-- last_sync_commit: `pending`
+- last_sync_commit: `3630d0f`
 
 Tasks:
 
-- [ ] `T3.1 extend workspace manifest with materialization status, initial implementation status, validation status, and linked ticket ids`
-- [ ] `T3.2 create or update README/setup notes during local workspace materialization`
-- [ ] `T3.3 create starter implementation ticket when the project is not yet runnable`
-- [ ] `T3.4 ensure unsupported stack/archetype combinations become materialized_planned with reason`
-- [ ] `T3.5 add idempotency tests for manifest, README, document, board, and starter ticket reconciliation`
+- [x] `T3.1 extend workspace manifest with materialization status, initial implementation status, validation status, and linked ticket ids`
+- [x] `T3.2 create or update README/setup notes during local workspace materialization`
+- [x] `T3.3 create starter implementation ticket when the project is not yet runnable`
+- [x] `T3.4 ensure unsupported stack/archetype combinations become materialized_planned with reason`
+- [x] `T3.5 add idempotency tests for manifest, README, document, board, and starter ticket reconciliation`
 
 Commits:
 
-- [ ] `pending`
+- [x] `df84d44 feat(web): record setup materialization outcomes`
+- [x] `c3f82d2 feat(web): create planned setup fallback artifacts`
+- [x] `38c2714 test(web): cover setup materialization fallback`
 
 Validation:
 
-- [ ] `pending`
+- [x] `ruby -wc apps/web/app/services/project_setup/local_workspace_materializer.rb && ruby -wc apps/web/app/services/project_setup/context_loop_service.rb && ruby -wc apps/web/app/services/project_setup/saga_state.rb && ruby -wc lib/redwright/project_setup_prompt_renderer.rb` (pass)
+- [x] `cd apps/web && bundle exec bin/rails test test/services/project_setup/context_loop_service_test.rb test/controllers/api/v1/command_queries_controller_test.rb test/integration/project_setup_conversational_e2e_test.rb test/integration/project_setup_telegram_e2e_test.rb` (pass)
+- [x] `ruby -Itest test/redwright/project_setup_prompt_renderer_test.rb test/redwright/telegram_project_setup_adapter_test.rb` (pass)
+- [x] `cd apps/web && bundle exec bin/rails test` (pass)
+- [x] `bundle exec rake test:coverage` (pass, coverage 91.44)
 
 ### Slice 4: Go CLI Initial Implementation Scaffold
 
@@ -153,7 +159,7 @@ Validation:
 
 - baseline_coverage: `91.39`
 - target_rule: `post-slice coverage >= pre-slice coverage for new code paths`
-- final_coverage: `91.43`
+- final_coverage: `91.44`
 - tuning_needed: `pending`
 - tuning_evidence: `manual Telegram verification showed complete setup manifests but no runnable local project files, no visible setup LLM traces, and raw prompt-confusion text persisted as framework/stack context`
 
@@ -164,3 +170,4 @@ Validation:
 - `2026-05-03` state=`slice_1_reviewing` note=`opened Slice 1 PR #263 against dev with no reported conflicts`
 - `2026-05-03` state=`slice_2_reviewing` note=`started from origin/dev@ec38edf after Slice 1 merge, added persisted setup saga state, exposed it through Rails command/query responses, rendered it in /project where, and validated full Rails tests plus repository coverage`
 - `2026-05-03` state=`slice_2_reviewing` note=`opened Slice 2 PR #264 against dev with no reported conflicts`
+- `2026-05-03` state=`slice_3_reviewing` note=`started from origin/dev@3630d0f after Slice 2 merge, added explicit planned materialization outcomes, fallback workspace README/setup notes, starter implementation ticket reconciliation, and validated syntax, targeted tests, full Rails tests, and repository coverage`
