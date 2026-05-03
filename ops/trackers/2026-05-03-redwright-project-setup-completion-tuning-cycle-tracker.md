@@ -4,10 +4,10 @@
 
 - cycle_id: `cycle-2026-05-03-redwright-project-setup-completion-tuning`
 - status: `in_progress`
-- state: `slice_1_ready_for_pr`
+- state: `slice_1_reviewing`
 - updated: `2026-05-03`
 - active_slice: `Slice 1`
-- active_task: `T1.5`
+- active_task: `waiting for Slice 1 PR review`
 - source_plan: `ops/plans/2026-05-03-redwright-project-setup-completion-tuning-cycle-plan.md`
 - source_draft: `ops/tmp/drafts/2026-05-03-redwright-project-setup-corrective-slice-draft.md`
 
@@ -15,9 +15,9 @@
 
 ### Slice 1: Project Setup Completion Materialization
 
-- status: `ready_for_pr`
+- status: `reviewing`
 - branch: `fix/slice-1-project-setup-completion-materialization`
-- PR: `pending`
+- PR: `https://codeberg.org/adrianpk/redwright/pulls/259`
 - merge_target: `dev`
 - last_sync_commit: `2f8f6d1`
 
@@ -32,6 +32,7 @@ Tasks:
 Commits:
 
 - [x] `e6206e1 feat(web): harden setup completion materialization`
+- [x] `3438785 docs(ops): track slice 1 completion materialization`
 
 Validation:
 
@@ -80,3 +81,4 @@ Validation:
 
 - `2026-05-03` state=`planned` note=`created a two-slice corrective tuning cycle from the ignored ops/tmp working draft after the previous conversational saga cycle was closed and aligned to main`
 - `2026-05-03` state=`ready_for_pr` slice=`Slice 1` note=`hardened setup completion materialization with all-slot Rails state coverage, materialized setup metadata, idempotent board/column reconciliation, request-id completion replay, and terminal /done reuse through the command API`
+- `2026-05-03` state=`reviewing` slice=`Slice 1` pr=`https://codeberg.org/adrianpk/redwright/pulls/259` note=`opened canonical Slice 1 PR against dev`

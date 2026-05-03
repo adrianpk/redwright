@@ -22,7 +22,7 @@ This cycle is intentionally short and corrective. It does not continue the close
 
 ### Slice 1: Project Setup Completion Materialization
 
-- status: `ready_for_pr`
+- status: `reviewing`
 - branch: `fix/slice-1-project-setup-completion-materialization`
 - pr_title: `feat(slice-1): project setup completion materialization`
 - objective: `make questionnaire completion idempotently apply all collected setup slots into complete Rails project state`
