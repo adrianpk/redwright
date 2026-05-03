@@ -3,6 +3,7 @@ class Project < ApplicationRecord
   has_many :project_attributes, dependent: :delete_all
   has_many :documents, dependent: :restrict_with_error
   has_many :project_setup_sessions, dependent: :restrict_with_error
+  has_one :protocol, class_name: "ProjectProtocol", dependent: :destroy
   has_one :runtime_container, class_name: "ProjectRuntimeContainer", dependent: :destroy
 
   validates :name, presence: true
@@ -29,5 +30,9 @@ class Project < ApplicationRecord
 
   def runtime_container_state
     runtime_container&.to_state || ProjectRuntimeContainer.missing_state_for(self)
+  end
+
+  def protocol_state
+    protocol&.to_state || ProjectProtocol.missing_state_for(self)
   end
 end
