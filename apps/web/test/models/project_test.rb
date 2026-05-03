@@ -85,4 +85,12 @@ class ProjectTest < ActiveSupport::TestCase
     assert_equal [artifact.id], project.documents_scope.pluck(:id)
     assert_equal [project_attr.id], project.project_attributes_scope.pluck(:id)
   end
+
+  test "project exposes protocol state helper" do
+    project = create_project(key: "project-protocol-helper")
+    create_project_protocol(project: project, documents: [{key: "agents_root", path: "AGENTS.md", title: "AGENTS", body: "Root"}])
+
+    assert_equal "draft", project.protocol_state.fetch("status")
+    assert_equal "AGENTS.md", project.protocol_state.fetch("documents").first.fetch("path")
+  end
 end

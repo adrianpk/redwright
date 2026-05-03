@@ -32,6 +32,24 @@ module ProjectBoardTestHelper
     }
     Document.create!(defaults.merge(attrs))
   end
+
+  def create_project_protocol(project:, status: "draft", documents: [])
+    protocol = ProjectProtocol.create!(project: project, status: status)
+    documents.each_with_index do |attrs, index|
+      protocol.documents.create!(
+        {
+          key: "doc-#{index}",
+          path: ".agents/doc-#{index}.md",
+          title: "Protocol Doc #{index}",
+          layer: "behavioral",
+          position: index,
+          body: "Protocol body #{index}",
+          provenance: {}
+        }.merge(attrs)
+      )
+    end
+    protocol
+  end
 end
 
 module AuthenticationTestHelper
