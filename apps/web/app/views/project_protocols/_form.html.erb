@@ -1,0 +1,26 @@
+<%= form_with model: protocol_document,
+              url: project_protocol_path(project, protocol_document),
+              html: { class: "document-artifact-form" } do |f| %>
+  <% if protocol_document.errors.any? %>
+    <div class="document-artifact-errors">
+      <h2><%= pluralize(protocol_document.errors.count, "error") %> blocked this protocol:</h2>
+      <ul>
+        <% protocol_document.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="document-artifact-field">
+    <%= f.label :title %>
+    <%= f.text_field :title, required: true %>
+  </div>
+  <div class="document-artifact-field">
+    <%= f.label :body %>
+    <%= f.text_area :body, rows: 18, required: true %>
+  </div>
+  <div class="document-artifact-actions">
+    <%= f.submit (local_assigns[:submit_label] || "Save"), class: "ticket-action" %>
+  </div>
+<% end %>

@@ -1,0 +1,12 @@
+<main class="document-artifacts-edit">
+  <p class="document-artifact-breadcrumb">
+    <%= link_to "Protocol", project_protocol_path(@project, @protocol_document) %>
+  </p>
+  <header class="document-artifacts-header">
+    <h1>Edit Protocol</h1>
+    <p class="board-key"><%= @protocol_document.path %></p>
+  </header>
+  <section class="document-artifact-panel">
+    <%= render "form", project: @project, protocol_document: @protocol_document, submit_label: "Update" %>
+  </section>
+</main>
