@@ -219,6 +219,8 @@ module ProjectSetup
       assert_equal "pocket-ledger", session.project.name
       assert_equal "ruby-3.4", session.project.stack_slug
       assert session.project.documents.exists?(title: "Project Setup Summary", artifact_type: "draft")
+      assert_equal "draft", session.project.protocol_state.fetch("status")
+      assert_equal "AGENTS.md", session.project.protocol_state.fetch("documents").first.fetch("path")
       assert_equal %w[backlog in_progress review approved merged], session.project.boards.first.columns.order(:position).pluck(:key)
       ticket = session.project.tickets_scope.find_by!(title: "Prepare initial implementation plan")
       assert_equal result.data.fetch("starter_ticket_id"), ticket.id
@@ -231,6 +233,7 @@ module ProjectSetup
       assert_equal false, saga.fetch("initial_implementation").fetch("runnable")
       assert_equal "planned", saga.fetch("initial_implementation").fetch("status")
       assert_includes saga.fetch("initial_implementation").fetch("linked_ticket_ids"), ticket.id
+      assert_equal "draft", saga.fetch("protocols").fetch("status")
       assert_equal "blocked", saga.fetch("runtime_containers").fetch("readiness")
       assert_equal "available", saga.fetch("ticket_operation").fetch("status")
     end
@@ -322,11 +325,40 @@ module ProjectSetup
       expected_values.each do |key, value|
         assert_equal value, actual_values.fetch(key)
       end
+      assert_equal "draft", result.data.fetch("protocols").fetch("status")
+      assert_equal "AGENTS.md", result.data.fetch("protocols").fetch("documents").first.fetch("path")
+      assert_equal ["ruby"], result.data.fetch("protocols_generation").fetch("stack_keys")
       materialized = session.metadata.fetch("materialized_setup_context")
       assert_equal "context-rich", materialized.fetch("slots").fetch("project_name").fetch("value")
       assert_equal "conventional commits", materialized.fetch("slots").fetch("conventions").fetch("value")
       assert_equal project.id, session.metadata.fetch("project_id")
       assert_equal result.data.fetch("project").fetch("repo_url"), session.metadata.fetch("materialized_repository_url")
+      assert_equal "draft", session.metadata.fetch("protocols").fetch("status")
+      assert_equal false, session.metadata.fetch("protocols_generation").fetch("fallback_used")
+    end
+
+    test "setup persists protocol fallback when stack coverage is missing" do
+      session = context_session
+      session.assign_setup_slot(key: "project_name", value: "unknown-protocol", source: "payload")
+      session.assign_setup_slot(key: "description", value: "Fallback protocol coverage.", source: "payload")
+      session.assign_setup_slot(key: "project_type", value: "cli", source: "user_answer")
+      session.assign_setup_slot(key: "language_runtime", value: "Cobol 1.0", source: "user_answer")
+      session.assign_setup_slot(key: "framework", value: "none", source: "user_answer")
+      session.metadata = session.metadata.merge("next_prompt_intent" => prompt_intent("libraries"))
+      session.save!
+
+      result = ContextLoopService.new(session: session).advance!(
+        answer: "standard library",
+        normalized_fields: {"libraries" => "standard library"},
+        source_channel: "telegram",
+        request_id: "req-context-service-protocol-fallback"
+      )
+
+      assert result.ok?
+      assert_equal true, result.data.fetch("protocols_generation").fetch("fallback_used")
+      assert_includes result.data.fetch("protocols_generation").fetch("missing_stack_tokens"), "Cobol 1.0"
+      architecture = session.reload.project.protocol_state.fetch("documents").find { |doc| doc.fetch("key") == "architecture" }
+      assert_equal "generated_during_initialization", architecture.fetch("provenance").fetch("source")
     end
 
     test "completion replay reuses existing materialized rails state" do

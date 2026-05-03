@@ -234,6 +234,7 @@ class Api::V1::CommandQueriesControllerTest < ActionDispatch::IntegrationTest
     assert_equal(
       [
         "project_setup_turn_recorded",
+        "project_protocols_initialized",
         "project_created",
         "setup_context_materialized",
         "setup_summary_document_written",

@@ -60,6 +60,10 @@ class ProjectSetupConversationalE2eTest < ActionDispatch::IntegrationTest
 
     assert_equal "completed", completed.fetch("state")
     project = Project.find(completed.fetch("project_id"))
+    protocols_state = completed.fetch("data").fetch("protocols")
+    assert_equal "draft", protocols_state.fetch("status")
+    assert_equal "AGENTS.md", protocols_state.fetch("documents").first.fetch("path")
+    assert_includes completed.dig("data", "protocols_generation", "stack_keys"), "ruby"
     assert_equal "rich-service", project.name
     assert_equal "Rails", project.project_attributes.find_by!(key: "setup_context.framework").value
     assert_equal "SQLite", project.project_attributes.find_by!(key: "setup_context.libraries").value
