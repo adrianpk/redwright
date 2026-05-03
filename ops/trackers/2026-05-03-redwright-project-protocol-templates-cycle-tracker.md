@@ -4,9 +4,9 @@
 
 - cycle_id: `cycle-2026-05-03-redwright-project-protocol-templates`
 - status: `in_progress`
-- state: `slice_2_implemented`
+- state: `slice_2_pr_open`
 - updated: `2026-05-03`
-- active_slice: `Slice 2`
+- active_slice: `none`
 - active_task: `none`
 - source_plan: `ops/plans/2026-05-03-redwright-project-protocol-templates-cycle-plan.md`
 - source_spec: `ops/specs/specs/2026-05-03-redwright-project-protocol-templates-spec.md`
@@ -49,9 +49,9 @@ Validation:
 
 ### Slice 2: Seeded Template and Composition Foundation
 
-- status: `implemented`
+- status: `pr_open`
 - branch: `fix/slice-2-project-protocol-templates`
-- PR: `pending`
+- PR: `#275 https://codeberg.org/adrianpk/redwright/pulls/275`
 - merge_target: `dev`
 - last_sync_commit: `3cde5d8`
 
@@ -207,3 +207,4 @@ Validation:
 - `2026-05-03` state=`slice_1_implemented` note=`implemented Project Protocol domain persistence, document-level modeling, project query exposure, targeted protocol tests, dependent query coverage, and full Rails validation on fix/slice-1-project-protocol-domain`
 - `2026-05-03` state=`slice_1_merged` note=`PR #274 merged into dev; Slice 1 is closed and Slice 2 remains pending explicit start`
 - `2026-05-03` state=`slice_2_implemented` note=`implemented seeded protocol template registry, stack-aware composition, generated fallback behavior, composition command surface, targeted composition validation, and full Rails validation on fix/slice-2-project-protocol-templates`
+- `2026-05-03` state=`slice_2_pr_open` note=`opened Codeberg PR #275 from fix/slice-2-project-protocol-templates into dev`

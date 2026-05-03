@@ -38,7 +38,7 @@
 
 ### Slice 2: Seeded Template and Composition Foundation
 
-- status: `implemented`
+- status: `pr_open`
 - branch: `fix/slice-2-project-protocol-templates`
 - pr_title: `feat(slice-2): project protocol template seeds`
 - objective: `define common behavior defaults, seeded stack template references, and composition rules for building a concrete project protocol`
