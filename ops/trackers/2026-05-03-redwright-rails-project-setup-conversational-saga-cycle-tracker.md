@@ -3,10 +3,10 @@
 ## Metadata
 
 - cycle_id: `cycle-2026-05-03-redwright-rails-project-setup-conversational-saga`
-- status: `planned`
-- state: `planning`
+- status: `in_progress`
+- state: `awaiting_review`
 - updated: `2026-05-03`
-- active_slice: `none`
+- active_slice: `Slice 1`
 - active_task: `none`
 - source_plan: `ops/plans/2026-05-03-redwright-rails-project-setup-conversational-saga-cycle-plan.md`
 - source_spec: `ops/specs/specs/2026-05-03-redwright-rails-project-setup-conversational-saga-spec.md`
@@ -15,31 +15,33 @@
 
 ### Slice 1: Setup Context Slot Model and Repository Decoupling
 
-- status: `pending`
+- status: `awaiting_review`
 - branch: `fix/slice-1-project-setup-context-slots`
 - PR: `tbd`
 - merge_target: `dev`
-- last_sync_commit: `tbd`
+- last_sync_commit: `0619204`
 
 Tasks:
 
-- [ ] `T1.1 characterize current repository-first behavior with Rails and Telegram tests`
-- [ ] `T1.2 add canonical setup context slot helpers for ProjectSetupSession metadata`
-- [ ] `T1.3 change StartProjectSetup payload handling so project name and description are not mapped to repository input`
-- [ ] `T1.4 allow repository input to be absent or skipped without invalidating setup start`
-- [ ] `T1.5 add tests for empty start, name-only start, quoted name with description, and repository URL input`
+- [x] `T1.1 characterize current repository-first behavior with Rails and Telegram tests`
+- [x] `T1.2 add canonical setup context slot helpers for ProjectSetupSession metadata`
+- [x] `T1.3 change StartProjectSetup payload handling so project name and description are not mapped to repository input`
+- [x] `T1.4 allow repository input to be absent or skipped without invalidating setup start`
+- [x] `T1.5 add tests for empty start, name-only start, quoted name with description, and repository URL input`
 
 Commits:
 
-- [ ] `test(web): characterize repository independent project setup start`
-- [ ] `feat(web): add project setup context slot metadata`
-- [ ] `feat(telegram): stop mapping project names to repository input`
+- [x] `1758ed9 feat(web): add project setup context slot metadata`
+- [x] `7a51dd4 feat(web): decouple project setup start from repository input`
+- [x] `68bc824 feat(telegram): stop mapping project names to repository input`
 
 Validation:
 
-- [ ] `cd apps/web && bundle exec bin/rails test test/services/project_setup test/services/project_initialization (pending)`
-- [ ] `ruby -Itest test/redwright/telegram_project_setup_adapter_test.rb (pending)`
-- [ ] `bundle exec rake test:coverage from repository root (pending)`
+- [x] `ruby -wc lib/redwright/telegram_project_setup_adapter.rb (pass)`
+- [x] `cd apps/web && bundle exec bin/rails test test/models/project_setup_session_test.rb test/services/project_initialization/command_test.rb test/services/project_initialization/orchestrator_test.rb test/services/project_initialization/setup_session_runner_test.rb test/controllers/api/v1/command_queries_controller_test.rb (pass)`
+- [x] `ruby -Itest test/redwright/telegram_project_setup_adapter_test.rb (pass)`
+- [x] `ruby -Itest test/redwright/telegram_runtime_handler_test.rb (pass)`
+- [x] `bundle exec rake test:coverage from repository root (pass, coverage=91.32)`
 
 ### Slice 2: Deterministic Setup Question Loop Controls
 
@@ -174,3 +176,4 @@ Validation:
 ## Event Log
 
 - `2026-05-03` state=`planning` note=`created draft, conversation notes, promoted spec, cycle plan, and tracker for Rails project setup conversational saga after manual Telegram verification showed repository-first behavior still exposed to users`
+- `2026-05-03` state=`awaiting_review` slice=`Slice 1` note=`implemented repository-independent project setup start, canonical setup context slots, and Telegram payload routing that no longer maps project names to repository input`
