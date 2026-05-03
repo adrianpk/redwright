@@ -489,7 +489,7 @@ module ProjectSetup
       repo_url = repository_url_for(directory_name)
       Project.create!(
         name: name,
-        description: slot_value("description"),
+        description: project_description_value,
         root_path: "/workspace/projects/#{directory_name}",
         repo_url: repo_url,
         stack_slug: stack_slug_from(stack_value_for_project)
@@ -605,6 +605,11 @@ module ProjectSetup
       return repository unless repository.empty?
 
       "local://redwright/projects/#{directory_name}"
+    end
+
+    def project_description_value
+      description = slot_value("description")
+      description.empty? ? DEFAULT_DESCRIPTION : description
     end
 
     def repository_slot_missing?
