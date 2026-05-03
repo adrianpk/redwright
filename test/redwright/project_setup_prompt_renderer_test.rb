@@ -2,9 +2,11 @@
 
 require "json"
 require "stringio"
+require "tmpdir"
 require "minitest/autorun"
 
 $LOAD_PATH.unshift(File.expand_path("../../lib", __dir__))
+require "redwright/app_config"
 require "redwright/project_setup_prompt_renderer"
 
 class ProjectSetupPromptRendererTest < Minitest::Test
@@ -40,6 +42,10 @@ class ProjectSetupPromptRendererTest < Minitest::Test
     def complete_json(model:, system_prompt:, user_text:)
       raise "renderer failure"
     end
+  end
+
+  def teardown
+    Redwright::Trace.reset_configuration!
   end
 
   def test_renders_setup_prompt_through_configured_llm
@@ -107,6 +113,55 @@ class ProjectSetupPromptRendererTest < Minitest::Test
     assert_includes out, "provider: openrouter"
     assert_includes out, "LLM RESPONSE"
     assert_includes out, "parsed_message: What type of project should this be?"
+  end
+
+  def test_writes_project_setup_llm_trace_file_when_configured
+    Dir.mktmpdir("redwright-project-setup-trace-") do |dir|
+      Redwright::Trace.configure(
+        tracing: Redwright::TracingConfig.new(
+          llm_file: Redwright::LlmFileTraceConfig.new(
+            enabled: true,
+            path: File.join(dir, "llm.ndjson"),
+            max_bytes: 10_485_760,
+            keep_files: 5,
+            include_payloads: true,
+            include_system_prompt: false,
+            include_user_text: true,
+            include_raw_output: true
+          )
+        )
+      )
+      llm = FakeLlmClient.new("What type of project should this be?")
+      renderer = Redwright::ProjectSetupPromptRenderer.new(llm_client: llm, model: "openrouter/auto")
+
+      renderer.render(
+        body: {
+          "status" => "ok",
+          "project_id" => 77,
+          "session_id" => 41,
+          "summary" => "Project setup started.",
+          "data" => {
+            "next_prompt_intent" => {
+              "kind" => "setup_slot_question",
+              "slot" => "project_type",
+              "locale" => "auto",
+              "llm_required" => true
+            }
+          }
+        },
+        user_text: "/project new pocket-ledger",
+        trace_id: "trc-test"
+      )
+
+      lines = File.readlines(File.join(dir, "llm.ndjson"), chomp: true)
+      request = JSON.parse(lines[0])
+      response = JSON.parse(lines[1])
+      assert_equal("project_setup", request.fetch("source_channel"))
+      assert_equal(77, request.fetch("project_id"))
+      assert_equal(41, request.fetch("session_id"))
+      assert_equal("trc-test", request.fetch("trace_id"))
+      assert_equal(request.fetch("llm_call_id"), response.fetch("llm_call_id"))
+    end
   end
 
   def test_sanitizes_colon_shortcode_tokens_from_llm_output

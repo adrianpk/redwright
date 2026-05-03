@@ -6,6 +6,7 @@ require "json"
 require "minitest/autorun"
 
 $LOAD_PATH.unshift(File.expand_path("../../lib", __dir__))
+require "redwright/app_config"
 require "redwright/bootstrap"
 require "redwright/ingress_port"
 require "redwright/project_store"
@@ -133,6 +134,10 @@ class TelegramRuntimeHandlerTest < Minitest::Test
     end
   end
 
+  def teardown
+    Redwright::Trace.reset_configuration!
+  end
+
   def build_fake_clarification_store(cancellations)
     store = Object.new
     store.define_singleton_method(:get_open) do |**_kwargs|
@@ -246,6 +251,83 @@ class TelegramRuntimeHandlerTest < Minitest::Test
     assert_equal("show runtime status", captured[:message])
     assert_equal("", err.string)
     assert_match("telegram processed chat=9 task=task-1", out.string)
+  end
+
+  def test_handle_writes_telegram_llm_trace_file_when_configured
+    Dir.mktmpdir("redwright-telegram-llm-trace-") do |dir|
+      path = File.join(dir, "llm.ndjson")
+      Redwright::Trace.configure(
+        tracing: Redwright::TracingConfig.new(
+          llm_file: Redwright::LlmFileTraceConfig.new(
+            enabled: true,
+            path: path,
+            max_bytes: 10_485_760,
+            keep_files: 5,
+            include_payloads: false,
+            include_system_prompt: false,
+            include_user_text: false,
+            include_raw_output: true
+          )
+        )
+      )
+
+      fake_flow = Object.new
+      fake_flow.define_singleton_method(:process) do |**_kwargs|
+        FakeResult.new(
+          project: FakeProject.new(id: "project-1"),
+          workstream: FakeWorkstream.new(id: "ws-1", state: "executing"),
+          task: FakeTask.new(id: "task-1"),
+          alignment: nil,
+          action_results: nil
+        )
+      end
+
+      fake_interpreter = Object.new
+      fake_interpreter.define_singleton_method(:interpret) do |**_kwargs|
+        TelegramRuntimeHandlerTest::FakeDecision.new(
+          intent: "meta",
+          message: "show runtime status",
+          source: "llm",
+          finish_reason: "stop",
+          raw_output: "{\"intent\":\"meta\"}"
+        )
+      end
+
+      resolver = Object.new
+      resolver.define_singleton_method(:resolve) do |**_kwargs|
+        Redwright::TelegramContextResolver::Resolution.new(
+          resolved: true,
+          project_ref: "rw",
+          project_path: "/tmp/rw",
+          workstream_id: nil,
+          question: nil
+        )
+      end
+
+      client = FakeTelegramClient.new([])
+      handler = Redwright::TelegramRuntimeHandler.new(
+        flow: fake_flow,
+        telegram_client: client,
+        out: StringIO.new,
+        err: StringIO.new,
+        blocked_retry_attempts: 1,
+        model_name: "gpt-5-mini",
+        model_provider: "openai",
+        intent_interpreter: fake_interpreter,
+        context_resolver: resolver
+      )
+
+      handler.handle(Redwright::TelegramEvent.new(update_id: 3, chat_id: 9, user_id: 77, username: "u", text: "hola"))
+
+      lines = File.readlines(path, chomp: true)
+      request = JSON.parse(lines[0])
+      response = JSON.parse(lines[1])
+      assert_equal("telegram", request.fetch("source_channel"))
+      assert_equal("rw", request.fetch("project_ref"))
+      assert_equal("/tmp/rw", request.fetch("project_root"))
+      assert_equal("telegram:chat:9:user:77", request.fetch("actor_identifier"))
+      assert_equal(request.fetch("llm_call_id"), response.fetch("llm_call_id"))
+    end
   end
 
   def test_handle_routes_operational_slash_through_dispatcher_without_llm

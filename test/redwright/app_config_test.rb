@@ -605,4 +605,86 @@ class AppConfigTest < Minitest::Test
       assert_equal("missing config key: models.coding[0].provider", err.message)
     end
   end
+
+  def test_loads_llm_file_tracing_defaults
+    Dir.mktmpdir("redwright-app-config-tracing-defaults-") do |dir|
+      config_dir = File.join(dir, ".config", "redwright")
+      FileUtils.mkdir_p(config_dir)
+      File.write(File.join(config_dir, "config.yml"), <<~YAML)
+        runtime:
+          loop_interval_ms: 100
+          blocked_retry_attempts: 1
+        telegram:
+          bot_token: "x"
+          poll_interval_seconds: 1
+          allowed_chat_ids: [1]
+        paths:
+          default_projects_root: "#{dir}/projects"
+        models:
+          coding:
+            - provider: "openai"
+              name: "gpt-5.2"
+          non_coding:
+            - provider: "openai"
+              name: "gpt-5-mini"
+      YAML
+
+      config = Redwright::AppConfigLoader.new(mode: :real, home: dir).load
+      trace = config.tracing.llm_file
+      assert_equal(false, trace.enabled)
+      assert_equal("./.log/llm.ndjson", trace.path)
+      assert_equal(10_485_760, trace.max_bytes)
+      assert_equal(5, trace.keep_files)
+      assert_equal(false, trace.include_payloads)
+      assert_equal(false, trace.include_system_prompt)
+      assert_equal(false, trace.include_user_text)
+      assert_equal(false, trace.include_raw_output)
+    end
+  end
+
+  def test_loads_llm_file_tracing_overrides
+    Dir.mktmpdir("redwright-app-config-tracing-overrides-") do |dir|
+      config_dir = File.join(dir, ".config", "redwright")
+      FileUtils.mkdir_p(config_dir)
+      File.write(File.join(config_dir, "config.yml"), <<~YAML)
+        runtime:
+          loop_interval_ms: 100
+          blocked_retry_attempts: 1
+        telegram:
+          bot_token: "x"
+          poll_interval_seconds: 1
+          allowed_chat_ids: [1]
+        paths:
+          default_projects_root: "#{dir}/projects"
+        tracing:
+          llm_file:
+            enabled: true
+            path: "#{dir}/logs/trace.ndjson"
+            max_bytes: 2048
+            keep_files: 3
+            include_payloads: true
+            include_system_prompt: true
+            include_user_text: true
+            include_raw_output: true
+        models:
+          coding:
+            - provider: "openai"
+              name: "gpt-5.2"
+          non_coding:
+            - provider: "openai"
+              name: "gpt-5-mini"
+      YAML
+
+      config = Redwright::AppConfigLoader.new(mode: :real, home: dir).load
+      trace = config.tracing.llm_file
+      assert_equal(true, trace.enabled)
+      assert_equal("#{dir}/logs/trace.ndjson", trace.path)
+      assert_equal(2048, trace.max_bytes)
+      assert_equal(3, trace.keep_files)
+      assert_equal(true, trace.include_payloads)
+      assert_equal(true, trace.include_system_prompt)
+      assert_equal(true, trace.include_user_text)
+      assert_equal(true, trace.include_raw_output)
+    end
+  end
 end
