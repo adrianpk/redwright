@@ -8,6 +8,8 @@ module RuntimeContainers
       dispatcher.register_command("GenerateProjectRuntimeContainers", method(:generate_project_runtime_containers))
       dispatcher.register_command("RegenerateProjectRuntimeContainers", method(:regenerate_project_runtime_containers))
       dispatcher.register_command("UpdateProjectRuntimeContainers", method(:update_project_runtime_containers))
+      dispatcher.register_command("RecordProjectRuntimeContainerValidation", method(:record_project_runtime_container_validation))
+      dispatcher.register_command("MarkProjectRuntimeContainersReady", method(:mark_project_runtime_containers_ready))
       dispatcher.register_query("GetProjectRuntimeContainers", method(:get_project_runtime_containers))
       dispatcher
     end
@@ -95,6 +97,87 @@ module RuntimeContainers
       invalid_record_result(e.record, request_id: request_id, summary: "Runtime Containers could not be updated.")
     end
 
+    def record_project_runtime_container_validation(payload:, context:, request_id:)
+      project = find_project(value_from(payload, "project_id"))
+      return missing_project_result(request_id: request_id) unless project
+
+      validation = ValidationService.new(
+        project: project,
+        status: value_from(payload, "validation_status", "status"),
+        output_summary: value_from(payload, "validation_output_summary", "summary", "reason"),
+        validation_command: value_from(payload, "validation_command")
+      ).call
+
+      CommandQuery::Result.ok(
+        request_id: request_id,
+        data: {
+          "summary" => "Runtime Containers validation recorded.",
+          "project_id" => project.id,
+          "runtime_containers" => validation.runtime_container.to_state,
+          "changed_fields" => validation.changed_fields
+        },
+        effects: [
+          {
+            "type" => "runtime_containers_validation_recorded",
+            "project_id" => project.id,
+            "runtime_container_id" => validation.runtime_container.id,
+            "validation_status" => validation.runtime_container.validation_status,
+            "readiness" => validation.runtime_container.readiness
+          }
+        ]
+      )
+    rescue ActiveRecord::RecordNotFound => e
+      missing_runtime_container_result(request_id: request_id, message: e.message)
+    rescue ArgumentError => e
+      invalid_payload_result(request_id: request_id, message: e.message)
+    end
+
+    def mark_project_runtime_containers_ready(payload:, context:, request_id:)
+      project = find_project(value_from(payload, "project_id"))
+      return missing_project_result(request_id: request_id) unless project
+
+      readiness = ReadinessService.new(project: project).call
+      unless readiness.ready?
+        return CommandQuery::Result.new(
+          status: "error",
+          request_id: request_id,
+          data: {
+            "summary" => "Runtime Containers are not ready.",
+            "project_id" => project.id,
+            "runtime_containers" => readiness.runtime_container.to_state,
+            "readiness_problems" => readiness.problems
+          },
+          effects: [],
+          errors: [
+            {
+              code: "runtime_containers_not_ready",
+              message: "Runtime Containers are not ready.",
+              details: readiness.problems
+            }
+          ]
+        )
+      end
+
+      CommandQuery::Result.ok(
+        request_id: request_id,
+        data: {
+          "summary" => "Runtime Containers marked ready.",
+          "project_id" => project.id,
+          "runtime_containers" => readiness.runtime_container.to_state,
+          "readiness_problems" => []
+        },
+        effects: [
+          {
+            "type" => "runtime_containers_marked_ready",
+            "project_id" => project.id,
+            "runtime_container_id" => readiness.runtime_container.id
+          }
+        ]
+      )
+    rescue ActiveRecord::RecordNotFound => e
+      missing_runtime_container_result(request_id: request_id, message: e.message)
+    end
+
     def get_project_runtime_containers(payload:, context:, request_id:)
       project = find_project(value_from(payload, "project_id"))
       return missing_project_result(request_id: request_id) unless project
@@ -149,6 +232,22 @@ module RuntimeContainers
             details: {"attribute" => error.attribute.to_s}
           }
         end
+      )
+    end
+
+    def missing_runtime_container_result(request_id:, message:)
+      CommandQuery::Result.error(
+        request_id: request_id,
+        code: "runtime_containers_not_found",
+        message: message
+      )
+    end
+
+    def invalid_payload_result(request_id:, message:)
+      CommandQuery::Result.error(
+        request_id: request_id,
+        code: "invalid_payload",
+        message: message
       )
     end
 
