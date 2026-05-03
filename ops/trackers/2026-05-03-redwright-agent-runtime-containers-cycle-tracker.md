@@ -4,9 +4,9 @@
 
 - cycle_id: `cycle-2026-05-03-redwright-agent-runtime-containers`
 - status: `in_progress`
-- state: `slice_4_pr_open`
+- state: `slice_4_merged`
 - updated: `2026-05-03`
-- active_slice: `Slice 4`
+- active_slice: `none`
 - active_task: `none`
 - source_plan: `ops/plans/2026-05-03-redwright-agent-runtime-containers-cycle-plan.md`
 - source_spec: `ops/specs/specs/2026-05-03-redwright-agent-runtime-containers-spec.md`
@@ -113,11 +113,11 @@ Validation:
 
 ### Slice 4: Ticket Execution Runtime Readiness Gate
 
-- status: `pr_open`
+- status: `merged`
 - branch: `fix/slice-4-runtime-containers-ticket-gate`
-- PR: `#272 https://codeberg.org/adrianpk/redwright/pulls/272`
+- PR: `#272 https://codeberg.org/adrianpk/redwright/pulls/272 merged into dev`
 - merge_target: `dev`
-- last_sync_commit: `pending`
+- last_sync_commit: `74c8ed5`
 
 Tasks:
 
@@ -133,7 +133,7 @@ Commits:
 - [x] `fba3dcb feat(web): gate tickets on runtime containers readiness`
 - [x] `a17bfb9 test(integration): cover runtime containers ticket gate`
 - [x] `a82de39 docs(ops): update runtime containers slice 4 status`
-- [x] `pending docs(ops): record runtime containers slice 4 pr`
+- [x] `74c8ed5 docs(ops): record runtime containers slice 4 pr`
 
 Validation:
 
@@ -186,3 +186,4 @@ Validation:
 - `2026-05-03` state=`slice_3_merged` note=`PR #271 merged into dev; Slice 3 is closed and Slice 4 remains pending explicit start`
 - `2026-05-03` state=`slice_4_implemented` note=`implemented Runtime Containers execution context resolution, sandbox-required ticket gate, structured readiness problems, operator-safe messages, and targeted/full Rails validation on fix/slice-4-runtime-containers-ticket-gate`
 - `2026-05-03` state=`slice_4_pr_open` note=`opened Codeberg PR #272 from fix/slice-4-runtime-containers-ticket-gate into dev`
+- `2026-05-03` state=`slice_4_merged` note=`PR #272 merged into dev; Slice 4 is closed and Slice 5 remains pending explicit start`
