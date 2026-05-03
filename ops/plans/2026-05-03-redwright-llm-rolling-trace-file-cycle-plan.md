@@ -3,7 +3,7 @@
 ## Metadata
 
 - cycle_id: `cycle-2026-05-03-redwright-llm-rolling-trace-file`
-- status: `planned`
+- status: `in_review`
 - owner: `adrianpk`
 - created: `2026-05-03`
 - updated: `2026-05-04`
@@ -15,17 +15,17 @@
 
 ### Slice 1: Rolling Trace File Foundation
 
-- status: `pending`
+- status: `in_review`
 - branch: `fix/slice-1-llm-rolling-trace-file`
 - pr_title: `feat(slice-1): add llm rolling trace file`
 - objective: `thread configuration, correlation, metadata, redaction, and rotation through the existing Trace.llm_request and Trace.llm_response path without breaking live tracing`
 - tasks:
-- [ ] `T1.1 add tracing.llm_file configuration parsing and defaults`
-- [ ] `T1.2 implement a small rolling NDJSON writer for LLM trace events`
-- [ ] `T1.3 thread stable llm_call_id correlation through request and response trace calls`
-- [ ] `T1.4 extend trace call payloads to carry project, ticket, session, actor, source, and context-size metadata when available`
-- [ ] `T1.5 apply bounded payload inclusion and basic redaction before persistence`
-- [ ] `T1.6 add tests for disabled behavior, enabled writes, correlation, rotation, redaction, and non-fatal writer failures`
+- [x] `T1.1 add tracing.llm_file configuration parsing and defaults`
+- [x] `T1.2 implement a small rolling NDJSON writer for LLM trace events`
+- [x] `T1.3 thread stable llm_call_id correlation through request and response trace calls`
+- [x] `T1.4 extend trace call payloads to carry project, ticket, session, actor, source, and context-size metadata when available`
+- [x] `T1.5 apply bounded payload inclusion and basic redaction before persistence`
+- [x] `T1.6 add tests for disabled behavior, enabled writes, correlation, rotation, redaction, and non-fatal writer failures`
 - acceptance:
 - `llm request and response trace events can be durably recorded as NDJSON`
 - `the file is disabled by default and configuration-driven`
