@@ -34,8 +34,8 @@ Delivered behavior:
 ### Slice 2: Workspace, Manifest, and Telegram Closure
 
 - branch: `fix/slice-2-project-setup-workspace-and-telegram-closure`
-- PR: `pending`
-- status: `ready_for_pr`
+- PR: `https://codeberg.org/adrianpk/redwright/pulls/260`
+- status: `reviewing`
 
 Delivered behavior:
 

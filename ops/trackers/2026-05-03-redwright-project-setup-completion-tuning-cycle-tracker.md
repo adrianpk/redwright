@@ -4,10 +4,10 @@
 
 - cycle_id: `cycle-2026-05-03-redwright-project-setup-completion-tuning`
 - status: `completed`
-- state: `slice_2_ready_for_pr`
+- state: `slice_2_reviewing`
 - updated: `2026-05-03`
 - active_slice: `Slice 2`
-- active_task: `T2.7`
+- active_task: `waiting for Slice 2 PR review`
 - source_plan: `ops/plans/2026-05-03-redwright-project-setup-completion-tuning-cycle-plan.md`
 - source_draft: `ops/tmp/drafts/2026-05-03-redwright-project-setup-corrective-slice-draft.md`
 
@@ -45,9 +45,9 @@ Validation:
 
 ### Slice 2: Workspace, Manifest, and Telegram Closure
 
-- status: `ready_for_pr`
+- status: `reviewing`
 - branch: `fix/slice-2-project-setup-workspace-and-telegram-closure`
-- PR: `pending`
+- PR: `https://codeberg.org/adrianpk/redwright/pulls/260`
 - merge_target: `dev`
 - last_sync_commit: `0624f9a`
 
@@ -95,3 +95,4 @@ Validation:
 - `2026-05-03` state=`reviewing` slice=`Slice 1` pr=`https://codeberg.org/adrianpk/redwright/pulls/259` note=`opened canonical Slice 1 PR against dev`
 - `2026-05-03` state=`merged` slice=`Slice 1` pr=`https://codeberg.org/adrianpk/redwright/pulls/259` note=`merged into dev and synchronized locally before starting Slice 2`
 - `2026-05-03` state=`ready_for_pr` slice=`Slice 2` note=`materialized local setup workspace and manifest, exposed workspace completion data, removed Telegram shortcode artifacts by default, added Telegram E2E coverage, ran full Rails tests, and repository coverage increased to 91.39`
+- `2026-05-03` state=`reviewing` slice=`Slice 2` pr=`https://codeberg.org/adrianpk/redwright/pulls/260` note=`opened canonical Slice 2 PR against dev`

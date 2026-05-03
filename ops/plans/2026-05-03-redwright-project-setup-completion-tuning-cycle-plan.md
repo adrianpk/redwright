@@ -45,7 +45,7 @@ This cycle is intentionally short and corrective. It does not continue the close
 
 ### Slice 2: Workspace, Manifest, and Telegram Closure
 
-- status: `ready_for_pr`
+- status: `reviewing`
 - branch: `fix/slice-2-project-setup-workspace-and-telegram-closure`
 - pr_title: `feat(slice-2): project setup workspace and telegram closure`
 - objective: `create observable local workspace artifacts from completed setup and render Telegram completion without non-rendering shortcode artifacts`
