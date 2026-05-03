@@ -3,7 +3,7 @@
 ## Metadata
 
 - cycle_id: `cycle-2026-05-03-redwright-project-setup-completion-tuning`
-- status: `in_progress`
+- status: `completed`
 - owner: `adrianpk`
 - created: `2026-05-03`
 - updated: `2026-05-03`
@@ -22,7 +22,7 @@ This cycle is intentionally short and corrective. It does not continue the close
 
 ### Slice 1: Project Setup Completion Materialization
 
-- status: `reviewing`
+- status: `merged`
 - branch: `fix/slice-1-project-setup-completion-materialization`
 - pr_title: `feat(slice-1): project setup completion materialization`
 - objective: `make questionnaire completion idempotently apply all collected setup slots into complete Rails project state`
@@ -45,7 +45,7 @@ This cycle is intentionally short and corrective. It does not continue the close
 
 ### Slice 2: Workspace, Manifest, and Telegram Closure
 
-- status: `planned`
+- status: `ready_for_pr`
 - branch: `fix/slice-2-project-setup-workspace-and-telegram-closure`
 - pr_title: `feat(slice-2): project setup workspace and telegram closure`
 - objective: `create observable local workspace artifacts from completed setup and render Telegram completion without non-rendering shortcode artifacts`
