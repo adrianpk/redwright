@@ -143,7 +143,6 @@ Commits:
 - [x] `de80ba2 feat(runtime): pass setup context to ticket execution bridge`
 - [x] `2df88c8 feat(web): seed setup-driven starter workflow tickets`
 - [x] `36cf5e1 test(integration): cover setup context runtime bridge parity`
-- [ ] `docs(ops): track slice 5 workflow context bridge`
 
 Validation:
 
