@@ -106,7 +106,7 @@
 
 ### Slice 5: Setup Integration and Cycle Closure
 
-- status: `implemented`
+- status: `pr_open`
 - branch: `fix/slice-5-runtime-containers-setup-e2e`
 - pr_title: `feat(slice-5): runtime containers setup e2e`
 - objective: `initialize Runtime Containers during project setup and close the cycle with end-to-end coverage from setup to ticket readiness`

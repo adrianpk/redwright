@@ -4,7 +4,7 @@
 
 - cycle_id: `cycle-2026-05-03-redwright-agent-runtime-containers`
 - status: `in_progress`
-- state: `slice_5_implemented`
+- state: `slice_5_pr_open`
 - updated: `2026-05-03`
 - active_slice: `Slice 5`
 - active_task: `none`
@@ -142,11 +142,11 @@ Validation:
 
 ### Slice 5: Setup Integration and Cycle Closure
 
-- status: `implemented`
+- status: `pr_open`
 - branch: `fix/slice-5-runtime-containers-setup-e2e`
-- PR: `pending`
+- PR: `#273 https://codeberg.org/adrianpk/redwright/pulls/273`
 - merge_target: `dev`
-- last_sync_commit: `4426419`
+- last_sync_commit: `pending`
 
 Tasks:
 
@@ -161,7 +161,8 @@ Commits:
 
 - [x] `6ab1fad feat(web): initialize runtime containers during setup`
 - [x] `4426419 test(integration): cover runtime containers setup e2e`
-- [x] `pending docs(ops): close runtime containers cycle`
+- [x] `eea84f8 docs(ops): close runtime containers cycle`
+- [x] `pending docs(ops): record runtime containers slice 5 pr`
 
 Validation:
 
@@ -193,3 +194,4 @@ Validation:
 - `2026-05-03` state=`slice_4_pr_open` note=`opened Codeberg PR #272 from fix/slice-4-runtime-containers-ticket-gate into dev`
 - `2026-05-03` state=`slice_4_merged` note=`PR #272 merged into dev; Slice 4 is closed and Slice 5 remains pending explicit start`
 - `2026-05-03` state=`slice_5_implemented` note=`implemented setup integration, Runtime Containers readiness ticket creation, setup status and manifest metadata, setup-to-ticket readiness E2E coverage, full Rails validation, coverage validation, and cycle closure report on fix/slice-5-runtime-containers-setup-e2e`
+- `2026-05-03` state=`slice_5_pr_open` note=`opened Codeberg PR #273 from fix/slice-5-runtime-containers-setup-e2e into dev`

@@ -74,8 +74,8 @@ Delivered behavior:
 ### Slice 5: Setup Integration and Cycle Closure
 
 - branch: `fix/slice-5-runtime-containers-setup-e2e`
-- PR: `pending`
-- status: `implemented_pending_review`
+- PR: `https://codeberg.org/adrianpk/redwright/pulls/273`
+- status: `reviewing`
 
 Delivered behavior:
 
