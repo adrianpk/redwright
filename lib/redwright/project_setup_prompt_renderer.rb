@@ -11,6 +11,7 @@ module Redwright
       Ask exactly one concise question.
       Mention available controls only when useful: /skip, /done, /cancel.
       Do not expose internal state names, session ids, trace ids, validators, or JSON.
+      Do not use colon shortcode tokens such as :gear: or :keyboard:.
       Return strict JSON with exactly one key: message.
     TEXT
 
@@ -59,7 +60,7 @@ module Redwright
       )
       parsed = JSON.parse(completion.content)
       message = parsed["message"].to_s.strip
-      message.empty? ? fallback_prompt(payload: payload, intent: intent) : message
+      sanitize_message(message.empty? ? fallback_prompt(payload: payload, intent: intent) : message)
     rescue StandardError
       fallback_prompt(payload: payload, intent: intent)
     end
@@ -71,7 +72,7 @@ module Redwright
           lines << "- #{error["code"] || error[:code]}: #{error["message"] || error[:message]}"
         end
       end
-      with_debug(lines.join("\n"), trace_id: trace_id)
+      with_debug(sanitize_message(lines.join("\n")), trace_id: trace_id)
     end
 
     def render_completion(payload:, trace_id:)
@@ -79,14 +80,20 @@ module Redwright
       project_name = project["name"].to_s
       project_id = payload["project_id"] || project["id"]
       label = project_name.empty? ? "project #{project_id}" : "#{project_name} (#{project_id})"
-      with_debug("Project setup is complete. I created #{label}. Use /project where to inspect the active project.", trace_id: trace_id)
+      lines = ["Project setup is complete. I created #{label}."]
+      workspace = payload["workspace"].is_a?(Hash) ? payload["workspace"] : {}
+      workspace_path = workspace["relative_path"].to_s.strip
+      workspace_path = workspace["path"].to_s.strip if workspace_path.empty?
+      lines << "Workspace: #{workspace_path}" unless workspace_path.empty?
+      lines << "Use /project where to inspect the active project."
+      with_debug(sanitize_message(lines.join("\n")), trace_id: trace_id)
     end
 
     def fallback_prompt(payload:, intent:)
       understood = understood_context(payload)
       question = fallback_question(intent["slot"])
       controls = fallback_controls(intent["slot"])
-      [understood, question, controls].compact.join("\n")
+      sanitize_message([understood, question, controls].compact.join("\n"))
     end
 
     def understood_context(payload)
@@ -145,9 +152,14 @@ module Redwright
     end
 
     def with_debug(message, trace_id:)
-      return message unless @debug
+      clean = sanitize_message(message)
+      return clean unless @debug
 
-      [message, "Trace: #{trace_id}"].join("\n")
+      [clean, "Trace: #{trace_id}"].join("\n")
+    end
+
+    def sanitize_message(message)
+      message.to_s.gsub(/:[a-z0-9_+-]+:/i, "").gsub(/[ \t]{2,}/, " ").strip
     end
   end
 end

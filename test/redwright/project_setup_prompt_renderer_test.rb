@@ -76,6 +76,85 @@ class ProjectSetupPromptRendererTest < Minitest::Test
     refute_match(/\bState:/, message)
   end
 
+  def test_sanitizes_colon_shortcode_tokens_from_llm_output
+    llm = FakeLlmClient.new(":gear: What framework should I use for this project? :keyboard_icon:")
+    renderer = Redwright::ProjectSetupPromptRenderer.new(llm_client: llm, model: "example/model")
+
+    message = renderer.render(
+      body: {
+        "status" => "ok",
+        "summary" => "Project setup started.",
+        "data" => {
+          "next_prompt_intent" => {
+            "kind" => "setup_slot_question",
+            "slot" => "framework",
+            "locale" => "auto",
+            "llm_required" => true
+          }
+        }
+      },
+      user_text: "Use Ruby",
+      trace_id: "trc-test"
+    )
+
+    refute_match(/:[a-z0-9_+-]+:/i, message)
+    assert_match "What framework should I use for this project?", message
+  end
+
+  def test_completion_includes_workspace_when_available
+    renderer = Redwright::ProjectSetupPromptRenderer.new
+
+    message = renderer.render(
+      body: {
+        "status" => "ok",
+        "state" => "completed",
+        "project_id" => 77,
+        "data" => {
+          "project" => {
+            "id" => 77,
+            "name" => "workspace-cli"
+          },
+          "workspace" => {
+            "relative_path" => "_workspace/Projects/workspace-cli"
+          }
+        }
+      },
+      user_text: "/done",
+      trace_id: "trc-test"
+    )
+
+    assert_match "workspace-cli (77)", message
+    assert_match "_workspace/Projects/workspace-cli", message
+    refute_match(/:[a-z0-9_+-]+:/i, message)
+  end
+
+  def test_completion_sanitizes_workspace_shortcode_artifacts
+    renderer = Redwright::ProjectSetupPromptRenderer.new
+
+    message = renderer.render(
+      body: {
+        "status" => "ok",
+        "state" => "completed",
+        "project_id" => 77,
+        "data" => {
+          "project" => {
+            "id" => 77,
+            "name" => "workspace-cli"
+          },
+          "workspace" => {
+            "relative_path" => ":folder: _workspace/Projects/workspace-cli"
+          }
+        }
+      },
+      user_text: "/done",
+      trace_id: "trc-test"
+    )
+
+    assert_match "_workspace/Projects/workspace-cli", message
+    refute_match(/:[a-z0-9_+-]+:/i, message)
+  end
+
+
   def test_falls_back_to_human_prompt_without_llm
     renderer = Redwright::ProjectSetupPromptRenderer.new
 
