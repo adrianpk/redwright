@@ -84,7 +84,7 @@
 
 ### Slice 4: Filesystem Materialization
 
-- status: `pr_open`
+- status: `merged`
 - branch: `fix/slice-4-project-protocol-materialization`
 - pr_title: `feat(slice-4): materialize project protocols`
 - objective: `materialize Rails-owned Project Protocols automatically into AGENTS.md, .agents/*, and PLAYBOOKS.md using the existing repository pattern`

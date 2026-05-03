@@ -4,7 +4,7 @@
 
 - cycle_id: `cycle-2026-05-03-redwright-project-protocol-templates`
 - status: `in_progress`
-- state: `slice_4_pr_open`
+- state: `slice_4_merged`
 - updated: `2026-05-03`
 - active_slice: `none`
 - active_task: `none`
@@ -108,9 +108,9 @@ Validation:
 
 ### Slice 4: Filesystem Materialization
 
-- status: `pr_open`
+- status: `merged`
 - branch: `fix/slice-4-project-protocol-materialization`
-- PR: `#277 https://codeberg.org/adrianpk/redwright/pulls/277`
+- PR: `#277 https://codeberg.org/adrianpk/redwright/pulls/277 merged into dev`
 - merge_target: `dev`
 - last_sync_commit: `57db404`
 
@@ -214,3 +214,4 @@ Validation:
 - `2026-05-03` state=`slice_3_merged` note=`PR #276 merged into dev; Slice 3 is closed and Slice 4 remains pending explicit start`
 - `2026-05-03` state=`slice_4_implemented` note=`implemented protocol filesystem materialization into AGENTS.md and .agents paths, one-way Rails-to-workspace sync, manifest protocol metadata, stale file cleanup, setup workspace integration, and targeted/full Rails validation on fix/slice-4-project-protocol-materialization`
 - `2026-05-03` state=`slice_4_pr_open` note=`opened Codeberg PR #277 from fix/slice-4-project-protocol-materialization into dev`
+- `2026-05-04` state=`slice_4_merged` note=`PR #277 merged into dev; Slice 4 is closed and Slice 5 remains pending explicit start`
