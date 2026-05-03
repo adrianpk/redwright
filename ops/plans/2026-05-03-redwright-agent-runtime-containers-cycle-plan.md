@@ -61,17 +61,17 @@
 
 ### Slice 3: Runtime Containers Management and Validation
 
-- status: `planned`
+- status: `implemented`
 - branch: `fix/slice-3-runtime-containers-management`
 - pr_title: `feat(slice-3): runtime containers management`
 - objective: `allow Runtime Containers inspection, editing, regeneration, comparison, validation recording, and readiness transitions`
 - tasks:
-- [ ] `T3.1 add Runtime Containers update command/query actions`
-- [ ] `T3.2 add regeneration as proposed changes without overwriting the active configuration`
-- [ ] `T3.3 add comparison output between active configuration and regenerated suggestions`
-- [ ] `T3.4 add validation result recording with pass, fail, skipped, and stale states`
-- [ ] `T3.5 enforce readiness transition rules`
-- [ ] `T3.6 add tests for editing, regeneration, comparison, validation recording, readiness, and stale validation transitions`
+- [x] `T3.1 add Runtime Containers update command/query actions`
+- [x] `T3.2 add regeneration as proposed changes without overwriting the active configuration`
+- [x] `T3.3 add comparison output between active configuration and regenerated suggestions`
+- [x] `T3.4 add validation result recording with pass, fail, skipped, and stale states`
+- [x] `T3.5 enforce readiness transition rules`
+- [x] `T3.6 add tests for editing, regeneration, comparison, validation recording, readiness, and stale validation transitions`
 - acceptance:
 - `users can correct generated Runtime Containers from Rails`
 - `regeneration is reviewable before acceptance`

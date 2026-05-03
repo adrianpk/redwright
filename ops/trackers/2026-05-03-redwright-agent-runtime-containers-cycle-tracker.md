@@ -4,9 +4,9 @@
 
 - cycle_id: `cycle-2026-05-03-redwright-agent-runtime-containers`
 - status: `in_progress`
-- state: `slice_2_merged`
+- state: `slice_3_implemented`
 - updated: `2026-05-03`
-- active_slice: `none`
+- active_slice: `Slice 3`
 - active_task: `none`
 - source_plan: `ops/plans/2026-05-03-redwright-agent-runtime-containers-cycle-plan.md`
 - source_spec: `ops/specs/specs/2026-05-03-redwright-agent-runtime-containers-spec.md`
@@ -84,28 +84,31 @@ Validation:
 
 ### Slice 3: Runtime Containers Management and Validation
 
-- status: `planned`
+- status: `implemented`
 - branch: `fix/slice-3-runtime-containers-management`
 - PR: `pending`
 - merge_target: `dev`
-- last_sync_commit: `pending`
+- last_sync_commit: `0ee495b`
 
 Tasks:
 
-- [ ] `T3.1 add Runtime Containers update command/query actions`
-- [ ] `T3.2 add regeneration as proposed changes without overwriting the active configuration`
-- [ ] `T3.3 add comparison output between active configuration and regenerated suggestions`
-- [ ] `T3.4 add validation result recording with pass, fail, skipped, and stale states`
-- [ ] `T3.5 enforce readiness transition rules`
-- [ ] `T3.6 add tests for editing, regeneration, comparison, validation recording, readiness, and stale validation transitions`
+- [x] `T3.1 add Runtime Containers update command/query actions`
+- [x] `T3.2 add regeneration as proposed changes without overwriting the active configuration`
+- [x] `T3.3 add comparison output between active configuration and regenerated suggestions`
+- [x] `T3.4 add validation result recording with pass, fail, skipped, and stale states`
+- [x] `T3.5 enforce readiness transition rules`
+- [x] `T3.6 add tests for editing, regeneration, comparison, validation recording, readiness, and stale validation transitions`
 
 Commits:
 
-- [ ] `pending`
+- [x] `f0a0b9e feat(web): manage runtime containers`
+- [x] `6d753ab feat(web): validate runtime containers readiness`
+- [x] `0ee495b test(web): cover runtime containers management`
 
 Validation:
 
-- [ ] `pending`
+- [x] `bundle exec bin/rails test test/services/runtime_containers/management_test.rb test/services/runtime_containers/generation_service_test.rb test/services/runtime_containers/command_query_handlers_test.rb test/models/project_runtime_container_test.rb` (pass)
+- [x] `bundle exec bin/rails test` (pass)
 
 ### Slice 4: Ticket Execution Runtime Readiness Gate
 
@@ -173,3 +176,4 @@ Validation:
 - `2026-05-03` state=`slice_2_implemented` note=`implemented Runtime Containers generation input, deterministic Go CLI generation, strict LLM contract, malformed/unavailable LLM fallback, unsupported blocked output, and targeted/full Rails validation on fix/slice-2-runtime-containers-generation`
 - `2026-05-03` state=`slice_2_pr_open` note=`opened Codeberg PR #270 from fix/slice-2-runtime-containers-generation into dev`
 - `2026-05-03` state=`slice_2_merged` note=`PR #270 merged into dev; Slice 2 is closed and Slice 3 remains pending explicit start`
+- `2026-05-03` state=`slice_3_implemented` note=`implemented Runtime Containers update, regeneration proposal, comparison, validation recording, readiness policy, and targeted/full Rails validation on fix/slice-3-runtime-containers-management`
