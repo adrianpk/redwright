@@ -22,6 +22,16 @@ module Redwright
       @ticket_ids_by_chat = {}
     end
 
+    def handles_event?(event)
+      return true if active_session_id(event.chat_id) && setup_control_command?(event.text)
+
+      return true if parse_command(event.text)
+      return true if parse_ticket_command(event.text)
+      return true if active_session_id(event.chat_id) && !slash?(event.text)
+
+      false
+    end
+
     def handle(event, trace_id:)
       return advance_active_session(event: event, trace_id: trace_id) if active_session_id(event.chat_id) && setup_control_command?(event.text)
 

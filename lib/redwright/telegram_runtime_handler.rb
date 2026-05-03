@@ -591,16 +591,22 @@ module Redwright
 
     def handle_project_setup_adapter(event)
       return false unless @project_setup_adapter
+      return false if @project_setup_adapter.respond_to?(:handles_event?) && !@project_setup_adapter.handles_event?(event)
 
-      result = @project_setup_adapter.handle(event, trace_id: Trace.current_trace_id || "none")
-      return false unless result&.handled?
+      stop_typing = start_typing_keepalive(event.chat_id)
+      begin
+        result = @project_setup_adapter.handle(event, trace_id: Trace.current_trace_id || "none")
+        return false unless result&.handled?
 
-      @telegram_client.send_message(chat_id: event.chat_id, text: result.message.to_s)
-      @out.puts(
-        "telegram rails_project_setup chat=#{event.chat_id} command=#{result.command} " \
-        "state=#{project_setup_state_from(result.api_response)}"
-      )
-      true
+        @telegram_client.send_message(chat_id: event.chat_id, text: result.message.to_s)
+        @out.puts(
+          "telegram rails_project_setup chat=#{event.chat_id} command=#{result.command} " \
+          "state=#{project_setup_state_from(result.api_response)}"
+        )
+        true
+      ensure
+        stop_typing&.call
+      end
     rescue StandardError => e
       error_message = "Rails project setup API failed: #{e.message}"
       @telegram_client.send_message(

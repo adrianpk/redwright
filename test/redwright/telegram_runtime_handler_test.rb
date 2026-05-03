@@ -1200,6 +1200,7 @@ class TelegramRuntimeHandlerTest < Minitest::Test
         assert_match("What type of project", client.messages.last[:text])
         assert_match("telegram rails_project_setup chat=46 command=project_new state=collecting_context", out.string)
         assert_match("telegram rails_project_setup chat=46 command=project_setup_advance state=collecting_context", out.string)
+        assert_operator(client.chat_actions.count { |action| action == { chat_id: 46, action: "typing" } }, :>=, 2)
         assert_equal([], project_store.list)
         refute(File.directory?(File.join(bootstrap.projects_root, "happy-cli")))
       end
@@ -1271,6 +1272,7 @@ class TelegramRuntimeHandlerTest < Minitest::Test
     assert_equal(1, client.messages.size)
     assert_match("Rails project setup API failed: rails api down", client.messages.last[:text])
     assert_match("telegram rails_project_setup_error chat=46", out.string)
+    assert_operator(client.chat_actions.count { |action| action == { chat_id: 46, action: "typing" } }, :>=, 1)
   end
 
   def test_handle_rewrites_operational_slashes_to_explicit_planner_hints
