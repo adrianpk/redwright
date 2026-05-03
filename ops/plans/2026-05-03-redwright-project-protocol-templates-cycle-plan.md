@@ -107,7 +107,7 @@
 
 ### Slice 5: Project Protocol Management Surface
 
-- status: `pr_open`
+- status: `merged`
 - branch: `fix/slice-5-project-protocol-management`
 - pr_title: `Project Protocols web management surface`
 - objective: `expose Protocols as a first-class project area with Markdown document editing focused on the concrete project protocol`

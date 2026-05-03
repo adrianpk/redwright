@@ -4,7 +4,7 @@
 
 - cycle_id: `cycle-2026-05-03-redwright-project-protocol-templates`
 - status: `in_progress`
-- state: `slice_5_pr_open`
+- state: `slice_5_merged`
 - updated: `2026-05-03`
 - active_slice: `none`
 - active_task: `none`
@@ -137,9 +137,9 @@ Validation:
 
 ### Slice 5: Project Protocol Management Surface
 
-- status: `pr_open`
+- status: `merged`
 - branch: `fix/slice-5-project-protocol-management`
-- PR: `#278 https://codeberg.org/adrianpk/redwright/pulls/278`
+- PR: `#278 https://codeberg.org/adrianpk/redwright/pulls/278 merged into dev`
 - merge_target: `dev`
 - last_sync_commit: `df23cba`
 
@@ -217,3 +217,4 @@ Validation:
 - `2026-05-04` state=`slice_4_merged` note=`PR #277 merged into dev; Slice 4 is closed and Slice 5 remains pending explicit start`
 - `2026-05-04` state=`slice_5_implemented` note=`implemented project-scoped Protocols web area, canonical document listing, Markdown editing surface, project area navigation, and targeted/full Rails validation on fix/slice-5-project-protocol-management`
 - `2026-05-04` state=`slice_5_pr_open` note=`opened Codeberg PR #278 from fix/slice-5-project-protocol-management into dev`
+- `2026-05-04` state=`slice_5_merged` note=`PR #278 merged into dev; Slice 5 is closed and Slice 6 remains pending explicit start`
