@@ -4,9 +4,9 @@
 
 - cycle_id: `cycle-2026-05-03-redwright-agent-runtime-containers`
 - status: `in_progress`
-- state: `slice_1_merged`
+- state: `slice_2_implemented`
 - updated: `2026-05-03`
-- active_slice: `none`
+- active_slice: `Slice 2`
 - active_task: `none`
 - source_plan: `ops/plans/2026-05-03-redwright-agent-runtime-containers-cycle-plan.md`
 - source_spec: `ops/specs/specs/2026-05-03-redwright-agent-runtime-containers-spec.md`
@@ -51,28 +51,34 @@ Validation:
 
 ### Slice 2: Runtime Containers Generation Contract
 
-- status: `planned`
+- status: `implemented`
 - branch: `fix/slice-2-runtime-containers-generation`
 - PR: `pending`
 - merge_target: `dev`
-- last_sync_commit: `pending`
+- last_sync_commit: `de87aa4`
 
 Tasks:
 
-- [ ] `T2.1 add generation input builder from project setup context, stack, framework, language, libraries, and workspace hints`
-- [ ] `T2.2 add deterministic Go CLI Runtime Containers generator`
-- [ ] `T2.3 define LLM generation contract with strict structured output for future or configured model usage`
-- [ ] `T2.4 add malformed or unavailable LLM fallback behavior`
-- [ ] `T2.5 produce explicit blocked or missing-information output for unsupported contexts`
-- [ ] `T2.6 add tests for Go CLI generation, unsupported contexts, provenance, assumptions, risks, and fallback behavior`
+- [x] `T2.1 add generation input builder from project setup context, stack, framework, language, libraries, and workspace hints`
+- [x] `T2.2 add deterministic Go CLI Runtime Containers generator`
+- [x] `T2.3 define LLM generation contract with strict structured output for future or configured model usage`
+- [x] `T2.4 add malformed or unavailable LLM fallback behavior`
+- [x] `T2.5 produce explicit blocked or missing-information output for unsupported contexts`
+- [x] `T2.6 add tests for Go CLI generation, unsupported contexts, provenance, assumptions, risks, and fallback behavior`
 
 Commits:
 
-- [ ] `pending`
+- [x] `cde1132 feat(web): build runtime container generation input`
+- [x] `a386fb7 feat(web): generate go cli runtime containers`
+- [x] `6e83b23 feat(web): define runtime container llm contract`
+- [x] `b39660c feat(web): add runtime container llm fallback`
+- [x] `f408dc6 feat(web): block unsupported runtime container generation`
+- [x] `de87aa4 test(web): cover runtime container generation`
 
 Validation:
 
-- [ ] `pending`
+- [x] `bundle exec bin/rails test test/services/runtime_containers/generation_service_test.rb test/services/runtime_containers/command_query_handlers_test.rb test/models/project_runtime_container_test.rb` (pass)
+- [x] `bundle exec bin/rails test` (pass)
 
 ### Slice 3: Runtime Containers Management and Validation
 
@@ -162,3 +168,4 @@ Validation:
 - `2026-05-03` state=`slice_1_implemented` note=`implemented Runtime Containers domain persistence, state contracts, structured fields, command/query read surface, and targeted/full Rails validation on fix/slice-1-runtime-containers-domain`
 - `2026-05-03` state=`slice_1_pr_open` note=`opened Codeberg PR #269 from fix/slice-1-runtime-containers-domain into dev`
 - `2026-05-03` state=`slice_1_merged` note=`PR #269 merged into dev; Slice 1 is closed and Slice 2 remains pending explicit start`
+- `2026-05-03` state=`slice_2_implemented` note=`implemented Runtime Containers generation input, deterministic Go CLI generation, strict LLM contract, malformed/unavailable LLM fallback, unsupported blocked output, and targeted/full Rails validation on fix/slice-2-runtime-containers-generation`

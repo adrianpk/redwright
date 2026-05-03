@@ -38,17 +38,17 @@
 
 ### Slice 2: Runtime Containers Generation Contract
 
-- status: `planned`
+- status: `implemented`
 - branch: `fix/slice-2-runtime-containers-generation`
 - pr_title: `feat(slice-2): runtime containers generation`
 - objective: `generate initial Runtime Containers suggestions from project setup context with deterministic Go CLI support and safe fallback behavior`
 - tasks:
-- [ ] `T2.1 add generation input builder from project setup context, stack, framework, language, libraries, and workspace hints`
-- [ ] `T2.2 add deterministic Go CLI Runtime Containers generator`
-- [ ] `T2.3 define LLM generation contract with strict structured output for future or configured model usage`
-- [ ] `T2.4 add malformed or unavailable LLM fallback behavior`
-- [ ] `T2.5 produce explicit blocked or missing-information output for unsupported contexts`
-- [ ] `T2.6 add tests for Go CLI generation, unsupported contexts, provenance, assumptions, risks, and fallback behavior`
+- [x] `T2.1 add generation input builder from project setup context, stack, framework, language, libraries, and workspace hints`
+- [x] `T2.2 add deterministic Go CLI Runtime Containers generator`
+- [x] `T2.3 define LLM generation contract with strict structured output for future or configured model usage`
+- [x] `T2.4 add malformed or unavailable LLM fallback behavior`
+- [x] `T2.5 produce explicit blocked or missing-information output for unsupported contexts`
+- [x] `T2.6 add tests for Go CLI generation, unsupported contexts, provenance, assumptions, risks, and fallback behavior`
 - acceptance:
 - `Go CLI projects receive a useful Runtime Containers suggestion`
 - `unsupported contexts do not become ready by accident`
