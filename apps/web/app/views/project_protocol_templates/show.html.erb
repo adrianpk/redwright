@@ -1,0 +1,20 @@
+<main class="document-artifacts-show">
+  <p class="document-artifact-breadcrumb">
+    <%= link_to "Protocol Templates", protocol_templates_path %>
+  </p>
+  <header class="document-artifacts-header">
+    <h1><%= @template.name %></h1>
+    <p class="board-key"><%= @template.template_kind %>: <%= @template.key %></p>
+  </header>
+
+  <section class="artifact-list">
+    <% @template.documents.each do |document| %>
+      <article class="artifact-list-card">
+        <%= link_to edit_protocol_template_document_path(@template, document) do %>
+          <strong><%= document.title %></strong>
+          <span><%= document.path %></span>
+        <% end %>
+      </article>
+    <% end %>
+  </section>
+</main>

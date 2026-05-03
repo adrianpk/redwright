@@ -38,6 +38,9 @@
         <div class="top-nav-links">
           <%= link_to "Boards", boards_path, class: "top-nav-link" %>
           <%= link_to "Docs", documents_path, class: "top-nav-link" %>
+          <% if current_user&.admin? %>
+            <%= link_to "Protocol Templates", protocol_templates_path, class: "top-nav-link" %>
+          <% end %>
         </div>
       </nav>
       <button type="button" class="top-nav-pin" aria-label="Pin menu" aria-pressed="false" title="Pin menu">📌</button>

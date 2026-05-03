@@ -13,6 +13,9 @@ Rails.application.routes.draw do
   resources :projects, only: [] do
     resources :protocols, controller: "project_protocols", only: [ :index, :show, :edit, :update ]
   end
+  resources :protocol_templates, controller: "project_protocol_templates", only: [ :index, :show ] do
+    resources :documents, controller: "project_protocol_template_documents", only: [ :edit, :update ]
+  end
   resources :boards, only: [ :index, :show ]
   resources :boards, only: [] do
     resources :tickets, only: [ :new, :create ] do

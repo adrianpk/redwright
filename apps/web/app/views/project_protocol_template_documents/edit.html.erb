@@ -1,0 +1,37 @@
+<main class="document-artifacts-edit">
+  <p class="document-artifact-breadcrumb">
+    <%= link_to "Protocol Template", protocol_template_path(@template) %>
+  </p>
+  <header class="document-artifacts-header">
+    <h1>Edit Template Document</h1>
+    <p class="board-key"><%= @document.path %></p>
+  </header>
+  <section class="document-artifact-panel">
+    <%= form_with model: @document,
+                  url: protocol_template_document_path(@template, @document),
+                  html: { class: "document-artifact-form" } do |f| %>
+      <% if @document.errors.any? %>
+        <div class="document-artifact-errors">
+          <h2><%= pluralize(@document.errors.count, "error") %> blocked this template:</h2>
+          <ul>
+            <% @document.errors.full_messages.each do |message| %>
+              <li><%= message %></li>
+            <% end %>
+          </ul>
+        </div>
+      <% end %>
+
+      <div class="document-artifact-field">
+        <%= f.label :title %>
+        <%= f.text_field :title, required: true %>
+      </div>
+      <div class="document-artifact-field">
+        <%= f.label :body %>
+        <%= f.text_area :body, rows: 18, required: true %>
+      </div>
+      <div class="document-artifact-actions">
+        <%= f.submit "Update", class: "ticket-action" %>
+      </div>
+    <% end %>
+  </section>
+</main>

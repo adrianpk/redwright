@@ -146,19 +146,6 @@ module ProjectProtocols
       }
     end
 
-    def template_for(token)
-      return nil if token.to_s.strip.empty?
-
-      normalized = token.to_s.downcase
-      stack_templates.values.find do |template|
-        template.fetch("matchers").any? { |matcher| normalized.include?(matcher) }
-      end
-    end
-
-    def available_stack_keys
-      stack_templates.keys
-    end
-
     private
 
     def stack_template(stack_key:, matchers:, architecture:, conventions:)

@@ -19,14 +19,14 @@ module ProjectProtocols
       end
     end
 
-    def initialize(project:, registry: TemplateRegistry.new)
+    def initialize(project:, registry: TemplateCatalog.new)
       @project = project
       @registry = registry
     end
 
     def call
       tokens = stack_tokens
-      selected = tokens.filter_map { |token| registry.template_for(token) }
+      selected = tokens.filter_map { |token| template_for(token) }
       matched_keys = selected.map { |template| template.fetch("stack_key") }.uniq
       missing = tokens.reject do |token|
         selected.any? { |template| template.fetch("matchers").any? { |matcher| token.downcase.include?(matcher) } }
@@ -47,6 +47,15 @@ module ProjectProtocols
     private
 
     attr_reader :project, :registry
+
+    def template_for(token)
+      return nil if token.to_s.strip.empty?
+
+      normalized = token.to_s.downcase
+      registry.stack_templates.values.find do |template|
+        template.fetch("matchers").any? { |matcher| normalized.include?(matcher) }
+      end
+    end
 
     def compose_documents(common_documents:, stack_templates:)
       merged = common_documents.index_by { |document| document.fetch("key") }

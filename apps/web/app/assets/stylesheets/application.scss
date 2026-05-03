@@ -465,6 +465,16 @@ body {
   color: var(--navy);
 }
 
+.template-group {
+  margin-top: 18px;
+}
+
+.template-group h2 {
+  margin: 0 0 10px;
+  font-size: 0.96rem;
+  color: var(--navy);
+}
+
 .boards-index h1,
 .board-header h1 {
   margin: 0;
