@@ -87,4 +87,24 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
     assert_equal "awaiting_repository", session.current_state
     assert_nil session.project
   end
+
+  test "show exposes project areas including protocols" do
+    admin = create_admin_user!
+    sign_in_as(admin)
+    project = create_project(key: "project-show-areas")
+    create_project_protocol(
+      project: project,
+      documents: [{key: "agents_root", path: "AGENTS.md", title: "AGENTS", body: "# Root"}]
+    )
+    board = create_board(name: "Project Areas", project_key: "project-show-areas", project: project)
+
+    get project_path(project)
+
+    assert_response :success
+    assert_match "Protocols", response.body
+    assert_match "Documents", response.body
+    assert_match "Board", response.body
+    assert_match "href=\"#{project_protocols_path(project)}\"", response.body
+    assert_match "href=\"#{board_path(board)}\"", response.body
+  end
 end
