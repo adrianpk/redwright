@@ -45,8 +45,22 @@ module ProjectSetup
       answer = value_from(payload, "answer").to_s.strip
       return invalid_payload_result(request_id: request_id, message: "answer is required") if answer.empty?
 
+      context_replay = ContextLoopService.new(session: session).replay(request_id: request_id)
+      return context_loop_result(context_replay, request_id: request_id) if context_replay
+
       alignment_replay = GuidedAlignmentService.new(session: session).replay(request_id: request_id)
       return guided_alignment_result(alignment_replay, request_id: request_id) if alignment_replay
+
+      if session.current_state == "collecting_context"
+        context_result = ContextLoopService.new(session: session).advance!(
+          answer: answer,
+          normalized_fields: hash_from(value_from(payload, "normalized_fields")),
+          source_channel: source_channel_from(context),
+          request_id: request_id
+        )
+        return context_loop_result(context_result, request_id: request_id)
+      end
+
       normalized_fields = hash_from(value_from(payload, "normalized_fields"))
       if session.current_state == "collecting_alignment"
         alignment_result = GuidedAlignmentService.new(session: session).advance!(
@@ -268,6 +282,19 @@ module ProjectSetup
     end
 
     def guided_alignment_result(result, request_id:)
+      data = session_data(result.session.reload, summary: result.summary).merge(result.data)
+      return CommandQuery::Result.ok(request_id: request_id, data: data, effects: result.effects) if result.ok?
+
+      CommandQuery::Result.new(
+        status: "error",
+        request_id: request_id,
+        data: data,
+        effects: result.effects,
+        errors: result.errors
+      )
+    end
+
+    def context_loop_result(result, request_id:)
       data = session_data(result.session.reload, summary: result.summary).merge(result.data)
       return CommandQuery::Result.ok(request_id: request_id, data: data, effects: result.effects) if result.ok?
 

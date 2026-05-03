@@ -82,7 +82,7 @@ module ProjectInitialization
         assert_equal "collecting_context", session.current_state
         assert_nil session.pending_question
         assert_equal(
-          {"kind" => "setup_slot_question", "slot" => "stack", "locale" => "auto", "llm_required" => true},
+          {"kind" => "setup_slot_question", "slot" => "project_type", "locale" => "auto", "llm_required" => true},
           session.metadata.fetch("next_prompt_intent")
         )
         assert_nil session.project

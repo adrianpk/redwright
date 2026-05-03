@@ -30,7 +30,7 @@ module ProjectInitialization
              elsif @command.description.empty?
                "description"
              else
-               "stack"
+               "project_type"
              end
 
       {

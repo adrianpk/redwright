@@ -72,13 +72,244 @@ class Api::V1::CommandQueriesControllerTest < ActionDispatch::IntegrationTest
     assert_nil body.fetch("project_id")
     assert_equal ["project_setup_session_written"], body.fetch("effects").map { |effect| effect.fetch("type") }
     assert_equal(
-      {"kind" => "setup_slot_question", "slot" => "stack", "locale" => "auto", "llm_required" => true},
+      {"kind" => "setup_slot_question", "slot" => "project_type", "locale" => "auto", "llm_required" => true},
       body.fetch("data").fetch("next_prompt_intent")
     )
     slots = body.fetch("data").fetch("setup_context").fetch("slots")
     assert_equal "Notes CLI", slots.fetch("project_name").fetch("value")
     assert_equal "A small local notes manager", slots.fetch("description").fetch("value")
     refute slots.key?("repository")
+  end
+
+  test "completes sparse project setup context through command api" do
+    post "/api/v1/commands",
+      params: {
+        name: "StartProjectSetup",
+        payload: {
+          guided_alignment: true
+        },
+        request_id: "req-context-loop-start"
+      },
+      headers: actor_headers,
+      as: :json
+    assert_response :success
+    session_id = json_body.fetch("session_id")
+    assert_equal(
+      {"kind" => "setup_slot_question", "slot" => "project_name", "locale" => "auto", "llm_required" => true},
+      json_body.fetch("data").fetch("next_prompt_intent")
+    )
+
+    post "/api/v1/commands",
+      params: {
+        name: "AdvanceProjectSetup",
+        payload: {
+          session_id: session_id,
+          answer: "pocket-ledger"
+        },
+        request_id: "req-context-loop-name"
+      },
+      headers: actor_headers,
+      as: :json
+    assert_response :success
+    assert_equal(
+      {"kind" => "setup_slot_question", "slot" => "description", "locale" => "auto", "llm_required" => true},
+      json_body.fetch("data").fetch("next_prompt_intent")
+    )
+
+    post "/api/v1/commands",
+      params: {
+        name: "AdvanceProjectSetup",
+        payload: {
+          session_id: session_id,
+          answer: "A compact ledger for local expense notes."
+        },
+        request_id: "req-context-loop-description"
+      },
+      headers: actor_headers,
+      as: :json
+    assert_response :success
+    assert_equal(
+      {"kind" => "setup_slot_question", "slot" => "project_type", "locale" => "auto", "llm_required" => true},
+      json_body.fetch("data").fetch("next_prompt_intent")
+    )
+
+    post "/api/v1/commands",
+      params: {
+        name: "AdvanceProjectSetup",
+        payload: {
+          session_id: session_id,
+          answer: "CLI"
+        },
+        request_id: "req-context-loop-type"
+      },
+      headers: actor_headers,
+      as: :json
+    assert_response :success
+    assert_equal(
+      {"kind" => "setup_slot_question", "slot" => "language_runtime", "locale" => "auto", "llm_required" => true},
+      json_body.fetch("data").fetch("next_prompt_intent")
+    )
+
+    post "/api/v1/commands",
+      params: {
+        name: "AdvanceProjectSetup",
+        payload: {
+          session_id: session_id,
+          answer: "Ruby 3.4"
+        },
+        request_id: "req-context-loop-language"
+      },
+      headers: actor_headers,
+      as: :json
+    assert_response :success
+    assert_equal(
+      {"kind" => "setup_slot_question", "slot" => "framework", "locale" => "auto", "llm_required" => true},
+      json_body.fetch("data").fetch("next_prompt_intent")
+    )
+
+    post "/api/v1/commands",
+      params: {
+        name: "AdvanceProjectSetup",
+        payload: {
+          session_id: session_id,
+          answer: "none"
+        },
+        request_id: "req-context-loop-framework"
+      },
+      headers: actor_headers,
+      as: :json
+    assert_response :success
+    assert_equal(
+      {"kind" => "setup_slot_question", "slot" => "libraries", "locale" => "auto", "llm_required" => true},
+      json_body.fetch("data").fetch("next_prompt_intent")
+    )
+
+    post "/api/v1/commands",
+      params: {
+        name: "AdvanceProjectSetup",
+        payload: {
+          session_id: session_id,
+          answer: "Thor and SQLite"
+        },
+        request_id: "req-context-loop-libraries"
+      },
+      headers: actor_headers,
+      as: :json
+
+    assert_response :success
+    body = json_body
+    session = ProjectSetupSession.find(session_id)
+    assert_equal "completed", body.fetch("state")
+    assert_equal "Project created; setup completed.", body.fetch("summary")
+    assert_equal "completed_without_alignment", body.dig("data", "terminal_reason")
+    assert body.fetch("project_id")
+    assert_equal 6, session.reload.turn_counter
+    assert_equal "pocket-ledger", session.project.name
+    assert_equal "ruby-3.4", session.project.stack_slug
+    assert session.project.documents.exists?(title: "Project Setup Summary", artifact_type: "draft")
+    assert session.project.boards.exists?(name: "pocket-ledger Board")
+    assert_equal %w[backlog in_progress review approved merged], session.project.boards.first.columns.order(:position).pluck(:key)
+    assert_equal(
+      %w[setup_context.description setup_context.framework setup_context.language_runtime setup_context.libraries setup_context.project_name setup_context.project_type setup_context.stack],
+      session.project.project_attributes.order(:key).pluck(:key)
+    )
+    assert_equal(
+      [
+        "project_setup_turn_recorded",
+        "project_created",
+        "setup_context_materialized",
+        "setup_summary_document_written",
+        "default_board_structure_written",
+        "project_setup_completed"
+      ],
+      body.fetch("effects").map { |effect| effect.fetch("type") }
+    )
+  end
+
+  test "done completes project setup with defaults after project name" do
+    post "/api/v1/commands",
+      params: {
+        name: "StartProjectSetup",
+        payload: {
+          project_name: "tiny-index",
+          guided_alignment: true
+        },
+        request_id: "req-context-done-start"
+      },
+      headers: actor_headers,
+      as: :json
+    assert_response :success
+    session_id = json_body.fetch("session_id")
+
+    post "/api/v1/commands",
+      params: {
+        name: "AdvanceProjectSetup",
+        payload: {
+          session_id: session_id,
+          answer: "/done"
+        },
+        request_id: "req-context-done"
+      },
+      headers: actor_headers,
+      as: :json
+
+    assert_response :success
+    session = ProjectSetupSession.find(session_id)
+    assert_equal "completed", json_body.fetch("state")
+    assert_equal "Project initialized from conversational setup.", session.setup_slot("description").fetch("value")
+    assert_equal "defaulted", session.setup_slot("description").fetch("status")
+    assert_equal "ruby", session.setup_slot("stack").fetch("value")
+    assert_equal "defaulted", session.setup_slot("stack").fetch("status")
+    assert_equal "tiny-index", session.project.name
+  end
+
+  test "skip cannot bypass blocking project name and cancel leaves no project" do
+    post "/api/v1/commands",
+      params: {
+        name: "StartProjectSetup",
+        payload: {
+          guided_alignment: true
+        },
+        request_id: "req-context-control-start"
+      },
+      headers: actor_headers,
+      as: :json
+    assert_response :success
+    session_id = json_body.fetch("session_id")
+
+    assert_no_difference -> { Project.count } do
+      post "/api/v1/commands",
+        params: {
+          name: "AdvanceProjectSetup",
+          payload: {
+            session_id: session_id,
+            answer: "/skip"
+          },
+          request_id: "req-context-skip-blocking"
+        },
+        headers: actor_headers,
+        as: :json
+    end
+    assert_response :success
+    assert_equal "collecting_context", json_body.fetch("state")
+    assert_equal "project_name", json_body.fetch("data").fetch("next_prompt_intent").fetch("slot")
+
+    assert_no_difference -> { Project.count } do
+      post "/api/v1/commands",
+        params: {
+          name: "AdvanceProjectSetup",
+          payload: {
+            session_id: session_id,
+            answer: "/cancel"
+          },
+          request_id: "req-context-cancel"
+        },
+        headers: actor_headers,
+        as: :json
+    end
+    assert_response :success
+    assert_equal "cancelled", json_body.fetch("state")
+    assert_equal "cancelled_by_user", ProjectSetupSession.find(session_id).terminal_reason
   end
 
   test "advances guided alignment by recording one setup turn and returning the next question" do

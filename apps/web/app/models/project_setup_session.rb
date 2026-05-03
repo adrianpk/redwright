@@ -6,6 +6,8 @@ class ProjectSetupSession < ApplicationRecord
   SETUP_SLOT_KEYS = %w[
     project_name
     description
+    project_type
+    language_runtime
     repository
     stack
     framework
@@ -18,6 +20,8 @@ class ProjectSetupSession < ApplicationRecord
   SETUP_SLOT_REQUIREDNESS = {
     "project_name" => "blocking",
     "description" => "recommended",
+    "project_type" => "recommended",
+    "language_runtime" => "recommended",
     "repository" => "optional",
     "stack" => "recommended",
     "framework" => "optional",
@@ -30,6 +34,8 @@ class ProjectSetupSession < ApplicationRecord
   SETUP_SLOT_WEIGHTS = {
     "project_name" => 10,
     "description" => 8,
+    "project_type" => 7,
+    "language_runtime" => 7,
     "repository" => 5,
     "stack" => 6,
     "framework" => 5,

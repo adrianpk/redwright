@@ -35,7 +35,7 @@ module ProjectInitialization
       assert_equal "", result.repository[:input]
       assert_equal false, result.repository[:required]
       assert_equal(
-        {kind: "setup_slot_question", slot: "stack", locale: "auto", llm_required: true},
+        {kind: "setup_slot_question", slot: "project_type", locale: "auto", llm_required: true},
         result.guided_alignment[:next_prompt_intent]
       )
     end

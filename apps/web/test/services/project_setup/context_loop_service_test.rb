@@ -1,0 +1,172 @@
+require "test_helper"
+
+module ProjectSetup
+  class ContextLoopServiceTest < ActiveSupport::TestCase
+    test "records a trunk slot answer and advances prompt intent" do
+      session = context_session
+      session.assign_setup_slot(key: "project_name", value: "pocket-ledger", source: "payload")
+      session.assign_setup_slot(key: "description", value: "A compact ledger for local notes.", source: "payload")
+      session.metadata = session.metadata.merge(
+        "next_prompt_intent" => prompt_intent("project_type")
+      )
+      session.save!
+
+      result = ContextLoopService.new(session: session).advance!(
+        answer: "CLI",
+        normalized_fields: {"project_type" => "cli"},
+        source_channel: "telegram",
+        request_id: "req-context-service-type"
+      )
+
+      assert result.ok?
+      session.reload
+      assert_equal "cli", session.setup_slot("project_type").fetch("value")
+      assert_equal "language_runtime", session.metadata.fetch("next_prompt_intent").fetch("slot")
+      assert_equal 1, session.turn_counter
+      assert_equal "setup_slot:project_type", result.turn.question
+      assert_equal "answer", result.turn.normalized_fields.fetch("setup_context_action")
+    end
+
+    test "skip marks recommended slot and advances" do
+      session = context_session
+      session.assign_setup_slot(key: "project_name", value: "pocket-ledger", source: "payload")
+      session.metadata = session.metadata.merge(
+        "next_prompt_intent" => prompt_intent("description")
+      )
+      session.save!
+
+      result = ContextLoopService.new(session: session).advance!(
+        answer: "/skip",
+        normalized_fields: {},
+        source_channel: "telegram",
+        request_id: "req-context-service-skip"
+      )
+
+      assert result.ok?
+      session.reload
+      assert_equal "skipped", session.setup_slot("description").fetch("status")
+      assert_equal "project_type", session.metadata.fetch("next_prompt_intent").fetch("slot")
+      assert_equal ["project_setup_turn_recorded", "project_setup_prompt_advanced"], result.effects.map { |effect| effect.fetch("type") }
+    end
+
+    test "done repeats blocking slot when project name is missing" do
+      session = context_session
+      session.metadata = session.metadata.merge(
+        "next_prompt_intent" => prompt_intent("project_name")
+      )
+      session.save!
+
+      assert_no_difference -> { Project.count } do
+        result = ContextLoopService.new(session: session).advance!(
+          answer: "/done",
+          normalized_fields: {},
+          source_channel: "telegram",
+          request_id: "req-context-service-done-missing-name"
+        )
+
+        assert result.ok?
+        assert_equal "Project setup still needs a project name.", result.summary
+      end
+      session.reload
+      assert_equal "collecting_context", session.current_state
+      assert_equal "project_name", session.metadata.fetch("next_prompt_intent").fetch("slot")
+    end
+
+    test "cancel records audit turn and leaves no project" do
+      session = context_session
+
+      assert_no_difference -> { Project.count } do
+        result = ContextLoopService.new(session: session).advance!(
+          answer: "/cancel",
+          normalized_fields: {},
+          source_channel: "telegram",
+          request_id: "req-context-service-cancel"
+        )
+
+        assert result.ok?
+        assert_equal "Project setup cancelled.", result.summary
+      end
+      session.reload
+      assert_equal "cancelled", session.current_state
+      assert_equal "cancelled_by_user", session.terminal_reason
+      assert_equal 1, session.turn_counter
+    end
+
+    test "replays setup context request id without duplicate turns" do
+      session = context_session
+      session.assign_setup_slot(key: "project_name", value: "pocket-ledger", source: "payload")
+      session.metadata = session.metadata.merge(
+        "next_prompt_intent" => prompt_intent("description")
+      )
+      session.save!
+      service = ContextLoopService.new(session: session)
+
+      service.advance!(
+        answer: "A compact ledger for local notes.",
+        normalized_fields: {},
+        source_channel: "telegram",
+        request_id: "req-context-service-replay"
+      )
+      result = service.advance!(
+        answer: "A compact ledger for local notes.",
+        normalized_fields: {},
+        source_channel: "telegram",
+        request_id: "req-context-service-replay"
+      )
+
+      assert result.ok?
+      assert_equal ["project_setup_turn_reused"], result.effects.map { |effect| effect.fetch("type") }
+      assert_equal 1, session.reload.turn_counter
+      assert_equal 1, session.project_setup_turns.count
+    end
+
+    test "completes setup and materializes project artifacts from compact trunk" do
+      session = context_session
+      session.assign_setup_slot(key: "project_name", value: "pocket-ledger", source: "payload")
+      session.assign_setup_slot(key: "description", value: "A compact ledger for local notes.", source: "payload")
+      session.assign_setup_slot(key: "project_type", value: "cli", source: "user_answer")
+      session.assign_setup_slot(key: "language_runtime", value: "Ruby 3.4", source: "user_answer")
+      session.assign_setup_slot(key: "framework", value: "none", source: "user_answer")
+      session.metadata = session.metadata.merge(
+        "next_prompt_intent" => prompt_intent("libraries")
+      )
+      session.save!
+
+      result = ContextLoopService.new(session: session).advance!(
+        answer: "Thor and SQLite",
+        normalized_fields: {"libraries" => "Thor and SQLite"},
+        source_channel: "telegram",
+        request_id: "req-context-service-complete"
+      )
+
+      assert result.ok?
+      session.reload
+      assert_equal "completed", session.current_state
+      assert_equal "completed_without_alignment", session.terminal_reason
+      assert_equal "pocket-ledger", session.project.name
+      assert_equal "ruby-3.4", session.project.stack_slug
+      assert session.project.documents.exists?(title: "Project Setup Summary", artifact_type: "draft")
+      assert_equal %w[backlog in_progress review approved merged], session.project.boards.first.columns.order(:position).pluck(:key)
+      assert_includes result.effects.map { |effect| effect.fetch("type") }, "setup_context_materialized"
+    end
+
+    private
+
+    def context_session
+      ProjectSetupSession.create!(
+        actor_identifier: "telegram:chat:9:user:77",
+        request_id: "req-context-service-#{SecureRandom.hex(4)}",
+        source_channel: "telegram"
+      )
+    end
+
+    def prompt_intent(slot)
+      {
+        "kind" => "setup_slot_question",
+        "slot" => slot,
+        "locale" => "auto",
+        "llm_required" => true
+      }
+    end
+  end
+end
