@@ -3,11 +3,11 @@
 ## Metadata
 
 - cycle_id: `cycle-2026-05-03-redwright-project-setup-runnable-saga`
-- status: `planned`
-- state: `planned`
+- status: `in_progress`
+- state: `slice_1_reviewing`
 - updated: `2026-05-03`
-- active_slice: `none`
-- active_task: `awaiting slice 1 start after plan approval`
+- active_slice: `Slice 1`
+- active_task: `waiting for Slice 1 PR review`
 - source_plan: `ops/plans/2026-05-03-redwright-project-setup-runnable-saga-cycle-plan.md`
 - source_spec: `ops/specs/specs/2026-05-03-redwright-project-setup-runnable-saga-spec.md`
 - source_draft: `ops/specs/drafts/2026-05-03-redwright-project-setup-runnable-saga-draft.md`
@@ -16,29 +16,32 @@
 
 ### Slice 1: Setup LLM Traces and Semantic Slot Normalization
 
-- status: `planned`
+- status: `reviewing`
 - branch: `fix/slice-1-setup-llm-traces-and-slot-normalization`
 - PR: `pending`
 - merge_target: `dev`
-- last_sync_commit: `pending`
+- last_sync_commit: `85c9afb`
 
 Tasks:
 
-- [ ] `T1.1 characterize missing setup LLM traces and raw slot persistence with focused tests`
-- [ ] `T1.2 instrument ProjectSetupPromptRenderer with Trace.llm_request and Trace.llm_response`
-- [ ] `T1.3 add semantic answer normalization contract with strict JSON output, deterministic fallback, and malformed-output handling`
-- [ ] `T1.4 integrate normalized slot updates into project setup advancement without losing raw answer audit data`
-- [ ] `T1.5 prevent prompt-confusion/meta answers from filling framework, language_runtime, libraries, or stack`
-- [ ] `T1.6 synthesize stack from normalized context instead of blindly deriving it from framework`
-- [ ] `T1.7 add tests for Go CLI answers, framework confusion, fallback normalization, and trace output`
+- [x] `T1.1 characterize missing setup LLM traces and raw slot persistence with focused tests`
+- [x] `T1.2 instrument ProjectSetupPromptRenderer with Trace.llm_request and Trace.llm_response`
+- [x] `T1.3 add semantic answer normalization contract with strict JSON output, deterministic fallback, and malformed-output handling`
+- [x] `T1.4 integrate normalized slot updates into project setup advancement without losing raw answer audit data`
+- [x] `T1.5 prevent prompt-confusion/meta answers from filling framework, language_runtime, libraries, or stack`
+- [x] `T1.6 synthesize stack from normalized context instead of blindly deriving it from framework`
+- [x] `T1.7 add tests for Go CLI answers, framework confusion, fallback normalization, and trace output`
 
 Commits:
 
-- [ ] `pending`
+- [x] `7c74db2 feat(telegram): trace setup prompt rendering`
+- [x] `fcb6eb0 feat(web): normalize project setup slot answers`
 
 Validation:
 
-- [ ] `pending`
+- [x] `ruby -wc lib/redwright/project_setup_prompt_renderer.rb && ruby -wc apps/web/app/models/project_setup_session.rb && ruby -wc apps/web/app/services/project_setup/context_loop_service.rb && ruby -wc apps/web/app/services/project_setup/semantic_answer_normalizer.rb` (pass)
+- [x] `cd apps/web && bundle exec bin/rails test` (pass)
+- [x] `bundle exec rake test:coverage` (pass, coverage 91.42)
 
 ### Slice 2: Explicit Setup Saga State and Query Surface
 
@@ -141,10 +144,11 @@ Validation:
 
 - baseline_coverage: `91.39`
 - target_rule: `post-slice coverage >= pre-slice coverage for new code paths`
-- final_coverage: `pending`
+- final_coverage: `91.42`
 - tuning_needed: `pending`
 - tuning_evidence: `manual Telegram verification showed complete setup manifests but no runnable local project files, no visible setup LLM traces, and raw prompt-confusion text persisted as framework/stack context`
 
 ## Event Log
 
 - `2026-05-03` state=`planned` note=`created runnable setup saga draft, conversation notes, promoted spec, cycle plan, and tracker after manual Telegram verification showed setup completion still ended at metadata/materialization instead of runnable or explicitly planned project state`
+- `2026-05-03` state=`slice_1_reviewing` note=`rebased Slice 1 on origin/dev@85c9afb after typing-indicator and planning PRs were merged or closed, added setup prompt LLM traces and semantic slot normalization, and validated syntax, Rails tests, and repository coverage`

@@ -3,7 +3,7 @@
 ## Metadata
 
 - cycle_id: `cycle-2026-05-03-redwright-project-setup-runnable-saga`
-- status: `planned`
+- status: `in_progress`
 - owner: `adrianpk`
 - created: `2026-05-03`
 - updated: `2026-05-03`
@@ -15,18 +15,18 @@
 
 ### Slice 1: Setup LLM Traces and Semantic Slot Normalization
 
-- status: `planned`
+- status: `reviewing`
 - branch: `fix/slice-1-setup-llm-traces-and-slot-normalization`
 - pr_title: `feat(slice-1): setup llm traces and slot normalization`
 - objective: `make setup prompt rendering observable and prevent raw confusing answers from being persisted as canonical slot values`
 - tasks:
-- [ ] `T1.1 characterize missing setup LLM traces and raw slot persistence with focused tests`
-- [ ] `T1.2 instrument ProjectSetupPromptRenderer with Trace.llm_request and Trace.llm_response`
-- [ ] `T1.3 add semantic answer normalization contract with strict JSON output, deterministic fallback, and malformed-output handling`
-- [ ] `T1.4 integrate normalized slot updates into project setup advancement without losing raw answer audit data`
-- [ ] `T1.5 prevent prompt-confusion/meta answers from filling framework, language_runtime, libraries, or stack`
-- [ ] `T1.6 synthesize stack from normalized context instead of blindly deriving it from framework`
-- [ ] `T1.7 add tests for Go CLI answers, framework confusion, fallback normalization, and trace output`
+- [x] `T1.1 characterize missing setup LLM traces and raw slot persistence with focused tests`
+- [x] `T1.2 instrument ProjectSetupPromptRenderer with Trace.llm_request and Trace.llm_response`
+- [x] `T1.3 add semantic answer normalization contract with strict JSON output, deterministic fallback, and malformed-output handling`
+- [x] `T1.4 integrate normalized slot updates into project setup advancement without losing raw answer audit data`
+- [x] `T1.5 prevent prompt-confusion/meta answers from filling framework, language_runtime, libraries, or stack`
+- [x] `T1.6 synthesize stack from normalized context instead of blindly deriving it from framework`
+- [x] `T1.7 add tests for Go CLI answers, framework confusion, fallback normalization, and trace output`
 - acceptance:
 - `foreground trace mode shows setup prompt LLM requests and responses`
 - `normalization fallback is traceable instead of silent`
