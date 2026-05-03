@@ -74,6 +74,52 @@ class ProjectSetupSessionTest < ActiveSupport::TestCase
     assert_equal({"chat_id" => 42}, session.metadata)
   end
 
+  test "setup context defaults to canonical slot collection" do
+    session = ProjectSetupSession.new(
+      actor_identifier: "human-1",
+      request_id: "req-setup-context"
+    )
+
+    assert_equal 1, session.setup_context.fetch("version")
+    assert_equal "canonical_slot_collection", session.setup_context.fetch("phase")
+    assert_equal({}, session.setup_slots)
+  end
+
+  test "writes canonical setup slots into metadata" do
+    session = ProjectSetupSession.create!(
+      actor_identifier: "human-1",
+      request_id: "req-setup-slot"
+    )
+
+    session.write_setup_slot!(
+      key: :project_name,
+      value: "notes-cli",
+      source: "payload",
+      updated_at: Time.utc(2026, 5, 3, 12, 0, 0)
+    )
+
+    slot = session.reload.setup_slot(:project_name)
+    assert_equal "project_name", slot.fetch("key")
+    assert_equal "notes-cli", slot.fetch("value")
+    assert_equal "payload", slot.fetch("source")
+    assert_equal "blocking", slot.fetch("requiredness")
+    assert_equal "filled", slot.fetch("status")
+    assert_equal 10, slot.fetch("weight")
+    assert_equal "2026-05-03T12:00:00Z", slot.fetch("updated_at")
+  end
+
+  test "rejects unknown setup slots" do
+    session = ProjectSetupSession.new(
+      actor_identifier: "human-1",
+      request_id: "req-unknown-slot"
+    )
+
+    error = assert_raises(ArgumentError) do
+      session.assign_setup_slot(key: :unknown, value: "x", source: "payload")
+    end
+    assert_equal "unknown setup slot: unknown", error.message
+  end
+
   test "next turn index follows existing persisted turns" do
     session = ProjectSetupSession.create!(actor_identifier: "human-1", request_id: "req-turn-index")
     session.project_setup_turns.create!(

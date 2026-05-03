@@ -1,6 +1,44 @@
 require "json"
 
 class ProjectSetupSession < ApplicationRecord
+  SETUP_CONTEXT_KEY = "setup_context".freeze
+  SETUP_CONTEXT_VERSION = 1
+  SETUP_SLOT_KEYS = %w[
+    project_name
+    description
+    repository
+    stack
+    framework
+    libraries
+    patterns
+    conventions
+    runtime_container_profile
+    agent_workflow_mode
+  ].freeze
+  SETUP_SLOT_REQUIREDNESS = {
+    "project_name" => "blocking",
+    "description" => "recommended",
+    "repository" => "optional",
+    "stack" => "recommended",
+    "framework" => "optional",
+    "libraries" => "optional",
+    "patterns" => "optional",
+    "conventions" => "optional",
+    "runtime_container_profile" => "optional",
+    "agent_workflow_mode" => "optional"
+  }.freeze
+  SETUP_SLOT_WEIGHTS = {
+    "project_name" => 10,
+    "description" => 8,
+    "repository" => 5,
+    "stack" => 6,
+    "framework" => 5,
+    "libraries" => 4,
+    "patterns" => 4,
+    "conventions" => 4,
+    "runtime_container_profile" => 3,
+    "agent_workflow_mode" => 3
+  }.freeze
   STATUSES = %w[open completed cancelled failed needs_reconciliation].freeze
   STATES = %w[
     collecting_context
@@ -54,6 +92,48 @@ class ProjectSetupSession < ApplicationRecord
     self.metadata_json = JSON.generate(normalize_hash(value))
   end
 
+  def setup_context
+    context = metadata[SETUP_CONTEXT_KEY]
+    return default_setup_context unless context.is_a?(Hash)
+
+    default_setup_context.merge(context).tap do |normalized|
+      normalized["slots"] = normalize_slots(context["slots"])
+    end
+  end
+
+  def setup_slots
+    setup_context.fetch("slots")
+  end
+
+  def setup_slot(key)
+    setup_slots[key.to_s]
+  end
+
+  def assign_setup_slot(key:, value:, source:, confidence: 1.0, requiredness: nil, weight: nil, status: nil, updated_at: Time.current)
+    slot_key = key.to_s
+    raise ArgumentError, "unknown setup slot: #{slot_key}" unless SETUP_SLOT_KEYS.include?(slot_key)
+
+    next_metadata = metadata
+    context = setup_context
+    context["slots"][slot_key] = build_setup_slot(
+      key: slot_key,
+      value: value,
+      source: source,
+      confidence: confidence,
+      requiredness: requiredness,
+      weight: weight,
+      status: status,
+      updated_at: updated_at
+    )
+    next_metadata[SETUP_CONTEXT_KEY] = context
+    self.metadata = next_metadata
+  end
+
+  def write_setup_slot!(**kwargs)
+    assign_setup_slot(**kwargs)
+    save!
+  end
+
   def terminal?
     TERMINAL_STATES.include?(current_state)
   end
@@ -63,6 +143,50 @@ class ProjectSetupSession < ApplicationRecord
   end
 
   private
+
+  def default_setup_context
+    {
+      "version" => SETUP_CONTEXT_VERSION,
+      "phase" => "canonical_slot_collection",
+      "slots" => {}
+    }
+  end
+
+  def normalize_slots(value)
+    return {} unless value.is_a?(Hash)
+
+    value.each_with_object({}) do |(key, slot), slots|
+      slot_key = key.to_s
+      next unless SETUP_SLOT_KEYS.include?(slot_key)
+      next unless slot.is_a?(Hash)
+
+      slots[slot_key] = stringify_hash(slot).merge("key" => slot_key)
+    end
+  end
+
+  def build_setup_slot(key:, value:, source:, confidence:, requiredness:, weight:, status:, updated_at:)
+    cleaned_value = normalize_slot_value(value)
+    {
+      "key" => key,
+      "value" => cleaned_value,
+      "source" => source.to_s,
+      "confidence" => confidence.to_f,
+      "weight" => weight || SETUP_SLOT_WEIGHTS.fetch(key),
+      "requiredness" => requiredness || SETUP_SLOT_REQUIREDNESS.fetch(key),
+      "status" => status || (cleaned_value.to_s.empty? ? "empty" : "filled"),
+      "updated_at" => updated_at.iso8601
+    }
+  end
+
+  def normalize_slot_value(value)
+    return value.map { |item| item.to_s.strip }.reject(&:empty?) if value.is_a?(Array)
+
+    value.to_s.strip
+  end
+
+  def stringify_hash(value)
+    value.to_h.transform_keys(&:to_s)
+  end
 
   def set_defaults
     self.source_channel = "web" if source_channel.blank?
