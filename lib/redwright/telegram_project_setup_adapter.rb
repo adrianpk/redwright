@@ -162,7 +162,7 @@ module Redwright
         return Result.new(
           handled: true,
           command: "project_where",
-          message: render_setup_response(body: body, trace_id: trace_id, user_text: event.text),
+          message: render_project_setup_status(body: body, trace_id: trace_id),
           api_response: body
         )
       end
@@ -279,6 +279,16 @@ module Redwright
       [
         "Active Rails project: #{project['name']} (#{project['id']})",
         "Repository: #{project['repo_url']}",
+        *setup_saga_lines(project["setup_saga"]),
+        "Trace: #{trace_id}"
+      ].join("\n")
+    end
+
+    def render_project_setup_status(body:, trace_id:)
+      payload = body["data"].is_a?(Hash) ? body["data"] : body
+      [
+        summary_from(body),
+        *setup_saga_lines(payload["setup_saga"]),
         "Trace: #{trace_id}"
       ].join("\n")
     end
@@ -362,6 +372,31 @@ module Redwright
       errors.first(3).map do |error|
         "- #{error['code'] || error[:code]}: #{error['message'] || error[:message]}"
       end
+    end
+
+    def setup_saga_lines(setup_saga)
+      return [] unless setup_saga.is_a?(Hash) && !setup_saga.empty?
+
+      materialization = setup_saga["materialization"].is_a?(Hash) ? setup_saga["materialization"] : {}
+      initial = setup_saga["initial_implementation"].is_a?(Hash) ? setup_saga["initial_implementation"] : {}
+      ticket_operation = setup_saga["ticket_operation"].is_a?(Hash) ? setup_saga["ticket_operation"] : {}
+      workspace = materialization["workspace"].is_a?(Hash) ? materialization["workspace"] : {}
+      lines = [
+        "Setup stage: #{human_label(setup_saga['stage'])}",
+        "Setup status: #{human_label(setup_saga['status'])}",
+        "Materialization: #{human_label(materialization['status'])}",
+        "Initial implementation: #{human_label(initial['status'])}#{initial['runnable'] == true ? ' (runnable)' : ''}",
+        "Ticket operation: #{human_label(ticket_operation['status'])}"
+      ]
+      workspace_path = workspace["relative_path"].to_s.strip
+      workspace_path = workspace["path"].to_s.strip if workspace_path.empty?
+      lines << "Workspace: #{workspace_path}" unless workspace_path.empty?
+      lines
+    end
+
+    def human_label(value)
+      label = value.to_s.tr("_", " ").strip
+      label.empty? ? "unknown" : label
     end
 
     def active_session_id(chat_id)
