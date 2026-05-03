@@ -4,7 +4,7 @@ require "yaml"
 require_relative "paths"
 
 module Redwright
-  AppConfig = Struct.new(:runtime, :telegram, :paths, :alignment, :models, keyword_init: true)
+  AppConfig = Struct.new(:runtime, :telegram, :paths, :alignment, :models, :tracing, keyword_init: true)
   RuntimeConfig = Struct.new(:loop_interval_ms, :blocked_retry_attempts, :queue_drain_mode, keyword_init: true)
   TelegramConfig = Struct.new(:bot_token, :poll_interval_seconds, :allowed_chat_ids, :send_json_envelope, keyword_init: true)
   PathsConfig = Struct.new(:default_projects_root, keyword_init: true)
@@ -13,6 +13,18 @@ module Redwright
   ModelRoleConfig = Struct.new(:candidates, keyword_init: true)
   ModelAliasTarget = Struct.new(:provider, :name, keyword_init: true)
   ModelsConfig = Struct.new(:coding, :non_coding, :aliases, keyword_init: true)
+  LlmFileTraceConfig = Struct.new(
+    :enabled,
+    :path,
+    :max_bytes,
+    :keep_files,
+    :include_payloads,
+    :include_system_prompt,
+    :include_user_text,
+    :include_raw_output,
+    keyword_init: true
+  )
+  TracingConfig = Struct.new(:llm_file, keyword_init: true)
 
   class AppConfigLoader
     def initialize(mode: :dev, pwd: Dir.pwd, home: Dir.home)
@@ -33,6 +45,7 @@ module Redwright
       paths = fetch_hash(raw, "paths")
       models = fetch_hash(raw, "models")
       alignment = raw["alignment"].is_a?(Hash) ? raw["alignment"] : {}
+      tracing = raw["tracing"].is_a?(Hash) ? raw["tracing"] : {}
 
       parsed = AppConfig.new(
         runtime: RuntimeConfig.new(
@@ -57,6 +70,9 @@ module Redwright
           aliases: parse_model_aliases(models),
           coding: nil,
           non_coding: nil
+        ),
+        tracing: TracingConfig.new(
+          llm_file: parse_llm_file_trace_config(tracing)
         )
       )
       parsed.models.coding = parse_model_role(models, "coding", aliases: parsed.models.aliases)
@@ -127,6 +143,22 @@ module Redwright
       return value if %w[all one].include?(value)
 
       raise ArgumentError, "invalid config key: #{key} must be one of all|one"
+    end
+
+    def parse_llm_file_trace_config(tracing)
+      llm_file = tracing["llm_file"]
+      llm_file = {} unless llm_file.is_a?(Hash)
+
+      LlmFileTraceConfig.new(
+        enabled: optional_boolean(llm_file, "enabled", default: false),
+        path: optional_non_empty_string(llm_file, "path", default: "./.log/llm.ndjson"),
+        max_bytes: optional_positive_integer(llm_file, "max_bytes", default: 10_485_760),
+        keep_files: optional_positive_integer(llm_file, "keep_files", default: 5),
+        include_payloads: optional_boolean(llm_file, "include_payloads", default: false),
+        include_system_prompt: optional_boolean(llm_file, "include_system_prompt", default: false),
+        include_user_text: optional_boolean(llm_file, "include_user_text", default: false),
+        include_raw_output: optional_boolean(llm_file, "include_raw_output", default: false)
+      )
     end
 
     def parse_model_role(models, key, aliases:)
@@ -207,6 +239,17 @@ module Redwright
           name: required_string(target, "name", label: "models.aliases.#{alias_id}.name")
         )
       end
+    end
+
+    def optional_non_empty_string(map, key, default:)
+      return default unless map.key?(key)
+
+      value = map[key]
+      unless value.is_a?(String) && !value.strip.empty?
+        raise ArgumentError, "invalid config key: #{key} must be a non-empty string"
+      end
+
+      value
     end
 
     def normalize_path_root(value)

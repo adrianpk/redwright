@@ -29,6 +29,25 @@ alignment:
   # Max seconds per change turn before timeout classification.
   max_turn_seconds: 180
 
+tracing:
+  llm_file:
+    # When true, write request/response LLM traces to a local rolling NDJSON file.
+    enabled: false
+    # Local file used for durable LLM request/response debugging.
+    path: "./.log/llm.ndjson"
+    # Rotate after this many bytes.
+    max_bytes: 10485760
+    # Keep this many rotated files.
+    keep_files: 5
+    # Master switch for prompt/response payload fields below.
+    include_payloads: false
+    # Include the system prompt when payload capture is enabled.
+    include_system_prompt: false
+    # Include the user text when payload capture is enabled.
+    include_user_text: false
+    # Include the raw model output when payload capture is enabled.
+    include_raw_output: false
+
 models:
   # Logical model ids -> concrete provider/model targets.
   # Agents should reference logical ids so version updates happen only here.

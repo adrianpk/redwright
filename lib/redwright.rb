@@ -346,6 +346,7 @@ module Redwright
 
         bootstrap = Bootstrap.new(mode: mode).call
         config = AppConfigLoader.new(mode: mode).load(ingress: ingress)
+        Trace.configure(tracing: config.tracing)
         socket_path = File.join(bootstrap.state_dir, "rw.sock")
 
         @out.puts("daemon starting")
