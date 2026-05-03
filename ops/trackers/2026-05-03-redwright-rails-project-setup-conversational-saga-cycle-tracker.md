@@ -24,7 +24,7 @@
 Tasks:
 
 - [x] `T1.1 characterize current repository-first behavior with Rails and Telegram tests`
-- [x] `T1.2 add canonical setup context slot helpers for ProjectSetupSession metadata`
+- [x] `T1.2 add canonical setup context slot helpers and semantic prompt intent metadata for ProjectSetupSession`
 - [x] `T1.3 change StartProjectSetup payload handling so project name and description are not mapped to repository input`
 - [x] `T1.4 allow repository input to be absent or skipped without invalidating setup start`
 - [x] `T1.5 add tests for empty start, name-only start, quoted name with description, and repository URL input`
@@ -34,6 +34,7 @@ Commits:
 - [x] `1758ed9 feat(web): add project setup context slot metadata`
 - [x] `7a51dd4 feat(web): decouple project setup start from repository input`
 - [x] `68bc824 feat(telegram): stop mapping project names to repository input`
+- [x] `2270d10 feat(web): persist setup prompt intent`
 
 Validation:
 
@@ -53,7 +54,7 @@ Validation:
 
 Tasks:
 
-- [ ] `T2.1 add setup question selector for canonical slots and blocking/recommended/optional policy`
+- [ ] `T2.1 add setup question intent selector for canonical slots and blocking/recommended/optional policy`
 - [ ] `T2.2 implement AdvanceProjectSetup handling for normal answers and slot normalization`
 - [ ] `T2.3 implement /skip and /done over Rails setup commands`
 - [ ] `T2.4 preserve cancellation semantics and no-residue behavior before project creation`
@@ -61,7 +62,7 @@ Tasks:
 
 Commits:
 
-- [ ] `feat(web): add project setup question selector`
+- [ ] `feat(web): add project setup question intent selector`
 - [ ] `feat(web): add project setup loop controls`
 - [ ] `test(web): cover project setup conversational controls`
 
@@ -80,7 +81,7 @@ Validation:
 
 Tasks:
 
-- [ ] `T3.1 add Telegram project setup response renderer for summary, understood context, next prompt, and controls`
+- [ ] `T3.1 add Telegram project setup response renderer that asks the configured LLM to render semantic prompt intent as localized human text`
 - [ ] `T3.2 hide raw state/session/trace details by default and keep debug/trace formatting opt-in`
 - [ ] `T3.3 route setup replies, /skip, /done, and /cancel through the renderer`
 - [ ] `T3.4 add Telegram adapter tests for sparse, rich, skipped, completed, and cancelled setup flows`
@@ -177,3 +178,4 @@ Validation:
 
 - `2026-05-03` state=`planning` note=`created draft, conversation notes, promoted spec, cycle plan, and tracker for Rails project setup conversational saga after manual Telegram verification showed repository-first behavior still exposed to users`
 - `2026-05-03` state=`awaiting_review` slice=`Slice 1` note=`implemented repository-independent project setup start, canonical setup context slots, and Telegram payload routing that no longer maps project names to repository input`
+- `2026-05-03` state=`awaiting_review` slice=`Slice 1` note=`corrected setup prompt handling to persist semantic prompt intent for LLM-localized rendering instead of treating fixed question text as the contract`
