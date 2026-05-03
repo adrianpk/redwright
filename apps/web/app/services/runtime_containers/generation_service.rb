@@ -16,9 +16,10 @@ module RuntimeContainers
       end
     end
 
-    def initialize(project:, llm_client: nil)
+    def initialize(project:, llm_client: nil, persist: true)
       @project = project
       @llm_client = llm_client
+      @persist = persist
     end
 
     def call
@@ -51,7 +52,7 @@ module RuntimeContainers
 
     private
 
-    attr_reader :project, :llm_client
+    attr_reader :project, :llm_client, :persist
 
     def generated_attributes_for(input)
       if GoCliGenerator.supported?(input)
@@ -86,6 +87,8 @@ module RuntimeContainers
     end
 
     def persistable?(container)
+      return false unless persist
+
       container.nil? || container.readiness == "missing"
     end
 

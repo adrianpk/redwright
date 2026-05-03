@@ -6,6 +6,8 @@ module RuntimeContainers
 
     def register(dispatcher)
       dispatcher.register_command("GenerateProjectRuntimeContainers", method(:generate_project_runtime_containers))
+      dispatcher.register_command("RegenerateProjectRuntimeContainers", method(:regenerate_project_runtime_containers))
+      dispatcher.register_command("UpdateProjectRuntimeContainers", method(:update_project_runtime_containers))
       dispatcher.register_query("GetProjectRuntimeContainers", method(:get_project_runtime_containers))
       dispatcher
     end
@@ -34,6 +36,63 @@ module RuntimeContainers
           }
         ]
       )
+    end
+
+    def regenerate_project_runtime_containers(payload:, context:, request_id:)
+      project = find_project(value_from(payload, "project_id"))
+      return missing_project_result(request_id: request_id) unless project
+
+      result = GenerationService.new(project: project, persist: false).call
+      CommandQuery::Result.ok(
+        request_id: request_id,
+        data: {
+          "summary" => "Runtime Containers suggestion regenerated.",
+          "project_id" => project.id,
+          "runtime_containers" => result.runtime_container_state,
+          "generated_runtime_containers" => result.generated_state,
+          "comparison" => Comparison.new(
+            active_state: result.runtime_container_state,
+            proposed_state: result.generated_state
+          ).to_h,
+          "generation" => generation_data(result)
+        },
+        effects: [
+          {
+            "type" => "runtime_containers_generation_suggested",
+            "project_id" => project.id,
+            "readiness" => result.generated_state.fetch("readiness"),
+            "generator_source" => result.generator_source,
+            "fallback_reason" => result.fallback_reason
+          }
+        ]
+      )
+    end
+
+    def update_project_runtime_containers(payload:, context:, request_id:)
+      project = find_project(value_from(payload, "project_id"))
+      return missing_project_result(request_id: request_id) unless project
+
+      attributes = value_from(payload, "runtime_containers", "attributes")
+      update = UpdateService.new(project: project, attributes: attributes).call
+      CommandQuery::Result.ok(
+        request_id: request_id,
+        data: {
+          "summary" => "Runtime Containers updated.",
+          "project_id" => project.id,
+          "runtime_containers" => update.runtime_container.to_state,
+          "changed_fields" => update.changed_fields
+        },
+        effects: [
+          {
+            "type" => "runtime_containers_updated",
+            "project_id" => project.id,
+            "runtime_container_id" => update.runtime_container.id,
+            "changed_fields" => update.changed_fields
+          }
+        ]
+      )
+    rescue ActiveRecord::RecordInvalid => e
+      invalid_record_result(e.record, request_id: request_id, summary: "Runtime Containers could not be updated.")
     end
 
     def get_project_runtime_containers(payload:, context:, request_id:)
@@ -74,6 +133,22 @@ module RuntimeContainers
         request_id: request_id,
         code: "project_not_found",
         message: "project was not found"
+      )
+    end
+
+    def invalid_record_result(record, request_id:, summary:)
+      CommandQuery::Result.new(
+        status: "error",
+        request_id: request_id,
+        data: {"summary" => summary},
+        effects: [],
+        errors: record.errors.map do |error|
+          {
+            code: "invalid_#{error.attribute}",
+            message: "#{error.attribute} #{error.message}",
+            details: {"attribute" => error.attribute.to_s}
+          }
+        end
       )
     end
 
