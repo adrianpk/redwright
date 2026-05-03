@@ -15,17 +15,17 @@
 
 ### Slice 1: Runtime Containers Domain Foundation
 
-- status: `planned`
+- status: `implemented`
 - branch: `fix/slice-1-runtime-containers-domain`
 - pr_title: `feat(slice-1): runtime containers domain`
 - objective: `add project-owned Runtime Containers persistence with readiness, validation, generated files, provenance, assumptions, missing information, and risks`
 - tasks:
-- [ ] `T1.1 add Runtime Containers domain model or persistence structure associated with Project`
-- [ ] `T1.2 define readiness and validation state contracts`
-- [ ] `T1.3 persist generated file proposals and structured execution command fields`
-- [ ] `T1.4 persist provenance, assumptions, missing information, and risks`
-- [ ] `T1.5 expose Runtime Containers read state through Rails command/query responses`
-- [ ] `T1.6 add tests for project association, state defaults, validation stale behavior, and serialization shape`
+- [x] `T1.1 add Runtime Containers domain model or persistence structure associated with Project`
+- [x] `T1.2 define readiness and validation state contracts`
+- [x] `T1.3 persist generated file proposals and structured execution command fields`
+- [x] `T1.4 persist provenance, assumptions, missing information, and risks`
+- [x] `T1.5 expose Runtime Containers read state through Rails command/query responses`
+- [x] `T1.6 add tests for project association, state defaults, validation stale behavior, and serialization shape`
 - acceptance:
 - `each project can own Runtime Containers state`
 - `new records start in an explicit non-ready state`
@@ -154,4 +154,3 @@
 - Do not implement hardened container isolation.
 - Do not create a template marketplace.
 - Do not start `dev -> main` alignment inside a slice.
-

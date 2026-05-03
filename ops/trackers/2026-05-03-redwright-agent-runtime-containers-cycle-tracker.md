@@ -3,10 +3,10 @@
 ## Metadata
 
 - cycle_id: `cycle-2026-05-03-redwright-agent-runtime-containers`
-- status: `planned`
-- state: `planned`
+- status: `in_progress`
+- state: `slice_1_implemented`
 - updated: `2026-05-03`
-- active_slice: `none`
+- active_slice: `Slice 1`
 - active_task: `none`
 - source_plan: `ops/plans/2026-05-03-redwright-agent-runtime-containers-cycle-plan.md`
 - source_spec: `ops/specs/specs/2026-05-03-redwright-agent-runtime-containers-spec.md`
@@ -19,28 +19,33 @@
 
 ### Slice 1: Runtime Containers Domain Foundation
 
-- status: `planned`
+- status: `implemented`
 - branch: `fix/slice-1-runtime-containers-domain`
 - PR: `pending`
 - merge_target: `dev`
-- last_sync_commit: `pending`
+- last_sync_commit: `10f828e`
 
 Tasks:
 
-- [ ] `T1.1 add Runtime Containers domain model or persistence structure associated with Project`
-- [ ] `T1.2 define readiness and validation state contracts`
-- [ ] `T1.3 persist generated file proposals and structured execution command fields`
-- [ ] `T1.4 persist provenance, assumptions, missing information, and risks`
-- [ ] `T1.5 expose Runtime Containers read state through Rails command/query responses`
-- [ ] `T1.6 add tests for project association, state defaults, validation stale behavior, and serialization shape`
+- [x] `T1.1 add Runtime Containers domain model or persistence structure associated with Project`
+- [x] `T1.2 define readiness and validation state contracts`
+- [x] `T1.3 persist generated file proposals and structured execution command fields`
+- [x] `T1.4 persist provenance, assumptions, missing information, and risks`
+- [x] `T1.5 expose Runtime Containers read state through Rails command/query responses`
+- [x] `T1.6 add tests for project association, state defaults, validation stale behavior, and serialization shape`
 
 Commits:
 
-- [ ] `pending`
+- [x] `f28d1cd chore(repo): ignore local log directory`
+- [x] `0c566e5 feat(web): add runtime containers domain`
+- [x] `2658dd2 feat(web): expose runtime containers state`
+- [x] `10f828e test(web): cover runtime containers state`
 
 Validation:
 
-- [ ] `pending`
+- [x] `bundle exec bin/rails test test/models/project_runtime_container_test.rb test/services/runtime_containers/command_query_handlers_test.rb` (pass)
+- [x] `bundle exec bin/rails test test/models/project_test.rb test/controllers/api/v1/command_queries_controller_test.rb` (pass)
+- [x] `bundle exec bin/rails test` (pass)
 
 ### Slice 2: Runtime Containers Generation Contract
 
@@ -152,4 +157,4 @@ Validation:
 ## Event Log
 
 - `2026-05-03` state=`planned` note=`promoted the agent Runtime Containers draft into a focused formal spec, cycle plan, and tracker; Protocol templates and LLM rolling trace drafts remain context-only and out of this cycle scope`
-
+- `2026-05-03` state=`slice_1_implemented` note=`implemented Runtime Containers domain persistence, state contracts, structured fields, command/query read surface, and targeted/full Rails validation on fix/slice-1-runtime-containers-domain`
