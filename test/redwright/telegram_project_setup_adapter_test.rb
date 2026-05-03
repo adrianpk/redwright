@@ -107,7 +107,16 @@ class TelegramProjectSetupAdapterTest < Minitest::Test
           "summary" => "Project setup session retrieved.",
           "session_id" => 41,
           "state" => "collecting_context",
-          "next_prompt" => "What should this project do first?"
+          "next_prompt" => "What should this project do first?",
+          "data" => {
+            "setup_saga" => {
+              "stage" => "questionnaire",
+              "status" => "collecting",
+              "materialization" => {"status" => "pending"},
+              "initial_implementation" => {"status" => "pending", "runnable" => false},
+              "ticket_operation" => {"status" => "pending"}
+            }
+          }
         }
       else
         raise "unexpected query #{name}"
@@ -208,6 +217,8 @@ class TelegramProjectSetupAdapterTest < Minitest::Test
     assert_equal(%w[StartProjectSetup ListProjects GetProjectSetupSession], client.calls.map { |call| call[:name] })
     assert_match("- rails-core (7)", listed.message)
     assert_match("Project setup session retrieved.", current.message)
+    assert_match("Setup stage: questionnaire", current.message)
+    assert_match("Materialization: pending", current.message)
   end
 
   def test_ignores_non_project_messages_without_active_session
@@ -320,7 +331,17 @@ class TelegramProjectSetupAdapterTest < Minitest::Test
             "project" => {
               "id" => 70,
               "name" => "happy-cli",
-              "repo_url" => "https://github.com/acme/happy-cli.git"
+              "repo_url" => "https://github.com/acme/happy-cli.git",
+              "setup_saga" => {
+                "stage" => "ticket_operation",
+                "status" => "ready",
+                "materialization" => {
+                  "status" => "materialized",
+                  "workspace" => {"relative_path" => "_workspace/Projects/happy-cli"}
+                },
+                "initial_implementation" => {"status" => "not_started", "runnable" => false},
+                "ticket_operation" => {"status" => "available"}
+              }
             }
           }
         }
@@ -335,6 +356,8 @@ class TelegramProjectSetupAdapterTest < Minitest::Test
     assert_equal(%w[StartProjectSetup GetProject], client.calls.map { |call| call[:name] })
     assert_match("Active Rails project: happy-cli (70)", current.message)
     assert_match("Repository: https://github.com/acme/happy-cli.git", current.message)
+    assert_match("Setup stage: ticket operation", current.message)
+    assert_match("Workspace: _workspace/Projects/happy-cli", current.message)
   end
 
   def test_renders_project_lookup_failure

@@ -27,6 +27,10 @@ module ProjectSetup
       assert_equal 1, session.turn_counter
       assert_equal "setup_slot:project_type", result.turn.question
       assert_equal "answer", result.turn.normalized_fields.fetch("setup_context_action")
+      saga = session.metadata.fetch("setup_saga")
+      assert_equal "questionnaire", saga.fetch("stage")
+      assert_equal "collecting", saga.fetch("status")
+      assert_equal "language_runtime", saga.fetch("questionnaire").fetch("next_prompt_intent").fetch("slot")
     end
 
     test "normalizes language runtime version from Go project context" do
@@ -218,6 +222,14 @@ module ProjectSetup
       assert_equal %w[backlog in_progress review approved merged], session.project.boards.first.columns.order(:position).pluck(:key)
       assert_empty session.project.tickets_scope
       assert_includes result.effects.map { |effect| effect.fetch("type") }, "setup_context_materialized"
+      saga = session.metadata.fetch("setup_saga")
+      assert_equal "ticket_operation", saga.fetch("stage")
+      assert_equal "ready", saga.fetch("status")
+      assert_equal "completed", saga.fetch("questionnaire").fetch("status")
+      assert_equal "materialized", saga.fetch("materialization").fetch("status")
+      assert_equal false, saga.fetch("initial_implementation").fetch("runnable")
+      assert_equal "not_started", saga.fetch("initial_implementation").fetch("status")
+      assert_equal "available", saga.fetch("ticket_operation").fetch("status")
     end
 
     test "creates starter workflow ticket when setup requests agent workflow" do

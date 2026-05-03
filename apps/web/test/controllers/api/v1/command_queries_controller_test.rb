@@ -71,6 +71,8 @@ class Api::V1::CommandQueriesControllerTest < ActionDispatch::IntegrationTest
     assert body.fetch("session_id")
     assert_nil body.fetch("project_id")
     assert_equal ["project_setup_session_written"], body.fetch("effects").map { |effect| effect.fetch("type") }
+    assert_equal "questionnaire", body.fetch("setup_saga").fetch("stage")
+    assert_equal "collecting", body.fetch("data").fetch("setup_saga").fetch("status")
     assert_equal(
       {"kind" => "setup_slot_question", "slot" => "project_type", "locale" => "auto", "llm_required" => true},
       body.fetch("data").fetch("next_prompt_intent")
@@ -202,6 +204,9 @@ class Api::V1::CommandQueriesControllerTest < ActionDispatch::IntegrationTest
     assert_equal "completed", body.fetch("state")
     assert_equal "Project created; setup completed.", body.fetch("summary")
     assert_equal "completed_without_alignment", body.dig("data", "terminal_reason")
+    assert_equal "ticket_operation", body.fetch("setup_saga").fetch("stage")
+    assert_equal "materialized", body.fetch("setup_saga").fetch("materialization").fetch("status")
+    assert_equal "not_started", body.fetch("setup_saga").fetch("initial_implementation").fetch("status")
     assert body.fetch("project_id")
     assert_equal 6, session.reload.turn_counter
     assert_equal "pocket-ledger", session.project.name
@@ -552,6 +557,8 @@ class Api::V1::CommandQueriesControllerTest < ActionDispatch::IntegrationTest
     assert_equal "collecting_context", body.fetch("state")
     assert_equal "Which repository?", body.fetch("next_prompt")
     assert_equal "Project setup session retrieved.", body.fetch("summary")
+    assert_equal "questionnaire", body.fetch("setup_saga").fetch("stage")
+    assert_equal "collecting", body.fetch("data").fetch("setup_saga").fetch("status")
   end
 
   test "lists projects through query api" do
