@@ -1,4 +1,6 @@
 require "test_helper"
+require "tmpdir"
+require "yaml"
 
 $LOAD_PATH.unshift(File.expand_path("../../../../lib", __dir__))
 require "redwright/ingress_port"
@@ -109,6 +111,40 @@ class ProjectSetupTelegramE2eTest < ActiveSupport::TestCase
     assert_equal "SQLite", project.project_attributes.find_by!(key: "setup_context.libraries").value
   end
 
+  test "telegram completion creates local workspace manifest and avoids shortcode artifacts" do
+    with_local_projects_root do |projects_root|
+      adapter = adapter_for_chat
+
+      start = adapter.handle(event(1, '/project new workspace-telegram "A CLI that writes local notes"'), trace_id: "trc-telegram-e2e")
+      type = adapter.handle(event(2, "CLI"), trace_id: "trc-telegram-e2e")
+      language = adapter.handle(event(3, "Ruby 3.4"), trace_id: "trc-telegram-e2e")
+      framework = adapter.handle(event(4, "none"), trace_id: "trc-telegram-e2e")
+      completed = adapter.handle(event(5, "Thor and SQLite"), trace_id: "trc-telegram-e2e")
+
+      assert start.handled?
+      assert type.handled?
+      assert language.handled?
+      assert framework.handled?
+      assert completed.handled?
+      refute_match(/:[a-z0-9_+-]+:/i, completed.message)
+      assert_match "Project setup is complete.", completed.message
+      assert_match "_workspace/Projects/workspace-telegram", completed.message
+
+      workspace = completed.api_response.dig("data", "workspace")
+      assert_equal File.join(projects_root, "workspace-telegram"), workspace.fetch("path")
+      assert File.directory?(workspace.fetch("path"))
+      manifest_path = workspace.fetch("manifest_path")
+      assert File.file?(manifest_path)
+
+      project = Project.find(completed.api_response.fetch("project_id"))
+      manifest = YAML.safe_load(File.read(manifest_path))
+      assert_equal project.id, manifest.dig("rails", "project_id")
+      assert_equal "workspace-telegram", manifest.dig("project", "name")
+      assert_equal "Ruby 3.4", manifest.dig("setup_context", "slots", "language_runtime", "value")
+      assert_equal "Thor and SQLite", manifest.dig("setup_context", "slots", "libraries", "value")
+    end
+  end
+
   test "telegram skip and done complete setup with defaultable slots" do
     adapter = adapter_for_chat
 
@@ -169,5 +205,19 @@ class ProjectSetupTelegramE2eTest < ActiveSupport::TestCase
       username: "tester",
       text: text
     )
+  end
+
+  def with_local_projects_root
+    previous = ENV["REDWRIGHT_LOCAL_PROJECTS_ROOT"]
+    Dir.mktmpdir("redwright-telegram-projects-") do |dir|
+      ENV["REDWRIGHT_LOCAL_PROJECTS_ROOT"] = dir
+      yield dir
+    ensure
+      if previous.nil?
+        ENV.delete("REDWRIGHT_LOCAL_PROJECTS_ROOT")
+      else
+        ENV["REDWRIGHT_LOCAL_PROJECTS_ROOT"] = previous
+      end
+    end
   end
 end
