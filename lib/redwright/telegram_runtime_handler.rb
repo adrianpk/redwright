@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "json"
+
 require_relative "trace"
 require_relative "runtime_result_envelope"
 require_relative "llm_intent_interpreter"
@@ -305,13 +307,15 @@ module Redwright
             workstream_id: resolution.workstream_id,
             user_text: normalized_text
           )
+          trace_metadata = llm_trace_metadata_for(event: event, resolution: resolution, prompt_context: prompt_context)
           decision = interpret_with_trace(
             action: decision_input[:action],
             text: decision_input[:text],
             model: @model_name,
             project_context: prompt_context[:project_context],
             architecture_context: prompt_context[:architecture_context],
-            workspace_context: prompt_context[:workspace_context]
+            workspace_context: prompt_context[:workspace_context],
+            trace_metadata: trace_metadata
           )
           control_intent = if decision.respond_to?(:control_intent)
                              decision.control_intent.to_s.strip
@@ -445,7 +449,8 @@ module Redwright
                             initial_decision: decision,
                             resolution: resolution,
                             prompt_context: prompt_context,
-                            original_text: event.text
+                            original_text: event.text,
+                            trace_metadata: trace_metadata
                           ).merge(mode: mode_selection[:mode])
                         else
                           process_single_turn(
@@ -532,8 +537,8 @@ module Redwright
       @intent_interpreter ||= LlmIntentInterpreter.new(llm_client: nil)
     end
 
-    def interpret_with_trace(action:, text:, model:, project_context:, architecture_context:, workspace_context:)
-      Trace.llm_request(
+    def interpret_with_trace(action:, text:, model:, project_context:, architecture_context:, workspace_context:, trace_metadata: {})
+      llm_call_id = Trace.llm_request(
         role: @model_role,
         provider: @model_provider,
         model: @model_name,
@@ -546,7 +551,16 @@ module Redwright
           architecture_context: architecture_context,
           workspace_context: workspace_context
         ),
-        user_text: text
+        user_text: text,
+        trace_id: trace_metadata[:trace_id],
+        project_ref: trace_metadata[:project_ref],
+        project_root: trace_metadata[:project_root],
+        session_id: trace_metadata[:session_id],
+        source_channel: trace_metadata[:source_channel],
+        actor_identifier: trace_metadata[:actor_identifier],
+        context_summary: trace_metadata[:context_summary],
+        context_bytes: trace_metadata[:context_bytes],
+        context_sections: trace_metadata[:context_sections]
       )
       started_at = Process.clock_gettime(Process::CLOCK_MONOTONIC)
       decision = interpret_with_context(
@@ -559,13 +573,27 @@ module Redwright
       elapsed_ms = ((Process.clock_gettime(Process::CLOCK_MONOTONIC) - started_at) * 1000).to_i
       Trace.llm_response(
         status: decision.source == "llm" ? "ok" : "fallback",
+        llm_call_id: llm_call_id,
         latency_ms: elapsed_ms,
         output_bytes: decision.raw_output.to_s.bytesize,
         finish_reason: decision.finish_reason,
         decision_source: decision.source,
         parsed_intent: decision.intent,
         parsed_message: decision.message,
-        raw_output: decision.raw_output
+        raw_output: decision.raw_output,
+        trace_id: trace_metadata[:trace_id],
+        project_ref: trace_metadata[:project_ref],
+        project_root: trace_metadata[:project_root],
+        session_id: trace_metadata[:session_id],
+        source_channel: trace_metadata[:source_channel],
+        actor_identifier: trace_metadata[:actor_identifier],
+        action: action,
+        role: @model_role,
+        provider: @model_provider,
+        model: @model_name,
+        model_alias: @model_name.to_s.include?("/") ? @model_name : nil,
+        resolved_model: @model_name.to_s.include?("/") ? model : nil,
+        payload_bytes: text.to_s.bytesize
       )
       decision
     end
@@ -628,6 +656,44 @@ module Redwright
       @prompt_context_loader.build(project_path: project_path)
     rescue StandardError
       { project_context: nil, architecture_context: nil, workspace_context: nil, quality: { auto_validate: false } }
+    end
+
+    def llm_trace_metadata_for(event:, resolution:, prompt_context:)
+      sections = []
+      sections << "project_context" if prompt_context[:project_context]
+      sections << "architecture_context" if prompt_context[:architecture_context]
+      sections << "workspace_context" if prompt_context[:workspace_context]
+
+      {
+        trace_id: Trace.current_trace_id,
+        project_ref: resolution.project_ref,
+        project_root: resolution.project_path,
+        session_id: "telegram-#{event.chat_id}",
+        source_channel: "telegram",
+        actor_identifier: actor_identifier_for(event),
+        context_summary: sections.empty? ? "no_project_context" : sections.join(","),
+        context_bytes: context_bytes(prompt_context),
+        context_sections: sections
+      }
+    end
+
+    def context_bytes(prompt_context)
+      [
+        prompt_context[:project_context],
+        prompt_context[:architecture_context],
+        prompt_context[:workspace_context]
+      ].compact.sum { |entry| JSON.generate(entry).bytesize }
+    end
+
+    def actor_identifier_for(event)
+      user = if event.respond_to?(:user_id)
+               event.user_id
+             elsif event.respond_to?(:sender_id)
+               event.sender_id
+             end
+      user = event.username if user.nil? && event.respond_to?(:username)
+      user ||= "unknown"
+      "telegram:chat:#{event.chat_id}:user:#{user}"
     end
 
     def interpret_with_context(text:, model:, project_context:, architecture_context:, workspace_context:)
@@ -707,7 +773,7 @@ module Redwright
       { result: result, quality_summary: quality_summary }
     end
 
-    def process_change_turn(mode:, initial_decision:, resolution:, prompt_context:, original_text:)
+    def process_change_turn(mode:, initial_decision:, resolution:, prompt_context:, original_text:, trace_metadata:)
       if mode == "direct"
         return process_single_turn(
           decision: initial_decision,
@@ -720,11 +786,12 @@ module Redwright
         initial_decision: initial_decision,
         resolution: resolution,
         prompt_context: prompt_context,
-        original_text: original_text
+        original_text: original_text,
+        trace_metadata: trace_metadata
       )
     end
 
-    def process_change_turn_with_micro_loop(initial_decision:, resolution:, prompt_context:, original_text:)
+    def process_change_turn_with_micro_loop(initial_decision:, resolution:, prompt_context:, original_text:, trace_metadata:)
       max_attempts = normalized_change_loop_attempts(@blocked_retry_attempts)
       deadline = Process.clock_gettime(Process::CLOCK_MONOTONIC) + @max_change_turn_seconds.to_i
       decision = initial_decision
@@ -755,7 +822,8 @@ module Redwright
               model: @model_name,
               project_context: prompt_context[:project_context],
               architecture_context: prompt_context[:architecture_context],
-              workspace_context: prompt_context[:workspace_context]
+              workspace_context: prompt_context[:workspace_context],
+              trace_metadata: trace_metadata
             )
             if highest_value_gap_question(decision)
               terminal_reason = "clarify"
@@ -823,7 +891,8 @@ module Redwright
             model: @model_name,
             project_context: prompt_context[:project_context],
             architecture_context: prompt_context[:architecture_context],
-            workspace_context: prompt_context[:workspace_context]
+            workspace_context: prompt_context[:workspace_context],
+            trace_metadata: trace_metadata
           )
           if highest_value_gap_question(decision)
             terminal_reason = "clarify"

@@ -30,7 +30,7 @@ module Redwright
 
       intent = payload["next_prompt_intent"]
       if setup_slot_intent?(intent)
-        message = render_prompt_via_llm(payload: payload, intent: intent, user_text: user_text)
+        message = render_prompt_via_llm(payload: payload, intent: intent, user_text: user_text, trace_id: trace_id)
         return with_debug(message, trace_id: trace_id)
       end
 
@@ -45,7 +45,7 @@ module Redwright
       source.merge(data)
     end
 
-    def render_prompt_via_llm(payload:, intent:, user_text:)
+    def render_prompt_via_llm(payload:, intent:, user_text:, trace_id:)
       return fallback_prompt(payload: payload, intent: intent) unless llm_configured?
 
       llm_payload = JSON.generate(
@@ -56,7 +56,7 @@ module Redwright
           user_text: user_text.to_s
         }
       )
-      Trace.llm_request(
+      llm_call_id = Trace.llm_request(
         role: "non_coding",
         provider: provider_name,
         model: @model,
@@ -64,7 +64,14 @@ module Redwright
         action: "project_setup_prompt_render",
         payload_bytes: llm_payload.bytesize,
         system_prompt: SYSTEM_PROMPT,
-        user_text: llm_payload
+        user_text: llm_payload,
+        trace_id: trace_id,
+        project_id: payload["project_id"] || payload.dig("project", "id"),
+        session_id: payload["session_id"],
+        source_channel: "project_setup",
+        context_summary: payload["summary"].to_s,
+        context_bytes: JSON.generate(payload["setup_context"] || {}).bytesize,
+        context_sections: ["setup_summary", "next_prompt_intent", "setup_context", "user_text"]
       )
       started_at = Process.clock_gettime(Process::CLOCK_MONOTONIC)
       completion = @llm_client.complete_json(
@@ -77,22 +84,45 @@ module Redwright
       message = parsed["message"].to_s.strip
       Trace.llm_response(
         status: "ok",
+        llm_call_id: llm_call_id,
         latency_ms: elapsed_ms,
         output_bytes: completion.content.to_s.bytesize,
         finish_reason: completion.finish_reason,
         decision_source: "llm",
         parsed_message: message,
-        raw_output: completion.content
+        raw_output: completion.content,
+        trace_id: trace_id,
+        project_id: payload["project_id"] || payload.dig("project", "id"),
+        session_id: payload["session_id"],
+        source_channel: "project_setup",
+        action: "project_setup_prompt_render",
+        role: "non_coding",
+        provider: provider_name,
+        model: @model,
+        model_alias: @model,
+        payload_bytes: llm_payload.bytesize
       )
       sanitize_message(message.empty? ? fallback_prompt(payload: payload, intent: intent) : message)
     rescue StandardError => e
       elapsed_ms = defined?(started_at) && started_at ? ((Process.clock_gettime(Process::CLOCK_MONOTONIC) - started_at) * 1000).to_i : 0
       Trace.llm_response(
         status: "fallback",
+        llm_call_id: llm_call_id,
         latency_ms: elapsed_ms,
         output_bytes: 0,
         decision_source: "error",
-        raw_output: e.message
+        raw_output: e.message,
+        error: e.message,
+        trace_id: trace_id,
+        project_id: payload["project_id"] || payload.dig("project", "id"),
+        session_id: payload["session_id"],
+        source_channel: "project_setup",
+        action: "project_setup_prompt_render",
+        role: "non_coding",
+        provider: provider_name,
+        model: @model,
+        model_alias: @model,
+        payload_bytes: llm_payload.bytesize
       )
       fallback_prompt(payload: payload, intent: intent)
     end
