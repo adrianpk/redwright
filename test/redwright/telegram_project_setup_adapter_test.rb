@@ -46,11 +46,11 @@ class TelegramProjectSetupAdapterTest < Minitest::Test
       when "StartProjectSetup"
         {
           "status" => "ok",
-          "summary" => "Repository input requires clarification.",
+          "summary" => "Project setup started.",
           "session_id" => 41,
           "project_id" => nil,
-          "state" => "awaiting_repository",
-          "next_prompt" => "Repository input is ambiguous."
+          "state" => "collecting_context",
+          "next_prompt" => "What should this project do first?"
         }
       when "AdvanceProjectSetup"
         {
@@ -83,8 +83,8 @@ class TelegramProjectSetupAdapterTest < Minitest::Test
           "status" => "ok",
           "summary" => "Project setup session retrieved.",
           "session_id" => 41,
-          "state" => "awaiting_repository",
-          "next_prompt" => "Repository input is ambiguous."
+          "state" => "collecting_context",
+          "next_prompt" => "What should this project do first?"
         }
       else
         raise "unexpected query #{name}"
@@ -129,10 +129,10 @@ class TelegramProjectSetupAdapterTest < Minitest::Test
     assert advanced.handled?
     assert_equal(%w[StartProjectSetup AdvanceProjectSetup], client.calls.map { |call| call[:name] })
     assert_equal("happy-cli", client.calls.first[:payload].fetch("project_name"))
-    assert_equal("happy-cli", client.calls.first[:payload].fetch("repository_input"))
+    refute_includes(client.calls.first[:payload].keys, "repository_input")
     assert_equal(41, client.calls.last[:payload].fetch("session_id"))
     assert_equal("acme/happy-cli", client.calls.last[:payload].fetch("answer"))
-    assert_match("Next: Repository input is ambiguous.", started.message)
+    assert_match("Next: What should this project do first?", started.message)
     assert_match("Project setup advanced.", advanced.message)
   end
 
@@ -149,10 +149,27 @@ class TelegramProjectSetupAdapterTest < Minitest::Test
     assert_equal(["StartProjectSetup"], client.calls.map { |call| call[:name] })
     assert_equal("notes-cli", client.calls.first[:payload].fetch("project_name"))
     assert_equal("notes-cli", client.calls.first[:payload].fetch("directory_name"))
-    assert_equal("notes-cli", client.calls.first[:payload].fetch("repository_input"))
+    assert_equal("A small command line notes manager with local file storage", client.calls.first[:payload].fetch("description"))
+    refute_includes(client.calls.first[:payload].keys, "repository_input")
     assert_equal("telegram:chat:9:user:77", client.calls.first[:actor_identifier])
     assert_equal("telegram-9-1-start-project-setup", client.calls.first[:request_id])
-    assert_match("Repository input requires clarification.", result.message)
+    assert_match("Project setup started.", result.message)
+  end
+
+  def test_routes_project_new_with_repository_url_as_optional_repository_context
+    client = FakeRailsClient.new
+    adapter = Redwright::TelegramProjectSetupAdapter.new(client: client)
+
+    result = adapter.handle(
+      event(1, "/project new notes-cli https://example.com/acme/notes-cli.git"),
+      trace_id: "trc-test"
+    )
+
+    assert result.handled?
+    assert_equal(["StartProjectSetup"], client.calls.map { |call| call[:name] })
+    assert_equal("notes-cli", client.calls.first[:payload].fetch("project_name"))
+    assert_equal("https://example.com/acme/notes-cli.git", client.calls.first[:payload].fetch("repository_input"))
+    refute_includes(client.calls.first[:payload].keys, "description")
   end
 
   def test_routes_project_list_and_where_through_rails_api
@@ -178,16 +195,18 @@ class TelegramProjectSetupAdapterTest < Minitest::Test
     refute result.handled?
   end
 
-  def test_handles_project_new_missing_without_api_call
+  def test_starts_project_setup_without_name_over_rails_api
     client = FakeRailsClient.new
     adapter = Redwright::TelegramProjectSetupAdapter.new(client: client)
 
     result = adapter.handle(event(1, "/project new"), trace_id: "trc-test")
 
     assert result.handled?
-    assert_equal("project_new_missing", result.command)
-    assert_match("Please provide a project name", result.message)
-    assert_equal([], client.calls)
+    assert_equal("project_new", result.command)
+    assert_equal(["StartProjectSetup"], client.calls.map { |call| call[:name] })
+    refute_includes(client.calls.first[:payload].keys, "project_name")
+    refute_includes(client.calls.first[:payload].keys, "repository_input")
+    assert_match("Project setup started.", result.message)
   end
 
   def test_ignores_unknown_project_slash_without_active_session

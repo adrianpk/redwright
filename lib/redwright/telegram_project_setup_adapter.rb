@@ -36,13 +36,12 @@ module Redwright
     def handle_project_command(event:, command:, trace_id:)
       case command[:command]
       when "new"
-        start_project_setup(event: event, project_name: command[:project_name], trace_id: trace_id)
-      when "new_missing"
-        Result.new(
-          handled: true,
-          command: "project_new_missing",
-          message: "Please provide a project name: /project new <name>.\nTrace: #{trace_id}",
-          api_response: nil
+        start_project_setup(
+          event: event,
+          project_name: command[:project_name],
+          description: command[:description],
+          repository_input: command[:repository_input],
+          trace_id: trace_id
         )
       when "list"
         list_projects(event: event, trace_id: trace_id)
@@ -66,16 +65,21 @@ module Redwright
       end
     end
 
-    def start_project_setup(event:, project_name:, trace_id:)
+    def start_project_setup(event:, project_name:, description:, repository_input:, trace_id:)
       request_id = request_id_for(event, "start-project-setup")
+      payload = {
+        "guided_alignment" => true
+      }
+      unless project_name.to_s.empty?
+        payload["project_name"] = project_name
+        payload["directory_name"] = project_name
+      end
+      payload["description"] = description unless description.to_s.empty?
+      payload["repository_input"] = repository_input unless repository_input.to_s.empty?
+
       response = client.command(
         name: "StartProjectSetup",
-        payload: {
-          "project_name" => project_name,
-          "directory_name" => project_name,
-          "repository_input" => project_name,
-          "guided_alignment" => true
-        },
+        payload: payload,
         actor_identifier: actor_identifier_for(event),
         request_id: request_id
       )
@@ -380,12 +384,35 @@ module Redwright
       return nil unless parts.first.to_s.downcase == "/project"
       action = parts[1].to_s.downcase
 
-      return {command: "new_missing"} if action == "new" && parts[2].to_s.empty?
-      return {command: "new", project_name: parts[2]} if action == "new" && valid_project_name?(parts[2])
+      return project_new_command(parts) if action == "new"
       return {command: "list"} if raw.match?(%r{\A/project\s+list\s*\z}i)
       return {command: "where"} if raw.match?(%r{\A/project\s+where\s*\z}i)
 
       nil
+    end
+
+    def project_new_command(parts)
+      project_name = parts[2].to_s
+      return {command: "new", project_name: nil, description: nil, repository_input: nil} if project_name.empty?
+      return nil unless valid_project_name?(project_name)
+
+      remainder = parts[3..] || []
+      repository_input = nil
+      description_parts = []
+      remainder.each do |part|
+        if repository_input.nil? && repository_input?(part)
+          repository_input = part
+        else
+          description_parts << part
+        end
+      end
+
+      {
+        command: "new",
+        project_name: project_name,
+        description: description_parts.join(" ").strip,
+        repository_input: repository_input
+      }
     end
 
     def shellsplit(raw)
@@ -396,6 +423,13 @@ module Redwright
 
     def valid_project_name?(value)
       value.to_s.match?(%r{\A[a-zA-Z0-9._\-]+\z})
+    end
+
+    def repository_input?(value)
+      raw = value.to_s
+      raw.match?(%r{\Ahttps?://\S+\z}) ||
+        raw.match?(%r{\Agit@\S+:\S+\z}) ||
+        raw.match?(%r{\A[a-zA-Z0-9_.-]+/[a-zA-Z0-9_.-]+\z})
     end
 
     def parse_ticket_command(text)

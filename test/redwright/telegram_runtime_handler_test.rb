@@ -79,10 +79,10 @@ class TelegramRuntimeHandlerTest < Minitest::Test
       body = if name == "StartProjectSetup"
                {
                  "status" => "ok",
-                 "summary" => "Repository input requires clarification.",
+                 "summary" => "Project setup started.",
                  "session_id" => 101,
-                 "state" => "awaiting_repository",
-                 "next_prompt" => "Repository input is ambiguous."
+                 "state" => "collecting_context",
+                 "next_prompt" => "What should this project do first?"
                }
              elsif name == "AdvanceProjectSetup"
                {
@@ -1173,9 +1173,9 @@ class TelegramRuntimeHandlerTest < Minitest::Test
 
         assert_equal(%w[StartProjectSetup AdvanceProjectSetup], setup_client.calls.map { |call| call[:name] })
         assert_equal(2, client.messages.size)
-        assert_match("Repository input requires clarification.", client.messages.first[:text])
+        assert_match("Project setup started.", client.messages.first[:text])
         assert_match("Project setup advanced.", client.messages.last[:text])
-        assert_match("telegram rails_project_setup chat=46 command=project_new state=awaiting_repository", out.string)
+        assert_match("telegram rails_project_setup chat=46 command=project_new state=collecting_context", out.string)
         assert_match("telegram rails_project_setup chat=46 command=project_setup_advance state=awaiting_repository", out.string)
         assert_equal([], project_store.list)
         refute(File.directory?(File.join(bootstrap.projects_root, "happy-cli")))
@@ -1214,11 +1214,13 @@ class TelegramRuntimeHandlerTest < Minitest::Test
 
     assert_equal(["StartProjectSetup"], setup_client.calls.map { |call| call[:name] })
     assert_equal("notes-cli", setup_client.calls.first[:payload].fetch("project_name"))
+    assert_equal("A small command line notes manager with local file storage", setup_client.calls.first[:payload].fetch("description"))
+    refute_includes(setup_client.calls.first[:payload].keys, "repository_input")
     assert_equal("telegram:chat:46:user:77", setup_client.calls.first[:actor_identifier])
     assert_equal("telegram-46-4-start-project-setup", setup_client.calls.first[:request_id])
     assert_equal(1, client.messages.size)
-    assert_match("Repository input requires clarification.", client.messages.last[:text])
-    assert_match("telegram rails_project_setup chat=46 command=project_new state=awaiting_repository", out.string)
+    assert_match("Project setup started.", client.messages.last[:text])
+    assert_match("telegram rails_project_setup chat=46 command=project_new state=collecting_context", out.string)
   end
 
   def test_handle_project_setup_adapter_failure_does_not_fall_back_to_runtime
