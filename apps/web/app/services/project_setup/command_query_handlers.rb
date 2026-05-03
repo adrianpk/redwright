@@ -174,7 +174,7 @@ module ProjectSetup
         request_id: request_id,
         data: {
           "summary" => "Project retrieved.",
-          "project" => project_data(project),
+          "project" => project_data(project, include_setup_saga: true),
           "project_id" => project.id
         },
         effects: []
@@ -205,6 +205,7 @@ module ProjectSetup
         "state" => session&.current_state,
         "next_prompt" => session&.pending_question,
         "next_prompt_intent" => next_prompt_intent_from(session, result),
+        "setup_saga" => setup_saga_from(session),
         "summary" => setup_summary_from(result),
         "repository" => string_keyed(result.repository),
         "project" => string_keyed(result.project),
@@ -280,6 +281,7 @@ module ProjectSetup
         "repository_input" => session.repository_input,
         "resolved_repository" => session.resolved_repository,
         "setup_context" => session.setup_context,
+        "setup_saga" => setup_saga_from(session),
         "turn_counter" => session.turn_counter,
         "terminal_reason" => session.terminal_reason
       }
@@ -321,8 +323,8 @@ module ProjectSetup
       intent.is_a?(Hash) ? intent.transform_keys(&:to_s) : {}
     end
 
-    def project_data(project)
-      {
+    def project_data(project, include_setup_saga: false)
+      data = {
         "id" => project.id,
         "name" => project.name,
         "description" => project.description,
@@ -330,6 +332,11 @@ module ProjectSetup
         "repo_url" => project.repo_url,
         "stack_slug" => project.stack_slug
       }
+      if include_setup_saga
+        latest_session = project.project_setup_sessions.order(created_at: :desc, id: :desc).first
+        data["setup_saga"] = setup_saga_from(latest_session)
+      end
+      data
     end
 
     def completed_context_session_result(session, request_id:)
@@ -356,6 +363,12 @@ module ProjectSetup
         "setup_project_attribute_ids" => metadata["setup_project_attribute_ids"] || [],
         "workspace" => metadata["workspace"]
       )
+    end
+
+    def setup_saga_from(session)
+      return {} unless session
+
+      ProjectSetup::SagaState.snapshot(session)
     end
 
     def completed_context_session?(session)

@@ -28,6 +28,7 @@ module Api
           project_id: result.data["project_id"],
           state: result.data["state"],
           next_prompt: result.data["next_prompt"],
+          setup_saga: result.data["setup_saga"],
           summary: result.data["summary"] || result.errors.first&.fetch(:message, nil)
         )
       end
