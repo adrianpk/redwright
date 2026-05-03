@@ -310,7 +310,7 @@ module ProjectSetup
       attribute_ids = materialize_project_attributes!(project)
       document = write_setup_summary_document!(project)
       starter_ticket = ensure_starter_workflow_ticket!(project: project, board: board, document: document)
-      workspace = materialize_local_workspace(project)
+      workspace = materialize_local_workspace(project, starter_ticket: starter_ticket)
       finalize_session_metadata!(
         project: project,
         board: board,
@@ -640,8 +640,6 @@ module ProjectSetup
     end
 
     def ensure_starter_workflow_ticket!(project:, board:, document:)
-      return nil unless agent_workflow_requested?
-
       column = board.columns.find_by!(key: "backlog")
       ticket = board.tickets.find_or_initialize_by(title: STARTER_TICKET_TITLE)
       ticket.column ||= column
@@ -656,14 +654,16 @@ module ProjectSetup
       ticket
     end
 
-    def materialize_local_workspace(project)
-      LocalWorkspaceMaterializer.new(session: session, project: project).call
+    def materialize_local_workspace(project, starter_ticket:)
+      LocalWorkspaceMaterializer.new(session: session, project: project, starter_ticket: starter_ticket).call
     end
 
     def starter_ticket_description(project)
       [
         "Use the project setup context to produce the initial implementation plan.",
         "Project: #{project.name}",
+        "Materialization outcome: materialized_planned",
+        "Runnable now: no",
         "Type: #{slot_value("project_type")}",
         "Language/runtime: #{slot_value("language_runtime")}",
         "Framework: #{slot_value("framework")}",
