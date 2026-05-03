@@ -3,7 +3,7 @@
 ## Metadata
 
 - cycle_id: `cycle-2026-05-03-redwright-project-protocol-templates`
-- status: `planned`
+- status: `in_progress`
 - owner: `adrianpk`
 - created: `2026-05-03`
 - updated: `2026-05-03`
@@ -15,17 +15,17 @@
 
 ### Slice 1: Project Protocol Domain Foundation
 
-- status: `planned`
+- status: `implemented`
 - branch: `fix/slice-1-project-protocol-domain`
 - pr_title: `feat(slice-1): project protocol domain`
 - objective: `add project-owned Protocol persistence with document family modeling, ordering, common-versus-stack distinction, and document-level provenance`
 - tasks:
-- [ ] `T1.1 add Project Protocol domain model associated with Project`
-- [ ] `T1.2 add Project Protocol document model with identity, ordering, Markdown content, and canonical document paths`
-- [ ] `T1.3 persist common-versus-stack distinction at the Rails model layer`
-- [ ] `T1.4 persist document-level provenance for template-derived, composed, initialization-generated, and manually authored content`
-- [ ] `T1.5 expose Protocol read state through Rails command/query responses`
-- [ ] `T1.6 add tests for project association, document ordering, provenance serialization, and protocol read shape`
+- [x] `T1.1 add Project Protocol domain model associated with Project`
+- [x] `T1.2 add Project Protocol document model with identity, ordering, Markdown content, and canonical document paths`
+- [x] `T1.3 persist common-versus-stack distinction at the Rails model layer`
+- [x] `T1.4 persist document-level provenance for template-derived, composed, initialization-generated, and manually authored content`
+- [x] `T1.5 expose Protocol read state through Rails command/query responses`
+- [x] `T1.6 add tests for project association, document ordering, provenance serialization, and protocol read shape`
 - acceptance:
 - `each project can own one concrete Project Protocol`
 - `project protocol documents are structured rather than implicit filesystem-only state`

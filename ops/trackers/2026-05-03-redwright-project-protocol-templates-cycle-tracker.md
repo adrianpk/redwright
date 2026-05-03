@@ -3,10 +3,10 @@
 ## Metadata
 
 - cycle_id: `cycle-2026-05-03-redwright-project-protocol-templates`
-- status: `planned`
-- state: `slice_1_pending`
+- status: `in_progress`
+- state: `slice_1_implemented`
 - updated: `2026-05-03`
-- active_slice: `none`
+- active_slice: `Slice 1`
 - active_task: `none`
 - source_plan: `ops/plans/2026-05-03-redwright-project-protocol-templates-cycle-plan.md`
 - source_spec: `ops/specs/specs/2026-05-03-redwright-project-protocol-templates-spec.md`
@@ -19,32 +19,33 @@
 
 ### Slice 1: Project Protocol Domain Foundation
 
-- status: `planned`
+- status: `implemented`
 - branch: `fix/slice-1-project-protocol-domain`
 - PR: `pending`
 - merge_target: `dev`
-- last_sync_commit: `pending`
+- last_sync_commit: `4eb6025`
 
 Tasks:
 
-- [ ] `T1.1 add Project Protocol domain model associated with Project`
-- [ ] `T1.2 add Project Protocol document model with identity, ordering, Markdown content, and canonical document paths`
-- [ ] `T1.3 persist common-versus-stack distinction at the Rails model layer`
-- [ ] `T1.4 persist document-level provenance for template-derived, composed, initialization-generated, and manually authored content`
-- [ ] `T1.5 expose Protocol read state through Rails command/query responses`
-- [ ] `T1.6 add tests for project association, document ordering, provenance serialization, and protocol read shape`
+- [x] `T1.1 add Project Protocol domain model associated with Project`
+- [x] `T1.2 add Project Protocol document model with identity, ordering, Markdown content, and canonical document paths`
+- [x] `T1.3 persist common-versus-stack distinction at the Rails model layer`
+- [x] `T1.4 persist document-level provenance for template-derived, composed, initialization-generated, and manually authored content`
+- [x] `T1.5 expose Protocol read state through Rails command/query responses`
+- [x] `T1.6 add tests for project association, document ordering, provenance serialization, and protocol read shape`
 
 Commits:
 
-- [ ] `pending feat(web): add project protocol domain`
-- [ ] `pending feat(web): expose project protocol state`
-- [ ] `pending test(web): cover project protocol state`
+- [x] `d295136 feat(web): add project protocol domain`
+- [x] `df88958 feat(web): expose project protocol state`
+- [x] `4eb6025 test(web): cover project protocol state`
 - [ ] `pending docs(ops): update project protocol slice 1 status`
 
 Validation:
 
-- [ ] `pending bundle exec bin/rails test <targeted protocol domain paths>`
-- [ ] `pending bundle exec bin/rails test`
+- [x] `bundle exec bin/rails test test/models/project_protocol_test.rb test/models/project_test.rb test/services/project_protocols/command_query_handlers_test.rb` (pass)
+- [x] `bundle exec bin/rails test test/services/runtime_containers/command_query_handlers_test.rb test/controllers/api/v1/command_queries_controller_test.rb` (pass)
+- [x] `bundle exec bin/rails test` (pass)
 
 ### Slice 2: Seeded Template and Composition Foundation
 
@@ -202,3 +203,4 @@ Validation:
 ## Event Log
 
 - `2026-05-03` state=`planned` note=`promoted the Project Protocol Templates draft plus curated conversation into a formal spec, cycle plan, and tracker; Runtime Containers remains separate cycle history and ticket-scoped runtime recipes plus rolling trace remain context-only drafts`
+- `2026-05-03` state=`slice_1_implemented` note=`implemented Project Protocol domain persistence, document-level modeling, project query exposure, targeted protocol tests, dependent query coverage, and full Rails validation on fix/slice-1-project-protocol-domain`
