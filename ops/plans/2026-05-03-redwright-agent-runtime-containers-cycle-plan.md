@@ -61,7 +61,7 @@
 
 ### Slice 3: Runtime Containers Management and Validation
 
-- status: `implemented`
+- status: `merged`
 - branch: `fix/slice-3-runtime-containers-management`
 - pr_title: `feat(slice-3): runtime containers management`
 - objective: `allow Runtime Containers inspection, editing, regeneration, comparison, validation recording, and readiness transitions`

@@ -4,9 +4,9 @@
 
 - cycle_id: `cycle-2026-05-03-redwright-agent-runtime-containers`
 - status: `in_progress`
-- state: `slice_3_implemented`
+- state: `slice_3_merged`
 - updated: `2026-05-03`
-- active_slice: `Slice 3`
+- active_slice: `none`
 - active_task: `none`
 - source_plan: `ops/plans/2026-05-03-redwright-agent-runtime-containers-cycle-plan.md`
 - source_spec: `ops/specs/specs/2026-05-03-redwright-agent-runtime-containers-spec.md`
@@ -84,11 +84,11 @@ Validation:
 
 ### Slice 3: Runtime Containers Management and Validation
 
-- status: `implemented`
+- status: `merged`
 - branch: `fix/slice-3-runtime-containers-management`
-- PR: `pending`
+- PR: `#271 https://codeberg.org/adrianpk/redwright/pulls/271 merged into dev`
 - merge_target: `dev`
-- last_sync_commit: `0ee495b`
+- last_sync_commit: `9d90ade`
 
 Tasks:
 
@@ -104,6 +104,7 @@ Commits:
 - [x] `f0a0b9e feat(web): manage runtime containers`
 - [x] `6d753ab feat(web): validate runtime containers readiness`
 - [x] `0ee495b test(web): cover runtime containers management`
+- [x] `9d90ade docs(ops): update runtime containers slice 3 status`
 
 Validation:
 
@@ -177,3 +178,4 @@ Validation:
 - `2026-05-03` state=`slice_2_pr_open` note=`opened Codeberg PR #270 from fix/slice-2-runtime-containers-generation into dev`
 - `2026-05-03` state=`slice_2_merged` note=`PR #270 merged into dev; Slice 2 is closed and Slice 3 remains pending explicit start`
 - `2026-05-03` state=`slice_3_implemented` note=`implemented Runtime Containers update, regeneration proposal, comparison, validation recording, readiness policy, and targeted/full Rails validation on fix/slice-3-runtime-containers-management`
+- `2026-05-03` state=`slice_3_merged` note=`PR #271 merged into dev; Slice 3 is closed and Slice 4 remains pending explicit start`
