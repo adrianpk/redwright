@@ -127,7 +127,7 @@
 
 ### Slice 6: End-to-End Regression Closure
 
-- status: `in_progress`
+- status: `ready_for_pr`
 - branch: `fix/slice-6-project-setup-conversational-e2e`
 - pr_title: `feat(slice-6): project setup conversational e2e`
 - objective: `close the cycle with end-to-end coverage and tracker/report updates`

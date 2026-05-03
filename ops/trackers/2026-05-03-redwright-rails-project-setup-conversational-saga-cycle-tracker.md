@@ -4,10 +4,10 @@
 
 - cycle_id: `cycle-2026-05-03-redwright-rails-project-setup-conversational-saga`
 - status: `in_progress`
-- state: `slice_6_in_progress`
+- state: `slice_6_ready_for_pr`
 - updated: `2026-05-03`
 - active_slice: `Slice 6`
-- active_task: `T6.1 add Rails API end-to-end scenarios`
+- active_task: `open Slice 6 PR`
 - source_plan: `ops/plans/2026-05-03-redwright-rails-project-setup-conversational-saga-cycle-plan.md`
 - source_spec: `ops/specs/specs/2026-05-03-redwright-rails-project-setup-conversational-saga-spec.md`
 
@@ -158,28 +158,36 @@ Validation:
 
 ### Slice 6: End-to-End Regression Closure
 
-- status: `in_progress`
+- status: `ready_for_pr`
 - branch: `fix/slice-6-project-setup-conversational-e2e`
 - PR: `tbd`
 - merge_target: `dev`
-- last_sync_commit: `tbd`
+- last_sync_commit: `3c2039e`
 
 Tasks:
 
-- [ ] `T6.1 add Rails API end-to-end scenarios for sparse, rich, skip, done, cancel, and repository-backed setup`
-- [ ] `T6.2 add Telegram simulated ingress scenarios for the same setup matrix`
-- [ ] `T6.3 run full Rails tests and repository coverage from canonical locations`
-- [ ] `T6.4 publish cycle closure notes with residual risks and tuning decision`
+- [x] `T6.1 add Rails API end-to-end scenarios for sparse, rich, skip, done, cancel, and repository-backed setup`
+- [x] `T6.2 add Telegram simulated ingress scenarios for the same setup matrix`
+- [x] `T6.3 run full Rails tests and repository coverage from canonical locations`
+- [x] `T6.4 publish cycle closure notes with residual risks and tuning decision`
 
 Commits:
 
-- [ ] `test(integration): add project setup conversational e2e matrix`
+- [x] `fce6c3d fix(web): default skipped setup description for project creation`
+- [x] `3c2039e test(integration): add project setup conversational e2e matrix`
 - [ ] `docs(ops): close project setup conversational saga cycle`
 
 Validation:
 
-- [ ] `cd apps/web && bundle exec bin/rails test (pending)`
-- [ ] `bundle exec rake test:coverage from repository root (pending)`
+- [x] `ruby -wc apps/web/app/services/project_setup/context_loop_service.rb (pass)`
+- [x] `ruby -wc apps/web/test/integration/project_setup_conversational_e2e_test.rb (pass)`
+- [x] `ruby -wc apps/web/test/integration/project_setup_telegram_e2e_test.rb (pass)`
+- [x] `cd apps/web && bundle exec bin/rails test test/integration/project_setup_conversational_e2e_test.rb (pass)`
+- [x] `cd apps/web && bundle exec bin/rails test test/integration/project_setup_telegram_e2e_test.rb (pass)`
+- [x] `cd apps/web && bundle exec bin/rails test test/controllers/api/v1/command_queries_controller_test.rb (pass)`
+- [x] `cd apps/web && bundle exec bin/rails test test/services/project_setup/context_loop_service_test.rb (pass)`
+- [x] `cd apps/web && bundle exec bin/rails test (pass)`
+- [x] `bundle exec rake test:coverage from repository root (pass, coverage=91.38)`
 
 ## Event Log
 
@@ -193,3 +201,4 @@ Validation:
 - `2026-05-03` state=`ready_for_pr` slice=`Slice 5` note=`implemented runtime setup context payloads, setup-driven starter tickets, integration coverage, and repository coverage gate`
 - `2026-05-03` state=`reviewing` slice=`Slice 5` pr=`https://codeberg.org/adrianpk/redwright/pulls/256` note=`opened canonical Slice 5 PR against dev`
 - `2026-05-03` state=`merged` slice=`Slice 5` pr=`https://codeberg.org/adrianpk/redwright/pulls/256` note=`merged into dev and synchronized locally before starting Slice 6`
+- `2026-05-03` state=`ready_for_pr` slice=`Slice 6` note=`added Rails API and Telegram simulated E2E matrix, fixed skipped-description completion, ran full Rails tests and repository coverage, and published cycle report`
