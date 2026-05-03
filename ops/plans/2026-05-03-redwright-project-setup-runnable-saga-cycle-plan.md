@@ -15,7 +15,7 @@
 
 ### Slice 1: Setup LLM Traces and Semantic Slot Normalization
 
-- status: `reviewing`
+- status: `completed`
 - branch: `fix/slice-1-setup-llm-traces-and-slot-normalization`
 - pr_title: `feat(slice-1): setup llm traces and slot normalization`
 - objective: `make setup prompt rendering observable and prevent raw confusing answers from being persisted as canonical slot values`
@@ -41,16 +41,16 @@
 
 ### Slice 2: Explicit Setup Saga State and Query Surface
 
-- status: `planned`
+- status: `reviewing`
 - branch: `fix/slice-2-project-setup-saga-state`
 - pr_title: `feat(slice-2): project setup saga state`
 - objective: `persist and expose explicit setup stages for questionnaire, materialization, initial implementation, and ticket operation`
 - tasks:
-- [ ] `T2.1 define persisted saga stage metadata compatible with existing ProjectSetupSession states`
-- [ ] `T2.2 add materialization and initial implementation result structures to setup session metadata`
-- [ ] `T2.3 expose structured saga state through Rails command/query responses`
-- [ ] `T2.4 update /project where to report setup stage, workspace, and runnable/planned status when available`
-- [ ] `T2.5 add tests for stage transitions, repeated completion, and API/query shape`
+- [x] `T2.1 define persisted saga stage metadata compatible with existing ProjectSetupSession states`
+- [x] `T2.2 add materialization and initial implementation result structures to setup session metadata`
+- [x] `T2.3 expose structured saga state through Rails command/query responses`
+- [x] `T2.4 update /project where to report setup stage, workspace, and runnable/planned status when available`
+- [x] `T2.5 add tests for stage transitions, repeated completion, and API/query shape`
 - acceptance:
 - `setup state distinguishes questionnaire, materialization, initial implementation, and ticket operation`
 - `API clients can inspect materialization and initial implementation status`
