@@ -3,6 +3,7 @@ class Project < ApplicationRecord
   has_many :project_attributes, dependent: :delete_all
   has_many :documents, dependent: :restrict_with_error
   has_many :project_setup_sessions, dependent: :restrict_with_error
+  has_one :runtime_container, class_name: "ProjectRuntimeContainer", dependent: :destroy
 
   validates :name, presence: true
   validates :description, presence: true
@@ -24,5 +25,9 @@ class Project < ApplicationRecord
 
   def project_attributes_scope
     project_attributes.order(weight: :desc, updated_at: :desc)
+  end
+
+  def runtime_container_state
+    runtime_container&.to_state || ProjectRuntimeContainer.missing_state_for(self)
   end
 end

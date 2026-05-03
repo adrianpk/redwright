@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_02_231000) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_03_120000) do
   create_table "boards", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "name", null: false
@@ -79,6 +79,42 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_02_231000) do
     t.index ["project_id", "key"], name: "index_project_attributes_on_project_id_and_key"
     t.index ["project_id", "weight"], name: "index_project_attributes_on_project_id_and_weight"
     t.index ["project_id"], name: "index_project_attributes_on_project_id"
+  end
+
+  create_table "project_runtime_containers", force: :cascade do |t|
+    t.text "assumptions_json", default: "[]", null: false
+    t.string "base_image"
+    t.text "build_commands_json", default: "[]", null: false
+    t.text "cache_mounts_json", default: "[]", null: false
+    t.datetime "created_at", null: false
+    t.text "dependency_commands_json", default: "[]", null: false
+    t.text "environment_json", default: "{}", null: false
+    t.text "format_commands_json", default: "[]", null: false
+    t.text "generated_files_json", default: "[]", null: false
+    t.text "lint_commands_json", default: "[]", null: false
+    t.text "missing_information_json", default: "[]", null: false
+    t.text "network_policy_json", default: "{}", null: false
+    t.string "profile", default: "default", null: false
+    t.integer "project_id", null: false
+    t.text "provenance_json", default: "{}", null: false
+    t.string "readiness", default: "missing", null: false
+    t.text "repository_mount_json", default: "{}", null: false
+    t.text "risks_json", default: "[]", null: false
+    t.string "runtime_name"
+    t.string "runtime_version"
+    t.text "secret_placeholders_json", default: "[]", null: false
+    t.string "status", default: "draft", null: false
+    t.text "system_packages_json", default: "[]", null: false
+    t.text "test_commands_json", default: "[]", null: false
+    t.datetime "updated_at", null: false
+    t.text "user_policy_json", default: "{}", null: false
+    t.text "validation_command"
+    t.text "validation_output_summary"
+    t.string "validation_status", default: "not_run", null: false
+    t.string "working_directory"
+    t.index ["project_id"], name: "index_project_runtime_containers_on_project_id", unique: true
+    t.index ["readiness"], name: "index_project_runtime_containers_on_readiness"
+    t.index ["validation_status"], name: "index_project_runtime_containers_on_validation_status"
   end
 
   create_table "project_setup_sessions", force: :cascade do |t|
@@ -210,6 +246,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_02_231000) do
   add_foreign_key "documents", "projects"
   add_foreign_key "labels", "boards"
   add_foreign_key "project_attributes", "projects"
+  add_foreign_key "project_runtime_containers", "projects"
   add_foreign_key "project_setup_sessions", "projects"
   add_foreign_key "project_setup_turns", "project_setup_sessions"
   add_foreign_key "sessions", "users"
