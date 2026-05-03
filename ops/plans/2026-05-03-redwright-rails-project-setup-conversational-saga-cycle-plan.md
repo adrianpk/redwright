@@ -3,7 +3,7 @@
 ## Metadata
 
 - cycle_id: `cycle-2026-05-03-redwright-rails-project-setup-conversational-saga`
-- status: `in_progress`
+- status: `completed`
 - owner: `adrianpk`
 - created: `2026-05-03`
 - updated: `2026-05-03`
@@ -127,7 +127,7 @@
 
 ### Slice 6: End-to-End Regression Closure
 
-- status: `ready_for_pr`
+- status: `merged`
 - branch: `fix/slice-6-project-setup-conversational-e2e`
 - pr_title: `feat(slice-6): project setup conversational e2e`
 - objective: `close the cycle with end-to-end coverage and tracker/report updates`

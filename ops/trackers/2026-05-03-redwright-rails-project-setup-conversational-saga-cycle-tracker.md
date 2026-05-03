@@ -3,11 +3,11 @@
 ## Metadata
 
 - cycle_id: `cycle-2026-05-03-redwright-rails-project-setup-conversational-saga`
-- status: `in_progress`
-- state: `slice_6_reviewing`
+- status: `completed`
+- state: `completed`
 - updated: `2026-05-03`
-- active_slice: `Slice 6`
-- active_task: `await Slice 6 PR review and merge`
+- active_slice: `none`
+- active_task: `cycle completed; awaiting explicit release alignment request`
 - source_plan: `ops/plans/2026-05-03-redwright-rails-project-setup-conversational-saga-cycle-plan.md`
 - source_spec: `ops/specs/specs/2026-05-03-redwright-rails-project-setup-conversational-saga-spec.md`
 
@@ -158,7 +158,7 @@ Validation:
 
 ### Slice 6: End-to-End Regression Closure
 
-- status: `reviewing`
+- status: `merged`
 - branch: `fix/slice-6-project-setup-conversational-e2e`
 - PR: `https://codeberg.org/adrianpk/redwright/pulls/257`
 - merge_target: `dev`
@@ -203,3 +203,4 @@ Validation:
 - `2026-05-03` state=`merged` slice=`Slice 5` pr=`https://codeberg.org/adrianpk/redwright/pulls/256` note=`merged into dev and synchronized locally before starting Slice 6`
 - `2026-05-03` state=`ready_for_pr` slice=`Slice 6` note=`added Rails API and Telegram simulated E2E matrix, fixed skipped-description completion, ran full Rails tests and repository coverage, and published cycle report`
 - `2026-05-03` state=`reviewing` slice=`Slice 6` pr=`https://codeberg.org/adrianpk/redwright/pulls/257` note=`opened canonical Slice 6 PR against dev`
+- `2026-05-03` state=`merged` slice=`Slice 6` pr=`https://codeberg.org/adrianpk/redwright/pulls/257` note=`merged into dev; cycle completed and awaits explicit dev-to-main alignment request`

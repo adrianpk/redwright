@@ -3,7 +3,7 @@
 ## Metadata
 
 - cycle_id: `cycle-2026-05-03-redwright-rails-project-setup-conversational-saga`
-- status: `ready_for_review`
+- status: `completed`
 - date: `2026-05-03`
 - source_plan: `ops/plans/2026-05-03-redwright-rails-project-setup-conversational-saga-cycle-plan.md`
 - source_tracker: `ops/trackers/2026-05-03-redwright-rails-project-setup-conversational-saga-cycle-tracker.md`
@@ -22,7 +22,7 @@ The cycle moved `/project new` from repository-first setup toward a Rails-owned 
 | Slice 3 | `https://codeberg.org/adrianpk/redwright/pulls/255` | covered by Slice 1 | Human Telegram rendering was absorbed by the extended Slice 1 implementation. |
 | Slice 4 | `https://codeberg.org/adrianpk/redwright/pulls/255` | covered by Slice 1 | Minimum setup artifact materialization was absorbed by the extended Slice 1 implementation. |
 | Slice 5 | `https://codeberg.org/adrianpk/redwright/pulls/256` | merged | Passed setup-derived project context into ticket runtime execution and created setup-driven starter tickets when agent workflow is requested. |
-| Slice 6 | `https://codeberg.org/adrianpk/redwright/pulls/257` | ready for review | Added Rails API and Telegram simulated E2E coverage for sparse, rich, skip, done, cancel, and repository-backed setup; fixed skipped-description project creation. |
+| Slice 6 | `https://codeberg.org/adrianpk/redwright/pulls/257` | completed | Added Rails API and Telegram simulated E2E coverage for sparse, rich, skip, done, cancel, and repository-backed setup; fixed skipped-description project creation. |
 
 ## Implemented Capabilities
 
