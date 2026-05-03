@@ -3,8 +3,8 @@
 ## Metadata
 
 - cycle_id: `cycle-2026-05-03-redwright-project-protocol-templates`
-- status: `in_progress`
-- state: `slice_6_pr_open`
+- status: `completed`
+- state: `slice_6_merged`
 - updated: `2026-05-03`
 - updated: `2026-05-04`
 - active_slice: `none`
@@ -167,9 +167,9 @@ Validation:
 
 ### Slice 6: Template Administration Follow-Up and Cycle Closure
 
-- status: `pr_open`
+- status: `merged`
 - branch: `fix/slice-6-project-protocol-template-crud`
-- PR: `#279 https://codeberg.org/adrianpk/redwright/pulls/279`
+- PR: `#279 https://codeberg.org/adrianpk/redwright/pulls/279 merged into dev`
 - merge_target: `dev`
 - last_sync_commit: `ae48365`
 
@@ -221,3 +221,4 @@ Validation:
 - `2026-05-04` state=`slice_5_merged` note=`PR #278 merged into dev; Slice 5 is closed and Slice 6 remains pending explicit start`
 - `2026-05-04` state=`slice_6_implemented` note=`implemented persisted common and stack protocol templates, admin template editing surface, composition against Rails-backed templates, future-only template application semantics, full Rails validation, coverage validation, and cycle report publication on fix/slice-6-project-protocol-template-crud`
 - `2026-05-04` state=`slice_6_pr_open` note=`opened Codeberg PR #279 from fix/slice-6-project-protocol-template-crud into dev`
+- `2026-05-04` state=`slice_6_merged` note=`PR #279 merged into dev; the Project Protocol Templates cycle is complete on dev`

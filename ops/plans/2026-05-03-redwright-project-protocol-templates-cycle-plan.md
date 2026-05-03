@@ -3,7 +3,7 @@
 ## Metadata
 
 - cycle_id: `cycle-2026-05-03-redwright-project-protocol-templates`
-- status: `in_progress`
+- status: `completed`
 - owner: `adrianpk`
 - created: `2026-05-03`
 - updated: `2026-05-03`
@@ -130,7 +130,7 @@
 
 ### Slice 6: Template Administration Follow-Up and Cycle Closure
 
-- status: `pr_open`
+- status: `merged`
 - branch: `fix/slice-6-project-protocol-template-crud`
 - pr_title: `feat(slice-6): manage project protocol templates`
 - objective: `add near-term administration surfaces for common and stack templates, then close the cycle with full validation and residual-risk notes`
