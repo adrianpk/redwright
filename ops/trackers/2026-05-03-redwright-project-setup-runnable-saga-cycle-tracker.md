@@ -4,10 +4,10 @@
 
 - cycle_id: `cycle-2026-05-03-redwright-project-setup-runnable-saga`
 - status: `in_progress`
-- state: `slice_3_reviewing`
+- state: `slice_4_reviewing`
 - updated: `2026-05-03`
-- active_slice: `Slice 3`
-- active_task: `waiting for Slice 3 PR review`
+- active_slice: `Slice 4`
+- active_task: `waiting for Slice 4 PR review`
 - source_plan: `ops/plans/2026-05-03-redwright-project-setup-runnable-saga-cycle-plan.md`
 - source_spec: `ops/specs/specs/2026-05-03-redwright-project-setup-runnable-saga-spec.md`
 - source_draft: `ops/specs/drafts/2026-05-03-redwright-project-setup-runnable-saga-draft.md`
@@ -78,11 +78,11 @@ Validation:
 
 ### Slice 3: Materialization Outcome and Planned Fallback
 
-- status: `reviewing`
+- status: `completed`
 - branch: `fix/slice-3-project-setup-materialization-outcome`
 - PR: `https://codeberg.org/adrianpk/redwright/pulls/265`
 - merge_target: `dev`
-- last_sync_commit: `3630d0f`
+- last_sync_commit: `a91ea76`
 
 Tasks:
 
@@ -109,28 +109,33 @@ Validation:
 
 ### Slice 4: Go CLI Initial Implementation Scaffold
 
-- status: `planned`
+- status: `reviewing`
 - branch: `fix/slice-4-go-cli-initial-scaffold`
 - PR: `pending`
 - merge_target: `dev`
-- last_sync_commit: `pending`
+- last_sync_commit: `a91ea76`
 
 Tasks:
 
-- [ ] `T4.1 add deterministic scaffold profile selection for Go CLI projects`
-- [ ] `T4.2 generate go.mod, main entrypoint, README, and basic test when Go CLI context is detected`
-- [ ] `T4.3 support optional urfave/cli dependency when libraries include it`
-- [ ] `T4.4 run or record go test ./... validation depending on local toolchain availability`
-- [ ] `T4.5 update Rails materialization data and manifest with runnable scaffold results`
-- [ ] `T4.6 add filesystem and API tests for the Go CLI setup scenario`
+- [x] `T4.1 add deterministic scaffold profile selection for Go CLI projects`
+- [x] `T4.2 generate go.mod, main entrypoint, README, and basic test when Go CLI context is detected`
+- [x] `T4.3 support optional urfave/cli dependency when libraries include it`
+- [x] `T4.4 run or record go test ./... validation depending on local toolchain availability`
+- [x] `T4.5 update Rails materialization data and manifest with runnable scaffold results`
+- [x] `T4.6 add filesystem and API tests for the Go CLI setup scenario`
 
 Commits:
 
-- [ ] `pending`
+- [x] `fc8f2e6 feat(web): add go cli setup scaffold`
+- [x] `cee7543 feat(web): expose go cli scaffold outcomes`
+- [x] `ba8a1ed test(web): cover go cli setup scaffold`
 
 Validation:
 
-- [ ] `pending`
+- [x] `ruby -wc apps/web/app/services/project_setup/local_workspace_materializer.rb && ruby -wc apps/web/app/services/project_setup/context_loop_service.rb && ruby -wc apps/web/app/services/project_setup/saga_state.rb` (pass)
+- [x] `cd apps/web && bundle exec bin/rails test test/services/project_setup/context_loop_service_test.rb test/controllers/api/v1/command_queries_controller_test.rb` (pass)
+- [x] `cd apps/web && bundle exec bin/rails test` (pass)
+- [x] `bundle exec rake test:coverage` (pass, coverage 91.44)
 
 ### Slice 5: Telegram and Rails End-to-End Closure
 
@@ -173,3 +178,4 @@ Validation:
 - `2026-05-03` state=`slice_2_reviewing` note=`opened Slice 2 PR #264 against dev with no reported conflicts`
 - `2026-05-03` state=`slice_3_reviewing` note=`started from origin/dev@3630d0f after Slice 2 merge, added explicit planned materialization outcomes, fallback workspace README/setup notes, starter implementation ticket reconciliation, and validated syntax, targeted tests, full Rails tests, and repository coverage`
 - `2026-05-03` state=`slice_3_reviewing` note=`opened Slice 3 PR #265 against dev with no reported conflicts`
+- `2026-05-03` state=`slice_4_reviewing` note=`started from origin/dev@a91ea76 after Slice 3 merge, added deterministic Go CLI scaffold generation, optional urfave/cli dependency support, local validation recording, scaffold metadata exposure, and filesystem/API tests`

@@ -62,7 +62,7 @@
 
 ### Slice 3: Materialization Outcome and Planned Fallback
 
-- status: `reviewing`
+- status: `completed`
 - branch: `fix/slice-3-project-setup-materialization-outcome`
 - pr_title: `feat(slice-3): project setup materialization outcome`
 - objective: `make materialization produce explicit runnable/planned/failed outcomes and useful planned fallback artifacts`
@@ -83,17 +83,17 @@
 
 ### Slice 4: Go CLI Initial Implementation Scaffold
 
-- status: `planned`
+- status: `reviewing`
 - branch: `fix/slice-4-go-cli-initial-scaffold`
 - pr_title: `feat(slice-4): go cli initial scaffold`
 - objective: `produce a minimal runnable Go CLI scaffold for supported project setup context`
 - tasks:
-- [ ] `T4.1 add deterministic scaffold profile selection for Go CLI projects`
-- [ ] `T4.2 generate go.mod, main entrypoint, README, and basic test when Go CLI context is detected`
-- [ ] `T4.3 support optional urfave/cli dependency when libraries include it`
-- [ ] `T4.4 run or record go test ./... validation depending on local toolchain availability`
-- [ ] `T4.5 update Rails materialization data and manifest with runnable scaffold results`
-- [ ] `T4.6 add filesystem and API tests for the Go CLI setup scenario`
+- [x] `T4.1 add deterministic scaffold profile selection for Go CLI projects`
+- [x] `T4.2 generate go.mod, main entrypoint, README, and basic test when Go CLI context is detected`
+- [x] `T4.3 support optional urfave/cli dependency when libraries include it`
+- [x] `T4.4 run or record go test ./... validation depending on local toolchain availability`
+- [x] `T4.5 update Rails materialization data and manifest with runnable scaffold results`
+- [x] `T4.6 add filesystem and API tests for the Go CLI setup scenario`
 - acceptance:
 - `Go CLI setup creates a workspace with Go project files, not only a manifest`
 - `validation result is recorded as pass/fail/skipped with reason`
