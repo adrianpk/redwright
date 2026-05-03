@@ -3,7 +3,7 @@
 ## Metadata
 
 - cycle_id: `cycle-2026-05-03-redwright-rails-project-setup-conversational-saga`
-- status: `planned`
+- status: `in_progress`
 - owner: `adrianpk`
 - created: `2026-05-03`
 - updated: `2026-05-03`
@@ -15,7 +15,7 @@
 
 ### Slice 1: Setup Context Slot Model, Repository Decoupling, and Minimal Conversational Trunk
 
-- status: `pending`
+- status: `merged`
 - branch: `fix/slice-1-project-setup-context-slots`
 - pr_title: `feat(slice-1): project setup context slots`
 - objective: `make project setup start without repository input, persist canonical setup slots, run a compact Ariadne-style trunk loop, render Telegram prompts through the setup renderer, and materialize a minimal Rails project on /done`
@@ -44,7 +44,8 @@
 
 ### Slice 2: Deterministic Setup Question Loop Controls
 
-- status: `pending`
+- status: `covered_by_slice_1`
+- note: `minimum loop controls were delivered in Slice 1 when the scope was extended to close the Telegram setup trunk`
 - branch: `fix/slice-2-project-setup-question-loop-controls`
 - pr_title: `feat(slice-2): project setup question loop controls`
 - objective: `implement deterministic next-question selection and control commands for skip, done, and cancel`
@@ -65,7 +66,8 @@
 
 ### Slice 3: Human Telegram Rendering for Project Setup
 
-- status: `pending`
+- status: `covered_by_slice_1`
+- note: `LLM-backed Telegram setup rendering with deterministic fallback was delivered in Slice 1`
 - branch: `fix/slice-3-telegram-project-setup-human-rendering`
 - pr_title: `feat(slice-3): telegram project setup human rendering`
 - objective: `render setup responses as human prompts while preserving structured Rails API data for adapters and tests`
@@ -84,7 +86,8 @@
 
 ### Slice 4: Setup Completion and Rails Artifact Materialization
 
-- status: `pending`
+- status: `covered_by_slice_1`
+- note: `minimum project, attribute, summary document, and board materialization was delivered in Slice 1`
 - branch: `fix/slice-4-project-setup-artifact-materialization`
 - pr_title: `feat(slice-4): project setup artifact materialization`
 - objective: `turn completed setup context into Rails project, weighted attributes, setup summary document, and default workflow structure`
@@ -104,7 +107,7 @@
 
 ### Slice 5: Agent Workflow and Runtime Container Context Bridge
 
-- status: `pending`
+- status: `ready_for_pr`
 - branch: `fix/slice-5-project-setup-agent-workflow-context`
 - pr_title: `feat(slice-5): project setup agent workflow context`
 - objective: `make setup context available to agent workflow through Rails tickets, project attributes, and runtime bridge settings`
