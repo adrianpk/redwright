@@ -38,17 +38,17 @@
 
 ### Slice 2: Seeded Template and Composition Foundation
 
-- status: `planned`
+- status: `implemented`
 - branch: `fix/slice-2-project-protocol-templates`
 - pr_title: `feat(slice-2): project protocol template seeds`
 - objective: `define common behavior defaults, seeded stack template references, and composition rules for building a concrete project protocol`
 - tasks:
-- [ ] `T2.1 add common behavior template seed content for the fixed protocol file skeleton`
-- [ ] `T2.2 add initial stack-template seed references for the agreed stack set`
-- [ ] `T2.3 define composition inputs for common defaults plus one-or-more stack overlays`
-- [ ] `T2.4 define fallback generation contract for missing stack coverage`
-- [ ] `T2.5 expose composition output as a concrete project protocol document set`
-- [ ] `T2.6 add tests for common-only composition, multi-overlay composition, and missing-stack fallback output`
+- [x] `T2.1 add common behavior template seed content for the fixed protocol file skeleton`
+- [x] `T2.2 add initial stack-template seed references for the agreed stack set`
+- [x] `T2.3 define composition inputs for common defaults plus one-or-more stack overlays`
+- [x] `T2.4 define fallback generation contract for missing stack coverage`
+- [x] `T2.5 expose composition output as a concrete project protocol document set`
+- [x] `T2.6 add tests for common-only composition, multi-overlay composition, and missing-stack fallback output`
 - acceptance:
 - `the system can build a protocol document set from common defaults and stack overlays`
 - `the seed list is explicit and intentionally selective`

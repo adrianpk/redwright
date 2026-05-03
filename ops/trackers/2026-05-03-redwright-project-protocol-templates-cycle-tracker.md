@@ -4,9 +4,9 @@
 
 - cycle_id: `cycle-2026-05-03-redwright-project-protocol-templates`
 - status: `in_progress`
-- state: `slice_1_merged`
+- state: `slice_2_implemented`
 - updated: `2026-05-03`
-- active_slice: `none`
+- active_slice: `Slice 2`
 - active_task: `none`
 - source_plan: `ops/plans/2026-05-03-redwright-project-protocol-templates-cycle-plan.md`
 - source_spec: `ops/specs/specs/2026-05-03-redwright-project-protocol-templates-spec.md`
@@ -49,32 +49,33 @@ Validation:
 
 ### Slice 2: Seeded Template and Composition Foundation
 
-- status: `planned`
+- status: `implemented`
 - branch: `fix/slice-2-project-protocol-templates`
 - PR: `pending`
 - merge_target: `dev`
-- last_sync_commit: `pending`
+- last_sync_commit: `3cde5d8`
 
 Tasks:
 
-- [ ] `T2.1 add common behavior template seed content for the fixed protocol file skeleton`
-- [ ] `T2.2 add initial stack-template seed references for the agreed stack set`
-- [ ] `T2.3 define composition inputs for common defaults plus one-or-more stack overlays`
-- [ ] `T2.4 define fallback generation contract for missing stack coverage`
-- [ ] `T2.5 expose composition output as a concrete project protocol document set`
-- [ ] `T2.6 add tests for common-only composition, multi-overlay composition, and missing-stack fallback output`
+- [x] `T2.1 add common behavior template seed content for the fixed protocol file skeleton`
+- [x] `T2.2 add initial stack-template seed references for the agreed stack set`
+- [x] `T2.3 define composition inputs for common defaults plus one-or-more stack overlays`
+- [x] `T2.4 define fallback generation contract for missing stack coverage`
+- [x] `T2.5 expose composition output as a concrete project protocol document set`
+- [x] `T2.6 add tests for common-only composition, multi-overlay composition, and missing-stack fallback output`
 
 Commits:
 
-- [ ] `pending feat(web): seed project protocol templates`
-- [ ] `pending feat(web): compose project protocol documents`
-- [ ] `pending test(web): cover project protocol composition`
+- [x] `5fa4b32 feat(web): seed project protocol templates`
+- [x] `d9fb8ad feat(web): compose project protocol documents`
+- [x] `3cde5d8 test(web): cover project protocol composition`
 - [ ] `pending docs(ops): update project protocol slice 2 status`
 
 Validation:
 
-- [ ] `pending bundle exec bin/rails test <targeted protocol composition paths>`
-- [ ] `pending bundle exec bin/rails test`
+- [x] `bundle exec bin/rails test test/services/project_protocols/composer_test.rb test/services/project_protocols/command_query_composition_test.rb test/services/project_protocols/command_query_handlers_test.rb test/models/project_protocol_test.rb` (pass)
+- [x] `bundle exec bin/rails test test/models/project_protocol_test.rb test/models/project_test.rb test/services/project_protocols/composer_test.rb test/services/project_protocols/command_query_composition_test.rb test/services/project_protocols/command_query_handlers_test.rb test/controllers/api/v1/command_queries_controller_test.rb` (pass)
+- [x] `bundle exec bin/rails test` (pass)
 
 ### Slice 3: Setup-Time Protocol Generation
 
@@ -205,3 +206,4 @@ Validation:
 - `2026-05-03` state=`planned` note=`promoted the Project Protocol Templates draft plus curated conversation into a formal spec, cycle plan, and tracker; Runtime Containers remains separate cycle history and ticket-scoped runtime recipes plus rolling trace remain context-only drafts`
 - `2026-05-03` state=`slice_1_implemented` note=`implemented Project Protocol domain persistence, document-level modeling, project query exposure, targeted protocol tests, dependent query coverage, and full Rails validation on fix/slice-1-project-protocol-domain`
 - `2026-05-03` state=`slice_1_merged` note=`PR #274 merged into dev; Slice 1 is closed and Slice 2 remains pending explicit start`
+- `2026-05-03` state=`slice_2_implemented` note=`implemented seeded protocol template registry, stack-aware composition, generated fallback behavior, composition command surface, targeted composition validation, and full Rails validation on fix/slice-2-project-protocol-templates`
