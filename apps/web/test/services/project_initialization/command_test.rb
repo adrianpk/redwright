@@ -14,13 +14,13 @@ module ProjectInitialization
       assert_equal({}, command.errors)
     end
 
-    test "requires project_name directory_name and repository_input" do
+    test "allows sparse context before project creation" do
       command = Command.new(project_name: "", directory_name: "", repository_input: "")
 
-      assert_not command.valid?
-      assert_equal "can't be blank", command.errors[:project_name]
-      assert_equal "can't be blank", command.errors[:directory_name]
-      assert_equal "can't be blank", command.errors[:repository_input]
+      assert command.valid?
+      assert_equal({}, command.errors)
+      refute command.ready_for_repository_resolution?
+      assert_equal ["project_name"], command.missing_context_slots
     end
 
     test "validates guided_alignment type when provided" do
@@ -33,6 +33,17 @@ module ProjectInitialization
 
       assert_not command.valid?
       assert_equal "must be boolean when provided", command.errors[:guided_alignment]
+    end
+
+    test "defaults directory name from project name when missing" do
+      command = Command.new(
+        project_name: "Notes CLI",
+        repository_input: "",
+        guided_alignment: true
+      )
+
+      assert_equal "notes-cli", command.directory_name
+      assert_equal "Notes CLI", command.project_name
     end
   end
 end

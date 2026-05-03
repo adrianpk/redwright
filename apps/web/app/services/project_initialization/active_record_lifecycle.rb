@@ -12,7 +12,7 @@ module ProjectInitialization
     def create_project(command:, repository:)
       project = Project.create!(
         name: command.project_name,
-        description: "Project initialized from web entry flow",
+        description: command.description.presence || "Project initialized from web entry flow",
         root_path: "/workspace/projects/#{command.directory_name}",
         repo_url: repository[:canonical],
         stack_slug: "ruby"

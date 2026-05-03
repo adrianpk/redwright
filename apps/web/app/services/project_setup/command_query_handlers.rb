@@ -25,6 +25,7 @@ module ProjectSetup
         project_name: value_from(payload, "project_name", "name"),
         directory_name: value_from(payload, "directory_name"),
         repository_input: value_from(payload, "repository_input"),
+        description: value_from(payload, "description"),
         guided_alignment: boolean_from(value_from(payload, "guided_alignment"))
       )
       result = ProjectInitialization::SetupSessionRunner.new(
@@ -187,7 +188,8 @@ module ProjectSetup
         "next_prompt" => session&.pending_question,
         "summary" => setup_summary_from(result),
         "repository" => string_keyed(result.repository),
-        "project" => string_keyed(result.project)
+        "project" => string_keyed(result.project),
+        "setup_context" => session&.setup_context || {}
       }
     end
 
@@ -226,6 +228,8 @@ module ProjectSetup
       case result.status
       when :invalid_command
         "Project setup command is invalid."
+      when :setup_context_required
+        "Project setup started."
       when :repository_resolution_ambiguous
         "Repository input requires clarification."
       when :initialization_cancelled
@@ -255,6 +259,7 @@ module ProjectSetup
         "summary" => summary,
         "repository_input" => session.repository_input,
         "resolved_repository" => session.resolved_repository,
+        "setup_context" => session.setup_context,
         "turn_counter" => session.turn_counter,
         "terminal_reason" => session.terminal_reason
       }

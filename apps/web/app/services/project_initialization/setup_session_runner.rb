@@ -61,6 +61,9 @@ module ProjectInitialization
         machine = ProjectSetup::StateMachine.new(session: session)
 
         case orchestration.status
+        when :setup_context_required
+          session.update!(pending_question: orchestration.guided_alignment[:next_prompt])
+          result(orchestration, setup_session: session)
         when :initialization_cancelled
           machine.transition_to!("cancelled", terminal_reason: "cancelled_by_user")
           result(orchestration, setup_session: session)
@@ -80,7 +83,7 @@ module ProjectInitialization
     attr_reader :command, :actor_identifier, :request_id, :source_channel, :repository_resolver, :lifecycle
 
     def create_session!
-      ProjectSetupSession.create!(
+      session = ProjectSetupSession.create!(
         source_channel: source_channel,
         actor_identifier: actor_identifier,
         request_id: request_id,
@@ -92,6 +95,21 @@ module ProjectInitialization
           guided_alignment_requested: command.guided_alignment
         }
       )
+      assign_initial_setup_slots(session)
+      session.save!
+      session
+    end
+
+    def assign_initial_setup_slots(session)
+      assign_slot_if_present(session, key: "project_name", value: command.project_name, source: "payload")
+      assign_slot_if_present(session, key: "description", value: command.description, source: "payload")
+      assign_slot_if_present(session, key: "repository", value: command.repository_input, source: "payload")
+    end
+
+    def assign_slot_if_present(session, key:, value:, source:)
+      return if value.to_s.strip.empty?
+
+      session.assign_setup_slot(key: key, value: value, source: source)
     end
 
     def execute_resolved_repository!(orchestration:, session:, machine:)

@@ -47,6 +47,36 @@ class Api::V1::CommandQueriesControllerTest < ActionDispatch::IntegrationTest
     assert_equal ["project_setup_session_written", "project_created"], body.fetch("effects").map { |effect| effect.fetch("type") }
   end
 
+  test "starts project setup context without repository input through command api" do
+    post "/api/v1/commands",
+      params: {
+        name: "StartProjectSetup",
+        payload: {
+          project_name: "Notes CLI",
+          description: "A small local notes manager",
+          guided_alignment: true
+        },
+        request_id: "req-start-context"
+      },
+      headers: actor_headers,
+      as: :json
+
+    assert_response :success
+    body = json_body
+    assert_equal "ok", body.fetch("status")
+    assert_equal "req-start-context", body.fetch("request_id")
+    assert_equal "collecting_context", body.fetch("state")
+    assert_equal "Project setup started.", body.fetch("summary")
+    assert_equal "Which stack or framework should this project use? Reply /skip if undecided.", body.fetch("next_prompt")
+    assert body.fetch("session_id")
+    assert_nil body.fetch("project_id")
+    assert_equal ["project_setup_session_written"], body.fetch("effects").map { |effect| effect.fetch("type") }
+    slots = body.fetch("data").fetch("setup_context").fetch("slots")
+    assert_equal "Notes CLI", slots.fetch("project_name").fetch("value")
+    assert_equal "A small local notes manager", slots.fetch("description").fetch("value")
+    refute slots.key?("repository")
+  end
+
   test "advances guided alignment by recording one setup turn and returning the next question" do
     session = started_alignment_session
 

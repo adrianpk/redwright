@@ -2,6 +2,7 @@ module ProjectInitialization
   class Result
     STATUSES = %i[
       invalid_command
+      setup_context_required
       repository_resolution_required
       repository_resolved
       repository_resolution_ambiguous
@@ -51,13 +52,36 @@ module ProjectInitialization
       )
     end
 
+    def self.setup_context_required(command, missing_slots:, next_prompt:)
+      new(
+        status: :setup_context_required,
+        next_action: :collect_setup_context,
+        project: {
+          name: command.project_name,
+          directory_name: command.directory_name,
+          description: command.description,
+          missing_slots: missing_slots
+        },
+        repository: {
+          input: command.repository_input,
+          required: false
+        },
+        guided_alignment: {
+          requested: command.guided_alignment,
+          next_prompt: next_prompt
+        },
+        errors: {}
+      )
+    end
+
     def self.repository_resolved(command, repository)
       new(
         status: :repository_resolved,
         next_action: :confirm_repository,
         project: {
           name: command.project_name,
-          directory_name: command.directory_name
+          directory_name: command.directory_name,
+          description: command.description
         },
         repository: {
           input: command.repository_input,
@@ -77,7 +101,8 @@ module ProjectInitialization
         next_action: :clarify_repository,
         project: {
           name: command.project_name,
-          directory_name: command.directory_name
+          directory_name: command.directory_name,
+          description: command.description
         },
         repository: {
           input: command.repository_input,
@@ -97,6 +122,7 @@ module ProjectInitialization
         project: {
           name: command.project_name,
           directory_name: command.directory_name,
+          description: command.description,
           created: false
         },
         repository: {
@@ -118,6 +144,7 @@ module ProjectInitialization
         project: {
           name: command.project_name,
           directory_name: command.directory_name,
+          description: command.description,
           id: context[:project][:id],
           created: true
         },
@@ -143,6 +170,7 @@ module ProjectInitialization
         project: {
           name: command.project_name,
           directory_name: command.directory_name,
+          description: command.description,
           id: context[:project]&.[](:id),
           created: !context[:project].nil?
         },
@@ -173,6 +201,7 @@ module ProjectInitialization
         project: {
           name: command.project_name,
           directory_name: command.directory_name,
+          description: command.description,
           id: context[:project]&.[](:id),
           created: !context[:project].nil?
         },

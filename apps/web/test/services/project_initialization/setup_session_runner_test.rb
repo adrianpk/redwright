@@ -65,8 +65,45 @@ module ProjectInitialization
       end
     end
 
-    test "rejects invalid command without hidden setup state" do
+    test "starts setup context collection without repository input" do
+      command = Command.new(
+        project_name: "Notes CLI",
+        description: "A small local notes manager",
+        repository_input: "",
+        guided_alignment: true
+      )
+
+      assert_no_difference -> { Project.count } do
+        result = run_command(command)
+
+        assert_equal :setup_context_required, result.status
+        session = result.setup_session.reload
+        assert_equal "open", session.status
+        assert_equal "collecting_context", session.current_state
+        assert_equal "Which stack or framework should this project use? Reply /skip if undecided.", session.pending_question
+        assert_nil session.project
+        assert_equal "Notes CLI", session.setup_slot(:project_name).fetch("value")
+        assert_equal "A small local notes manager", session.setup_slot(:description).fetch("value")
+        assert_nil session.setup_slot(:repository)
+      end
+    end
+
+    test "starts setup context collection without project name" do
       command = Command.new(project_name: "", directory_name: "", repository_input: "")
+
+      assert_no_difference -> { Project.count } do
+        result = run_command(command)
+
+        assert_equal :setup_context_required, result.status
+        session = result.setup_session.reload
+        assert_equal "collecting_context", session.current_state
+        assert_equal "What should we call this project?", session.pending_question
+        assert_equal({}, session.setup_slots)
+      end
+    end
+
+    test "rejects invalid command without hidden setup state" do
+      command = Command.new(project_name: "Invalid", repository_input: "", guided_alignment: "yes")
 
       assert_no_difference -> { Project.count } do
         assert_no_difference -> { ProjectSetupSession.count } do
