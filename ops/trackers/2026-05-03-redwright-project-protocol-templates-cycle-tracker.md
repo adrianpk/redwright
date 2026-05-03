@@ -4,7 +4,7 @@
 
 - cycle_id: `cycle-2026-05-03-redwright-project-protocol-templates`
 - status: `in_progress`
-- state: `slice_2_pr_open`
+- state: `slice_3_pr_open`
 - updated: `2026-05-03`
 - active_slice: `none`
 - active_task: `none`
@@ -49,9 +49,9 @@ Validation:
 
 ### Slice 2: Seeded Template and Composition Foundation
 
-- status: `pr_open`
+- status: `merged`
 - branch: `fix/slice-2-project-protocol-templates`
-- PR: `#275 https://codeberg.org/adrianpk/redwright/pulls/275`
+- PR: `#275 https://codeberg.org/adrianpk/redwright/pulls/275 merged into dev`
 - merge_target: `dev`
 - last_sync_commit: `3cde5d8`
 
@@ -69,7 +69,7 @@ Commits:
 - [x] `5fa4b32 feat(web): seed project protocol templates`
 - [x] `d9fb8ad feat(web): compose project protocol documents`
 - [x] `3cde5d8 test(web): cover project protocol composition`
-- [ ] `pending docs(ops): update project protocol slice 2 status`
+- [x] `1e41324 docs(ops): record project protocol slice 2 pr`
 
 Validation:
 
@@ -79,32 +79,32 @@ Validation:
 
 ### Slice 3: Setup-Time Protocol Generation
 
-- status: `planned`
+- status: `pr_open`
 - branch: `fix/slice-3-project-protocol-setup`
-- PR: `pending`
+- PR: `#276 https://codeberg.org/adrianpk/redwright/pulls/276`
 - merge_target: `dev`
-- last_sync_commit: `pending`
+- last_sync_commit: `5bb6774`
 
 Tasks:
 
-- [ ] `T3.1 extend project setup context to resolve protocol generation inputs`
-- [ ] `T3.2 create initial Project Protocol during project setup`
-- [ ] `T3.3 apply multiple stack overlays when project shape requires them`
-- [ ] `T3.4 synthesize minimal initialization-time protocol content when seed coverage is insufficient`
-- [ ] `T3.5 persist project protocol documents and provenance during setup completion`
-- [ ] `T3.6 add setup integration tests for covered stacks, multi-overlay contexts, and missing-stack fallback`
+- [x] `T3.1 extend project setup context to resolve protocol generation inputs`
+- [x] `T3.2 create initial Project Protocol during project setup`
+- [x] `T3.3 apply multiple stack overlays when project shape requires them`
+- [x] `T3.4 synthesize minimal initialization-time protocol content when seed coverage is insufficient`
+- [x] `T3.5 persist project protocol documents and provenance during setup completion`
+- [x] `T3.6 add setup integration tests for covered stacks, multi-overlay contexts, and missing-stack fallback`
 
 Commits:
 
-- [ ] `pending feat(web): initialize project protocols during setup`
-- [ ] `pending feat(web): add project protocol setup fallback`
-- [ ] `pending test(integration): cover project protocol setup`
+- [x] `94af421 feat(web): initialize project protocols during setup`
+- [x] `f0586cb feat(web): add project protocol setup fallback`
+- [x] `5bb6774 test(integration): cover project protocol setup`
 - [ ] `pending docs(ops): update project protocol slice 3 status`
 
 Validation:
 
-- [ ] `pending bundle exec bin/rails test <targeted project setup protocol paths>`
-- [ ] `pending bundle exec bin/rails test`
+- [x] `bundle exec bin/rails test test/services/project_protocols/initialization_service_test.rb test/services/project_protocols/composer_test.rb test/services/project_protocols/command_query_composition_test.rb test/services/project_protocols/command_query_handlers_test.rb test/services/project_setup/context_loop_service_test.rb test/integration/project_setup_conversational_e2e_test.rb test/integration/project_setup_telegram_e2e_test.rb test/controllers/api/v1/command_queries_controller_test.rb` (pass)
+- [x] `bundle exec bin/rails test` (pass)
 
 ### Slice 4: Filesystem Materialization
 
@@ -208,3 +208,6 @@ Validation:
 - `2026-05-03` state=`slice_1_merged` note=`PR #274 merged into dev; Slice 1 is closed and Slice 2 remains pending explicit start`
 - `2026-05-03` state=`slice_2_implemented` note=`implemented seeded protocol template registry, stack-aware composition, generated fallback behavior, composition command surface, targeted composition validation, and full Rails validation on fix/slice-2-project-protocol-templates`
 - `2026-05-03` state=`slice_2_pr_open` note=`opened Codeberg PR #275 from fix/slice-2-project-protocol-templates into dev`
+- `2026-05-03` state=`slice_2_merged` note=`PR #275 merged into dev; Slice 2 is closed and Slice 3 moved into implementation`
+- `2026-05-03` state=`slice_3_implemented` note=`implemented setup-time protocol initialization, protocol generation/session metadata exposure, library-aware overlay resolution, fallback protocol persistence, targeted setup validation, and full Rails validation on fix/slice-3-project-protocol-setup`
+- `2026-05-03` state=`slice_3_pr_open` note=`opened Codeberg PR #276 from fix/slice-3-project-protocol-setup into dev`

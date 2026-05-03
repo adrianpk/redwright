@@ -38,7 +38,7 @@
 
 ### Slice 2: Seeded Template and Composition Foundation
 
-- status: `pr_open`
+- status: `merged`
 - branch: `fix/slice-2-project-protocol-templates`
 - pr_title: `feat(slice-2): project protocol template seeds`
 - objective: `define common behavior defaults, seeded stack template references, and composition rules for building a concrete project protocol`
@@ -61,17 +61,17 @@
 
 ### Slice 3: Setup-Time Protocol Generation
 
-- status: `planned`
+- status: `pr_open`
 - branch: `fix/slice-3-project-protocol-setup`
 - pr_title: `feat(slice-3): setup project protocols`
 - objective: `make /project new always create an initial Project Protocol from defaults, overlays, and minimal generated fallback when necessary`
 - tasks:
-- [ ] `T3.1 extend project setup context to resolve protocol generation inputs`
-- [ ] `T3.2 create initial Project Protocol during project setup`
-- [ ] `T3.3 apply multiple stack overlays when project shape requires them`
-- [ ] `T3.4 synthesize minimal initialization-time protocol content when seed coverage is insufficient`
-- [ ] `T3.5 persist project protocol documents and provenance during setup completion`
-- [ ] `T3.6 add setup integration tests for covered stacks, multi-overlay contexts, and missing-stack fallback`
+- [x] `T3.1 extend project setup context to resolve protocol generation inputs`
+- [x] `T3.2 create initial Project Protocol during project setup`
+- [x] `T3.3 apply multiple stack overlays when project shape requires them`
+- [x] `T3.4 synthesize minimal initialization-time protocol content when seed coverage is insufficient`
+- [x] `T3.5 persist project protocol documents and provenance during setup completion`
+- [x] `T3.6 add setup integration tests for covered stacks, multi-overlay contexts, and missing-stack fallback`
 - acceptance:
 - `/project new always creates a Project Protocol`
 - `supported setups receive a seeded protocol document family`
