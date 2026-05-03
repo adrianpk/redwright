@@ -1,0 +1,176 @@
+# Cycle Tracker: RedWright Rails Project Setup Conversational Saga
+
+## Metadata
+
+- cycle_id: `cycle-2026-05-03-redwright-rails-project-setup-conversational-saga`
+- status: `planned`
+- state: `planning`
+- updated: `2026-05-03`
+- active_slice: `none`
+- active_task: `none`
+- source_plan: `ops/plans/2026-05-03-redwright-rails-project-setup-conversational-saga-cycle-plan.md`
+- source_spec: `ops/specs/specs/2026-05-03-redwright-rails-project-setup-conversational-saga-spec.md`
+
+## Slice Progress
+
+### Slice 1: Setup Context Slot Model and Repository Decoupling
+
+- status: `pending`
+- branch: `fix/slice-1-project-setup-context-slots`
+- PR: `tbd`
+- merge_target: `dev`
+- last_sync_commit: `tbd`
+
+Tasks:
+
+- [ ] `T1.1 characterize current repository-first behavior with Rails and Telegram tests`
+- [ ] `T1.2 add canonical setup context slot helpers for ProjectSetupSession metadata`
+- [ ] `T1.3 change StartProjectSetup payload handling so project name and description are not mapped to repository input`
+- [ ] `T1.4 allow repository input to be absent or skipped without invalidating setup start`
+- [ ] `T1.5 add tests for empty start, name-only start, quoted name with description, and repository URL input`
+
+Commits:
+
+- [ ] `test(web): characterize repository independent project setup start`
+- [ ] `feat(web): add project setup context slot metadata`
+- [ ] `feat(telegram): stop mapping project names to repository input`
+
+Validation:
+
+- [ ] `cd apps/web && bundle exec bin/rails test test/services/project_setup test/services/project_initialization (pending)`
+- [ ] `ruby -Itest test/redwright/telegram_project_setup_adapter_test.rb (pending)`
+- [ ] `bundle exec rake test:coverage from repository root (pending)`
+
+### Slice 2: Deterministic Setup Question Loop Controls
+
+- status: `pending`
+- branch: `fix/slice-2-project-setup-question-loop-controls`
+- PR: `tbd`
+- merge_target: `dev`
+- last_sync_commit: `tbd`
+
+Tasks:
+
+- [ ] `T2.1 add setup question selector for canonical slots and blocking/recommended/optional policy`
+- [ ] `T2.2 implement AdvanceProjectSetup handling for normal answers and slot normalization`
+- [ ] `T2.3 implement /skip and /done over Rails setup commands`
+- [ ] `T2.4 preserve cancellation semantics and no-residue behavior before project creation`
+- [ ] `T2.5 add tests for question progression, no-reask behavior, skip, done, cancel, and repeated ambiguity`
+
+Commits:
+
+- [ ] `feat(web): add project setup question selector`
+- [ ] `feat(web): add project setup loop controls`
+- [ ] `test(web): cover project setup conversational controls`
+
+Validation:
+
+- [ ] `cd apps/web && bundle exec bin/rails test test/services/project_setup (pending)`
+- [ ] `bundle exec rake test:coverage from repository root (pending)`
+
+### Slice 3: Human Telegram Rendering for Project Setup
+
+- status: `pending`
+- branch: `fix/slice-3-telegram-project-setup-human-rendering`
+- PR: `tbd`
+- merge_target: `dev`
+- last_sync_commit: `tbd`
+
+Tasks:
+
+- [ ] `T3.1 add Telegram project setup response renderer for summary, understood context, next prompt, and controls`
+- [ ] `T3.2 hide raw state/session/trace details by default and keep debug/trace formatting opt-in`
+- [ ] `T3.3 route setup replies, /skip, /done, and /cancel through the renderer`
+- [ ] `T3.4 add Telegram adapter tests for sparse, rich, skipped, completed, and cancelled setup flows`
+
+Commits:
+
+- [ ] `feat(telegram): render human project setup prompts`
+- [ ] `test(telegram): cover project setup rendering modes`
+
+Validation:
+
+- [ ] `ruby -Itest test/redwright/telegram_project_setup_adapter_test.rb (pending)`
+- [ ] `ruby -Itest test/redwright/telegram_runtime_handler_test.rb (pending)`
+- [ ] `bundle exec rake test:coverage from repository root (pending)`
+
+### Slice 4: Setup Completion and Rails Artifact Materialization
+
+- status: `pending`
+- branch: `fix/slice-4-project-setup-artifact-materialization`
+- PR: `tbd`
+- merge_target: `dev`
+- last_sync_commit: `tbd`
+
+Tasks:
+
+- [ ] `T4.1 create project from canonical setup context with repository absent or present`
+- [ ] `T4.2 materialize setup context into ProjectAttribute rows with weights and sources`
+- [ ] `T4.3 write setup summary Document from canonical answers`
+- [ ] `T4.4 ensure default board structure exists after setup completion`
+- [ ] `T4.5 add tests for materialization, idempotency, and no duplicate artifacts on repeated request ids`
+
+Commits:
+
+- [ ] `feat(web): materialize project setup context artifacts`
+- [ ] `test(web): cover setup completion materialization`
+
+Validation:
+
+- [ ] `cd apps/web && bundle exec bin/rails test test/services/project_setup test/models (pending)`
+- [ ] `bundle exec rake test:coverage from repository root (pending)`
+
+### Slice 5: Agent Workflow and Runtime Container Context Bridge
+
+- status: `pending`
+- branch: `fix/slice-5-project-setup-agent-workflow-context`
+- PR: `tbd`
+- merge_target: `dev`
+- last_sync_commit: `tbd`
+
+Tasks:
+
+- [ ] `T5.1 define runtime container profile defaults and project attribute keys`
+- [ ] `T5.2 expose setup-derived stack/framework/library/context values to runtime bridge inputs`
+- [ ] `T5.3 create or update starter tickets when setup context requests agent workflow`
+- [ ] `T5.4 add integration tests from setup completion to ticket execution bridge input`
+
+Commits:
+
+- [ ] `feat(runtime): pass project setup context to ticket execution bridge`
+- [ ] `feat(web): seed setup-driven starter workflow tickets`
+- [ ] `test(integration): cover setup context runtime bridge parity`
+
+Validation:
+
+- [ ] `cd apps/web && bundle exec bin/rails test test/services/runtime_bridge test/services/board_workflow (pending)`
+- [ ] `bundle exec rake test:coverage from repository root (pending)`
+
+### Slice 6: End-to-End Regression Closure
+
+- status: `pending`
+- branch: `fix/slice-6-project-setup-conversational-e2e`
+- PR: `tbd`
+- merge_target: `dev`
+- last_sync_commit: `tbd`
+
+Tasks:
+
+- [ ] `T6.1 add Rails API end-to-end scenarios for sparse, rich, skip, done, cancel, and repository-backed setup`
+- [ ] `T6.2 add Telegram simulated ingress scenarios for the same setup matrix`
+- [ ] `T6.3 run full Rails tests and repository coverage from canonical locations`
+- [ ] `T6.4 publish cycle closure notes with residual risks and tuning decision`
+
+Commits:
+
+- [ ] `test(integration): add project setup conversational e2e matrix`
+- [ ] `docs(ops): close project setup conversational saga cycle`
+
+Validation:
+
+- [ ] `cd apps/web && bundle exec bin/rails test (pending)`
+- [ ] `bundle exec rake test:coverage from repository root (pending)`
+
+## Event Log
+
+- `2026-05-03` state=`planning` note=`created draft, conversation notes, promoted spec, cycle plan, and tracker for Rails project setup conversational saga after manual Telegram verification showed repository-first behavior still exposed to users`
