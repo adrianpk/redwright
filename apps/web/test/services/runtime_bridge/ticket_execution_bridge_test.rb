@@ -49,8 +49,15 @@ module RuntimeBridge
       payload = request.fetch("payload")
       assert_equal "rails", payload.fetch("channel")
       assert_equal ticket.project.root_path, payload.fetch("project_ref")
+      assert_equal "Ruby 3.4", payload.dig("runtime_context", "language_runtime")
+      assert_equal "Rails", payload.dig("runtime_context", "framework")
+      assert_equal "SQLite", payload.dig("runtime_context", "libraries")
+      assert_equal "ephemeral_docker", payload.dig("runtime_context", "container_profile")
+      assert_equal "Ruby 3.4", payload.dig("project_setup_context", "slots", "language_runtime", "value")
       assert_equal ticket.id, payload.dig("rails", "ticket_id")
+      assert_equal "Rails", payload.dig("rails", "project_setup_context", "slots", "framework", "value")
       assert_includes payload.fetch("message"), "Start Rails ticket ##{ticket.id}: #{ticket.title}"
+      assert_includes payload.fetch("message"), "Runtime context: Ruby 3.4 / Rails / ephemeral_docker"
       assert_includes payload.fetch("message"), "reference: Bridge Draft"
     end
 
@@ -58,6 +65,9 @@ module RuntimeBridge
 
     def ticket_with_document
       board = create_board(project_key: "runtime-bridge-#{SecureRandom.hex(4)}")
+      board.project.project_attributes.create!(key: "setup_context.language_runtime", value: "Ruby 3.4", weight: 5, source: "project_setup")
+      board.project.project_attributes.create!(key: "setup_context.framework", value: "Rails", weight: 5, source: "project_setup")
+      board.project.project_attributes.create!(key: "setup_context.libraries", value: "SQLite", weight: 4, source: "project_setup")
       backlog = board.columns.create!(key: "backlog", title: "Backlog", position: 0)
       draft = create_document(project: board.project, title: "Bridge Draft")
       ticket = board.tickets.create!(

@@ -67,6 +67,7 @@ module RuntimeBridge
     end
 
     def build_request(ticket:, request_id:, actor_identifier:)
+      project_setup_context = ProjectContextBuilder.new(project: ticket.project).build
       {
         "type" => "send",
         "session_id" => "rails-ticket-#{ticket.id}",
@@ -75,6 +76,8 @@ module RuntimeBridge
           "project_ref" => ticket.project.root_path,
           "intent" => DEFAULT_INTENT,
           "message" => ticket_execution_message(ticket),
+          "project_setup_context" => project_setup_context,
+          "runtime_context" => project_setup_context.fetch("runtime"),
           "actions" => [],
           "confirm_new_workstream" => true,
           "rails" => {
@@ -82,7 +85,8 @@ module RuntimeBridge
             "actor_identifier" => actor_identifier.to_s,
             "project_id" => ticket.project_id,
             "board_id" => ticket.board_id,
-            "ticket_id" => ticket.id
+            "ticket_id" => ticket.id,
+            "project_setup_context" => project_setup_context
           }
         }
       }
@@ -141,6 +145,8 @@ module RuntimeBridge
         "Column: #{ticket.column.key}",
         "Priority: #{ticket.priority}"
       ]
+      runtime_context = ProjectContextBuilder.new(project: ticket.project).build.fetch("runtime")
+      lines << "Runtime context: #{runtime_context.fetch("language_runtime")} / #{runtime_context.fetch("framework")} / #{runtime_context.fetch("container_profile")}"
       lines << "Assignee: #{ticket.assignee}" if ticket.assignee.present?
       lines << "Description:\n#{ticket.description}" if ticket.description.present?
       document_lines = ticket.ticket_document_links.includes(:document).map do |link|
