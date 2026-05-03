@@ -299,6 +299,7 @@ module ProjectSetup
       board = nil
       document = nil
       starter_ticket = nil
+      protocol_generation = nil
       runtime_generation = nil
       runtime_readiness_ticket = nil
       workspace = nil
@@ -312,6 +313,7 @@ module ProjectSetup
       board = ensure_default_board!(project)
       attribute_ids = materialize_project_attributes!(project)
       document = write_setup_summary_document!(project)
+      protocol_generation = initialize_project_protocols!(project)
       runtime_generation = initialize_runtime_containers!(project)
       starter_ticket = ensure_starter_workflow_ticket!(project: project, board: board, document: document)
       runtime_readiness_ticket = ensure_runtime_containers_readiness_ticket!(
@@ -332,6 +334,7 @@ module ProjectSetup
         board: board,
         document: document,
         starter_ticket: starter_ticket,
+        protocol_generation: protocol_generation,
         runtime_containers_readiness_ticket: runtime_readiness_ticket,
         attribute_ids: attribute_ids,
         workspace: workspace,
@@ -352,6 +355,11 @@ module ProjectSetup
       effects.concat(
         [
           {
+            "type" => "project_protocols_initialized",
+            "session_id" => session.id,
+            "project_id" => project.id
+          },
+          {
             "type" => "project_created",
             "project_id" => project.id
           },
@@ -368,11 +376,11 @@ module ProjectSetup
             "document_id" => document.id
           },
           {
-          "type" => "default_board_structure_written",
-          "session_id" => session.id,
-          "project_id" => project.id,
-          "board_id" => board.id
-        }
+            "type" => "default_board_structure_written",
+            "session_id" => session.id,
+            "project_id" => project.id,
+            "board_id" => board.id
+          }
         ]
       )
       if starter_ticket
@@ -431,6 +439,7 @@ module ProjectSetup
           board: board,
           document: document,
           starter_ticket: starter_ticket,
+          protocol_generation: protocol_generation,
           runtime_containers_readiness_ticket: runtime_readiness_ticket,
           attribute_ids: attribute_ids,
           workspace: workspace,
@@ -697,6 +706,10 @@ module ProjectSetup
       RuntimeContainers::GenerationService.new(project: project).call
     end
 
+    def initialize_project_protocols!(project)
+      ProjectProtocols::InitializationService.new(project: project).call
+    end
+
     def ensure_runtime_containers_readiness_ticket!(project:, board:, document:, runtime_generation:)
       runtime_container = project.reload.runtime_container
       return nil unless runtime_container
@@ -802,12 +815,14 @@ module ProjectSetup
       lines.join("\n")
     end
 
-    def finalize_session_metadata!(project:, board:, document:, starter_ticket:, runtime_containers_readiness_ticket:, attribute_ids:, workspace:, runtime_generation:)
+    def finalize_session_metadata!(project:, board:, document:, starter_ticket:, protocol_generation:, runtime_containers_readiness_ticket:, attribute_ids:, workspace:, runtime_generation:)
       metadata = session.metadata
       metadata["project_id"] = project.id
       metadata["board_id"] = board.id
       metadata["setup_summary_document_id"] = document.id
       metadata["starter_ticket_id"] = starter_ticket&.id if starter_ticket
+      metadata["protocols_generation"] = protocol_generation_metadata(protocol_generation)
+      metadata["protocols"] = project.reload.protocol_state
       metadata["runtime_containers_readiness_ticket_id"] = runtime_containers_readiness_ticket&.id if runtime_containers_readiness_ticket
       metadata["runtime_containers_generation"] = runtime_generation_metadata(runtime_generation)
       metadata["runtime_containers"] = project.reload.runtime_container_state
@@ -835,12 +850,25 @@ module ProjectSetup
       }
     end
 
-    def materialization_data(project:, board:, document:, starter_ticket:, runtime_containers_readiness_ticket:, attribute_ids:, workspace:, runtime_generation:)
+    def protocol_generation_metadata(protocol_generation)
+      return {} unless protocol_generation
+
+      {
+        "persisted" => protocol_generation.persisted?,
+        "stack_keys" => protocol_generation.stack_keys,
+        "fallback_used" => protocol_generation.fallback_used,
+        "missing_stack_tokens" => protocol_generation.missing_stack_tokens
+      }
+    end
+
+    def materialization_data(project:, board:, document:, starter_ticket:, protocol_generation:, runtime_containers_readiness_ticket:, attribute_ids:, workspace:, runtime_generation:)
       data = {
         "project" => project_data(project),
         "board_id" => board.id,
         "setup_summary_document_id" => document.id,
         "starter_ticket_id" => starter_ticket&.id,
+        "protocols" => project.reload.protocol_state,
+        "protocols_generation" => protocol_generation_metadata(protocol_generation),
         "runtime_containers_readiness_ticket_id" => runtime_containers_readiness_ticket&.id,
         "runtime_containers" => project.reload.runtime_container_state,
         "runtime_containers_generation" => runtime_generation_metadata(runtime_generation),
@@ -861,6 +889,8 @@ module ProjectSetup
         "board_id" => metadata["board_id"],
         "setup_summary_document_id" => metadata["setup_summary_document_id"],
         "starter_ticket_id" => metadata["starter_ticket_id"],
+        "protocols" => metadata["protocols"] || project.protocol_state,
+        "protocols_generation" => metadata["protocols_generation"] || {},
         "runtime_containers_readiness_ticket_id" => metadata["runtime_containers_readiness_ticket_id"],
         "runtime_containers" => metadata["runtime_containers"] || project.runtime_container_state,
         "runtime_containers_generation" => metadata["runtime_containers_generation"] || {},
@@ -967,7 +997,8 @@ module ProjectSetup
         "description" => project.description,
         "root_path" => project.root_path,
         "repo_url" => project.repo_url,
-        "stack_slug" => project.stack_slug
+        "stack_slug" => project.stack_slug,
+        "protocols" => project.protocol_state
       }
     end
 

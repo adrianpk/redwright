@@ -282,6 +282,7 @@ module ProjectSetup
         "resolved_repository" => session.resolved_repository,
         "setup_context" => session.setup_context,
         "setup_saga" => setup_saga_from(session),
+        "protocols" => protocols_state_from(session),
         "runtime_containers" => runtime_containers_state_from(session),
         "turn_counter" => session.turn_counter,
         "terminal_reason" => session.terminal_reason
@@ -380,6 +381,16 @@ module ProjectSetup
       metadata_state = session.metadata["runtime_containers"]
       return metadata_state if metadata_state.is_a?(Hash)
       return session.project.runtime_container_state if session.project
+
+      {}
+    end
+
+    def protocols_state_from(session)
+      return {} unless session
+
+      metadata_state = session.metadata["protocols"]
+      return metadata_state if metadata_state.is_a?(Hash)
+      return session.project.protocol_state if session.project
 
       {}
     end

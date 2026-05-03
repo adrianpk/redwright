@@ -101,6 +101,7 @@ module ProjectSetup
           "reason" => value_from(workspace, "reason", ""),
           "linked_ticket_ids" => linked_ticket_ids_from(workspace, starter_ticket)
         },
+        "protocols" => protocols_state_from(project),
         "runtime_containers" => runtime_containers_state_from(workspace),
         "ticket_operation" => {
           "status" => "available",
@@ -179,6 +180,9 @@ module ProjectSetup
           "status" => "pending",
           "runnable" => false,
           "reason" => "initial implementation has not started"
+        },
+        "protocols" => {
+          "status" => "pending"
         },
         "runtime_containers" => {
           "status" => "pending"
@@ -268,6 +272,16 @@ module ProjectSetup
         "validation_status" => state["validation_status"].presence || "not_run",
         "profile" => state["profile"].presence || "default",
         "readiness_ticket_id" => value_from(workspace, "runtime_containers_readiness_ticket_id", nil)
+      }
+    end
+
+    def protocols_state_from(project)
+      state = project.protocol_state
+
+      {
+        "status" => state["status"].presence || "missing",
+        "id" => state["id"],
+        "document_count" => Array(state["documents"]).size
       }
     end
 
