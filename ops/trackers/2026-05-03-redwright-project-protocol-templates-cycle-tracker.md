@@ -169,9 +169,9 @@ Validation:
 
 - status: `pr_open`
 - branch: `fix/slice-6-project-protocol-template-crud`
-- PR: `pending`
+- PR: `#279 https://codeberg.org/adrianpk/redwright/pulls/279`
 - merge_target: `dev`
-- last_sync_commit: `pending`
+- last_sync_commit: `ae48365`
 
 Tasks:
 
@@ -184,9 +184,9 @@ Tasks:
 
 Commits:
 
-- [ ] `pending feat(web): manage project protocol templates`
-- [ ] `pending test(integration): cover project protocol templates`
-- [ ] `pending docs(ops): close project protocol templates cycle`
+- [x] `c5d5e05 feat(web): manage project protocol templates`
+- [x] `64dd277 test(integration): cover project protocol templates`
+- [x] `ae48365 docs(ops): close project protocol templates cycle`
 
 Validation:
 
@@ -220,3 +220,4 @@ Validation:
 - `2026-05-04` state=`slice_5_pr_open` note=`opened Codeberg PR #278 from fix/slice-5-project-protocol-management into dev`
 - `2026-05-04` state=`slice_5_merged` note=`PR #278 merged into dev; Slice 5 is closed and Slice 6 remains pending explicit start`
 - `2026-05-04` state=`slice_6_implemented` note=`implemented persisted common and stack protocol templates, admin template editing surface, composition against Rails-backed templates, future-only template application semantics, full Rails validation, coverage validation, and cycle report publication on fix/slice-6-project-protocol-template-crud`
+- `2026-05-04` state=`slice_6_pr_open` note=`opened Codeberg PR #279 from fix/slice-6-project-protocol-template-crud into dev`
