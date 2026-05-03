@@ -4,7 +4,7 @@
 
 - cycle_id: `cycle-2026-05-03-redwright-agent-runtime-containers`
 - status: `in_progress`
-- state: `slice_2_implemented`
+- state: `slice_2_pr_open`
 - updated: `2026-05-03`
 - active_slice: `Slice 2`
 - active_task: `none`
@@ -51,9 +51,9 @@ Validation:
 
 ### Slice 2: Runtime Containers Generation Contract
 
-- status: `implemented`
+- status: `pr_open`
 - branch: `fix/slice-2-runtime-containers-generation`
-- PR: `pending`
+- PR: `#270 https://codeberg.org/adrianpk/redwright/pulls/270`
 - merge_target: `dev`
 - last_sync_commit: `de87aa4`
 
@@ -169,3 +169,4 @@ Validation:
 - `2026-05-03` state=`slice_1_pr_open` note=`opened Codeberg PR #269 from fix/slice-1-runtime-containers-domain into dev`
 - `2026-05-03` state=`slice_1_merged` note=`PR #269 merged into dev; Slice 1 is closed and Slice 2 remains pending explicit start`
 - `2026-05-03` state=`slice_2_implemented` note=`implemented Runtime Containers generation input, deterministic Go CLI generation, strict LLM contract, malformed/unavailable LLM fallback, unsupported blocked output, and targeted/full Rails validation on fix/slice-2-runtime-containers-generation`
+- `2026-05-03` state=`slice_2_pr_open` note=`opened Codeberg PR #270 from fix/slice-2-runtime-containers-generation into dev`
