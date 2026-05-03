@@ -38,7 +38,7 @@
 
 ### Slice 2: Runtime Containers Generation Contract
 
-- status: `implemented`
+- status: `merged`
 - branch: `fix/slice-2-runtime-containers-generation`
 - pr_title: `feat(slice-2): runtime containers generation`
 - objective: `generate initial Runtime Containers suggestions from project setup context with deterministic Go CLI support and safe fallback behavior`

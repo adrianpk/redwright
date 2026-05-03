@@ -4,9 +4,9 @@
 
 - cycle_id: `cycle-2026-05-03-redwright-agent-runtime-containers`
 - status: `in_progress`
-- state: `slice_2_pr_open`
+- state: `slice_2_merged`
 - updated: `2026-05-03`
-- active_slice: `Slice 2`
+- active_slice: `none`
 - active_task: `none`
 - source_plan: `ops/plans/2026-05-03-redwright-agent-runtime-containers-cycle-plan.md`
 - source_spec: `ops/specs/specs/2026-05-03-redwright-agent-runtime-containers-spec.md`
@@ -51,11 +51,11 @@ Validation:
 
 ### Slice 2: Runtime Containers Generation Contract
 
-- status: `pr_open`
+- status: `merged`
 - branch: `fix/slice-2-runtime-containers-generation`
-- PR: `#270 https://codeberg.org/adrianpk/redwright/pulls/270`
+- PR: `#270 https://codeberg.org/adrianpk/redwright/pulls/270 merged into dev`
 - merge_target: `dev`
-- last_sync_commit: `de87aa4`
+- last_sync_commit: `9000338`
 
 Tasks:
 
@@ -74,6 +74,8 @@ Commits:
 - [x] `b39660c feat(web): add runtime container llm fallback`
 - [x] `f408dc6 feat(web): block unsupported runtime container generation`
 - [x] `de87aa4 test(web): cover runtime container generation`
+- [x] `58946ec docs(ops): update runtime containers slice 2 status`
+- [x] `9000338 docs(ops): record runtime containers slice 2 pr`
 
 Validation:
 
@@ -170,3 +172,4 @@ Validation:
 - `2026-05-03` state=`slice_1_merged` note=`PR #269 merged into dev; Slice 1 is closed and Slice 2 remains pending explicit start`
 - `2026-05-03` state=`slice_2_implemented` note=`implemented Runtime Containers generation input, deterministic Go CLI generation, strict LLM contract, malformed/unavailable LLM fallback, unsupported blocked output, and targeted/full Rails validation on fix/slice-2-runtime-containers-generation`
 - `2026-05-03` state=`slice_2_pr_open` note=`opened Codeberg PR #270 from fix/slice-2-runtime-containers-generation into dev`
+- `2026-05-03` state=`slice_2_merged` note=`PR #270 merged into dev; Slice 2 is closed and Slice 3 remains pending explicit start`
