@@ -117,6 +117,10 @@ module Redwright
       workspace_path = workspace["relative_path"].to_s.strip
       workspace_path = workspace["path"].to_s.strip if workspace_path.empty?
       lines << "Workspace: #{workspace_path}" unless workspace_path.empty?
+      materialization_status = workspace["materialization_status"].to_s.strip
+      initial_status = workspace["initial_implementation_status"].to_s.strip
+      lines << "Materialization: #{materialization_status.tr("_", " ")}." unless materialization_status.empty?
+      lines << "Initial implementation: #{initial_status.tr("_", " ")}." unless initial_status.empty?
       lines << "Use /project where to inspect the active project."
       with_debug(sanitize_message(lines.join("\n")), trace_id: trace_id)
     end

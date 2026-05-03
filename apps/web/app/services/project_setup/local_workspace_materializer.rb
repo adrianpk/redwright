@@ -4,10 +4,14 @@ require "yaml"
 module ProjectSetup
   class LocalWorkspaceMaterializer
     DEFAULT_RELATIVE_ROOT = File.join("_workspace", "Projects").freeze
+    MATERIALIZATION_STATUS = "materialized_planned".freeze
+    INITIAL_IMPLEMENTATION_STATUS = "planned".freeze
+    VALIDATION_STATUS = "skipped".freeze
 
-    def initialize(session:, project:, projects_root: nil)
+    def initialize(session:, project:, starter_ticket: nil, projects_root: nil)
       @session = session
       @project = project
+      @starter_ticket = starter_ticket
       @projects_root = projects_root.presence || ENV["REDWRIGHT_LOCAL_PROJECTS_ROOT"].presence || default_projects_root
     end
 
@@ -20,16 +24,30 @@ module ProjectSetup
       manifest_path = File.join(manifest_dir, "manifest.yml")
       FileUtils.mkdir_p(manifest_dir)
       File.write(manifest_path, YAML.dump(manifest_payload(manifest_path: manifest_path)))
+      readme_path = File.join(path, "README.md")
+      setup_notes_path = File.join(manifest_dir, "setup-notes.md")
+      File.write(readme_path, readme_body)
+      File.write(setup_notes_path, setup_notes_body)
 
       {
         "status" => "materialized",
+        "materialization_status" => MATERIALIZATION_STATUS,
+        "initial_implementation_status" => INITIAL_IMPLEMENTATION_STATUS,
+        "validation_status" => VALIDATION_STATUS,
+        "runnable" => false,
+        "reason" => materialization_reason,
         "materialized" => true,
         "path" => path,
         "relative_path" => File.join(DEFAULT_RELATIVE_ROOT, slug),
         "manifest_path" => manifest_path,
         "manifest_relative_path" => File.join(DEFAULT_RELATIVE_ROOT, slug, ".redwright", "manifest.yml"),
+        "readme_path" => readme_path,
+        "readme_relative_path" => File.join(DEFAULT_RELATIVE_ROOT, slug, "README.md"),
+        "setup_notes_path" => setup_notes_path,
+        "setup_notes_relative_path" => File.join(DEFAULT_RELATIVE_ROOT, slug, ".redwright", "setup-notes.md"),
         "runtime_root_path" => @project.root_path,
-        "repo_url" => @project.repo_url
+        "repo_url" => @project.repo_url,
+        "linked_ticket_ids" => linked_ticket_ids
       }
     end
 
@@ -48,10 +66,15 @@ module ProjectSetup
     def skipped_workspace
       {
         "status" => "skipped",
+        "materialization_status" => "skipped",
+        "initial_implementation_status" => INITIAL_IMPLEMENTATION_STATUS,
+        "validation_status" => VALIDATION_STATUS,
+        "runnable" => false,
         "materialized" => false,
         "reason" => "non_local_repository",
         "runtime_root_path" => @project.root_path,
-        "repo_url" => @project.repo_url
+        "repo_url" => @project.repo_url,
+        "linked_ticket_ids" => linked_ticket_ids
       }
     end
 
@@ -81,13 +104,108 @@ module ProjectSetup
           "repo_url" => @project.repo_url
         },
         "setup_context" => @session.setup_context,
+        "materialization" => {
+          "status" => MATERIALIZATION_STATUS,
+          "runnable" => false,
+          "reason" => materialization_reason,
+          "workspace_relative_path" => File.join(DEFAULT_RELATIVE_ROOT, workspace_slug),
+          "setup_notes_relative_path" => File.join(DEFAULT_RELATIVE_ROOT, workspace_slug, ".redwright", "setup-notes.md")
+        },
+        "initial_implementation" => {
+          "status" => INITIAL_IMPLEMENTATION_STATUS,
+          "runnable" => false,
+          "reason" => initial_implementation_reason,
+          "linked_ticket_ids" => linked_ticket_ids
+        },
+        "validation" => {
+          "status" => VALIDATION_STATUS,
+          "command" => "",
+          "reason" => "validation is skipped until a runnable scaffold exists"
+        },
         "runtime" => {
           "container_profile" => slot_value("runtime_container_profile")
         },
         "workflow" => {
-          "agent_workflow_mode" => slot_value("agent_workflow_mode")
+          "agent_workflow_mode" => slot_value("agent_workflow_mode"),
+          "linked_ticket_ids" => linked_ticket_ids
         }
       }
+    end
+
+    def readme_body
+      [
+        "# #{@project.name}",
+        "",
+        @project.description.to_s,
+        "",
+        "## Setup Status",
+        "",
+        "- Materialization: #{MATERIALIZATION_STATUS}",
+        "- Initial implementation: #{INITIAL_IMPLEMENTATION_STATUS}",
+        "- Runnable: no",
+        "- Validation: #{VALIDATION_STATUS}",
+        "- Reason: #{materialization_reason}",
+        "",
+        "## Next Step",
+        "",
+        starter_ticket_line
+      ].join("\n")
+    end
+
+    def setup_notes_body
+      lines = [
+        "# RedWright Setup Notes",
+        "",
+        "This workspace was materialized by Rails project setup.",
+        "",
+        "## Outcome",
+        "",
+        "- Materialization status: #{MATERIALIZATION_STATUS}",
+        "- Initial implementation status: #{INITIAL_IMPLEMENTATION_STATUS}",
+        "- Validation status: #{VALIDATION_STATUS}",
+        "- Runnable: no",
+        "- Reason: #{materialization_reason}",
+        "",
+        "## Canonical Setup Slots"
+      ]
+      @session.setup_slots.each_value do |slot|
+        lines << "- #{slot.fetch("key")}: #{slot["value"]} (#{slot["status"]})"
+      end
+      lines.concat(
+        [
+          "",
+          "## Linked Tickets",
+          "",
+          starter_ticket_line
+        ]
+      )
+      lines.join("\n")
+    end
+
+    def starter_ticket_line
+      return "- Initial implementation ticket: #{@starter_ticket.id}" if @starter_ticket
+
+      "- Initial implementation ticket: pending"
+    end
+
+    def materialization_reason
+      if go_cli_context?
+        "Go CLI scaffold generation is planned for a later setup slice"
+      else
+        "no runnable scaffold profile exists for this setup context yet"
+      end
+    end
+
+    def initial_implementation_reason
+      "initial implementation is represented by a Rails board ticket"
+    end
+
+    def linked_ticket_ids
+      @starter_ticket ? [@starter_ticket.id] : []
+    end
+
+    def go_cli_context?
+      [slot_value("project_type"), slot_value("language_runtime")].join(" ").downcase.match?(/\bcli\b.*\bgo\b|\bgo\b.*\bcli\b/)
     end
 
     def existing_manifest(path)

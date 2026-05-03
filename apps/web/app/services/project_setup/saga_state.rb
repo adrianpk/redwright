@@ -83,24 +83,29 @@ module ProjectSetup
           "turn_counter" => session.turn_counter.to_i
         },
         "materialization" => {
-          "status" => "materialized",
+          "status" => materialization_status_from(workspace),
           "project_id" => project.id,
           "board_id" => board&.id,
           "setup_summary_document_id" => document&.id,
           "setup_project_attribute_ids" => attribute_ids,
           "workspace" => workspace || {},
+          "validation_status" => value_from(workspace, "validation_status", "not_run"),
+          "runnable" => value_from(workspace, "runnable", false),
+          "reason" => value_from(workspace, "reason", ""),
           "completed_at" => Time.current.iso8601
         },
         "initial_implementation" => {
-          "status" => "not_started",
-          "runnable" => false,
-          "reason" => "initial implementation scaffold is planned for a later slice"
+          "status" => value_from(workspace, "initial_implementation_status", "planned"),
+          "runnable" => value_from(workspace, "runnable", false),
+          "reason" => value_from(workspace, "reason", ""),
+          "linked_ticket_ids" => linked_ticket_ids_from(workspace, starter_ticket)
         },
         "ticket_operation" => {
           "status" => "available",
           "project_id" => project.id,
           "board_id" => board&.id,
           "starter_ticket_id" => starter_ticket&.id,
+          "linked_ticket_ids" => linked_ticket_ids_from(workspace, starter_ticket),
           "open_ticket_count" => project.tickets_scope.active.count
         }
       )
@@ -234,6 +239,23 @@ module ProjectSetup
     def next_prompt_intent
       intent = session.metadata["next_prompt_intent"]
       intent.is_a?(Hash) ? stringify_hash(intent) : {}
+    end
+
+    def materialization_status_from(workspace)
+      value_from(workspace, "materialization_status", "materialized")
+    end
+
+    def linked_ticket_ids_from(workspace, starter_ticket)
+      ids = value_from(workspace, "linked_ticket_ids", [])
+      ids = [] unless ids.is_a?(Array)
+      ids << starter_ticket.id if starter_ticket && !ids.include?(starter_ticket.id)
+      ids
+    end
+
+    def value_from(hash, key, fallback)
+      return fallback unless hash.is_a?(Hash)
+
+      hash.key?(key) ? hash[key] : fallback
     end
 
     def deep_merge(left, right)
