@@ -75,7 +75,8 @@ module ProjectSetup
     private
 
     def create_ready_runtime_container(project)
-      project.create_runtime_container!(
+      runtime_container = project.runtime_container || project.build_runtime_container
+      runtime_container.update!(
         profile: "ephemeral_docker",
         status: "active",
         readiness: "ready",
@@ -90,6 +91,7 @@ module ProjectSetup
         generated_files: [{"path" => "Dockerfile", "status" => "accepted"}],
         provenance: {"generated_files_decision" => "accepted"}
       )
+      runtime_container
     end
 
     def prompt_intent(slot)

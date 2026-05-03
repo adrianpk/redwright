@@ -207,7 +207,9 @@ class Api::V1::CommandQueriesControllerTest < ActionDispatch::IntegrationTest
     assert_equal "ticket_operation", body.fetch("setup_saga").fetch("stage")
     assert_equal "materialized_planned", body.fetch("setup_saga").fetch("materialization").fetch("status")
     assert_equal "planned", body.fetch("setup_saga").fetch("initial_implementation").fetch("status")
-    assert_equal [body.dig("data", "starter_ticket_id")], body.fetch("setup_saga").fetch("initial_implementation").fetch("linked_ticket_ids")
+    assert_includes body.fetch("setup_saga").fetch("initial_implementation").fetch("linked_ticket_ids"), body.dig("data", "starter_ticket_id")
+    assert_equal "blocked", body.fetch("data").fetch("runtime_containers").fetch("readiness")
+    assert_equal body.dig("data", "runtime_containers_readiness_ticket_id"), body.fetch("setup_saga").fetch("runtime_containers").fetch("readiness_ticket_id")
     assert body.fetch("project_id")
     assert_equal 6, session.reload.turn_counter
     assert_equal "pocket-ledger", session.project.name
@@ -237,6 +239,8 @@ class Api::V1::CommandQueriesControllerTest < ActionDispatch::IntegrationTest
         "setup_summary_document_written",
         "default_board_structure_written",
         "setup_starter_ticket_written",
+        "runtime_containers_initialized",
+        "runtime_containers_readiness_ticket_written",
         "local_workspace_materialized",
         "project_setup_completed"
       ],

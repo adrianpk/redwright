@@ -230,7 +230,8 @@ module ProjectSetup
       assert_equal "materialized_planned", saga.fetch("materialization").fetch("status")
       assert_equal false, saga.fetch("initial_implementation").fetch("runnable")
       assert_equal "planned", saga.fetch("initial_implementation").fetch("status")
-      assert_equal [ticket.id], saga.fetch("initial_implementation").fetch("linked_ticket_ids")
+      assert_includes saga.fetch("initial_implementation").fetch("linked_ticket_ids"), ticket.id
+      assert_equal "blocked", saga.fetch("runtime_containers").fetch("readiness")
       assert_equal "available", saga.fetch("ticket_operation").fetch("status")
     end
 
@@ -265,7 +266,14 @@ module ProjectSetup
       assert_equal "agent-coder", ticket.assignee
       assert_equal ["Project Setup Summary"], ticket.documents.pluck(:title)
       assert_match "Materialization outcome: materialized_planned", ticket.description
+      readiness_ticket = Ticket.find(result.data.fetch("runtime_containers_readiness_ticket_id"))
+      assert_equal project.id, readiness_ticket.project_id
+      assert_equal "Review Runtime Containers readiness", readiness_ticket.title
+      assert_match "Readiness: blocked", readiness_ticket.description
+      assert_equal "blocked", result.data.fetch("runtime_containers").fetch("readiness")
       assert_includes result.effects.map { |effect| effect.fetch("type") }, "setup_starter_ticket_written"
+      assert_includes result.effects.map { |effect| effect.fetch("type") }, "runtime_containers_initialized"
+      assert_includes result.effects.map { |effect| effect.fetch("type") }, "runtime_containers_readiness_ticket_written"
     end
 
     test "completion materializes every collected setup slot into rails state and metadata" do
@@ -401,6 +409,9 @@ module ProjectSetup
         assert_equal "planned", manifest.dig("initial_implementation", "status")
         assert_equal result.data.fetch("starter_ticket_id"), manifest.dig("initial_implementation", "linked_ticket_ids").first
         assert_equal "skipped", manifest.dig("validation", "status")
+        assert_equal result.data.fetch("runtime_containers").fetch("id"), manifest.dig("runtime_containers", "runtime_container_id")
+        assert_equal "blocked", manifest.dig("runtime_containers", "state", "readiness")
+        assert_equal result.data.fetch("runtime_containers_readiness_ticket_id"), manifest.dig("runtime_containers", "readiness_ticket_id")
         assert File.file?(workspace.fetch("readme_path"))
         assert File.file?(workspace.fetch("setup_notes_path"))
         assert_includes File.read(workspace.fetch("readme_path")), "Materialization: materialized_planned"
@@ -481,6 +492,10 @@ module ProjectSetup
         assert_equal "go_cli", manifest.dig("scaffold", "profile")
         assert_equal "example.com/redwright/hanoi-cli", manifest.dig("scaffold", "module_path")
         assert_equal %w[go.mod main.go main_test.go], manifest.dig("scaffold", "files")
+        assert_equal "go_cli", result.data.fetch("runtime_containers").fetch("profile")
+        assert_equal "generated", result.data.fetch("runtime_containers").fetch("readiness")
+        assert_equal "go_cli", manifest.dig("runtime_containers", "state", "profile")
+        assert_equal result.data.fetch("runtime_containers_readiness_ticket_id"), manifest.dig("runtime_containers", "readiness_ticket_id")
         assert_equal "go test ./...", manifest.dig("validation", "command")
         assert_includes %w[passed skipped failed], manifest.dig("validation", "status")
         assert_equal manifest.dig("validation", "status"), workspace.fetch("validation_status")

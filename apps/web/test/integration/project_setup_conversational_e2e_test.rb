@@ -1,4 +1,6 @@
 require "test_helper"
+require "socket"
+require "tmpdir"
 
 class ProjectSetupConversationalE2eTest < ActionDispatch::IntegrationTest
   test "sparse setup starts without arguments and completes with defaults" do
@@ -66,6 +68,101 @@ class ProjectSetupConversationalE2eTest < ActionDispatch::IntegrationTest
     assert_equal "Prepare initial implementation plan", ticket.title
     assert_equal "backlog", ticket.column.key
     assert_equal ["Project Setup Summary"], ticket.documents.pluck(:title)
+  end
+
+  test "go cli setup initializes runtime containers and gates ticket execution until ready" do
+    start = command(
+      "StartProjectSetup",
+      {
+        project_name: "go-runtime-e2e",
+        description: "A small Go CLI with Runtime Containers setup.",
+        guided_alignment: true
+      },
+      request_id: request_id("go-runtime-start")
+    )
+
+    completed = command(
+      "AdvanceProjectSetup",
+      {
+        session_id: start.fetch("session_id"),
+        answer: "Go CLI using the standard library.",
+        normalized_fields: {
+          project_type: "cli",
+          language_runtime: "Go 1.26.2",
+          framework: "none",
+          libraries: "standard library"
+        }
+      },
+      request_id: request_id("go-runtime-context")
+    )
+
+    assert_equal "completed", completed.fetch("state")
+    project = Project.find(completed.fetch("project_id"))
+    runtime_state = completed.fetch("data").fetch("runtime_containers")
+    assert_equal "go_cli", runtime_state.fetch("profile")
+    assert_equal "generated", runtime_state.fetch("readiness")
+    assert_equal "not_run", runtime_state.fetch("validation_status")
+    assert_equal "deterministic_go_cli_generator", completed.dig("data", "runtime_containers_generation", "generator_source")
+    readiness_ticket = Ticket.find(completed.dig("data", "runtime_containers_readiness_ticket_id"))
+    assert_equal "Review Runtime Containers readiness", readiness_ticket.title
+
+    blocked = command(
+      "StartTicketExecution",
+      {ticket_id: completed.dig("data", "starter_ticket_id")},
+      request_id: request_id("go-runtime-blocked"),
+      response_status: :unprocessable_entity
+    )
+    assert_equal "runtime_containers_not_ready", blocked.fetch("errors").first.fetch("code")
+    assert_equal "generated", blocked.dig("errors", 0, "details", "runtime_containers", "readiness")
+
+    generated_files = project.runtime_container.generated_files.map { |file| file.merge("status" => "accepted") }
+    command(
+      "UpdateProjectRuntimeContainers",
+      {
+        project_id: project.id,
+        runtime_containers: {
+          generated_files: generated_files,
+          provenance: project.runtime_container.provenance.merge("generated_files_decision" => "accepted")
+        }
+      },
+      request_id: request_id("go-runtime-accept-files")
+    )
+    command(
+      "RecordProjectRuntimeContainerValidation",
+      {
+        project_id: project.id,
+        validation_status: "skipped",
+        validation_output_summary: "Go CLI scaffold validation accepted for setup e2e."
+      },
+      request_id: request_id("go-runtime-validation")
+    )
+    ready = command(
+      "MarkProjectRuntimeContainersReady",
+      {project_id: project.id},
+      request_id: request_id("go-runtime-ready")
+    )
+    assert_equal "ready", ready.dig("data", "runtime_containers", "readiness")
+
+    with_runtime_socket_response(
+      {
+        "status" => "ok",
+        "project_id" => project.root_path,
+        "workstream_id" => "ws-go-runtime-e2e",
+        "task_id" => "task-go-runtime-e2e",
+        "state" => "executing"
+      }
+    ) do |runtime_request|
+      started = command(
+        "StartTicketExecution",
+        {ticket_id: completed.dig("data", "starter_ticket_id")},
+        request_id: request_id("go-runtime-start-ticket")
+      )
+      captured_request = runtime_request.call
+
+      assert_equal "ticket_execution_started", started.fetch("effects").first.fetch("type")
+      assert_equal "ready", captured_request.dig("payload", "runtime_context", "runtime_containers", "readiness")
+      assert_equal project.runtime_container.id, captured_request.dig("payload", "runtime_context", "runtime_containers", "configuration_id")
+    end
   end
 
   test "skip advances non-blocking slots and done completes with defaults" do
@@ -139,7 +236,7 @@ class ProjectSetupConversationalE2eTest < ActionDispatch::IntegrationTest
 
   private
 
-  def command(name, payload, request_id:)
+  def command(name, payload, request_id:, response_status: :success)
     post "/api/v1/commands",
       params: {
         name: name,
@@ -148,7 +245,7 @@ class ProjectSetupConversationalE2eTest < ActionDispatch::IntegrationTest
       },
       headers: actor_headers,
       as: :json
-    assert_response :success
+    assert_response response_status
     JSON.parse(response.body)
   end
 
@@ -161,5 +258,43 @@ class ProjectSetupConversationalE2eTest < ActionDispatch::IntegrationTest
       "X-Redwright-Actor" => "telegram:e2e",
       "X-Redwright-Source" => "telegram"
     }
+  end
+
+  def with_runtime_socket_response(payload)
+    previous_socket = ENV["REDWRIGHT_RUNTIME_SOCKET_PATH"]
+    Dir.mktmpdir("redwright-runtime-socket-") do |dir|
+      socket_path = File.join(dir, "rw.sock")
+      ENV["REDWRIGHT_RUNTIME_SOCKET_PATH"] = socket_path
+      server = UNIXServer.new(socket_path)
+      captured_request = nil
+      thread = Thread.new do
+        client = server.accept
+        line = client.gets
+        captured_request = JSON.parse(line)
+        client.write(
+          JSON.generate(
+            {
+              "type" => "ack",
+              "session_id" => captured_request.fetch("session_id"),
+              "payload" => payload
+            }
+          ) + "\n"
+        )
+        client.close
+      end
+
+      yield -> {
+        thread.join(2)
+        captured_request
+      }
+    ensure
+      server&.close
+      thread&.kill if thread&.alive?
+      if previous_socket.nil?
+        ENV.delete("REDWRIGHT_RUNTIME_SOCKET_PATH")
+      else
+        ENV["REDWRIGHT_RUNTIME_SOCKET_PATH"] = previous_socket
+      end
+    end
   end
 end
