@@ -3,7 +3,7 @@
 ## Metadata
 
 - cycle_id: `cycle-2026-05-03-redwright-llm-rolling-trace-file`
-- status: `in_review`
+- status: `completed`
 - owner: `adrianpk`
 - created: `2026-05-03`
 - updated: `2026-05-04`
@@ -15,7 +15,7 @@
 
 ### Slice 1: Rolling Trace File Foundation
 
-- status: `in_review`
+- status: `merged`
 - branch: `fix/slice-1-llm-rolling-trace-file`
 - pr_title: `feat(slice-1): add llm rolling trace file`
 - objective: `thread configuration, correlation, metadata, redaction, and rotation through the existing Trace.llm_request and Trace.llm_response path without breaking live tracing`

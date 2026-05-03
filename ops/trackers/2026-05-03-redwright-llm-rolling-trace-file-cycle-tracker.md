@@ -3,11 +3,11 @@
 ## Metadata
 
 - cycle_id: `cycle-2026-05-03-redwright-llm-rolling-trace-file`
-- status: `in_review`
-- state: `slice_1_pr_open`
+- status: `completed`
+- state: `slice_1_merged`
 - updated: `2026-05-04`
-- active_slice: `slice_1`
-- active_task: `review`
+- active_slice: `none`
+- active_task: `none`
 - source_plan: `ops/plans/2026-05-03-redwright-llm-rolling-trace-file-cycle-plan.md`
 - source_spec: `ops/specs/specs/2026-05-03-redwright-llm-rolling-trace-file-spec.md`
 - source_draft: `ops/specs/drafts/2026-05-03-redwright-llm-rolling-trace-file-draft.md`
@@ -16,11 +16,11 @@
 
 ### Slice 1: Rolling Trace File Foundation
 
-- status: `in_review`
+- status: `merged`
 - branch: `fix/slice-1-llm-rolling-trace-file`
-- PR: `#280 https://codeberg.org/adrianpk/redwright/pulls/280 open against dev`
+- PR: `#280 https://codeberg.org/adrianpk/redwright/pulls/280 merged into dev`
 - merge_target: `dev`
-- last_sync_commit: `b060b32`
+- last_sync_commit: `8908013`
 
 Tasks:
 
@@ -47,11 +47,12 @@ Validation:
 
 - baseline_coverage: `not_run`
 - target_rule: `new trace-file behavior must be covered by targeted tests`
-- final_coverage: `pending`
-- tuning_needed: `pending`
-- tuning_evidence: `pending`
+- final_coverage: `not_run`
+- tuning_needed: `no`
+- tuning_evidence: `targeted Ruby and Rails integration validation passed for the new LLM trace-file paths`
 
 ## Event Log
 
 - `2026-05-04` state=`planned` note=`promoted the LLM rolling trace file draft into a one-slice spec, plan, and tracker focused on config-driven NDJSON persistence, correlation, rotation, redaction, and non-fatal writer behavior`
 - `2026-05-04` state=`slice_1_pr_open` note=`implemented config-driven rolling NDJSON LLM tracing, Telegram and project-setup call-site capture, correlation, rotation, redaction, targeted Ruby validation, setup Telegram integration validation, and opened PR #280 against dev`
+- `2026-05-04` state=`slice_1_merged` note=`PR #280 merged into dev; the one-slice LLM rolling trace file cycle is complete on dev`
