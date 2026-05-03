@@ -109,8 +109,7 @@ module ProjectProtocols
       values = [
         project.stack_slug,
         setup_slot("language_runtime"),
-        setup_slot("framework"),
-        setup_slot("libraries")
+        setup_slot("framework")
       ]
 
       values
