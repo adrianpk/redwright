@@ -3,7 +3,7 @@
 ## Metadata
 
 - cycle_id: `cycle-2026-05-03-redwright-project-setup-runnable-saga`
-- status: `reviewing`
+- status: `completed`
 - date: `2026-05-03`
 - source_plan: `ops/plans/2026-05-03-redwright-project-setup-runnable-saga-cycle-plan.md`
 - source_tracker: `ops/trackers/2026-05-03-redwright-project-setup-runnable-saga-cycle-tracker.md`
@@ -74,8 +74,8 @@ Delivered behavior:
 ### Slice 5: Telegram and Rails End-to-End Closure
 
 - branch: `fix/slice-5-runnable-setup-e2e-closure`
-- PR: `pending`
-- status: `reviewing`
+- PR: `https://codeberg.org/adrianpk/redwright/pulls/267`
+- status: `merged`
 
 Delivered behavior:
 

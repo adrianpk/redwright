@@ -3,7 +3,7 @@
 ## Metadata
 
 - cycle_id: `cycle-2026-05-03-redwright-project-setup-runnable-saga`
-- status: `in_progress`
+- status: `completed`
 - owner: `adrianpk`
 - created: `2026-05-03`
 - updated: `2026-05-03`
@@ -105,7 +105,7 @@
 
 ### Slice 5: Telegram and Rails End-to-End Closure
 
-- status: `reviewing`
+- status: `completed`
 - branch: `fix/slice-5-runnable-setup-e2e-closure`
 - pr_title: `feat(slice-5): runnable setup e2e closure`
 - objective: `close the cycle with end-to-end Telegram, Rails API, workspace, manifest, and ticket handoff coverage`

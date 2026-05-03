@@ -3,11 +3,11 @@
 ## Metadata
 
 - cycle_id: `cycle-2026-05-03-redwright-project-setup-runnable-saga`
-- status: `in_progress`
-- state: `slice_5_reviewing`
+- status: `completed`
+- state: `completed`
 - updated: `2026-05-03`
-- active_slice: `Slice 5`
-- active_task: `waiting for Slice 5 PR review`
+- active_slice: `none`
+- active_task: `cycle completed`
 - source_plan: `ops/plans/2026-05-03-redwright-project-setup-runnable-saga-cycle-plan.md`
 - source_spec: `ops/specs/specs/2026-05-03-redwright-project-setup-runnable-saga-spec.md`
 - source_draft: `ops/specs/drafts/2026-05-03-redwright-project-setup-runnable-saga-draft.md`
@@ -140,11 +140,11 @@ Validation:
 
 ### Slice 5: Telegram and Rails End-to-End Closure
 
-- status: `reviewing`
+- status: `completed`
 - branch: `fix/slice-5-runnable-setup-e2e-closure`
 - PR: `https://codeberg.org/adrianpk/redwright/pulls/267`
 - merge_target: `dev`
-- last_sync_commit: `1b86391`
+- last_sync_commit: `92ff2a5`
 
 Tasks:
 
@@ -159,6 +159,7 @@ Commits:
 - [x] `c4d82aa feat(telegram): report setup closure outcomes`
 - [x] `94e7c98 test(integration): cover runnable setup telegram e2e`
 - [x] `7472720 docs(ops): close runnable setup saga cycle`
+- [x] `92ff2a5 docs(ops): record slice 5 pr`
 
 Validation:
 
@@ -189,3 +190,4 @@ Validation:
 - `2026-05-03` state=`slice_4_reviewing` note=`opened Slice 4 PR #266 against dev with no reported conflicts`
 - `2026-05-03` state=`slice_5_reviewing` note=`started from origin/dev@1b86391 after Slice 4 merge, added Telegram E2E closure for Go CLI scaffold and unsupported planned fallback, reported runnable and validation status in Telegram completion, published cycle report, and validated full Rails tests plus repository coverage`
 - `2026-05-03` state=`slice_5_reviewing` note=`opened Slice 5 PR #267 against dev with no reported conflicts`
+- `2026-05-03` state=`completed` note=`Slice 5 PR #267 merged into dev; runnable setup saga cycle closed with final coverage 91.46 and no extra tuning slice required`
