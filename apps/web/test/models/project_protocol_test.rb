@@ -1,4 +1,7 @@
 require "test_helper"
+require "fileutils"
+require "tmpdir"
+require "yaml"
 
 class ProjectProtocolTest < ActiveSupport::TestCase
   test "belongs to one project protocol state" do
@@ -64,5 +67,43 @@ class ProjectProtocolTest < ActiveSupport::TestCase
     assert_equal project.id, state.fetch("project_id")
     assert_equal "missing", state.fetch("status")
     assert_equal [], state.fetch("documents")
+  end
+
+  test "rails-backed protocol updates overwrite local materialized files" do
+    with_local_projects_root do |projects_root|
+      project = create_project(key: "project-protocol-sync")
+      project.update!(repo_url: "local://project-protocol-sync")
+      workspace_path = File.join(projects_root, "project-protocol-sync")
+      FileUtils.mkdir_p(File.join(workspace_path, ".redwright"))
+      File.write(File.join(workspace_path, ".redwright", "manifest.yml"), YAML.dump({"schema_version" => 1}))
+
+      protocol = create_project_protocol(
+        project: project,
+        documents: [{key: "agents_root", path: "AGENTS.md", title: "AGENTS", body: "# Initial"}]
+      )
+      File.write(File.join(workspace_path, "AGENTS.md"), "# Manual edit\n")
+
+      protocol.documents.first.update!(body: "# From Rails")
+
+      assert_equal "# From Rails\n", File.read(File.join(workspace_path, "AGENTS.md"))
+      manifest = YAML.safe_load(File.read(File.join(workspace_path, ".redwright", "manifest.yml")))
+      assert_equal ["AGENTS.md"], manifest.dig("protocols", "files").map { |entry| entry.fetch("path") }
+    end
+  end
+
+  private
+
+  def with_local_projects_root
+    previous = ENV["REDWRIGHT_LOCAL_PROJECTS_ROOT"]
+    Dir.mktmpdir("redwright-local-projects-") do |dir|
+      ENV["REDWRIGHT_LOCAL_PROJECTS_ROOT"] = dir
+      yield dir
+    ensure
+      if previous.nil?
+        ENV.delete("REDWRIGHT_LOCAL_PROJECTS_ROOT")
+      else
+        ENV["REDWRIGHT_LOCAL_PROJECTS_ROOT"] = previous
+      end
+    end
   end
 end

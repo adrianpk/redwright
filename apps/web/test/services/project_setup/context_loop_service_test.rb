@@ -441,11 +441,21 @@ module ProjectSetup
         assert_equal "planned", manifest.dig("initial_implementation", "status")
         assert_equal result.data.fetch("starter_ticket_id"), manifest.dig("initial_implementation", "linked_ticket_ids").first
         assert_equal "skipped", manifest.dig("validation", "status")
+        assert_equal "materialized", manifest.dig("protocols", "status")
+        assert_equal "AGENTS.md", manifest.dig("protocols", "root_entrypoint")
+        assert_equal "draft", manifest.dig("protocols", "state", "status")
         assert_equal result.data.fetch("runtime_containers").fetch("id"), manifest.dig("runtime_containers", "runtime_container_id")
         assert_equal "blocked", manifest.dig("runtime_containers", "state", "readiness")
         assert_equal result.data.fetch("runtime_containers_readiness_ticket_id"), manifest.dig("runtime_containers", "readiness_ticket_id")
+        assert File.file?(File.join(workspace.fetch("path"), "AGENTS.md"))
+        assert File.file?(File.join(workspace.fetch("path"), ".agents", "CONVENTIONS.md"))
+        assert File.file?(File.join(workspace.fetch("path"), ".agents", "ARCHITECTURE.md"))
+        assert File.file?(File.join(workspace.fetch("path"), ".agents", "PLAYBOOKS.md"))
+        assert File.file?(File.join(workspace.fetch("path"), ".agents", "playbooks", "slice-delivery.md"))
         assert File.file?(workspace.fetch("readme_path"))
         assert File.file?(workspace.fetch("setup_notes_path"))
+        assert_equal "materialized", workspace.fetch("protocol_materialization_status")
+        assert_equal "AGENTS.md", workspace.fetch("protocol_files").first.fetch("path")
         assert_includes File.read(workspace.fetch("readme_path")), "Materialization: materialized_planned"
         assert_includes File.read(workspace.fetch("setup_notes_path")), "Initial implementation status: planned"
         assert_equal workspace, result.session.metadata.fetch("workspace")
