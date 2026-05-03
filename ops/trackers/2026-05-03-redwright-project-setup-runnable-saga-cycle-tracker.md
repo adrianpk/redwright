@@ -111,7 +111,7 @@ Validation:
 
 - status: `reviewing`
 - branch: `fix/slice-4-go-cli-initial-scaffold`
-- PR: `pending`
+- PR: `https://codeberg.org/adrianpk/redwright/pulls/266`
 - merge_target: `dev`
 - last_sync_commit: `a91ea76`
 
@@ -129,6 +129,7 @@ Commits:
 - [x] `fc8f2e6 feat(web): add go cli setup scaffold`
 - [x] `cee7543 feat(web): expose go cli scaffold outcomes`
 - [x] `ba8a1ed test(web): cover go cli setup scaffold`
+- [x] `ce33299 docs(ops): track slice 4 go cli scaffold`
 
 Validation:
 
@@ -179,3 +180,4 @@ Validation:
 - `2026-05-03` state=`slice_3_reviewing` note=`started from origin/dev@3630d0f after Slice 2 merge, added explicit planned materialization outcomes, fallback workspace README/setup notes, starter implementation ticket reconciliation, and validated syntax, targeted tests, full Rails tests, and repository coverage`
 - `2026-05-03` state=`slice_3_reviewing` note=`opened Slice 3 PR #265 against dev with no reported conflicts`
 - `2026-05-03` state=`slice_4_reviewing` note=`started from origin/dev@a91ea76 after Slice 3 merge, added deterministic Go CLI scaffold generation, optional urfave/cli dependency support, local validation recording, scaffold metadata exposure, and filesystem/API tests`
+- `2026-05-03` state=`slice_4_reviewing` note=`opened Slice 4 PR #266 against dev with no reported conflicts`
