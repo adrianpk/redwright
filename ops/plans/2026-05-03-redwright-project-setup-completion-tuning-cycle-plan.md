@@ -3,7 +3,7 @@
 ## Metadata
 
 - cycle_id: `cycle-2026-05-03-redwright-project-setup-completion-tuning`
-- status: `planned`
+- status: `in_progress`
 - owner: `adrianpk`
 - created: `2026-05-03`
 - updated: `2026-05-03`
@@ -22,7 +22,7 @@ This cycle is intentionally short and corrective. It does not continue the close
 
 ### Slice 1: Project Setup Completion Materialization
 
-- status: `planned`
+- status: `ready_for_pr`
 - branch: `fix/slice-1-project-setup-completion-materialization`
 - pr_title: `feat(slice-1): project setup completion materialization`
 - objective: `make questionnaire completion idempotently apply all collected setup slots into complete Rails project state`

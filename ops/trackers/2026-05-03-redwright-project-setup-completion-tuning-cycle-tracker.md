@@ -3,11 +3,11 @@
 ## Metadata
 
 - cycle_id: `cycle-2026-05-03-redwright-project-setup-completion-tuning`
-- status: `planned`
-- state: `planned`
+- status: `in_progress`
+- state: `slice_1_ready_for_pr`
 - updated: `2026-05-03`
 - active_slice: `Slice 1`
-- active_task: `T1.1`
+- active_task: `T1.5`
 - source_plan: `ops/plans/2026-05-03-redwright-project-setup-completion-tuning-cycle-plan.md`
 - source_draft: `ops/tmp/drafts/2026-05-03-redwright-project-setup-corrective-slice-draft.md`
 
@@ -15,27 +15,32 @@
 
 ### Slice 1: Project Setup Completion Materialization
 
-- status: `planned`
+- status: `ready_for_pr`
 - branch: `fix/slice-1-project-setup-completion-materialization`
 - PR: `pending`
 - merge_target: `dev`
-- last_sync_commit: `ff33222`
+- last_sync_commit: `2f8f6d1`
 
 Tasks:
 
-- [ ] `T1.1 characterize completion replay and all-slot materialization expectations with Rails service and API coverage`
-- [ ] `T1.2 harden setup completion idempotency so repeated completion requests reuse existing materialized state instead of failing or duplicating records`
-- [ ] `T1.3 ensure every collected canonical slot is materialized into ProjectAttribute rows and completion metadata, including repository, runtime container profile, and agent workflow mode when present`
-- [ ] `T1.4 ensure Project, setup summary Document, default Board, and optional starter workflow Ticket are reused or reconciled on replay`
-- [ ] `T1.5 update tracker with commits and validation outcomes before opening the PR`
+- [x] `T1.1 characterize completion replay and all-slot materialization expectations with Rails service and API coverage`
+- [x] `T1.2 harden setup completion idempotency so repeated completion requests reuse existing materialized state instead of failing or duplicating records`
+- [x] `T1.3 ensure every collected canonical slot is materialized into ProjectAttribute rows and completion metadata, including repository, runtime container profile, and agent workflow mode when present`
+- [x] `T1.4 ensure Project, setup summary Document, default Board, and optional starter workflow Ticket are reused or reconciled on replay`
+- [x] `T1.5 update tracker with commits and validation outcomes before opening the PR`
 
 Commits:
 
-- [ ] `pending`
+- [x] `e6206e1 feat(web): harden setup completion materialization`
 
 Validation:
 
-- [ ] `pending`
+- [x] `ruby -wc apps/web/app/services/project_setup/context_loop_service.rb (pass)`
+- [x] `ruby -wc apps/web/app/services/project_setup/command_query_handlers.rb (pass)`
+- [x] `cd apps/web && bundle exec bin/rails test test/services/project_setup/context_loop_service_test.rb test/controllers/api/v1/command_queries_controller_test.rb (pass)`
+- [x] `cd apps/web && bundle exec bin/rails test test/integration/project_setup_conversational_e2e_test.rb test/integration/project_setup_telegram_e2e_test.rb (pass)`
+- [x] `cd apps/web && bundle exec bin/rails test (pass)`
+- [x] `bundle exec rake test:coverage from repository root (pass, coverage=91.38)`
 
 ### Slice 2: Workspace, Manifest, and Telegram Closure
 
@@ -74,3 +79,4 @@ Validation:
 ## Event Log
 
 - `2026-05-03` state=`planned` note=`created a two-slice corrective tuning cycle from the ignored ops/tmp working draft after the previous conversational saga cycle was closed and aligned to main`
+- `2026-05-03` state=`ready_for_pr` slice=`Slice 1` note=`hardened setup completion materialization with all-slot Rails state coverage, materialized setup metadata, idempotent board/column reconciliation, request-id completion replay, and terminal /done reuse through the command API`
