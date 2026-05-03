@@ -311,6 +311,7 @@ module ProjectSetup
       document = write_setup_summary_document!(project)
       starter_ticket = ensure_starter_workflow_ticket!(project: project, board: board, document: document)
       workspace = materialize_local_workspace(project, starter_ticket: starter_ticket)
+      reconcile_starter_ticket_description!(starter_ticket, project, workspace)
       finalize_session_metadata!(
         project: project,
         board: board,
@@ -658,18 +659,38 @@ module ProjectSetup
       LocalWorkspaceMaterializer.new(session: session, project: project, starter_ticket: starter_ticket).call
     end
 
-    def starter_ticket_description(project)
+    def reconcile_starter_ticket_description!(starter_ticket, project, workspace)
+      return unless starter_ticket
+
+      starter_ticket.description = starter_ticket_description(project, workspace: workspace)
+      starter_ticket.save!
+    end
+
+    def starter_ticket_description(project, workspace: nil)
+      materialization_status = workspace_value(workspace, "materialization_status", "materialized_planned")
+      validation_status = workspace_value(workspace, "validation_status", "skipped")
+      runnable = workspace_value(workspace, "runnable", false) == true ? "yes" : "no"
+      scaffold_profile = workspace_value(workspace, "scaffold_profile", "")
       [
         "Use the project setup context to produce the initial implementation plan.",
         "Project: #{project.name}",
-        "Materialization outcome: materialized_planned",
-        "Runnable now: no",
+        "Materialization outcome: #{materialization_status}",
+        "Initial implementation outcome: #{workspace_value(workspace, "initial_implementation_status", "planned")}",
+        "Runnable now: #{runnable}",
+        "Validation: #{validation_status}",
+        ("Scaffold profile: #{scaffold_profile}" if scaffold_profile.present?),
         "Type: #{slot_value("project_type")}",
         "Language/runtime: #{slot_value("language_runtime")}",
         "Framework: #{slot_value("framework")}",
         "Libraries: #{slot_value("libraries")}",
         "Runtime container profile: #{slot_value("runtime_container_profile")}"
-      ].join("\n")
+      ].compact.join("\n")
+    end
+
+    def workspace_value(workspace, key, fallback)
+      return fallback unless workspace.is_a?(Hash)
+
+      workspace.key?(key) ? workspace[key] : fallback
     end
 
     def setup_summary_body(project)

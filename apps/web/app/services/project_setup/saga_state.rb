@@ -90,6 +90,7 @@ module ProjectSetup
           "setup_project_attribute_ids" => attribute_ids,
           "workspace" => workspace || {},
           "validation_status" => value_from(workspace, "validation_status", "not_run"),
+          "validation" => value_from(workspace, "validation", {}),
           "runnable" => value_from(workspace, "runnable", false),
           "reason" => value_from(workspace, "reason", ""),
           "completed_at" => Time.current.iso8601
