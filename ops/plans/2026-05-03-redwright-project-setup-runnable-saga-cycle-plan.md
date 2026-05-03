@@ -83,7 +83,7 @@
 
 ### Slice 4: Go CLI Initial Implementation Scaffold
 
-- status: `reviewing`
+- status: `completed`
 - branch: `fix/slice-4-go-cli-initial-scaffold`
 - pr_title: `feat(slice-4): go cli initial scaffold`
 - objective: `produce a minimal runnable Go CLI scaffold for supported project setup context`
@@ -105,16 +105,16 @@
 
 ### Slice 5: Telegram and Rails End-to-End Closure
 
-- status: `planned`
+- status: `reviewing`
 - branch: `fix/slice-5-runnable-setup-e2e-closure`
 - pr_title: `feat(slice-5): runnable setup e2e closure`
 - objective: `close the cycle with end-to-end Telegram, Rails API, workspace, manifest, and ticket handoff coverage`
 - tasks:
-- [ ] `T5.1 add Telegram E2E for project new through Go CLI runnable or validation-skipped setup`
-- [ ] `T5.2 add Telegram E2E for unsupported setup planned fallback`
-- [ ] `T5.3 verify completion messages distinguish runnable, planned, and failed outcomes`
-- [ ] `T5.4 run full Rails tests and repository coverage from canonical locations`
-- [ ] `T5.5 publish cycle closure report with residual risks and tuning decision`
+- [x] `T5.1 add Telegram E2E for project new through Go CLI runnable or validation-skipped setup`
+- [x] `T5.2 add Telegram E2E for unsupported setup planned fallback`
+- [x] `T5.3 verify completion messages distinguish runnable, planned, and failed outcomes`
+- [x] `T5.4 run full Rails tests and repository coverage from canonical locations`
+- [x] `T5.5 publish cycle closure report with residual risks and tuning decision`
 - acceptance:
 - `manual Telegram testing has automated coverage for the project setup path`
 - `completed setup ends in runnable or planned state with clear operator message`

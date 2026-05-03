@@ -4,10 +4,10 @@
 
 - cycle_id: `cycle-2026-05-03-redwright-project-setup-runnable-saga`
 - status: `in_progress`
-- state: `slice_4_reviewing`
+- state: `slice_5_reviewing`
 - updated: `2026-05-03`
-- active_slice: `Slice 4`
-- active_task: `waiting for Slice 4 PR review`
+- active_slice: `Slice 5`
+- active_task: `waiting for Slice 5 PR review`
 - source_plan: `ops/plans/2026-05-03-redwright-project-setup-runnable-saga-cycle-plan.md`
 - source_spec: `ops/specs/specs/2026-05-03-redwright-project-setup-runnable-saga-spec.md`
 - source_draft: `ops/specs/drafts/2026-05-03-redwright-project-setup-runnable-saga-draft.md`
@@ -109,11 +109,11 @@ Validation:
 
 ### Slice 4: Go CLI Initial Implementation Scaffold
 
-- status: `reviewing`
+- status: `completed`
 - branch: `fix/slice-4-go-cli-initial-scaffold`
 - PR: `https://codeberg.org/adrianpk/redwright/pulls/266`
 - merge_target: `dev`
-- last_sync_commit: `a91ea76`
+- last_sync_commit: `1b86391`
 
 Tasks:
 
@@ -140,34 +140,39 @@ Validation:
 
 ### Slice 5: Telegram and Rails End-to-End Closure
 
-- status: `planned`
+- status: `reviewing`
 - branch: `fix/slice-5-runnable-setup-e2e-closure`
 - PR: `pending`
 - merge_target: `dev`
-- last_sync_commit: `pending`
+- last_sync_commit: `1b86391`
 
 Tasks:
 
-- [ ] `T5.1 add Telegram E2E for project new through Go CLI runnable or validation-skipped setup`
-- [ ] `T5.2 add Telegram E2E for unsupported setup planned fallback`
-- [ ] `T5.3 verify completion messages distinguish runnable, planned, and failed outcomes`
-- [ ] `T5.4 run full Rails tests and repository coverage from canonical locations`
-- [ ] `T5.5 publish cycle closure report with residual risks and tuning decision`
+- [x] `T5.1 add Telegram E2E for project new through Go CLI runnable or validation-skipped setup`
+- [x] `T5.2 add Telegram E2E for unsupported setup planned fallback`
+- [x] `T5.3 verify completion messages distinguish runnable, planned, and failed outcomes`
+- [x] `T5.4 run full Rails tests and repository coverage from canonical locations`
+- [x] `T5.5 publish cycle closure report with residual risks and tuning decision`
 
 Commits:
 
-- [ ] `pending`
+- [x] `c4d82aa feat(telegram): report setup closure outcomes`
+- [x] `94e7c98 test(integration): cover runnable setup telegram e2e`
 
 Validation:
 
-- [ ] `pending`
+- [x] `ruby -wc lib/redwright/project_setup_prompt_renderer.rb && ruby -wc lib/redwright/telegram_project_setup_adapter.rb && ruby -wc apps/web/app/services/project_setup/local_workspace_materializer.rb` (pass)
+- [x] `cd apps/web && bundle exec bin/rails test test/integration/project_setup_telegram_e2e_test.rb test/services/project_setup/context_loop_service_test.rb test/controllers/api/v1/command_queries_controller_test.rb` (pass)
+- [x] `ruby -Itest test/redwright/project_setup_prompt_renderer_test.rb test/redwright/telegram_project_setup_adapter_test.rb` (pass)
+- [x] `cd apps/web && bundle exec bin/rails test` (pass)
+- [x] `bundle exec rake test:coverage` (pass, coverage 91.46)
 
 ## Coverage Guard
 
 - baseline_coverage: `91.39`
 - target_rule: `post-slice coverage >= pre-slice coverage for new code paths`
-- final_coverage: `91.44`
-- tuning_needed: `pending`
+- final_coverage: `91.46`
+- tuning_needed: `no`
 - tuning_evidence: `manual Telegram verification showed complete setup manifests but no runnable local project files, no visible setup LLM traces, and raw prompt-confusion text persisted as framework/stack context`
 
 ## Event Log
@@ -181,3 +186,4 @@ Validation:
 - `2026-05-03` state=`slice_3_reviewing` note=`opened Slice 3 PR #265 against dev with no reported conflicts`
 - `2026-05-03` state=`slice_4_reviewing` note=`started from origin/dev@a91ea76 after Slice 3 merge, added deterministic Go CLI scaffold generation, optional urfave/cli dependency support, local validation recording, scaffold metadata exposure, and filesystem/API tests`
 - `2026-05-03` state=`slice_4_reviewing` note=`opened Slice 4 PR #266 against dev with no reported conflicts`
+- `2026-05-03` state=`slice_5_reviewing` note=`started from origin/dev@1b86391 after Slice 4 merge, added Telegram E2E closure for Go CLI scaffold and unsupported planned fallback, reported runnable and validation status in Telegram completion, published cycle report, and validated full Rails tests plus repository coverage`
