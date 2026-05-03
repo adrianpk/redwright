@@ -4,9 +4,9 @@
 
 - cycle_id: `cycle-2026-05-03-redwright-agent-runtime-containers`
 - status: `in_progress`
-- state: `slice_1_pr_open`
+- state: `slice_1_merged`
 - updated: `2026-05-03`
-- active_slice: `Slice 1`
+- active_slice: `none`
 - active_task: `none`
 - source_plan: `ops/plans/2026-05-03-redwright-agent-runtime-containers-cycle-plan.md`
 - source_spec: `ops/specs/specs/2026-05-03-redwright-agent-runtime-containers-spec.md`
@@ -19,11 +19,11 @@
 
 ### Slice 1: Runtime Containers Domain Foundation
 
-- status: `pr_open`
+- status: `merged`
 - branch: `fix/slice-1-runtime-containers-domain`
-- PR: `#269 https://codeberg.org/adrianpk/redwright/pulls/269`
+- PR: `#269 https://codeberg.org/adrianpk/redwright/pulls/269 merged into dev`
 - merge_target: `dev`
-- last_sync_commit: `10f828e`
+- last_sync_commit: `189d8c4`
 
 Tasks:
 
@@ -40,6 +40,8 @@ Commits:
 - [x] `0c566e5 feat(web): add runtime containers domain`
 - [x] `2658dd2 feat(web): expose runtime containers state`
 - [x] `10f828e test(web): cover runtime containers state`
+- [x] `7e725b5 docs(ops): update runtime containers slice 1 status`
+- [x] `189d8c4 docs(ops): record runtime containers slice 1 pr`
 
 Validation:
 
@@ -159,3 +161,4 @@ Validation:
 - `2026-05-03` state=`planned` note=`promoted the agent Runtime Containers draft into a focused formal spec, cycle plan, and tracker; Protocol templates and LLM rolling trace drafts remain context-only and out of this cycle scope`
 - `2026-05-03` state=`slice_1_implemented` note=`implemented Runtime Containers domain persistence, state contracts, structured fields, command/query read surface, and targeted/full Rails validation on fix/slice-1-runtime-containers-domain`
 - `2026-05-03` state=`slice_1_pr_open` note=`opened Codeberg PR #269 from fix/slice-1-runtime-containers-domain into dev`
+- `2026-05-03` state=`slice_1_merged` note=`PR #269 merged into dev; Slice 1 is closed and Slice 2 remains pending explicit start`

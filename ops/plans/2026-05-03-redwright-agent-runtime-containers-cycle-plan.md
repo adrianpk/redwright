@@ -3,7 +3,7 @@
 ## Metadata
 
 - cycle_id: `cycle-2026-05-03-redwright-agent-runtime-containers`
-- status: `planned`
+- status: `in_progress`
 - owner: `adrianpk`
 - created: `2026-05-03`
 - updated: `2026-05-03`
@@ -15,7 +15,7 @@
 
 ### Slice 1: Runtime Containers Domain Foundation
 
-- status: `implemented`
+- status: `merged`
 - branch: `fix/slice-1-runtime-containers-domain`
 - pr_title: `feat(slice-1): runtime containers domain`
 - objective: `add project-owned Runtime Containers persistence with readiness, validation, generated files, provenance, assumptions, missing information, and risks`
