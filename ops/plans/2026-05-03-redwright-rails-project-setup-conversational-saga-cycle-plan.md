@@ -13,26 +13,34 @@
 
 ## Slice List
 
-### Slice 1: Setup Context Slot Model and Repository Decoupling
+### Slice 1: Setup Context Slot Model, Repository Decoupling, and Minimal Conversational Trunk
 
 - status: `pending`
 - branch: `fix/slice-1-project-setup-context-slots`
 - pr_title: `feat(slice-1): project setup context slots`
-- objective: `make project setup start without repository input and persist canonical setup slots in Rails setup session metadata`
+- objective: `make project setup start without repository input, persist canonical setup slots, run a compact Ariadne-style trunk loop, render Telegram prompts through the setup renderer, and materialize a minimal Rails project on /done`
 - tasks:
 - [ ] `T1.1 characterize current repository-first behavior with Rails and Telegram tests`
 - [ ] `T1.2 add canonical setup context slot helpers and semantic prompt intent metadata for ProjectSetupSession`
 - [ ] `T1.3 change StartProjectSetup payload handling so project name and description are not mapped to repository input`
 - [ ] `T1.4 allow repository input to be absent or skipped without invalidating setup start`
 - [ ] `T1.5 add tests for empty start, name-only start, quoted name with description, and repository URL input`
+- [ ] `T1.6 add minimal trunk slots for project type, language/runtime, framework, and libraries without using stack as a mixed question`
+- [ ] `T1.7 implement /skip, /done, and /cancel for active setup context collection`
+- [ ] `T1.8 render Telegram setup prompts through the configured LLM renderer with deterministic fallback`
+- [ ] `T1.9 materialize completed setup into Project, setup attributes, setup summary document, and default board`
 - acceptance:
 - `/project new` starts a Rails setup session without repository input
 - `plain project names fill project_name and never trigger repository ambiguity by themselves`
 - `canonical slots and next prompt intent are persisted in ProjectSetupSession.metadata`
+- `Telegram setup replies do not expose raw state/session/trace metadata by default`
+- `/done` creates a consistent Rails project setup with defaultable missing slots`
 - planned_commits:
 - `test(web): characterize repository independent project setup start`
 - `feat(web): add project setup context slot metadata`
 - `feat(telegram): stop mapping project names to repository input`
+- `feat(web): add project setup context loop`
+- `feat(telegram): render project setup prompts`
 
 ### Slice 2: Deterministic Setup Question Loop Controls
 

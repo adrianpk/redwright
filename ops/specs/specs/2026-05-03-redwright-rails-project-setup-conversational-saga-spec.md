@@ -72,6 +72,8 @@ The setup saga must manage these canonical slots:
 
 - `project_name`
 - `description`
+- `project_type`
+- `language_runtime`
 - `repository`
 - `stack`
 - `framework`
@@ -117,6 +119,8 @@ The first implementation must block only on `project_name` by default.
 A short `description` is recommended. If missing, the saga may ask for it once. `/done` may proceed with a default description after name is known.
 
 Repository, stack, framework, libraries, patterns, conventions, runtime container profile, and agent workflow mode are optional or recommended unless a prior answer makes them blocking.
+
+The initial compact trunk should avoid asking for `stack` as a mixed language/framework/tooling concept. It should collect `project_type`, `language_runtime`, `framework`, and `libraries` as separate semantic slots, then synthesize `stack` for Rails compatibility and downstream runtime defaults.
 
 ## Persistence Contract
 
