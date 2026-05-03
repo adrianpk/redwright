@@ -4,7 +4,7 @@
 
 - cycle_id: `cycle-2026-05-03-redwright-agent-runtime-containers`
 - status: `in_progress`
-- state: `slice_1_implemented`
+- state: `slice_1_pr_open`
 - updated: `2026-05-03`
 - active_slice: `Slice 1`
 - active_task: `none`
@@ -19,9 +19,9 @@
 
 ### Slice 1: Runtime Containers Domain Foundation
 
-- status: `implemented`
+- status: `pr_open`
 - branch: `fix/slice-1-runtime-containers-domain`
-- PR: `pending`
+- PR: `#269 https://codeberg.org/adrianpk/redwright/pulls/269`
 - merge_target: `dev`
 - last_sync_commit: `10f828e`
 
@@ -158,3 +158,4 @@ Validation:
 
 - `2026-05-03` state=`planned` note=`promoted the agent Runtime Containers draft into a focused formal spec, cycle plan, and tracker; Protocol templates and LLM rolling trace drafts remain context-only and out of this cycle scope`
 - `2026-05-03` state=`slice_1_implemented` note=`implemented Runtime Containers domain persistence, state contracts, structured fields, command/query read surface, and targeted/full Rails validation on fix/slice-1-runtime-containers-domain`
+- `2026-05-03` state=`slice_1_pr_open` note=`opened Codeberg PR #269 from fix/slice-1-runtime-containers-domain into dev`
