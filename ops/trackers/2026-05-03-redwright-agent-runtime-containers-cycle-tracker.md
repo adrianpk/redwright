@@ -4,9 +4,9 @@
 
 - cycle_id: `cycle-2026-05-03-redwright-agent-runtime-containers`
 - status: `in_progress`
-- state: `slice_4_merged`
+- state: `slice_5_implemented`
 - updated: `2026-05-03`
-- active_slice: `none`
+- active_slice: `Slice 5`
 - active_task: `none`
 - source_plan: `ops/plans/2026-05-03-redwright-agent-runtime-containers-cycle-plan.md`
 - source_spec: `ops/specs/specs/2026-05-03-redwright-agent-runtime-containers-spec.md`
@@ -142,36 +142,41 @@ Validation:
 
 ### Slice 5: Setup Integration and Cycle Closure
 
-- status: `planned`
+- status: `implemented`
 - branch: `fix/slice-5-runtime-containers-setup-e2e`
 - PR: `pending`
 - merge_target: `dev`
-- last_sync_commit: `pending`
+- last_sync_commit: `4426419`
 
 Tasks:
 
-- [ ] `T5.1 initialize Runtime Containers during project setup for supported known contexts`
-- [ ] `T5.2 create planned readiness ticket or task when Runtime Containers cannot be generated as ready`
-- [ ] `T5.3 include Runtime Containers state in project setup status and workspace manifest metadata`
-- [ ] `T5.4 add end-to-end tests for setup through Runtime Containers generation and ticket readiness`
-- [ ] `T5.5 run full Rails tests and repository coverage from canonical locations`
-- [ ] `T5.6 publish cycle closure report with residual risks and tuning decision`
+- [x] `T5.1 initialize Runtime Containers during project setup for supported known contexts`
+- [x] `T5.2 create planned readiness ticket or task when Runtime Containers cannot be generated as ready`
+- [x] `T5.3 include Runtime Containers state in project setup status and workspace manifest metadata`
+- [x] `T5.4 add end-to-end tests for setup through Runtime Containers generation and ticket readiness`
+- [x] `T5.5 run full Rails tests and repository coverage from canonical locations`
+- [x] `T5.6 publish cycle closure report with residual risks and tuning decision`
 
 Commits:
 
-- [ ] `pending`
+- [x] `6ab1fad feat(web): initialize runtime containers during setup`
+- [x] `4426419 test(integration): cover runtime containers setup e2e`
+- [x] `pending docs(ops): close runtime containers cycle`
 
 Validation:
 
-- [ ] `pending`
+- [x] `bundle exec bin/rails test test/services/project_setup/context_loop_service_test.rb test/integration/project_setup_conversational_e2e_test.rb test/integration/project_setup_telegram_e2e_test.rb test/services/project_setup/setup_runtime_bridge_integration_test.rb test/services/runtime_containers/generation_service_test.rb` (pass)
+- [x] `bundle exec bin/rails test test/controllers/api/v1/command_queries_controller_test.rb test/services/runtime_bridge/ticket_execution_bridge_test.rb test/services/runtime_containers/execution_readiness_test.rb test/services/board_workflow/command_query_handlers_test.rb test/services/project_setup/guided_alignment_service_test.rb test/services/project_setup/state_machine_test.rb` (pass)
+- [x] `bundle exec bin/rails test` (pass)
+- [x] `bundle exec rake test:coverage` (pass, coverage 91.46)
 
 ## Coverage Guard
 
-- baseline_coverage: `pending`
+- baseline_coverage: `91.46`
 - target_rule: `post-slice coverage >= pre-slice coverage for new code paths`
-- final_coverage: `pending`
-- tuning_needed: `pending`
-- tuning_evidence: `pending`
+- final_coverage: `91.46`
+- tuning_needed: `no`
+- tuning_evidence: `full Rails suite and repository coverage pass; setup E2E covers Runtime Containers generation, readiness gate, ready transition, and ticket execution context`
 
 ## Event Log
 
@@ -187,3 +192,4 @@ Validation:
 - `2026-05-03` state=`slice_4_implemented` note=`implemented Runtime Containers execution context resolution, sandbox-required ticket gate, structured readiness problems, operator-safe messages, and targeted/full Rails validation on fix/slice-4-runtime-containers-ticket-gate`
 - `2026-05-03` state=`slice_4_pr_open` note=`opened Codeberg PR #272 from fix/slice-4-runtime-containers-ticket-gate into dev`
 - `2026-05-03` state=`slice_4_merged` note=`PR #272 merged into dev; Slice 4 is closed and Slice 5 remains pending explicit start`
+- `2026-05-03` state=`slice_5_implemented` note=`implemented setup integration, Runtime Containers readiness ticket creation, setup status and manifest metadata, setup-to-ticket readiness E2E coverage, full Rails validation, coverage validation, and cycle closure report on fix/slice-5-runtime-containers-setup-e2e`

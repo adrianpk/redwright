@@ -106,17 +106,17 @@
 
 ### Slice 5: Setup Integration and Cycle Closure
 
-- status: `planned`
+- status: `implemented`
 - branch: `fix/slice-5-runtime-containers-setup-e2e`
 - pr_title: `feat(slice-5): runtime containers setup e2e`
 - objective: `initialize Runtime Containers during project setup and close the cycle with end-to-end coverage from setup to ticket readiness`
 - tasks:
-- [ ] `T5.1 initialize Runtime Containers during project setup for supported known contexts`
-- [ ] `T5.2 create planned readiness ticket or task when Runtime Containers cannot be generated as ready`
-- [ ] `T5.3 include Runtime Containers state in project setup status and workspace manifest metadata`
-- [ ] `T5.4 add end-to-end tests for setup through Runtime Containers generation and ticket readiness`
-- [ ] `T5.5 run full Rails tests and repository coverage from canonical locations`
-- [ ] `T5.6 publish cycle closure report with residual risks and tuning decision`
+- [x] `T5.1 initialize Runtime Containers during project setup for supported known contexts`
+- [x] `T5.2 create planned readiness ticket or task when Runtime Containers cannot be generated as ready`
+- [x] `T5.3 include Runtime Containers state in project setup status and workspace manifest metadata`
+- [x] `T5.4 add end-to-end tests for setup through Runtime Containers generation and ticket readiness`
+- [x] `T5.5 run full Rails tests and repository coverage from canonical locations`
+- [x] `T5.6 publish cycle closure report with residual risks and tuning decision`
 - acceptance:
 - `project setup creates or schedules Runtime Containers readiness work`
 - `Go CLI setup gets an initial Runtime Containers suggestion`
