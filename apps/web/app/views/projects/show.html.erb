@@ -9,4 +9,21 @@
     <p><strong>Repository:</strong> <%= @project.repo_url %></p>
     <p><strong>Stack:</strong> <%= @project.stack_slug %></p>
   </section>
+
+  <section class="projects-list">
+    <%= link_to project_protocols_path(@project), class: "board-list-card" do %>
+      <strong>Protocols</strong>
+      <span><%= pluralize(Array(@project.protocol_state["documents"]).size, "document") %></span>
+    <% end %>
+    <%= link_to documents_path(project_id: @project.id, type: "draft"), class: "board-list-card" do %>
+      <strong>Documents</strong>
+      <span><%= pluralize(@project.documents.count, "document") %></span>
+    <% end %>
+    <% if (board = @project.boards_scope.first) %>
+      <%= link_to board_path(board), class: "board-list-card" do %>
+        <strong>Board</strong>
+        <span><%= board.name %></span>
+      <% end %>
+    <% end %>
+  </section>
 </main>

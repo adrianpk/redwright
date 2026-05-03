@@ -1,0 +1,22 @@
+<main class="document-artifacts-index">
+  <section class="documents-top-shell">
+    <p class="document-artifact-breadcrumb">
+      <%= link_to "Project", project_path(@project) %>
+    </p>
+    <div class="board-title-row">
+      <h1>Protocols</h1>
+    </div>
+    <p class="board-key"><%= @project.name %></p>
+  </section>
+
+  <section class="artifact-list">
+    <% @protocol_documents.each do |protocol_document| %>
+      <article class="artifact-list-card">
+        <%= link_to project_protocol_path(@project, protocol_document) do %>
+          <strong><%= protocol_document.title %></strong>
+          <span><%= protocol_document.path %></span>
+        <% end %>
+      </article>
+    <% end %>
+  </section>
+</main>

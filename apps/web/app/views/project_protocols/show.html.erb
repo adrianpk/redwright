@@ -1,0 +1,16 @@
+<main class="document-artifacts-show">
+  <p class="document-artifact-breadcrumb">
+    <%= link_to "Protocols", project_protocols_path(@project) %>
+  </p>
+  <header class="document-artifacts-header">
+    <h1><%= @protocol_document.title %></h1>
+    <p class="board-key"><%= @protocol_document.path %></p>
+  </header>
+  <article class="document-artifact-panel">
+    <pre><%= @protocol_document.body %></pre>
+  </article>
+
+  <p class="document-artifact-inline-actions">
+    <%= link_to "Edit Protocol", edit_project_protocol_path(@project, @protocol_document), class: "ticket-action" %>
+  </p>
+</main>
