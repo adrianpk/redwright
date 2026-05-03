@@ -18,7 +18,7 @@
 
 - status: `reviewing`
 - branch: `fix/slice-1-setup-llm-traces-and-slot-normalization`
-- PR: `pending`
+- PR: `https://codeberg.org/adrianpk/redwright/pulls/263`
 - merge_target: `dev`
 - last_sync_commit: `85c9afb`
 
@@ -36,6 +36,7 @@ Commits:
 
 - [x] `7c74db2 feat(telegram): trace setup prompt rendering`
 - [x] `fcb6eb0 feat(web): normalize project setup slot answers`
+- [x] `2620a8f docs(ops): track slice 1 setup normalization`
 
 Validation:
 
@@ -152,3 +153,4 @@ Validation:
 
 - `2026-05-03` state=`planned` note=`created runnable setup saga draft, conversation notes, promoted spec, cycle plan, and tracker after manual Telegram verification showed setup completion still ended at metadata/materialization instead of runnable or explicitly planned project state`
 - `2026-05-03` state=`slice_1_reviewing` note=`rebased Slice 1 on origin/dev@85c9afb after typing-indicator and planning PRs were merged or closed, added setup prompt LLM traces and semantic slot normalization, and validated syntax, Rails tests, and repository coverage`
+- `2026-05-03` state=`slice_1_reviewing` note=`opened Slice 1 PR #263 against dev with no reported conflicts`
