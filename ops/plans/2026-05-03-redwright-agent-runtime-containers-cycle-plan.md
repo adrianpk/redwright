@@ -84,7 +84,7 @@
 
 ### Slice 4: Ticket Execution Runtime Readiness Gate
 
-- status: `implemented`
+- status: `pr_open`
 - branch: `fix/slice-4-runtime-containers-ticket-gate`
 - pr_title: `feat(slice-4): runtime containers ticket gate`
 - objective: `make ticket execution resolve Runtime Containers readiness before sandbox-required agent work starts`
