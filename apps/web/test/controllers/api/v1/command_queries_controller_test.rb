@@ -67,10 +67,14 @@ class Api::V1::CommandQueriesControllerTest < ActionDispatch::IntegrationTest
     assert_equal "req-start-context", body.fetch("request_id")
     assert_equal "collecting_context", body.fetch("state")
     assert_equal "Project setup started.", body.fetch("summary")
-    assert_equal "Which stack or framework should this project use? Reply /skip if undecided.", body.fetch("next_prompt")
+    assert_nil body.fetch("next_prompt")
     assert body.fetch("session_id")
     assert_nil body.fetch("project_id")
     assert_equal ["project_setup_session_written"], body.fetch("effects").map { |effect| effect.fetch("type") }
+    assert_equal(
+      {"kind" => "setup_slot_question", "slot" => "stack", "locale" => "auto", "llm_required" => true},
+      body.fetch("data").fetch("next_prompt_intent")
+    )
     slots = body.fetch("data").fetch("setup_context").fetch("slots")
     assert_equal "Notes CLI", slots.fetch("project_name").fetch("value")
     assert_equal "A small local notes manager", slots.fetch("description").fetch("value")

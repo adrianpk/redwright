@@ -94,7 +94,9 @@ Define the next project setup behavior after Rails became the application core: 
 - current issue:
   - responses expose setup internals such as state names and repository validator instructions too early
 - desired behavior:
-  - default Telegram replies are human setup prompts
+  - default Telegram replies are human setup prompts generated from semantic prompt intent through the configured LLM
+  - canonical slot selection is deterministic, but the final question text is not hardcoded and is not random
+  - prompt generation preserves the user's language when the ingress language is identifiable
   - internal state, session ids, and trace ids appear only in debug/trace mode
   - replies include what was understood, one next question, and available control commands when useful
 

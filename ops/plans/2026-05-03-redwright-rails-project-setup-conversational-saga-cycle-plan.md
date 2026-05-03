@@ -21,14 +21,14 @@
 - objective: `make project setup start without repository input and persist canonical setup slots in Rails setup session metadata`
 - tasks:
 - [ ] `T1.1 characterize current repository-first behavior with Rails and Telegram tests`
-- [ ] `T1.2 add canonical setup context slot helpers for ProjectSetupSession metadata`
+- [ ] `T1.2 add canonical setup context slot helpers and semantic prompt intent metadata for ProjectSetupSession`
 - [ ] `T1.3 change StartProjectSetup payload handling so project name and description are not mapped to repository input`
 - [ ] `T1.4 allow repository input to be absent or skipped without invalidating setup start`
 - [ ] `T1.5 add tests for empty start, name-only start, quoted name with description, and repository URL input`
 - acceptance:
 - `/project new` starts a Rails setup session without repository input
 - `plain project names fill project_name and never trigger repository ambiguity by themselves`
-- `canonical slots are persisted in ProjectSetupSession.metadata and audited through setup turns where applicable`
+- `canonical slots and next prompt intent are persisted in ProjectSetupSession.metadata`
 - planned_commits:
 - `test(web): characterize repository independent project setup start`
 - `feat(web): add project setup context slot metadata`
@@ -41,17 +41,17 @@
 - pr_title: `feat(slice-2): project setup question loop controls`
 - objective: `implement deterministic next-question selection and control commands for skip, done, and cancel`
 - tasks:
-- [ ] `T2.1 add setup question selector for canonical slots and blocking/recommended/optional policy`
+- [ ] `T2.1 add setup question intent selector for canonical slots and blocking/recommended/optional policy`
 - [ ] `T2.2 implement AdvanceProjectSetup handling for normal answers and slot normalization`
 - [ ] `T2.3 implement /skip and /done over Rails setup commands`
 - [ ] `T2.4 preserve cancellation semantics and no-residue behavior before project creation`
 - [ ] `T2.5 add tests for question progression, no-reask behavior, skip, done, cancel, and repeated ambiguity`
 - acceptance:
-- `the setup loop asks one useful next question at a time`
+- `the setup loop selects one useful next prompt intent at a time`
 - `/done` completes when only defaultable slots remain
 - `/cancel` leaves only an auditable cancelled setup session before creation
 - planned_commits:
-- `feat(web): add project setup question selector`
+- `feat(web): add project setup question intent selector`
 - `feat(web): add project setup loop controls`
 - `test(web): cover project setup conversational controls`
 
@@ -62,12 +62,12 @@
 - pr_title: `feat(slice-3): telegram project setup human rendering`
 - objective: `render setup responses as human prompts while preserving structured Rails API data for adapters and tests`
 - tasks:
-- [ ] `T3.1 add Telegram project setup response renderer for summary, understood context, next prompt, and controls`
+- [ ] `T3.1 add Telegram project setup response renderer that asks the configured LLM to render semantic prompt intent as localized human text`
 - [ ] `T3.2 hide raw state/session/trace details by default and keep debug/trace formatting opt-in`
 - [ ] `T3.3 route setup replies, /skip, /done, and /cancel through the renderer`
 - [ ] `T3.4 add Telegram adapter tests for sparse, rich, skipped, completed, and cancelled setup flows`
 - acceptance:
-- `Telegram users see setup prompts instead of internal state names`
+- `Telegram users see LLM-rendered localized setup prompts instead of internal state names`
 - `debug metadata remains available only when explicitly enabled`
 - `Telegram remains an adapter over Rails command/query responses`
 - planned_commits:

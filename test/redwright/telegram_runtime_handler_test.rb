@@ -82,7 +82,15 @@ class TelegramRuntimeHandlerTest < Minitest::Test
                  "summary" => "Project setup started.",
                  "session_id" => 101,
                  "state" => "collecting_context",
-                 "next_prompt" => "What should this project do first?"
+                 "next_prompt" => nil,
+                 "data" => {
+                   "next_prompt_intent" => {
+                     "kind" => "setup_slot_question",
+                     "slot" => "description",
+                     "locale" => "auto",
+                     "llm_required" => true
+                   }
+                 }
                }
              elsif name == "AdvanceProjectSetup"
                {

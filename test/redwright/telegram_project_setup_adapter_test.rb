@@ -50,7 +50,15 @@ class TelegramProjectSetupAdapterTest < Minitest::Test
           "session_id" => 41,
           "project_id" => nil,
           "state" => "collecting_context",
-          "next_prompt" => "What should this project do first?"
+          "next_prompt" => nil,
+          "data" => {
+            "next_prompt_intent" => {
+              "kind" => "setup_slot_question",
+              "slot" => "description",
+              "locale" => "auto",
+              "llm_required" => true
+            }
+          }
         }
       when "AdvanceProjectSetup"
         {
@@ -132,7 +140,7 @@ class TelegramProjectSetupAdapterTest < Minitest::Test
     refute_includes(client.calls.first[:payload].keys, "repository_input")
     assert_equal(41, client.calls.last[:payload].fetch("session_id"))
     assert_equal("acme/happy-cli", client.calls.last[:payload].fetch("answer"))
-    assert_match("Next: What should this project do first?", started.message)
+    refute_match(/^Next:/, started.message)
     assert_match("Project setup advanced.", advanced.message)
   end
 

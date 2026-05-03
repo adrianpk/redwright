@@ -7,7 +7,13 @@ module ProjectInitialization
 
     def call
       return Result.invalid_command(@command.errors) unless @command.valid?
-      return Result.setup_context_required(@command, missing_slots: @command.missing_context_slots, next_prompt: next_prompt) unless @command.ready_for_repository_resolution?
+      unless @command.ready_for_repository_resolution?
+        return Result.setup_context_required(
+          @command,
+          missing_slots: @command.missing_context_slots,
+          next_prompt_intent: next_prompt_intent
+        )
+      end
 
       resolution = @repository_resolver.new(input: @command.repository_input).call
       return Result.initialization_cancelled(@command) if resolution[:status] == :cancelled
@@ -18,11 +24,21 @@ module ProjectInitialization
 
     private
 
-    def next_prompt
-      return "What should we call this project?" if @command.project_name.empty?
-      return "What should this project do first?" if @command.description.empty?
+    def next_prompt_intent
+      slot = if @command.project_name.empty?
+               "project_name"
+             elsif @command.description.empty?
+               "description"
+             else
+               "stack"
+             end
 
-      "Which stack or framework should this project use? Reply /skip if undecided."
+      {
+        kind: "setup_slot_question",
+        slot: slot,
+        locale: "auto",
+        llm_required: true
+      }
     end
   end
 end

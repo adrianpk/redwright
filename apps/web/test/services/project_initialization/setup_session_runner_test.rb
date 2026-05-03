@@ -80,7 +80,11 @@ module ProjectInitialization
         session = result.setup_session.reload
         assert_equal "open", session.status
         assert_equal "collecting_context", session.current_state
-        assert_equal "Which stack or framework should this project use? Reply /skip if undecided.", session.pending_question
+        assert_nil session.pending_question
+        assert_equal(
+          {"kind" => "setup_slot_question", "slot" => "stack", "locale" => "auto", "llm_required" => true},
+          session.metadata.fetch("next_prompt_intent")
+        )
         assert_nil session.project
         assert_equal "Notes CLI", session.setup_slot(:project_name).fetch("value")
         assert_equal "A small local notes manager", session.setup_slot(:description).fetch("value")
@@ -97,7 +101,11 @@ module ProjectInitialization
         assert_equal :setup_context_required, result.status
         session = result.setup_session.reload
         assert_equal "collecting_context", session.current_state
-        assert_equal "What should we call this project?", session.pending_question
+        assert_nil session.pending_question
+        assert_equal(
+          {"kind" => "setup_slot_question", "slot" => "project_name", "locale" => "auto", "llm_required" => true},
+          session.metadata.fetch("next_prompt_intent")
+        )
         assert_equal({}, session.setup_slots)
       end
     end

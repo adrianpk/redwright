@@ -52,7 +52,7 @@ module ProjectInitialization
       )
     end
 
-    def self.setup_context_required(command, missing_slots:, next_prompt:)
+    def self.setup_context_required(command, missing_slots:, next_prompt_intent:)
       new(
         status: :setup_context_required,
         next_action: :collect_setup_context,
@@ -68,7 +68,7 @@ module ProjectInitialization
         },
         guided_alignment: {
           requested: command.guided_alignment,
-          next_prompt: next_prompt
+          next_prompt_intent: next_prompt_intent
         },
         errors: {}
       )

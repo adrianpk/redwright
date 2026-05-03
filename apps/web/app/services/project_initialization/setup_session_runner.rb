@@ -62,7 +62,10 @@ module ProjectInitialization
 
         case orchestration.status
         when :setup_context_required
-          session.update!(pending_question: orchestration.guided_alignment[:next_prompt])
+          session.metadata = session.metadata.merge(
+            "next_prompt_intent" => stringify_hash(orchestration.guided_alignment[:next_prompt_intent])
+          )
+          session.save!
           result(orchestration, setup_session: session)
         when :initialization_cancelled
           machine.transition_to!("cancelled", terminal_reason: "cancelled_by_user")
@@ -110,6 +113,12 @@ module ProjectInitialization
       return if value.to_s.strip.empty?
 
       session.assign_setup_slot(key: key, value: value, source: source)
+    end
+
+    def stringify_hash(value)
+      return {} unless value.is_a?(Hash)
+
+      value.to_h.transform_keys(&:to_s)
     end
 
     def execute_resolved_repository!(orchestration:, session:, machine:)

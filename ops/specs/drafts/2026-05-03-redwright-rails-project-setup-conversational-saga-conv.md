@@ -32,6 +32,7 @@ Curated discussion log supporting the Rails project setup conversational saga dr
 - Keep Rails as the source of truth and keep ActiveRecord models/services as the invariant layer.
 - Keep Telegram as an adapter that translates Telegram messages into Rails command/query requests and renders Rails responses.
 - Use a two-phase loop: deterministic canonical slots first, adaptive LLM refinement second, while preserving one simple user conversation.
+- Represent the next question as semantic prompt intent and let the configured LLM render localized human wording.
 - Persist in-progress canonical answers in `ProjectSetupSession.metadata` and audit each turn in `ProjectSetupTurn`.
 - Materialize completed setup context into `Project`, weighted `ProjectAttribute` rows, `Document` summaries, board/ticket artifacts, and runtime bridge settings.
 
@@ -39,6 +40,7 @@ Curated discussion log supporting the Rails project setup conversational saga dr
 - Repository input must be optional and skippable.
 - `/project new` must start even without arguments.
 - The first user-facing prompt should ask for missing setup context, not repository syntax unless repository import is the active need.
+- Fixed slot questions are stable semantically, not fixed as literal text; final wording is LLM-rendered and should follow the user's language.
 - The web UI can remain idiomatic Rails while sharing services with the API path.
 - Agents should operate visible workflow through Rails command/query APIs, not through adapter-local state.
 

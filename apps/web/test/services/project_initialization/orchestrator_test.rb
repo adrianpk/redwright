@@ -10,7 +10,10 @@ module ProjectInitialization
       assert_equal :setup_context_required, result.status
       assert_equal :collect_setup_context, result.next_action
       assert_equal ["project_name"], result.project[:missing_slots]
-      assert_equal "What should we call this project?", result.guided_alignment[:next_prompt]
+      assert_equal(
+        {kind: "setup_slot_question", slot: "project_name", locale: "auto", llm_required: true},
+        result.guided_alignment[:next_prompt_intent]
+      )
       assert_equal({}, result.errors)
     end
 
@@ -31,7 +34,10 @@ module ProjectInitialization
       assert_equal "A small local notes manager", result.project[:description]
       assert_equal "", result.repository[:input]
       assert_equal false, result.repository[:required]
-      assert_equal "Which stack or framework should this project use? Reply /skip if undecided.", result.guided_alignment[:next_prompt]
+      assert_equal(
+        {kind: "setup_slot_question", slot: "stack", locale: "auto", llm_required: true},
+        result.guided_alignment[:next_prompt_intent]
+      )
     end
 
     test "returns repository resolved for explicit repository input" do

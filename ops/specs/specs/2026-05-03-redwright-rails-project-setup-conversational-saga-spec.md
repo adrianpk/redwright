@@ -193,6 +193,12 @@ Compatibility states from the prior saga may remain during migration, but user-f
 
 ## Prompt Contract
 
+Rails services must select the next semantic prompt intent deterministically. The prompt intent includes the target slot, response language policy, and rendering requirements.
+
+The final user-facing question text must be generated through the configured LLM. It must not be hardcoded as literal UI text and must not be varied by a random factor. The LLM prompt should bias the answer toward the selected semantic slot and a structured JSON response while allowing natural wording.
+
+When the user's language can be inferred from the current turn or conversation context, the generated prompt must use that language. For example, a Croatian setup request should receive Croatian setup questions.
+
 Default Telegram prompts must include:
 
 - what the system understood, when useful

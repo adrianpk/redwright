@@ -186,6 +186,7 @@ module ProjectSetup
         "project_id" => session&.project_id || result.project[:id],
         "state" => session&.current_state,
         "next_prompt" => session&.pending_question,
+        "next_prompt_intent" => next_prompt_intent_from(session, result),
         "summary" => setup_summary_from(result),
         "repository" => string_keyed(result.repository),
         "project" => string_keyed(result.project),
@@ -256,6 +257,7 @@ module ProjectSetup
         "project_id" => session.project_id,
         "state" => session.current_state,
         "next_prompt" => session.pending_question,
+        "next_prompt_intent" => session.metadata["next_prompt_intent"] || {},
         "summary" => summary,
         "repository_input" => session.repository_input,
         "resolved_repository" => session.resolved_repository,
@@ -276,6 +278,16 @@ module ProjectSetup
         effects: result.effects,
         errors: result.errors
       )
+    end
+
+    def next_prompt_intent_from(session, result)
+      return {} unless session
+
+      stored = session.metadata["next_prompt_intent"]
+      return stored if stored.is_a?(Hash)
+
+      intent = result.guided_alignment[:next_prompt_intent]
+      intent.is_a?(Hash) ? intent.transform_keys(&:to_s) : {}
     end
 
     def project_data(project)
