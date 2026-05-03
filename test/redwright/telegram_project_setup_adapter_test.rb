@@ -337,6 +337,7 @@ class TelegramProjectSetupAdapterTest < Minitest::Test
                 "status" => "ready",
                 "materialization" => {
                   "status" => "materialized",
+                  "validation_status" => "skipped",
                   "workspace" => {"relative_path" => "_workspace/Projects/happy-cli"}
                 },
                 "initial_implementation" => {"status" => "not_started", "runnable" => false},
@@ -357,6 +358,7 @@ class TelegramProjectSetupAdapterTest < Minitest::Test
     assert_match("Active Rails project: happy-cli (70)", current.message)
     assert_match("Repository: https://github.com/acme/happy-cli.git", current.message)
     assert_match("Setup stage: ticket operation", current.message)
+    assert_match("Validation: skipped", current.message)
     assert_match("Workspace: _workspace/Projects/happy-cli", current.message)
   end
 

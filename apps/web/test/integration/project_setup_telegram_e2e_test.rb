@@ -111,7 +111,7 @@ class ProjectSetupTelegramE2eTest < ActiveSupport::TestCase
     assert_equal "SQLite", project.project_attributes.find_by!(key: "setup_context.libraries").value
   end
 
-  test "telegram completion creates local workspace manifest and avoids shortcode artifacts" do
+  test "telegram completion creates planned fallback workspace and avoids shortcode artifacts" do
     with_local_projects_root do |projects_root|
       adapter = adapter_for_chat
 
@@ -148,7 +148,51 @@ class ProjectSetupTelegramE2eTest < ActiveSupport::TestCase
       assert_equal "skipped", manifest.dig("validation", "status")
       assert File.file?(workspace.fetch("readme_path"))
       assert File.file?(workspace.fetch("setup_notes_path"))
+      refute File.exist?(File.join(workspace.fetch("path"), "go.mod"))
       assert_match "Initial implementation: planned", completed.message
+      assert_match "Runnable: no", completed.message
+      assert_match "Validation: skipped", completed.message
+    end
+  end
+
+  test "telegram go cli setup creates scaffold and reports closure outcome" do
+    with_local_projects_root do |projects_root|
+      adapter = adapter_for_chat
+
+      start = adapter.handle(event(1, '/project new go-telegram "A small Go CLI for setup closure"'), trace_id: "trc-telegram-e2e")
+      type = adapter.handle(event(2, "CLI"), trace_id: "trc-telegram-e2e")
+      language = adapter.handle(event(3, "Go 1.22"), trace_id: "trc-telegram-e2e")
+      framework = adapter.handle(event(4, "none"), trace_id: "trc-telegram-e2e")
+      completed = adapter.handle(event(5, "standard library"), trace_id: "trc-telegram-e2e")
+
+      assert start.handled?
+      assert type.handled?
+      assert language.handled?
+      assert framework.handled?
+      assert completed.handled?
+      assert_match "Project setup is complete.", completed.message
+      assert_match "_workspace/Projects/go-telegram", completed.message
+      assert_match "Initial implementation: scaffolded", completed.message
+      assert_match(/Materialization: materialized (runnable|scaffolded|failed)/, completed.message)
+      assert_match(/Runnable: (yes|no)/, completed.message)
+      assert_match(/Validation: (passed|skipped|failed)/, completed.message)
+
+      workspace = completed.api_response.dig("data", "workspace")
+      assert_equal File.join(projects_root, "go-telegram"), workspace.fetch("path")
+      assert_equal "go_cli", workspace.fetch("scaffold_profile")
+      assert_equal %w[go.mod main.go main_test.go], workspace.fetch("scaffold_files")
+      assert File.file?(File.join(workspace.fetch("path"), "go.mod"))
+      assert File.file?(File.join(workspace.fetch("path"), "main.go"))
+      assert File.file?(File.join(workspace.fetch("path"), "main_test.go"))
+
+      manifest = YAML.safe_load(File.read(workspace.fetch("manifest_path")))
+      assert_equal "go_cli", manifest.dig("scaffold", "profile")
+      assert_equal "example.com/redwright/go-telegram", manifest.dig("scaffold", "module_path")
+      assert_equal %w[go.mod main.go main_test.go], manifest.dig("scaffold", "files")
+      assert_includes %w[passed skipped failed], manifest.dig("validation", "status")
+      assert_equal manifest.dig("validation", "status"), workspace.fetch("validation_status")
+      assert_equal manifest.dig("materialization", "runnable"), workspace.fetch("runnable")
+      assert_equal workspace.fetch("materialization_status"), completed.api_response.dig("data", "setup_saga", "materialization", "status")
     end
   end
 
