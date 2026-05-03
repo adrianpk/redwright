@@ -41,7 +41,8 @@ module ProjectSetup
       FileUtils.mkdir_p(manifest_dir)
       write_scaffold_files(path) if scaffold_profile?
       @validation_result = validate_scaffold(path)
-      File.write(manifest_path, YAML.dump(manifest_payload(manifest_path: manifest_path)))
+      protocol_materialization = materialize_project_protocols(path)
+      File.write(manifest_path, YAML.dump(manifest_payload(manifest_path: manifest_path, protocol_materialization: protocol_materialization)))
       File.write(readme_path, readme_body)
       File.write(setup_notes_path, setup_notes_body)
 
@@ -62,6 +63,8 @@ module ProjectSetup
         "readme_relative_path" => File.join(DEFAULT_RELATIVE_ROOT, slug, "README.md"),
         "setup_notes_path" => setup_notes_path,
         "setup_notes_relative_path" => File.join(DEFAULT_RELATIVE_ROOT, slug, ".redwright", "setup-notes.md"),
+        "protocol_materialization_status" => protocol_materialization.fetch("status"),
+        "protocol_files" => protocol_materialization.fetch("files"),
         "runtime_root_path" => @project.root_path,
         "repo_url" => @project.repo_url,
         "scaffold_profile" => scaffold_profile_key,
@@ -114,7 +117,7 @@ module ProjectSetup
       slug.downcase.gsub(/[^a-z0-9._-]+/, "-").gsub(/\A-+|-+\z/, "")
     end
 
-    def manifest_payload(manifest_path:)
+    def manifest_payload(manifest_path:, protocol_materialization:)
       existing = existing_manifest(manifest_path)
       created_at = existing.dig("project", "created_at").presence || Time.current.utc.iso8601
 
@@ -149,6 +152,7 @@ module ProjectSetup
         },
         "scaffold" => scaffold_payload,
         "validation" => validation_payload,
+        "protocols" => protocols_payload(protocol_materialization),
         "runtime" => {
           "container_profile" => slot_value("runtime_container_profile")
         },
@@ -167,6 +171,13 @@ module ProjectSetup
         File.write(File.join(path, "main.go"), go_main_body)
         File.write(File.join(path, "main_test.go"), go_main_test_body)
       end
+    end
+
+    def materialize_project_protocols(path)
+      ProjectProtocols::FilesystemMaterializer.new(
+        project: @project,
+        workspace_path: path
+      ).call
     end
 
     def readme_body
@@ -269,6 +280,15 @@ module ProjectSetup
         "runtime_container_id" => @project.runtime_container&.id,
         "state" => @project.runtime_container_state,
         "readiness_ticket_id" => @runtime_containers_readiness_ticket&.id
+      }
+    end
+
+    def protocols_payload(protocol_materialization)
+      {
+        "status" => protocol_materialization.fetch("status"),
+        "root_entrypoint" => protocol_materialization.fetch("root_entrypoint"),
+        "files" => protocol_materialization.fetch("files"),
+        "state" => @project.reload.protocol_state
       }
     end
 
