@@ -49,7 +49,7 @@ Validation:
 
 - status: `reviewing`
 - branch: `fix/slice-2-project-setup-saga-state`
-- PR: `pending`
+- PR: `https://codeberg.org/adrianpk/redwright/pulls/264`
 - merge_target: `dev`
 - last_sync_commit: `ec38edf`
 
@@ -68,6 +68,7 @@ Commits:
 - [x] `b810034 feat(web): expose project setup saga status`
 - [x] `af81afa feat(telegram): render project setup saga status`
 - [x] `dbc1f70 test(integration): cover setup saga query status`
+- [x] `02194ff docs(ops): track slice 2 saga state`
 
 Validation:
 
@@ -162,3 +163,4 @@ Validation:
 - `2026-05-03` state=`slice_1_reviewing` note=`rebased Slice 1 on origin/dev@85c9afb after typing-indicator and planning PRs were merged or closed, added setup prompt LLM traces and semantic slot normalization, and validated syntax, Rails tests, and repository coverage`
 - `2026-05-03` state=`slice_1_reviewing` note=`opened Slice 1 PR #263 against dev with no reported conflicts`
 - `2026-05-03` state=`slice_2_reviewing` note=`started from origin/dev@ec38edf after Slice 1 merge, added persisted setup saga state, exposed it through Rails command/query responses, rendered it in /project where, and validated full Rails tests plus repository coverage`
+- `2026-05-03` state=`slice_2_reviewing` note=`opened Slice 2 PR #264 against dev with no reported conflicts`
