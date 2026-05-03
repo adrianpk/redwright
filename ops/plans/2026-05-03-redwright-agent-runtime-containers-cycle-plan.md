@@ -84,16 +84,16 @@
 
 ### Slice 4: Ticket Execution Runtime Readiness Gate
 
-- status: `planned`
+- status: `implemented`
 - branch: `fix/slice-4-runtime-containers-ticket-gate`
 - pr_title: `feat(slice-4): runtime containers ticket gate`
 - objective: `make ticket execution resolve Runtime Containers readiness before sandbox-required agent work starts`
 - tasks:
-- [ ] `T4.1 extend ticket execution context with Runtime Containers configuration references`
-- [ ] `T4.2 add readiness gate for sandbox-required execution`
-- [ ] `T4.3 return structured readiness problems for missing, blocked, not-ready, and stale validation states`
-- [ ] `T4.4 render operator-safe readiness messages through Telegram or runtime adapter paths where applicable`
-- [ ] `T4.5 add tests for ready, missing, blocked, not-ready, and validation-stale execution paths`
+- [x] `T4.1 extend ticket execution context with Runtime Containers configuration references`
+- [x] `T4.2 add readiness gate for sandbox-required execution`
+- [x] `T4.3 return structured readiness problems for missing, blocked, not-ready, and stale validation states`
+- [x] `T4.4 render operator-safe readiness messages through Telegram or runtime adapter paths where applicable`
+- [x] `T4.5 add tests for ready, missing, blocked, not-ready, and validation-stale execution paths`
 - acceptance:
 - `ticket execution can resolve the project Runtime Containers configuration`
 - `sandbox-required work does not start without ready Runtime Containers`

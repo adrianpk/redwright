@@ -4,9 +4,9 @@
 
 - cycle_id: `cycle-2026-05-03-redwright-agent-runtime-containers`
 - status: `in_progress`
-- state: `slice_3_merged`
+- state: `slice_4_implemented`
 - updated: `2026-05-03`
-- active_slice: `none`
+- active_slice: `Slice 4`
 - active_task: `none`
 - source_plan: `ops/plans/2026-05-03-redwright-agent-runtime-containers-cycle-plan.md`
 - source_spec: `ops/specs/specs/2026-05-03-redwright-agent-runtime-containers-spec.md`
@@ -113,27 +113,30 @@ Validation:
 
 ### Slice 4: Ticket Execution Runtime Readiness Gate
 
-- status: `planned`
+- status: `implemented`
 - branch: `fix/slice-4-runtime-containers-ticket-gate`
 - PR: `pending`
 - merge_target: `dev`
-- last_sync_commit: `pending`
+- last_sync_commit: `a17bfb9`
 
 Tasks:
 
-- [ ] `T4.1 extend ticket execution context with Runtime Containers configuration references`
-- [ ] `T4.2 add readiness gate for sandbox-required execution`
-- [ ] `T4.3 return structured readiness problems for missing, blocked, not-ready, and stale validation states`
-- [ ] `T4.4 render operator-safe readiness messages through Telegram or runtime adapter paths where applicable`
-- [ ] `T4.5 add tests for ready, missing, blocked, not-ready, and validation-stale execution paths`
+- [x] `T4.1 extend ticket execution context with Runtime Containers configuration references`
+- [x] `T4.2 add readiness gate for sandbox-required execution`
+- [x] `T4.3 return structured readiness problems for missing, blocked, not-ready, and stale validation states`
+- [x] `T4.4 render operator-safe readiness messages through Telegram or runtime adapter paths where applicable`
+- [x] `T4.5 add tests for ready, missing, blocked, not-ready, and validation-stale execution paths`
 
 Commits:
 
-- [ ] `pending`
+- [x] `a623064 feat(runtime): resolve runtime containers context`
+- [x] `fba3dcb feat(web): gate tickets on runtime containers readiness`
+- [x] `a17bfb9 test(integration): cover runtime containers ticket gate`
 
 Validation:
 
-- [ ] `pending`
+- [x] `bundle exec bin/rails test test/services/runtime_containers/execution_readiness_test.rb test/services/runtime_bridge/ticket_execution_bridge_test.rb test/services/board_workflow/command_query_handlers_test.rb test/services/project_setup/setup_runtime_bridge_integration_test.rb test/controllers/api/v1/command_queries_controller_test.rb` (pass)
+- [x] `bundle exec bin/rails test` (pass)
 
 ### Slice 5: Setup Integration and Cycle Closure
 
@@ -179,3 +182,4 @@ Validation:
 - `2026-05-03` state=`slice_2_merged` note=`PR #270 merged into dev; Slice 2 is closed and Slice 3 remains pending explicit start`
 - `2026-05-03` state=`slice_3_implemented` note=`implemented Runtime Containers update, regeneration proposal, comparison, validation recording, readiness policy, and targeted/full Rails validation on fix/slice-3-runtime-containers-management`
 - `2026-05-03` state=`slice_3_merged` note=`PR #271 merged into dev; Slice 3 is closed and Slice 4 remains pending explicit start`
+- `2026-05-03` state=`slice_4_implemented` note=`implemented Runtime Containers execution context resolution, sandbox-required ticket gate, structured readiness problems, operator-safe messages, and targeted/full Rails validation on fix/slice-4-runtime-containers-ticket-gate`
