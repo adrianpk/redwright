@@ -52,6 +52,7 @@ module ProjectSetup
       assert completion.ok?
 
       ticket = Ticket.find(completion.data.fetch("starter_ticket_id"))
+      runtime_container = create_ready_runtime_container(ticket.project)
       client = FakeRuntimeClient.new
       result = RuntimeBridge::TicketExecutionBridge.new(client: client).start(
         ticket: ticket,
@@ -66,11 +67,30 @@ module ProjectSetup
       assert_equal "SQLite", payload.dig("runtime_context", "libraries")
       assert_equal "agent_assisted", payload.dig("runtime_context", "agent_workflow_mode")
       assert_equal "ephemeral_docker", payload.dig("runtime_context", "container_profile")
+      assert_equal runtime_container.id, payload.dig("runtime_context", "runtime_containers", "configuration_id")
       assert_equal ticket.id, payload.dig("rails", "ticket_id")
       assert_equal completion.session.project_id, payload.dig("rails", "project_id")
     end
 
     private
+
+    def create_ready_runtime_container(project)
+      project.create_runtime_container!(
+        profile: "ephemeral_docker",
+        status: "active",
+        readiness: "ready",
+        base_image: "ruby:3.4",
+        runtime_name: "ruby",
+        runtime_version: "3.4",
+        working_directory: "/workspace",
+        repository_mount: {"strategy" => "bind", "target" => "/workspace"},
+        test_commands: ["bundle exec rails test"],
+        validation_command: "bundle exec rails test",
+        validation_status: "passed",
+        generated_files: [{"path" => "Dockerfile", "status" => "accepted"}],
+        provenance: {"generated_files_decision" => "accepted"}
+      )
+    end
 
     def prompt_intent(slot)
       {

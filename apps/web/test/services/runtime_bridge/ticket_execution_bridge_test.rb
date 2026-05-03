@@ -22,6 +22,7 @@ module RuntimeBridge
 
     test "builds runtime send request from rails ticket context" do
       ticket = ticket_with_document
+      runtime_container = create_ready_runtime_container(ticket.project)
       client = FakeRuntimeClient.new(
         payload: {
           "status" => "ok",
@@ -53,12 +54,35 @@ module RuntimeBridge
       assert_equal "Rails", payload.dig("runtime_context", "framework")
       assert_equal "SQLite", payload.dig("runtime_context", "libraries")
       assert_equal "ephemeral_docker", payload.dig("runtime_context", "container_profile")
+      assert_equal runtime_container.id, payload.dig("runtime_context", "runtime_containers", "configuration_id")
+      assert_equal "ready", payload.dig("runtime_context", "runtime_containers", "readiness")
+      assert_equal ["bundle exec rails test"], payload.dig("runtime_context", "runtime_containers", "execution_commands", "test")
       assert_equal "Ruby 3.4", payload.dig("project_setup_context", "slots", "language_runtime", "value")
       assert_equal ticket.id, payload.dig("rails", "ticket_id")
+      assert_equal runtime_container.id, payload.dig("rails", "runtime_containers", "configuration_id")
       assert_equal "Rails", payload.dig("rails", "project_setup_context", "slots", "framework", "value")
       assert_includes payload.fetch("message"), "Start Rails ticket ##{ticket.id}: #{ticket.title}"
       assert_includes payload.fetch("message"), "Runtime context: Ruby 3.4 / Rails / ephemeral_docker"
+      assert_includes payload.fetch("message"), "Runtime Containers: ##{runtime_container.id} ready / passed"
       assert_includes payload.fetch("message"), "reference: Bridge Draft"
+    end
+
+    test "does not call runtime when runtime containers are missing" do
+      ticket = ticket_with_document
+      client = FakeRuntimeClient.new(payload: {"status" => "ok"})
+
+      result = TicketExecutionBridge.new(client: client).start(
+        ticket: ticket,
+        request_id: "req-runtime-missing",
+        actor_identifier: "api:test"
+      )
+
+      assert_not result.ok?
+      assert_equal "failed", result.status
+      assert_equal "runtime_containers_missing", result.error_code
+      assert_empty client.requests
+      assert_equal "runtime_containers_missing", result.error_details.dig("readiness_problems", 0, "code")
+      assert_equal "missing", result.error_details.dig("runtime_containers", "readiness")
     end
 
     private
@@ -79,6 +103,24 @@ module RuntimeBridge
       )
       ticket.ticket_document_links.create!(document: draft, role: "reference")
       ticket
+    end
+
+    def create_ready_runtime_container(project)
+      project.create_runtime_container!(
+        profile: "ephemeral_docker",
+        status: "active",
+        readiness: "ready",
+        base_image: "ruby:3.4",
+        runtime_name: "ruby",
+        runtime_version: "3.4",
+        working_directory: "/workspace",
+        repository_mount: {"strategy" => "bind", "target" => "/workspace"},
+        test_commands: ["bundle exec rails test"],
+        validation_command: "bundle exec rails test",
+        validation_status: "passed",
+        generated_files: [{"path" => "Dockerfile", "status" => "accepted"}],
+        provenance: {"generated_files_decision" => "accepted"}
+      )
     end
   end
 end

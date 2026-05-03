@@ -130,7 +130,47 @@ module BoardWorkflow
       assert_equal "test:board", bridge.actor_identifier
     end
 
+    test "returns structured readiness details when ticket execution is gated" do
+      board = create_board(project_key: "board-api-execution-gated-#{SecureRandom.hex(4)}")
+      backlog = board.columns.create!(key: "backlog", title: "Backlog", position: 0)
+      ticket = board.tickets.create!(column: backlog, title: "Gated ticket")
+      client = FakeRuntimeClient.new
+      dispatcher = CommandQuery::Dispatcher.new
+      CommandQueryHandlers.new(
+        ticket_execution_bridge: RuntimeBridge::TicketExecutionBridge.new(client: client)
+      ).register(dispatcher)
+
+      result = dispatcher.call(command("StartTicketExecution", {
+        ticket_id: ticket.id
+      }, request_id: "req-start-gated-execution"))
+
+      assert result.error?
+      assert_equal "runtime_containers_missing", result.errors.first.fetch(:code)
+      assert_equal "ticket_execution_failed", result.effects.first.fetch("type")
+      assert_empty client.requests
+      ticket.reload
+      assert_equal "failed", ticket.runtime_execution_status
+      assert_includes ticket.runtime_execution_error, "Runtime Containers are not ready"
+      details = result.errors.first.fetch(:details)
+      assert_equal ticket.id, details.fetch("ticket_id")
+      assert_equal "missing", details.dig("runtime_containers", "readiness")
+      assert_equal "runtime_containers_missing", details.dig("readiness_problems", 0, "code")
+    end
+
     private
+
+    class FakeRuntimeClient
+      attr_reader :requests
+
+      def initialize
+        @requests = []
+      end
+
+      def request(type:, session_id:, payload:)
+        @requests << {"type" => type, "session_id" => session_id, "payload" => payload}
+        {"type" => "ack", "session_id" => session_id, "payload" => {"status" => "ok"}}
+      end
+    end
 
     class FakeTicketExecutionBridge
       attr_reader :actor_identifier

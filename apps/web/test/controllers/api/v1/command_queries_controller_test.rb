@@ -745,6 +745,7 @@ class Api::V1::CommandQueriesControllerTest < ActionDispatch::IntegrationTest
     board = create_board(project_key: "api-runtime-#{SecureRandom.hex(4)}")
     backlog = board.columns.create!(key: "backlog", title: "Backlog", position: 0)
     ticket = board.tickets.create!(column: backlog, title: "Runtime API Ticket", priority: :high)
+    runtime_container = create_ready_runtime_container(board.project)
     captured_request = nil
 
     with_runtime_socket_response(
@@ -780,6 +781,7 @@ class Api::V1::CommandQueriesControllerTest < ActionDispatch::IntegrationTest
     assert_equal "task-api", ticket.runtime_task_id
     assert_equal "executing", ticket.runtime_state
     assert_equal ticket.id, captured_request.dig("payload", "rails", "ticket_id")
+    assert_equal runtime_container.id, captured_request.dig("payload", "runtime_context", "runtime_containers", "configuration_id")
     assert_includes captured_request.dig("payload", "message"), "Runtime API Ticket"
   end
 
@@ -828,6 +830,24 @@ class Api::V1::CommandQueriesControllerTest < ActionDispatch::IntegrationTest
         ENV["REDWRIGHT_LOCAL_PROJECTS_ROOT"] = previous
       end
     end
+  end
+
+  def create_ready_runtime_container(project)
+    project.create_runtime_container!(
+      profile: "ephemeral_docker",
+      status: "active",
+      readiness: "ready",
+      base_image: "ruby:3.4",
+      runtime_name: "ruby",
+      runtime_version: "3.4",
+      working_directory: "/workspace",
+      repository_mount: {"strategy" => "bind", "target" => "/workspace"},
+      test_commands: ["bundle exec rails test"],
+      validation_command: "bundle exec rails test",
+      validation_status: "passed",
+      generated_files: [{"path" => "Dockerfile", "status" => "accepted"}],
+      provenance: {"generated_files_decision" => "accepted"}
+    )
   end
 
   def with_runtime_socket_response(payload)
