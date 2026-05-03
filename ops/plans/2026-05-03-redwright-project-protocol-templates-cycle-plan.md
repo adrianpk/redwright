@@ -61,7 +61,7 @@
 
 ### Slice 3: Setup-Time Protocol Generation
 
-- status: `pr_open`
+- status: `merged`
 - branch: `fix/slice-3-project-protocol-setup`
 - pr_title: `feat(slice-3): setup project protocols`
 - objective: `make /project new always create an initial Project Protocol from defaults, overlays, and minimal generated fallback when necessary`

@@ -4,7 +4,7 @@
 
 - cycle_id: `cycle-2026-05-03-redwright-project-protocol-templates`
 - status: `in_progress`
-- state: `slice_3_pr_open`
+- state: `slice_3_merged`
 - updated: `2026-05-03`
 - active_slice: `none`
 - active_task: `none`
@@ -79,9 +79,9 @@ Validation:
 
 ### Slice 3: Setup-Time Protocol Generation
 
-- status: `pr_open`
+- status: `merged`
 - branch: `fix/slice-3-project-protocol-setup`
-- PR: `#276 https://codeberg.org/adrianpk/redwright/pulls/276`
+- PR: `#276 https://codeberg.org/adrianpk/redwright/pulls/276 merged into dev`
 - merge_target: `dev`
 - last_sync_commit: `5bb6774`
 
@@ -211,3 +211,4 @@ Validation:
 - `2026-05-03` state=`slice_2_merged` note=`PR #275 merged into dev; Slice 2 is closed and Slice 3 moved into implementation`
 - `2026-05-03` state=`slice_3_implemented` note=`implemented setup-time protocol initialization, protocol generation/session metadata exposure, library-aware overlay resolution, fallback protocol persistence, targeted setup validation, and full Rails validation on fix/slice-3-project-protocol-setup`
 - `2026-05-03` state=`slice_3_pr_open` note=`opened Codeberg PR #276 from fix/slice-3-project-protocol-setup into dev`
+- `2026-05-03` state=`slice_3_merged` note=`PR #276 merged into dev; Slice 3 is closed and Slice 4 remains pending explicit start`
