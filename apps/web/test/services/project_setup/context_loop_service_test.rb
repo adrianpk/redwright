@@ -220,19 +220,21 @@ module ProjectSetup
       assert_equal "ruby-3.4", session.project.stack_slug
       assert session.project.documents.exists?(title: "Project Setup Summary", artifact_type: "draft")
       assert_equal %w[backlog in_progress review approved merged], session.project.boards.first.columns.order(:position).pluck(:key)
-      assert_empty session.project.tickets_scope
+      ticket = session.project.tickets_scope.find_by!(title: "Prepare initial implementation plan")
+      assert_equal result.data.fetch("starter_ticket_id"), ticket.id
       assert_includes result.effects.map { |effect| effect.fetch("type") }, "setup_context_materialized"
       saga = session.metadata.fetch("setup_saga")
       assert_equal "ticket_operation", saga.fetch("stage")
       assert_equal "ready", saga.fetch("status")
       assert_equal "completed", saga.fetch("questionnaire").fetch("status")
-      assert_equal "materialized", saga.fetch("materialization").fetch("status")
+      assert_equal "materialized_planned", saga.fetch("materialization").fetch("status")
       assert_equal false, saga.fetch("initial_implementation").fetch("runnable")
-      assert_equal "not_started", saga.fetch("initial_implementation").fetch("status")
+      assert_equal "planned", saga.fetch("initial_implementation").fetch("status")
+      assert_equal [ticket.id], saga.fetch("initial_implementation").fetch("linked_ticket_ids")
       assert_equal "available", saga.fetch("ticket_operation").fetch("status")
     end
 
-    test "creates starter workflow ticket when setup requests agent workflow" do
+    test "creates starter implementation ticket for planned fallback" do
       session = context_session
       session.assign_setup_slot(key: "project_name", value: "starter-flow", source: "payload")
       session.assign_setup_slot(key: "description", value: "A small service for starter workflow coverage.", source: "payload")
@@ -248,7 +250,6 @@ module ProjectSetup
         answer: "SQLite",
         normalized_fields: {
           "libraries" => "SQLite",
-          "agent_workflow_mode" => "agent_assisted",
           "runtime_container_profile" => "ephemeral_docker"
         },
         source_channel: "telegram",
@@ -263,7 +264,7 @@ module ProjectSetup
       assert_equal "backlog", ticket.column.key
       assert_equal "agent-coder", ticket.assignee
       assert_equal ["Project Setup Summary"], ticket.documents.pluck(:title)
-      assert_equal "agent_assisted", project.project_attributes.find_by!(key: "setup_context.agent_workflow_mode").value
+      assert_match "Materialization outcome: materialized_planned", ticket.description
       assert_includes result.effects.map { |effect| effect.fetch("type") }, "setup_starter_ticket_written"
     end
 
@@ -394,6 +395,16 @@ module ProjectSetup
         assert_equal "Ruby 3.4", manifest.dig("setup_context", "slots", "language_runtime", "value")
         assert_equal "Thor and SQLite", manifest.dig("setup_context", "slots", "libraries", "value")
         assert_equal "service objects", manifest.dig("setup_context", "slots", "patterns", "value")
+        assert_equal "materialized_planned", manifest.dig("materialization", "status")
+        assert_equal false, manifest.dig("materialization", "runnable")
+        assert_equal "no runnable scaffold profile exists for this setup context yet", manifest.dig("materialization", "reason")
+        assert_equal "planned", manifest.dig("initial_implementation", "status")
+        assert_equal result.data.fetch("starter_ticket_id"), manifest.dig("initial_implementation", "linked_ticket_ids").first
+        assert_equal "skipped", manifest.dig("validation", "status")
+        assert File.file?(workspace.fetch("readme_path"))
+        assert File.file?(workspace.fetch("setup_notes_path"))
+        assert_includes File.read(workspace.fetch("readme_path")), "Materialization: materialized_planned"
+        assert_includes File.read(workspace.fetch("setup_notes_path")), "Initial implementation status: planned"
         assert_equal workspace, result.session.metadata.fetch("workspace")
         assert_includes result.effects.map { |effect| effect.fetch("type") }, "local_workspace_materialized"
       end
@@ -416,13 +427,19 @@ module ProjectSetup
           request_id: "req-context-service-workspace-replay"
         )
         manifest_path = first.data.fetch("workspace").fetch("manifest_path")
+        readme_path = first.data.fetch("workspace").fetch("readme_path")
+        setup_notes_path = first.data.fetch("workspace").fetch("setup_notes_path")
         first_manifest = File.read(manifest_path)
+        first_readme = File.read(readme_path)
+        first_setup_notes = File.read(setup_notes_path)
 
         replay = service.replay(request_id: "req-context-service-workspace-replay")
 
         assert replay.ok?
         assert_equal first.data.fetch("workspace"), replay.data.fetch("workspace")
         assert_equal first_manifest, File.read(manifest_path)
+        assert_equal first_readme, File.read(readme_path)
+        assert_equal first_setup_notes, File.read(setup_notes_path)
         assert_equal ["project_setup_turn_reused", "project_setup_completion_reused"], replay.effects.map { |effect| effect.fetch("type") }
       end
     end

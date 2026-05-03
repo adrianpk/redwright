@@ -21,7 +21,10 @@ class ProjectSetupConversationalE2eTest < ActionDispatch::IntegrationTest
     assert_equal "Project initialized from conversational setup.", session.setup_slot("description").fetch("value")
     assert_equal "defaulted", session.setup_slot("runtime_container_profile").fetch("status")
     assert_equal "manual", session.setup_slot("agent_workflow_mode").fetch("value")
-    assert_empty session.project.tickets_scope
+    ticket = session.project.tickets_scope.find_by!(title: "Prepare initial implementation plan")
+    assert_equal completed.dig("data", "starter_ticket_id"), ticket.id
+    assert_equal "materialized_planned", completed.dig("setup_saga", "materialization", "status")
+    assert_equal "planned", completed.dig("setup_saga", "initial_implementation", "status")
   end
 
   test "rich setup materializes canonical context and starter workflow ticket" do

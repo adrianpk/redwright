@@ -142,6 +142,13 @@ class ProjectSetupTelegramE2eTest < ActiveSupport::TestCase
       assert_equal "workspace-telegram", manifest.dig("project", "name")
       assert_equal "Ruby 3.4", manifest.dig("setup_context", "slots", "language_runtime", "value")
       assert_equal "Thor and SQLite", manifest.dig("setup_context", "slots", "libraries", "value")
+      assert_equal "materialized_planned", manifest.dig("materialization", "status")
+      assert_equal false, manifest.dig("materialization", "runnable")
+      assert_equal "planned", manifest.dig("initial_implementation", "status")
+      assert_equal "skipped", manifest.dig("validation", "status")
+      assert File.file?(workspace.fetch("readme_path"))
+      assert File.file?(workspace.fetch("setup_notes_path"))
+      assert_match "Initial implementation: planned", completed.message
     end
   end
 

@@ -205,8 +205,9 @@ class Api::V1::CommandQueriesControllerTest < ActionDispatch::IntegrationTest
     assert_equal "Project created; setup completed.", body.fetch("summary")
     assert_equal "completed_without_alignment", body.dig("data", "terminal_reason")
     assert_equal "ticket_operation", body.fetch("setup_saga").fetch("stage")
-    assert_equal "materialized", body.fetch("setup_saga").fetch("materialization").fetch("status")
-    assert_equal "not_started", body.fetch("setup_saga").fetch("initial_implementation").fetch("status")
+    assert_equal "materialized_planned", body.fetch("setup_saga").fetch("materialization").fetch("status")
+    assert_equal "planned", body.fetch("setup_saga").fetch("initial_implementation").fetch("status")
+    assert_equal [body.dig("data", "starter_ticket_id")], body.fetch("setup_saga").fetch("initial_implementation").fetch("linked_ticket_ids")
     assert body.fetch("project_id")
     assert_equal 6, session.reload.turn_counter
     assert_equal "pocket-ledger", session.project.name
@@ -235,6 +236,7 @@ class Api::V1::CommandQueriesControllerTest < ActionDispatch::IntegrationTest
         "setup_context_materialized",
         "setup_summary_document_written",
         "default_board_structure_written",
+        "setup_starter_ticket_written",
         "local_workspace_materialized",
         "project_setup_completed"
       ],

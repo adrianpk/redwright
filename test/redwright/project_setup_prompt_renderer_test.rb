@@ -148,7 +148,9 @@ class ProjectSetupPromptRendererTest < Minitest::Test
             "name" => "workspace-cli"
           },
           "workspace" => {
-            "relative_path" => "_workspace/Projects/workspace-cli"
+            "relative_path" => "_workspace/Projects/workspace-cli",
+            "materialization_status" => "materialized_planned",
+            "initial_implementation_status" => "planned"
           }
         }
       },
@@ -158,6 +160,8 @@ class ProjectSetupPromptRendererTest < Minitest::Test
 
     assert_match "workspace-cli (77)", message
     assert_match "_workspace/Projects/workspace-cli", message
+    assert_match "Materialization: materialized planned.", message
+    assert_match "Initial implementation: planned.", message
     refute_match(/:[a-z0-9_+-]+:/i, message)
   end
 
