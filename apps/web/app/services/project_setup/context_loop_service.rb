@@ -107,6 +107,7 @@ module ProjectSetup
     def record_slot_answer!(answer:, normalized_fields:, source_channel:, request_id:)
       slot_key = current_slot_key || next_slot_key
       return complete_setup!(turn: nil) unless slot_key
+      normalization = normalize_answer(slot_key: slot_key, answer: answer, normalized_fields: normalized_fields)
 
       turn = record_context_turn!(
         question: "setup_slot:#{slot_key}",
@@ -114,18 +115,51 @@ module ProjectSetup
         normalized_fields: turn_fields(
           slot_key: slot_key,
           action: "answer",
-          normalized_fields: normalized_fields,
-          value: normalized_slot_value(slot_key: slot_key, answer: answer, normalized_fields: normalized_fields)
+          normalized_fields: normalized_fields_from(normalization: normalization, original_fields: normalized_fields),
+          value: normalization.value,
+          raw_value: normalization.raw_value,
+          normalization_status: normalization.status,
+          normalization_reason: normalization.normalization_reason
         ),
         source_channel: source_channel,
         request_id: request_id
       )
+      if normalization.ambiguous?
+        session.assign_setup_slot(
+          key: slot_key,
+          value: "",
+          raw_value: answer,
+          source: normalization.source,
+          confidence: normalization.confidence,
+          status: "ambiguous",
+          normalization_reason: normalization.normalization_reason
+        )
+        session.save!
+        store_next_prompt_intent!(slot_key)
+        return success(
+          turn: turn,
+          summary: "Project setup needs a clearer answer.",
+          effects: [
+            turn_recorded_effect(turn),
+            {
+              "type" => "project_setup_prompt_repeated",
+              "session_id" => session.id,
+              "slot" => slot_key
+            }
+          ]
+        )
+      end
+
       session.assign_setup_slot(
         key: slot_key,
-        value: normalized_slot_value(slot_key: slot_key, answer: answer, normalized_fields: normalized_fields),
-        source: "user_answer"
+        value: normalization.value,
+        raw_value: normalization.raw_value,
+        source: normalization.source,
+        confidence: normalization.confidence,
+        status: normalization.status,
+        normalization_reason: normalization.normalization_reason
       )
-      assign_auxiliary_normalized_slots!(current_slot_key: slot_key, normalized_fields: normalized_fields)
+      assign_auxiliary_normalized_slots!(current_slot_key: slot_key, normalized_fields: normalization.slot_updates)
       session.save!
 
       next_slot = next_slot_key
@@ -371,11 +405,14 @@ module ProjectSetup
       )
     end
 
-    def turn_fields(slot_key:, action:, normalized_fields:, value:)
+    def turn_fields(slot_key:, action:, normalized_fields:, value:, raw_value: nil, normalization_status: nil, normalization_reason: nil)
       normalized_fields.to_h.transform_keys(&:to_s).merge(
         "setup_context_slot" => slot_key,
         "setup_context_action" => action,
-        "setup_context_value" => value
+        "setup_context_value" => value,
+        "setup_context_raw_value" => raw_value.nil? ? value : raw_value,
+        "setup_context_normalization_status" => normalization_status.to_s,
+        "setup_context_normalization_reason" => normalization_reason.to_s
       )
     end
 
@@ -471,11 +508,29 @@ module ProjectSetup
       )
     end
 
-    def normalized_slot_value(slot_key:, answer:, normalized_fields:)
-      normalized = normalized_fields.to_h.transform_keys(&:to_s)
-      value = normalized[slot_key]
-      value = normalized["value"] if value.to_s.strip.empty?
-      value.to_s.strip.empty? ? answer : value
+    def normalize_answer(slot_key:, answer:, normalized_fields:)
+      SemanticAnswerNormalizer.new.normalize(
+        slot_key: slot_key,
+        answer: answer,
+        normalized_fields: normalized_fields,
+        setup_context: session.setup_context
+      )
+    end
+
+    def normalized_fields_from(normalization:, original_fields:)
+      original_fields.to_h.transform_keys(&:to_s).merge(
+        "semantic_normalization" => {
+          "slot" => normalization.slot_key,
+          "raw_value" => normalization.raw_value,
+          "value" => normalization.value,
+          "source" => normalization.source,
+          "status" => normalization.status,
+          "confidence" => normalization.confidence,
+          "reason" => normalization.normalization_reason,
+          "slot_updates" => normalization.slot_updates,
+          "warnings" => normalization.warnings
+        }
+      )
     end
 
     def assign_auxiliary_normalized_slots!(current_slot_key:, normalized_fields:)
@@ -487,7 +542,13 @@ module ProjectSetup
         value = normalized[slot_key]
         next if value.to_s.strip.empty?
 
-        session.assign_setup_slot(key: slot_key, value: value, source: "normalized_context")
+        session.assign_setup_slot(
+          key: slot_key,
+          value: value,
+          raw_value: value,
+          source: "normalized_context",
+          normalization_reason: "auxiliary semantic normalization"
+        )
       end
     end
 
@@ -698,7 +759,7 @@ module ProjectSetup
 
     def stack_value_for_project
       framework = slot_value("framework")
-      return framework unless framework.empty? || none_like?(framework) || framework == DEFAULT_FRAMEWORK
+      return framework if usable_stack_value?(framework)
 
       language_runtime = slot_value("language_runtime")
       return language_runtime unless language_runtime.empty? || language_runtime == DEFAULT_LANGUAGE_RUNTIME
@@ -707,6 +768,12 @@ module ProjectSetup
       return legacy_stack unless legacy_stack.empty?
 
       DEFAULT_STACK
+    end
+
+    def usable_stack_value?(value)
+      return false if value.empty? || none_like?(value) || value == DEFAULT_FRAMEWORK
+
+      !value.match?(/understand|confusing|unclear/i)
     end
 
     def none_like?(value)

@@ -115,7 +115,18 @@ class ProjectSetupSession < ApplicationRecord
     setup_slots[key.to_s]
   end
 
-  def assign_setup_slot(key:, value:, source:, confidence: 1.0, requiredness: nil, weight: nil, status: nil, updated_at: Time.current)
+  def assign_setup_slot(
+    key:,
+    value:,
+    source:,
+    raw_value: nil,
+    confidence: 1.0,
+    requiredness: nil,
+    weight: nil,
+    status: nil,
+    normalization_reason: nil,
+    updated_at: Time.current
+  )
     slot_key = key.to_s
     raise ArgumentError, "unknown setup slot: #{slot_key}" unless SETUP_SLOT_KEYS.include?(slot_key)
 
@@ -125,10 +136,12 @@ class ProjectSetupSession < ApplicationRecord
       key: slot_key,
       value: value,
       source: source,
+      raw_value: raw_value,
       confidence: confidence,
       requiredness: requiredness,
       weight: weight,
       status: status,
+      normalization_reason: normalization_reason,
       updated_at: updated_at
     )
     next_metadata[SETUP_CONTEXT_KEY] = context
@@ -170,16 +183,18 @@ class ProjectSetupSession < ApplicationRecord
     end
   end
 
-  def build_setup_slot(key:, value:, source:, confidence:, requiredness:, weight:, status:, updated_at:)
+  def build_setup_slot(key:, value:, source:, raw_value:, confidence:, requiredness:, weight:, status:, normalization_reason:, updated_at:)
     cleaned_value = normalize_slot_value(value)
     {
       "key" => key,
+      "raw_value" => normalize_slot_value(raw_value.nil? ? value : raw_value),
       "value" => cleaned_value,
       "source" => source.to_s,
       "confidence" => confidence.to_f,
       "weight" => weight || SETUP_SLOT_WEIGHTS.fetch(key),
       "requiredness" => requiredness || SETUP_SLOT_REQUIREDNESS.fetch(key),
       "status" => status || (cleaned_value.to_s.empty? ? "empty" : "filled"),
+      "normalization_reason" => normalization_reason.to_s,
       "updated_at" => updated_at.iso8601
     }
   end

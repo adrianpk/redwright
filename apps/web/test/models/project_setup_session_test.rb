@@ -100,8 +100,10 @@ class ProjectSetupSessionTest < ActiveSupport::TestCase
 
     slot = session.reload.setup_slot(:project_name)
     assert_equal "project_name", slot.fetch("key")
+    assert_equal "notes-cli", slot.fetch("raw_value")
     assert_equal "notes-cli", slot.fetch("value")
     assert_equal "payload", slot.fetch("source")
+    assert_equal "", slot.fetch("normalization_reason")
     assert_equal "blocking", slot.fetch("requiredness")
     assert_equal "filled", slot.fetch("status")
     assert_equal 10, slot.fetch("weight")

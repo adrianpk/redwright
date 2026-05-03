@@ -29,6 +29,73 @@ module ProjectSetup
       assert_equal "answer", result.turn.normalized_fields.fetch("setup_context_action")
     end
 
+    test "normalizes language runtime version from Go project context" do
+      session = context_session
+      session.assign_setup_slot(key: "project_name", value: "hanoitowers", source: "payload")
+      session.assign_setup_slot(key: "description", value: "A CLI for Tower of Hanoi demonstrations.", source: "payload")
+      session.assign_setup_slot(key: "project_type", value: "CLI tool in Go", source: "user_answer")
+      session.metadata = session.metadata.merge(
+        "next_prompt_intent" => prompt_intent("language_runtime")
+      )
+      session.save!
+
+      result = ContextLoopService.new(session: session).advance!(
+        answer: "1.26.2",
+        normalized_fields: {},
+        source_channel: "telegram",
+        request_id: "req-context-service-go-runtime"
+      )
+
+      assert result.ok?
+      slot = session.reload.setup_slot("language_runtime")
+      assert_equal "1.26.2", slot.fetch("raw_value")
+      assert_equal "Go 1.26.2", slot.fetch("value")
+      assert_equal "semantic_normalizer", slot.fetch("source")
+      assert_equal "deterministic fallback normalization", slot.fetch("normalization_reason")
+      assert_equal "framework", session.metadata.fetch("next_prompt_intent").fetch("slot")
+      assert_equal "Go 1.26.2", result.turn.normalized_fields.fetch("setup_context_value")
+      assert_equal "1.26.2", result.turn.normalized_fields.fetch("setup_context_raw_value")
+    end
+
+    test "does not persist prompt confusion as framework or stack" do
+      session = context_session
+      session.assign_setup_slot(key: "project_name", value: "hanoitowers", source: "payload")
+      session.assign_setup_slot(key: "description", value: "A CLI for Tower of Hanoi demonstrations.", source: "payload")
+      session.assign_setup_slot(key: "project_type", value: "cli", source: "user_answer")
+      session.assign_setup_slot(key: "language_runtime", value: "Go 1.26.2", source: "user_answer")
+      session.metadata = session.metadata.merge(
+        "next_prompt_intent" => prompt_intent("framework")
+      )
+      session.save!
+
+      result = ContextLoopService.new(session: session).advance!(
+        answer: "I don't understand what those colons mean",
+        normalized_fields: {},
+        source_channel: "telegram",
+        request_id: "req-context-service-framework-confusion"
+      )
+
+      assert result.ok?
+      session.reload
+      framework = session.setup_slot("framework")
+      assert_equal "ambiguous", framework.fetch("status")
+      assert_equal "I don't understand what those colons mean", framework.fetch("raw_value")
+      assert_equal "", framework.fetch("value")
+      assert_equal "framework", session.metadata.fetch("next_prompt_intent").fetch("slot")
+      assert_equal "Project setup needs a clearer answer.", result.summary
+
+      completed = ContextLoopService.new(session: session).advance!(
+        answer: "/done",
+        normalized_fields: {},
+        source_channel: "telegram",
+        request_id: "req-context-service-framework-confusion-done"
+      )
+
+      assert completed.ok?
+      assert_equal "go-1.26.2", session.reload.project.stack_slug
+      assert_equal "Go 1.26.2", session.setup_slot("stack").fetch("value")
+    end
+
     test "skip marks recommended slot and advances" do
       session = context_session
       session.assign_setup_slot(key: "project_name", value: "pocket-ledger", source: "payload")
