@@ -4,10 +4,10 @@
 
 - cycle_id: `cycle-2026-05-03-redwright-rails-project-setup-conversational-saga`
 - status: `in_progress`
-- state: `slice_5_ready_for_pr`
+- state: `slice_5_reviewing`
 - updated: `2026-05-03`
 - active_slice: `Slice 5`
-- active_task: `open Slice 5 PR`
+- active_task: `await Slice 5 PR review and merge`
 - source_plan: `ops/plans/2026-05-03-redwright-rails-project-setup-conversational-saga-cycle-plan.md`
 - source_spec: `ops/specs/specs/2026-05-03-redwright-rails-project-setup-conversational-saga-spec.md`
 
@@ -124,9 +124,9 @@ Validation:
 
 ### Slice 5: Agent Workflow and Runtime Container Context Bridge
 
-- status: `ready_for_pr`
+- status: `reviewing`
 - branch: `fix/slice-5-project-setup-agent-workflow-context`
-- PR: `tbd`
+- PR: `https://codeberg.org/adrianpk/redwright/pulls/256`
 - merge_target: `dev`
 - last_sync_commit: `36cf5e1`
 
@@ -191,3 +191,4 @@ Validation:
 - `2026-05-03` state=`merged` slice=`Slice 1` pr=`https://codeberg.org/adrianpk/redwright/pulls/255` note=`merged into dev; minimum Slice 2, Slice 3, and Slice 4 behavior was covered by the extended Slice 1 implementation`
 - `2026-05-03` state=`in_progress` slice=`Slice 5` note=`started agent workflow and runtime context bridge from updated dev after Slice 1 merge`
 - `2026-05-03` state=`ready_for_pr` slice=`Slice 5` note=`implemented runtime setup context payloads, setup-driven starter tickets, integration coverage, and repository coverage gate`
+- `2026-05-03` state=`reviewing` slice=`Slice 5` pr=`https://codeberg.org/adrianpk/redwright/pulls/256` note=`opened canonical Slice 5 PR against dev`
