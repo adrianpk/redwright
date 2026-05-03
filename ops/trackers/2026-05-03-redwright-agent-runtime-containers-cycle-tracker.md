@@ -1,0 +1,155 @@
+# Cycle Tracker: RedWright Agent Runtime Containers
+
+## Metadata
+
+- cycle_id: `cycle-2026-05-03-redwright-agent-runtime-containers`
+- status: `planned`
+- state: `planned`
+- updated: `2026-05-03`
+- active_slice: `none`
+- active_task: `none`
+- source_plan: `ops/plans/2026-05-03-redwright-agent-runtime-containers-cycle-plan.md`
+- source_spec: `ops/specs/specs/2026-05-03-redwright-agent-runtime-containers-spec.md`
+- source_draft: `ops/specs/drafts/2026-05-03-redwright-agent-runtime-containers-draft.md`
+- context_only_drafts:
+  - `ops/specs/drafts/2026-05-03-redwright-project-protocol-templates-draft.md`
+  - `ops/specs/drafts/2026-05-03-redwright-llm-rolling-trace-file-draft.md`
+
+## Slice Progress
+
+### Slice 1: Runtime Containers Domain Foundation
+
+- status: `planned`
+- branch: `fix/slice-1-runtime-containers-domain`
+- PR: `pending`
+- merge_target: `dev`
+- last_sync_commit: `pending`
+
+Tasks:
+
+- [ ] `T1.1 add Runtime Containers domain model or persistence structure associated with Project`
+- [ ] `T1.2 define readiness and validation state contracts`
+- [ ] `T1.3 persist generated file proposals and structured execution command fields`
+- [ ] `T1.4 persist provenance, assumptions, missing information, and risks`
+- [ ] `T1.5 expose Runtime Containers read state through Rails command/query responses`
+- [ ] `T1.6 add tests for project association, state defaults, validation stale behavior, and serialization shape`
+
+Commits:
+
+- [ ] `pending`
+
+Validation:
+
+- [ ] `pending`
+
+### Slice 2: Runtime Containers Generation Contract
+
+- status: `planned`
+- branch: `fix/slice-2-runtime-containers-generation`
+- PR: `pending`
+- merge_target: `dev`
+- last_sync_commit: `pending`
+
+Tasks:
+
+- [ ] `T2.1 add generation input builder from project setup context, stack, framework, language, libraries, and workspace hints`
+- [ ] `T2.2 add deterministic Go CLI Runtime Containers generator`
+- [ ] `T2.3 define LLM generation contract with strict structured output for future or configured model usage`
+- [ ] `T2.4 add malformed or unavailable LLM fallback behavior`
+- [ ] `T2.5 produce explicit blocked or missing-information output for unsupported contexts`
+- [ ] `T2.6 add tests for Go CLI generation, unsupported contexts, provenance, assumptions, risks, and fallback behavior`
+
+Commits:
+
+- [ ] `pending`
+
+Validation:
+
+- [ ] `pending`
+
+### Slice 3: Runtime Containers Management and Validation
+
+- status: `planned`
+- branch: `fix/slice-3-runtime-containers-management`
+- PR: `pending`
+- merge_target: `dev`
+- last_sync_commit: `pending`
+
+Tasks:
+
+- [ ] `T3.1 add Runtime Containers update command/query actions`
+- [ ] `T3.2 add regeneration as proposed changes without overwriting the active configuration`
+- [ ] `T3.3 add comparison output between active configuration and regenerated suggestions`
+- [ ] `T3.4 add validation result recording with pass, fail, skipped, and stale states`
+- [ ] `T3.5 enforce readiness transition rules`
+- [ ] `T3.6 add tests for editing, regeneration, comparison, validation recording, readiness, and stale validation transitions`
+
+Commits:
+
+- [ ] `pending`
+
+Validation:
+
+- [ ] `pending`
+
+### Slice 4: Ticket Execution Runtime Readiness Gate
+
+- status: `planned`
+- branch: `fix/slice-4-runtime-containers-ticket-gate`
+- PR: `pending`
+- merge_target: `dev`
+- last_sync_commit: `pending`
+
+Tasks:
+
+- [ ] `T4.1 extend ticket execution context with Runtime Containers configuration references`
+- [ ] `T4.2 add readiness gate for sandbox-required execution`
+- [ ] `T4.3 return structured readiness problems for missing, blocked, not-ready, and stale validation states`
+- [ ] `T4.4 render operator-safe readiness messages through Telegram or runtime adapter paths where applicable`
+- [ ] `T4.5 add tests for ready, missing, blocked, not-ready, and validation-stale execution paths`
+
+Commits:
+
+- [ ] `pending`
+
+Validation:
+
+- [ ] `pending`
+
+### Slice 5: Setup Integration and Cycle Closure
+
+- status: `planned`
+- branch: `fix/slice-5-runtime-containers-setup-e2e`
+- PR: `pending`
+- merge_target: `dev`
+- last_sync_commit: `pending`
+
+Tasks:
+
+- [ ] `T5.1 initialize Runtime Containers during project setup for supported known contexts`
+- [ ] `T5.2 create planned readiness ticket or task when Runtime Containers cannot be generated as ready`
+- [ ] `T5.3 include Runtime Containers state in project setup status and workspace manifest metadata`
+- [ ] `T5.4 add end-to-end tests for setup through Runtime Containers generation and ticket readiness`
+- [ ] `T5.5 run full Rails tests and repository coverage from canonical locations`
+- [ ] `T5.6 publish cycle closure report with residual risks and tuning decision`
+
+Commits:
+
+- [ ] `pending`
+
+Validation:
+
+- [ ] `pending`
+
+## Coverage Guard
+
+- baseline_coverage: `pending`
+- target_rule: `post-slice coverage >= pre-slice coverage for new code paths`
+- final_coverage: `pending`
+- tuning_needed: `pending`
+- tuning_evidence: `pending`
+
+## Event Log
+
+- `2026-05-03` state=`planned` note=`promoted the agent Runtime Containers draft into a focused formal spec, cycle plan, and tracker; Protocol templates and LLM rolling trace drafts remain context-only and out of this cycle scope`
+
