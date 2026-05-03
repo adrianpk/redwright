@@ -2,6 +2,8 @@
 
 require "json"
 
+require_relative "trace"
+
 module Redwright
   class ProjectSetupPromptRenderer
     SYSTEM_PROMPT = <<~TEXT
@@ -46,22 +48,52 @@ module Redwright
     def render_prompt_via_llm(payload:, intent:, user_text:)
       return fallback_prompt(payload: payload, intent: intent) unless llm_configured?
 
+      llm_payload = JSON.generate(
+        {
+          setup_summary: payload["summary"].to_s,
+          next_prompt_intent: intent,
+          setup_context: payload["setup_context"] || {},
+          user_text: user_text.to_s
+        }
+      )
+      Trace.llm_request(
+        role: "non_coding",
+        provider: provider_name,
+        model: @model,
+        model_alias: @model,
+        action: "project_setup_prompt_render",
+        payload_bytes: llm_payload.bytesize,
+        system_prompt: SYSTEM_PROMPT,
+        user_text: llm_payload
+      )
+      started_at = Process.clock_gettime(Process::CLOCK_MONOTONIC)
       completion = @llm_client.complete_json(
         model: @model,
         system_prompt: SYSTEM_PROMPT,
-        user_text: JSON.generate(
-          {
-            setup_summary: payload["summary"].to_s,
-            next_prompt_intent: intent,
-            setup_context: payload["setup_context"] || {},
-            user_text: user_text.to_s
-          }
-        )
+        user_text: llm_payload
       )
+      elapsed_ms = ((Process.clock_gettime(Process::CLOCK_MONOTONIC) - started_at) * 1000).to_i
       parsed = JSON.parse(completion.content)
       message = parsed["message"].to_s.strip
+      Trace.llm_response(
+        status: "ok",
+        latency_ms: elapsed_ms,
+        output_bytes: completion.content.to_s.bytesize,
+        finish_reason: completion.finish_reason,
+        decision_source: "llm",
+        parsed_message: message,
+        raw_output: completion.content
+      )
       sanitize_message(message.empty? ? fallback_prompt(payload: payload, intent: intent) : message)
-    rescue StandardError
+    rescue StandardError => e
+      elapsed_ms = defined?(started_at) && started_at ? ((Process.clock_gettime(Process::CLOCK_MONOTONIC) - started_at) * 1000).to_i : 0
+      Trace.llm_response(
+        status: "fallback",
+        latency_ms: elapsed_ms,
+        output_bytes: 0,
+        decision_source: "error",
+        raw_output: e.message
+      )
       fallback_prompt(payload: payload, intent: intent)
     end
 
@@ -149,6 +181,11 @@ module Redwright
 
     def llm_configured?
       @llm_client&.configured? && !@model.empty? && @model != "none"
+    end
+
+    def provider_name
+      provider = @model.split("/", 2).first.to_s
+      provider.empty? ? "unknown" : provider
     end
 
     def with_debug(message, trace_id:)

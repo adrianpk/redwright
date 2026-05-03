@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "json"
+require "stringio"
 require "minitest/autorun"
 
 $LOAD_PATH.unshift(File.expand_path("../../lib", __dir__))
@@ -74,6 +75,38 @@ class ProjectSetupPromptRendererTest < Minitest::Test
     assert_equal "project_type", llm.calls.first.dig(:user_text, "next_prompt_intent", "slot")
     refute_match(/\bTrace:/, message)
     refute_match(/\bState:/, message)
+  end
+
+  def test_traces_configured_llm_prompt_rendering
+    llm = FakeLlmClient.new("What type of project should this be?")
+    renderer = Redwright::ProjectSetupPromptRenderer.new(llm_client: llm, model: "openrouter/auto")
+
+    out = capture_stdout do
+      with_env("REDWRIGHT_TRACE" => "", "REDWRIGHT_TRACE_LLM" => "1") do
+        renderer.render(
+          body: {
+            "status" => "ok",
+            "summary" => "Project setup started.",
+            "data" => {
+              "next_prompt_intent" => {
+                "kind" => "setup_slot_question",
+                "slot" => "project_type",
+                "locale" => "auto",
+                "llm_required" => true
+              }
+            }
+          },
+          user_text: "/project new pocket-ledger",
+          trace_id: "trc-test"
+        )
+      end
+    end
+
+    assert_includes out, "LLM REQUEST"
+    assert_includes out, "action: project_setup_prompt_render"
+    assert_includes out, "provider: openrouter"
+    assert_includes out, "LLM RESPONSE"
+    assert_includes out, "parsed_message: What type of project should this be?"
   end
 
   def test_sanitizes_colon_shortcode_tokens_from_llm_output
@@ -292,5 +325,34 @@ class ProjectSetupPromptRendererTest < Minitest::Test
     assert_match "Project setup is waiting for more context.", summary
     assert_match "Trace: trc-test", summary
     assert_match "project 77", completion
+  end
+
+  private
+
+  def capture_stdout
+    original = $stdout
+    io = StringIO.new
+    $stdout = io
+    yield
+    io.string
+  ensure
+    $stdout = original
+  end
+
+  def with_env(vars)
+    backup = {}
+    vars.each_key do |key|
+      backup[key] = ENV.key?(key) ? ENV[key] : :__missing__
+    end
+    vars.each { |key, value| ENV[key] = value }
+    yield
+  ensure
+    backup.each do |key, value|
+      if value == :__missing__
+        ENV.delete(key)
+      else
+        ENV[key] = value
+      end
+    end
   end
 end
