@@ -136,6 +136,7 @@ module ProjectSetup
         )
         session.save!
         store_next_prompt_intent!(slot_key)
+        SagaState.new(session: session).mark_questionnaire!
         return success(
           turn: turn,
           summary: "Project setup needs a clearer answer.",
@@ -166,6 +167,7 @@ module ProjectSetup
       return complete_setup!(turn: turn) unless next_slot
 
       store_next_prompt_intent!(next_slot)
+      SagaState.new(session: session).mark_questionnaire!
       success(
         turn: turn,
         summary: "Project setup context updated.",
@@ -194,6 +196,7 @@ module ProjectSetup
 
       if blocking_slot?(slot_key)
         store_next_prompt_intent!(slot_key)
+        SagaState.new(session: session).mark_questionnaire!
         return success(
           turn: turn,
           summary: "Project setup still needs a project name.",
@@ -215,6 +218,7 @@ module ProjectSetup
       return complete_setup!(turn: turn) unless next_slot
 
       store_next_prompt_intent!(next_slot)
+      SagaState.new(session: session).mark_questionnaire!
       success(
         turn: turn,
         summary: "Project setup slot skipped.",
@@ -241,6 +245,7 @@ module ProjectSetup
 
       if missing
         store_next_prompt_intent!(missing)
+        SagaState.new(session: session).mark_questionnaire!
         return success(
           turn: turn,
           summary: "Project setup still needs a project name.",
@@ -271,6 +276,7 @@ module ProjectSetup
       metadata.delete("next_prompt_intent")
       session.metadata = metadata
       session.save!
+      SagaState.new(session: session).mark_cancelled!
 
       success(
         turn: turn,
@@ -296,6 +302,7 @@ module ProjectSetup
       attribute_ids = []
       StateMachine.new(session: session).transition_to!("ready_to_create")
       StateMachine.new(session: session).transition_to!("creating_project")
+      SagaState.new(session: session).mark_materialization_started!
 
       project = create_project!
       session.project = project
@@ -313,6 +320,14 @@ module ProjectSetup
         workspace: workspace
       )
       StateMachine.new(session: session).transition_to!("completed", terminal_reason: "completed_without_alignment")
+      SagaState.new(session: session).mark_completed!(
+        project: project,
+        board: board,
+        document: document,
+        starter_ticket: starter_ticket,
+        attribute_ids: attribute_ids,
+        workspace: workspace
+      )
 
       effects = []
       effects << turn_recorded_effect(turn) if turn

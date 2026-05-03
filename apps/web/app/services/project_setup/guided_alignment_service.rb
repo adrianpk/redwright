@@ -112,6 +112,14 @@ module ProjectSetup
         if completed
           output_data = persist_alignment_outputs!(answers: next_answers)
           StateMachine.new(session: session).transition_to!("completed", terminal_reason: "completed_with_alignment")
+          SagaState.new(session: session).mark_completed!(
+            project: session.project,
+            board: session.project.boards_scope.first,
+            document: session.project.documents_scope.first,
+            starter_ticket: nil,
+            attribute_ids: output_data.fetch("alignment_project_attribute_ids"),
+            workspace: {}
+          )
           result = success(
             turn: turn,
             summary: "Guided alignment completed.",
@@ -135,6 +143,7 @@ module ProjectSetup
         else
           next_question = QUESTIONS.fetch(question_index + 1)
           StateMachine.new(session: session).transition_to!("collecting_alignment", pending_question: next_question.fetch("question"))
+          SagaState.new(session: session).mark_questionnaire!
           result = success(
             turn: turn,
             summary: "Guided alignment advanced.",

@@ -66,12 +66,15 @@ module ProjectInitialization
             "next_prompt_intent" => stringify_hash(orchestration.guided_alignment[:next_prompt_intent])
           )
           session.save!
+          ProjectSetup::SagaState.new(session: session).mark_questionnaire!
           result(orchestration, setup_session: session)
         when :initialization_cancelled
           machine.transition_to!("cancelled", terminal_reason: "cancelled_by_user")
+          ProjectSetup::SagaState.new(session: session).mark_cancelled!
           result(orchestration, setup_session: session)
         when :repository_resolution_ambiguous
           machine.transition_to!("awaiting_repository", pending_question: REPOSITORY_CLARIFICATION)
+          ProjectSetup::SagaState.new(session: session).mark_questionnaire!
           result(orchestration, setup_session: session)
         when :repository_resolved
           execute_resolved_repository!(orchestration: orchestration, session: session, machine: machine)
@@ -129,6 +132,7 @@ module ProjectInitialization
       machine.transition_to!("awaiting_alignment_opt_in")
       machine.transition_to!("ready_to_create")
       machine.transition_to!("creating_project")
+      ProjectSetup::SagaState.new(session: session).mark_materialization_started!
 
       execution = Executor.new(
         command: command,
@@ -150,16 +154,28 @@ module ProjectInitialization
           "guided_alignment_pending" => command.guided_alignment == true
         )
         session.save!
+        ProjectSetup::SagaState.new(session: session).mark_materialized!(project: project)
 
         if command.guided_alignment == true
           machine.transition_to!("collecting_alignment", pending_question: ALIGNMENT_QUESTION)
+          ProjectSetup::SagaState.new(session: session).mark_questionnaire!
         else
           machine.transition_to!("completed", terminal_reason: "completed_without_alignment")
+          ProjectSetup::SagaState.new(session: session).mark_completed!(
+            project: project,
+            board: nil,
+            document: nil,
+            starter_ticket: nil,
+            attribute_ids: [],
+            workspace: {}
+          )
         end
       when :initialization_failed
         machine.transition_to!("failed", terminal_reason: "failed_reconciled")
+        ProjectSetup::SagaState.new(session: session).mark_failed!(reason: execution.errors.dig(:initialization, :message))
       when :initialization_incomplete
         machine.transition_to!("needs_reconciliation", terminal_reason: "failed_needs_reconciliation")
+        ProjectSetup::SagaState.new(session: session).mark_failed!(reason: execution.errors.dig(:initialization, :message))
       else
         raise "unsupported project execution status: #{execution.status}"
       end
