@@ -11,6 +11,7 @@ class ProjectProtocol < ApplicationRecord
   validates :status, inclusion: {in: STATUSES}
 
   before_validation :set_defaults
+  after_save :materialize_filesystem
 
   def self.missing_state_for(project)
     {
@@ -38,5 +39,9 @@ class ProjectProtocol < ApplicationRecord
 
   def set_defaults
     self.status = "draft" if status.blank?
+  end
+
+  def materialize_filesystem
+    ProjectProtocols::FilesystemMaterializer.new(project: project).call(update_manifest: true)
   end
 end

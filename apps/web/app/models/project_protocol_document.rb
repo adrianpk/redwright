@@ -13,6 +13,8 @@ class ProjectProtocolDocument < ApplicationRecord
   validates :body, presence: true
 
   before_validation :set_defaults
+  after_save :materialize_filesystem
+  after_destroy :materialize_filesystem
 
   def provenance
     parsed = JSON.parse(provenance_json.to_s)
@@ -62,5 +64,11 @@ class ProjectProtocolDocument < ApplicationRecord
           item
         end
     end
+  end
+
+  def materialize_filesystem
+    return unless project_protocol
+
+    ProjectProtocols::FilesystemMaterializer.new(project: project_protocol.project).call(update_manifest: true)
   end
 end
