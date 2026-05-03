@@ -5,8 +5,35 @@ module RuntimeContainers
     end
 
     def register(dispatcher)
+      dispatcher.register_command("GenerateProjectRuntimeContainers", method(:generate_project_runtime_containers))
       dispatcher.register_query("GetProjectRuntimeContainers", method(:get_project_runtime_containers))
       dispatcher
+    end
+
+    def generate_project_runtime_containers(payload:, context:, request_id:)
+      project = find_project(value_from(payload, "project_id"))
+      return missing_project_result(request_id: request_id) unless project
+
+      result = GenerationService.new(project: project).call
+      CommandQuery::Result.ok(
+        request_id: request_id,
+        data: {
+          "summary" => generation_summary(result),
+          "project_id" => project.id,
+          "runtime_containers" => result.runtime_container_state,
+          "generated_runtime_containers" => result.generated_state,
+          "generation" => generation_data(result)
+        },
+        effects: [
+          {
+            "type" => result.persisted? ? "runtime_containers_generated" : "runtime_containers_generation_suggested",
+            "project_id" => project.id,
+            "readiness" => result.generated_state.fetch("readiness"),
+            "generator_source" => result.generator_source,
+            "fallback_reason" => result.fallback_reason
+          }
+        ]
+      )
     end
 
     def get_project_runtime_containers(payload:, context:, request_id:)
@@ -25,6 +52,22 @@ module RuntimeContainers
     end
 
     private
+
+    def generation_summary(result)
+      return "Runtime Containers generated." if result.persisted?
+
+      "Runtime Containers suggestion generated; existing configuration was not overwritten."
+    end
+
+    def generation_data(result)
+      {
+        "persisted" => result.persisted?,
+        "generator_source" => result.generator_source,
+        "fallback_reason" => result.fallback_reason,
+        "errors" => result.errors,
+        "input" => result.input
+      }
+    end
 
     def missing_project_result(request_id:)
       CommandQuery::Result.error(
