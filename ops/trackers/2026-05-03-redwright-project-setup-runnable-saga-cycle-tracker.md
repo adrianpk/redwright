@@ -142,7 +142,7 @@ Validation:
 
 - status: `reviewing`
 - branch: `fix/slice-5-runnable-setup-e2e-closure`
-- PR: `pending`
+- PR: `https://codeberg.org/adrianpk/redwright/pulls/267`
 - merge_target: `dev`
 - last_sync_commit: `1b86391`
 
@@ -158,6 +158,7 @@ Commits:
 
 - [x] `c4d82aa feat(telegram): report setup closure outcomes`
 - [x] `94e7c98 test(integration): cover runnable setup telegram e2e`
+- [x] `7472720 docs(ops): close runnable setup saga cycle`
 
 Validation:
 
@@ -187,3 +188,4 @@ Validation:
 - `2026-05-03` state=`slice_4_reviewing` note=`started from origin/dev@a91ea76 after Slice 3 merge, added deterministic Go CLI scaffold generation, optional urfave/cli dependency support, local validation recording, scaffold metadata exposure, and filesystem/API tests`
 - `2026-05-03` state=`slice_4_reviewing` note=`opened Slice 4 PR #266 against dev with no reported conflicts`
 - `2026-05-03` state=`slice_5_reviewing` note=`started from origin/dev@1b86391 after Slice 4 merge, added Telegram E2E closure for Go CLI scaffold and unsupported planned fallback, reported runnable and validation status in Telegram completion, published cycle report, and validated full Rails tests plus repository coverage`
+- `2026-05-03` state=`slice_5_reviewing` note=`opened Slice 5 PR #267 against dev with no reported conflicts`
