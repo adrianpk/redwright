@@ -2,6 +2,16 @@ require "test_helper"
 
 module ProjectProtocols
   class ComposerTest < ActiveSupport::TestCase
+    test "composes baseline protocols from persisted template catalog" do
+      ProjectProtocols::TemplateCatalog.new
+      project = create_project(name: "Persisted Common", key: "persisted-common-only")
+
+      result = Composer.new(project: project).call
+
+      assert_includes result.stack_keys, "ruby"
+      assert_equal "AGENTS.md", result.documents.first.fetch("path")
+    end
+
     test "composes baseline protocols from project stack context" do
       project = create_project(name: "Common Only", key: "protocol-common-only")
 
