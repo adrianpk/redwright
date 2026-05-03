@@ -15,7 +15,7 @@
 
 ### Slice 1: Project Protocol Domain Foundation
 
-- status: `implemented`
+- status: `merged`
 - branch: `fix/slice-1-project-protocol-domain`
 - pr_title: `feat(slice-1): project protocol domain`
 - objective: `add project-owned Protocol persistence with document family modeling, ordering, common-versus-stack distinction, and document-level provenance`

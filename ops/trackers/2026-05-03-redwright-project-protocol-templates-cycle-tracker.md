@@ -4,9 +4,9 @@
 
 - cycle_id: `cycle-2026-05-03-redwright-project-protocol-templates`
 - status: `in_progress`
-- state: `slice_1_implemented`
+- state: `slice_1_merged`
 - updated: `2026-05-03`
-- active_slice: `Slice 1`
+- active_slice: `none`
 - active_task: `none`
 - source_plan: `ops/plans/2026-05-03-redwright-project-protocol-templates-cycle-plan.md`
 - source_spec: `ops/specs/specs/2026-05-03-redwright-project-protocol-templates-spec.md`
@@ -19,11 +19,11 @@
 
 ### Slice 1: Project Protocol Domain Foundation
 
-- status: `implemented`
+- status: `merged`
 - branch: `fix/slice-1-project-protocol-domain`
-- PR: `pending`
+- PR: `#274 https://codeberg.org/adrianpk/redwright/pulls/274 merged into dev`
 - merge_target: `dev`
-- last_sync_commit: `4eb6025`
+- last_sync_commit: `a86069f`
 
 Tasks:
 
@@ -39,7 +39,7 @@ Commits:
 - [x] `d295136 feat(web): add project protocol domain`
 - [x] `df88958 feat(web): expose project protocol state`
 - [x] `4eb6025 test(web): cover project protocol state`
-- [ ] `pending docs(ops): update project protocol slice 1 status`
+- [x] `a86069f docs(ops): update project protocol slice 1 status`
 
 Validation:
 
@@ -204,3 +204,4 @@ Validation:
 
 - `2026-05-03` state=`planned` note=`promoted the Project Protocol Templates draft plus curated conversation into a formal spec, cycle plan, and tracker; Runtime Containers remains separate cycle history and ticket-scoped runtime recipes plus rolling trace remain context-only drafts`
 - `2026-05-03` state=`slice_1_implemented` note=`implemented Project Protocol domain persistence, document-level modeling, project query exposure, targeted protocol tests, dependent query coverage, and full Rails validation on fix/slice-1-project-protocol-domain`
+- `2026-05-03` state=`slice_1_merged` note=`PR #274 merged into dev; Slice 1 is closed and Slice 2 remains pending explicit start`
