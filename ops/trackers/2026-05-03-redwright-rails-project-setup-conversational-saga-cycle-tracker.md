@@ -4,10 +4,10 @@
 
 - cycle_id: `cycle-2026-05-03-redwright-rails-project-setup-conversational-saga`
 - status: `in_progress`
-- state: `in_progress`
+- state: `pr_creation_blocked`
 - updated: `2026-05-03`
 - active_slice: `Slice 1`
-- active_task: `Slice 1 Ariadne trunk loop extension`
+- active_task: `open Slice 1 PR when Codeberg pull request API recovers`
 - source_plan: `ops/plans/2026-05-03-redwright-rails-project-setup-conversational-saga-cycle-plan.md`
 - source_spec: `ops/specs/specs/2026-05-03-redwright-rails-project-setup-conversational-saga-spec.md`
 
@@ -15,7 +15,7 @@
 
 ### Slice 1: Setup Context Slot Model, Repository Decoupling, and Minimal Conversational Trunk
 
-- status: `in_progress`
+- status: `ready_pr_blocked`
 - branch: `fix/slice-1-project-setup-context-slots`
 - PR: `tbd`
 - merge_target: `dev`
@@ -190,3 +190,4 @@ Validation:
 - `2026-05-03` state=`awaiting_review` slice=`Slice 1` note=`implemented repository-independent project setup start, canonical setup context slots, and Telegram payload routing that no longer maps project names to repository input`
 - `2026-05-03` state=`awaiting_review` slice=`Slice 1` note=`corrected setup prompt handling to persist semantic prompt intent for LLM-localized rendering instead of treating fixed question text as the contract`
 - `2026-05-03` state=`in_progress` slice=`Slice 1` note=`preserved Ariadne conversational workflow source under ignored ops/tmp and extended slice 1 to close the minimum Telegram setup loop instead of deferring renderer, controls, and materialization`
+- `2026-05-03` state=`pr_creation_blocked` slice=`Slice 1` note=`branch pushed with passing validation, but Codeberg pull request creation POST timed out through tea, tea api, and direct authenticated API; open PR list was checked afterward and no PR was created`
