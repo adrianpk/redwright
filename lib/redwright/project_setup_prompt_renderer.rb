@@ -119,10 +119,21 @@ module Redwright
       lines << "Workspace: #{workspace_path}" unless workspace_path.empty?
       materialization_status = workspace["materialization_status"].to_s.strip
       initial_status = workspace["initial_implementation_status"].to_s.strip
+      validation_status = validation_status_from(workspace)
       lines << "Materialization: #{materialization_status.tr("_", " ")}." unless materialization_status.empty?
       lines << "Initial implementation: #{initial_status.tr("_", " ")}." unless initial_status.empty?
+      lines << "Runnable: #{workspace["runnable"] == true ? "yes" : "no"}." if workspace.key?("runnable")
+      lines << "Validation: #{validation_status.tr("_", " ")}." unless validation_status.empty?
       lines << "Use /project where to inspect the active project."
       with_debug(sanitize_message(lines.join("\n")), trace_id: trace_id)
+    end
+
+    def validation_status_from(workspace)
+      validation_status = workspace["validation_status"].to_s.strip
+      return validation_status unless validation_status.empty?
+
+      validation = workspace["validation"].is_a?(Hash) ? workspace["validation"] : {}
+      validation["status"].to_s.strip
     end
 
     def fallback_prompt(payload:, intent:)

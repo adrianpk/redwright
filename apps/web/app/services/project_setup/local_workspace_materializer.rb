@@ -318,7 +318,7 @@ module ProjectSetup
         return "Go CLI scaffold generated and validated" if validation_status == "passed"
         return "Go CLI scaffold generated but validation failed" if validation_status == "failed"
 
-        "Go CLI scaffold generated; validation skipped because Go toolchain is unavailable"
+        "Go CLI scaffold generated; #{validation_payload.fetch("reason")}"
       else
         "no runnable scaffold profile exists for this setup context yet"
       end

@@ -380,6 +380,9 @@ module Redwright
       materialization = setup_saga["materialization"].is_a?(Hash) ? setup_saga["materialization"] : {}
       initial = setup_saga["initial_implementation"].is_a?(Hash) ? setup_saga["initial_implementation"] : {}
       ticket_operation = setup_saga["ticket_operation"].is_a?(Hash) ? setup_saga["ticket_operation"] : {}
+      validation = materialization["validation"].is_a?(Hash) ? materialization["validation"] : {}
+      validation_status = materialization["validation_status"].to_s
+      validation_status = validation["status"].to_s if validation_status.empty?
       workspace = materialization["workspace"].is_a?(Hash) ? materialization["workspace"] : {}
       lines = [
         "Setup stage: #{human_label(setup_saga['stage'])}",
@@ -388,6 +391,7 @@ module Redwright
         "Initial implementation: #{human_label(initial['status'])}#{initial['runnable'] == true ? ' (runnable)' : ''}",
         "Ticket operation: #{human_label(ticket_operation['status'])}"
       ]
+      lines.insert(4, "Validation: #{human_label(validation_status)}") unless validation_status.strip.empty?
       workspace_path = workspace["relative_path"].to_s.strip
       workspace_path = workspace["path"].to_s.strip if workspace_path.empty?
       lines << "Workspace: #{workspace_path}" unless workspace_path.empty?
