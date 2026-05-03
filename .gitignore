@@ -1,4 +1,5 @@
 _workspace/
 .bundle/
 tmp/
+.log/
 ops/handovers/
