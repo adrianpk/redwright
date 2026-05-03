@@ -4,8 +4,9 @@
 
 - cycle_id: `cycle-2026-05-03-redwright-project-protocol-templates`
 - status: `in_progress`
-- state: `slice_5_merged`
+- state: `slice_6_pr_open`
 - updated: `2026-05-03`
+- updated: `2026-05-04`
 - active_slice: `none`
 - active_task: `none`
 - source_plan: `ops/plans/2026-05-03-redwright-project-protocol-templates-cycle-plan.md`
@@ -157,7 +158,7 @@ Commits:
 - [x] `5c8fc94 feat(web): add project protocols area`
 - [x] `8d8eac8 feat(web): edit project protocol documents`
 - [x] `df23cba test(web): cover project protocol management`
-- [ ] `pending docs(ops): update project protocol slice 5 status`
+- [x] `5ae0fe7 docs(ops): update project protocol slice 5 status`
 
 Validation:
 
@@ -166,7 +167,7 @@ Validation:
 
 ### Slice 6: Template Administration Follow-Up and Cycle Closure
 
-- status: `planned`
+- status: `pr_open`
 - branch: `fix/slice-6-project-protocol-template-crud`
 - PR: `pending`
 - merge_target: `dev`
@@ -174,12 +175,12 @@ Validation:
 
 Tasks:
 
-- [ ] `T6.1 expose common template administration surface`
-- [ ] `T6.2 expose stack-template administration surface`
-- [ ] `T6.3 allow seeded template content to be extended or refined from Rails`
-- [ ] `T6.4 ensure template changes affect future setup composition without mutating existing project copies`
-- [ ] `T6.5 run full relevant tests and repository coverage from canonical locations`
-- [ ] `T6.6 publish cycle closure report with residual risks and post-cycle follow-up items`
+- [x] `T6.1 expose common template administration surface`
+- [x] `T6.2 expose stack-template administration surface`
+- [x] `T6.3 allow seeded template content to be extended or refined from Rails`
+- [x] `T6.4 ensure template changes affect future setup composition without mutating existing project copies`
+- [x] `T6.5 run full relevant tests and repository coverage from canonical locations`
+- [x] `T6.6 publish cycle closure report with residual risks and post-cycle follow-up items`
 
 Commits:
 
@@ -189,17 +190,17 @@ Commits:
 
 Validation:
 
-- [ ] `pending bundle exec bin/rails test <targeted project protocol template paths>`
-- [ ] `pending bundle exec bin/rails test`
-- [ ] `pending bundle exec rake test:coverage`
+- [x] `bundle exec bin/rails test test/models/project_protocol_template_test.rb test/services/project_protocols/template_catalog_test.rb test/services/project_protocols/composer_test.rb test/services/project_protocols/initialization_service_test.rb test/services/project_protocols/command_query_composition_test.rb test/services/project_protocols/command_query_handlers_test.rb test/controllers/project_protocol_templates_controller_test.rb test/controllers/project_protocols_controller_test.rb test/controllers/projects_controller_test.rb test/controllers/documents_controller_test.rb test/models/project_protocol_test.rb test/models/project_test.rb test/services/project_setup/context_loop_service_test.rb test/integration/project_setup_conversational_e2e_test.rb test/integration/project_setup_telegram_e2e_test.rb test/controllers/api/v1/command_queries_controller_test.rb` (pass)
+- [x] `bundle exec bin/rails test` (pass)
+- [x] `bundle exec rake test:coverage` (pass, coverage 91.46)
 
 ## Coverage Guard
 
-- baseline_coverage: `pending`
+- baseline_coverage: `91.46`
 - target_rule: `post-slice coverage >= pre-slice coverage for new code paths`
-- final_coverage: `pending`
-- tuning_needed: `pending`
-- tuning_evidence: `pending`
+- final_coverage: `91.46`
+- tuning_needed: `no`
+- tuning_evidence: `full Rails suite and repository coverage pass; template edits affect future setup composition while existing project protocol copies remain unchanged`
 
 ## Event Log
 
@@ -218,3 +219,4 @@ Validation:
 - `2026-05-04` state=`slice_5_implemented` note=`implemented project-scoped Protocols web area, canonical document listing, Markdown editing surface, project area navigation, and targeted/full Rails validation on fix/slice-5-project-protocol-management`
 - `2026-05-04` state=`slice_5_pr_open` note=`opened Codeberg PR #278 from fix/slice-5-project-protocol-management into dev`
 - `2026-05-04` state=`slice_5_merged` note=`PR #278 merged into dev; Slice 5 is closed and Slice 6 remains pending explicit start`
+- `2026-05-04` state=`slice_6_implemented` note=`implemented persisted common and stack protocol templates, admin template editing surface, composition against Rails-backed templates, future-only template application semantics, full Rails validation, coverage validation, and cycle report publication on fix/slice-6-project-protocol-template-crud`

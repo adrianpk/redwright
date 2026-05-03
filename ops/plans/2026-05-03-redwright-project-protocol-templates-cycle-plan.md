@@ -130,17 +130,17 @@
 
 ### Slice 6: Template Administration Follow-Up and Cycle Closure
 
-- status: `planned`
+- status: `pr_open`
 - branch: `fix/slice-6-project-protocol-template-crud`
 - pr_title: `feat(slice-6): manage project protocol templates`
 - objective: `add near-term administration surfaces for common and stack templates, then close the cycle with full validation and residual-risk notes`
 - tasks:
-- [ ] `T6.1 expose common template administration surface`
-- [ ] `T6.2 expose stack-template administration surface`
-- [ ] `T6.3 allow seeded template content to be extended or refined from Rails`
-- [ ] `T6.4 ensure template changes affect future setup composition without mutating existing project copies`
-- [ ] `T6.5 run full relevant tests and repository coverage from canonical locations`
-- [ ] `T6.6 publish cycle closure report with residual risks and post-cycle follow-up items`
+- [x] `T6.1 expose common template administration surface`
+- [x] `T6.2 expose stack-template administration surface`
+- [x] `T6.3 allow seeded template content to be extended or refined from Rails`
+- [x] `T6.4 ensure template changes affect future setup composition without mutating existing project copies`
+- [x] `T6.5 run full relevant tests and repository coverage from canonical locations`
+- [x] `T6.6 publish cycle closure report with residual risks and post-cycle follow-up items`
 - acceptance:
 - `common and stack templates are manageable from Rails`
 - `template editing does not rewrite existing project protocol copies`
