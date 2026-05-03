@@ -332,6 +332,7 @@ module ProjectSetup
         "root_path" => project.root_path,
         "repo_url" => project.repo_url,
         "stack_slug" => project.stack_slug,
+        "protocols" => project.protocol_state,
         "runtime_containers" => project.runtime_container_state
       }
       if include_setup_saga
