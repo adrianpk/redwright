@@ -17,6 +17,7 @@ module RuntimeBridge
       :runtime_response,
       :error_code,
       :error_message,
+      :error_details,
       keyword_init: true
     ) do
       def ok?
@@ -53,7 +54,20 @@ module RuntimeBridge
     end
 
     def start(ticket:, request_id:, actor_identifier:)
-      request = build_request(ticket: ticket, request_id: request_id, actor_identifier: actor_identifier)
+      project_setup_context = ProjectContextBuilder.new(project: ticket.project).build
+      readiness = RuntimeContainers::ExecutionReadiness.new(
+        project: ticket.project,
+        runtime_context: project_setup_context.fetch("runtime")
+      ).call
+      return runtime_containers_failure(readiness) unless readiness.ok?
+
+      request = build_request(
+        ticket: ticket,
+        request_id: request_id,
+        actor_identifier: actor_identifier,
+        project_setup_context: project_setup_context,
+        runtime_containers_context: readiness.context
+      )
       response = client.request(
         type: request.fetch("type"),
         session_id: request.fetch("session_id"),
@@ -66,8 +80,12 @@ module RuntimeBridge
       failure(status: "failed", code: "runtime_bridge_failed", message: e.message)
     end
 
-    def build_request(ticket:, request_id:, actor_identifier:)
-      project_setup_context = ProjectContextBuilder.new(project: ticket.project).build
+    def build_request(ticket:, request_id:, actor_identifier:, project_setup_context: nil, runtime_containers_context: nil)
+      project_setup_context ||= ProjectContextBuilder.new(project: ticket.project).build
+      runtime_context = project_setup_context.fetch("runtime")
+      runtime_context = runtime_context.merge("runtime_containers" => runtime_containers_context) if runtime_containers_context
+      project_setup_context = project_setup_context.merge("runtime" => runtime_context)
+
       {
         "type" => "send",
         "session_id" => "rails-ticket-#{ticket.id}",
@@ -75,9 +93,9 @@ module RuntimeBridge
           "channel" => "rails",
           "project_ref" => ticket.project.root_path,
           "intent" => DEFAULT_INTENT,
-          "message" => ticket_execution_message(ticket),
+          "message" => ticket_execution_message(ticket, runtime_context: runtime_context),
           "project_setup_context" => project_setup_context,
-          "runtime_context" => project_setup_context.fetch("runtime"),
+          "runtime_context" => runtime_context,
           "actions" => [],
           "confirm_new_workstream" => true,
           "rails" => {
@@ -86,6 +104,7 @@ module RuntimeBridge
             "project_id" => ticket.project_id,
             "board_id" => ticket.board_id,
             "ticket_id" => ticket.id,
+            "runtime_containers" => runtime_containers_context,
             "project_setup_context" => project_setup_context
           }
         }
@@ -113,11 +132,12 @@ module RuntimeBridge
         runtime_state: payload["state"].presence || "executing",
         runtime_response: payload,
         error_code: nil,
-        error_message: nil
+        error_message: nil,
+        error_details: {}
       )
     end
 
-    def failure(status:, code:, message:, runtime_response: {})
+    def failure(status:, code:, message:, runtime_response: {}, error_details: {})
       Result.new(
         ok: false,
         status: status,
@@ -128,7 +148,27 @@ module RuntimeBridge
         runtime_state: nil,
         runtime_response: runtime_response,
         error_code: code,
-        error_message: message
+        error_message: message,
+        error_details: error_details
+      )
+    end
+
+    def runtime_containers_failure(readiness)
+      failure(
+        status: "failed",
+        code: readiness.problems.first.fetch("code", "runtime_containers_not_ready"),
+        message: readiness.operator_message,
+        runtime_response: {
+          "status" => "error",
+          "code" => readiness.problems.first.fetch("code", "runtime_containers_not_ready"),
+          "message" => readiness.operator_message,
+          "runtime_containers" => readiness.context,
+          "readiness_problems" => readiness.problems
+        },
+        error_details: {
+          "runtime_containers" => readiness.context,
+          "readiness_problems" => readiness.problems
+        }
       )
     end
 
@@ -137,7 +177,7 @@ module RuntimeBridge
       "rails-ticket-#{Digest::SHA256.hexdigest(seed)[0, 16]}"
     end
 
-    def ticket_execution_message(ticket)
+    def ticket_execution_message(ticket, runtime_context:)
       lines = [
         "Start Rails ticket ##{ticket.id}: #{ticket.title}",
         "Project: #{ticket.project.name}",
@@ -145,8 +185,11 @@ module RuntimeBridge
         "Column: #{ticket.column.key}",
         "Priority: #{ticket.priority}"
       ]
-      runtime_context = ProjectContextBuilder.new(project: ticket.project).build.fetch("runtime")
       lines << "Runtime context: #{runtime_context.fetch("language_runtime")} / #{runtime_context.fetch("framework")} / #{runtime_context.fetch("container_profile")}"
+      runtime_containers_context = runtime_context["runtime_containers"]
+      if runtime_containers_context
+        lines << "Runtime Containers: ##{runtime_containers_context["configuration_id"]} #{runtime_containers_context["readiness"]} / #{runtime_containers_context["validation_status"]}"
+      end
       lines << "Assignee: #{ticket.assignee}" if ticket.assignee.present?
       lines << "Description:\n#{ticket.description}" if ticket.description.present?
       document_lines = ticket.ticket_document_links.includes(:document).map do |link|

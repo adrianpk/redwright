@@ -186,7 +186,7 @@ module BoardWorkflow
           {
             code: bridge_result.error_code,
             message: bridge_result.error_message,
-            details: {"ticket_id" => ticket.id}
+            details: ticket_execution_error_details(ticket: ticket, bridge_result: bridge_result)
           }
         ]
       )
@@ -448,6 +448,13 @@ module BoardWorkflow
 
     def ticket_execution_bridge
       @ticket_execution_bridge ||= RuntimeBridge::TicketExecutionBridge.new
+    end
+
+    def ticket_execution_error_details(ticket:, bridge_result:)
+      details = {"ticket_id" => ticket.id}
+      return details unless bridge_result.respond_to?(:error_details) && bridge_result.error_details.is_a?(Hash)
+
+      details.merge(bridge_result.error_details)
     end
 
     def actor_identifier_from(context)
