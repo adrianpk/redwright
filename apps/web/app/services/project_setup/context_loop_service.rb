@@ -14,6 +14,10 @@ module ProjectSetup
     DEFAULT_FRAMEWORK = "none specified".freeze
     DEFAULT_LIBRARIES = "none specified".freeze
     DEFAULT_STACK = "ruby".freeze
+    DEFAULT_RUNTIME_CONTAINER_PROFILE = "ephemeral_docker".freeze
+    DEFAULT_AGENT_WORKFLOW_MODE = "manual".freeze
+    STARTER_TICKET_TITLE = "Prepare initial implementation plan".freeze
+    STARTER_TICKET_ASSIGNEE = "agent-coder".freeze
     BOARD_COLUMNS = [
       ["backlog", "Backlog"],
       ["in_progress", "In Progress"],
@@ -117,6 +121,7 @@ module ProjectSetup
         value: normalized_slot_value(slot_key: slot_key, answer: answer, normalized_fields: normalized_fields),
         source: "user_answer"
       )
+      assign_auxiliary_normalized_slots!(current_slot_key: slot_key, normalized_fields: normalized_fields)
       session.save!
 
       next_slot = next_slot_key
@@ -248,6 +253,7 @@ module ProjectSetup
       project = nil
       board = nil
       document = nil
+      starter_ticket = nil
       attribute_ids = []
       StateMachine.new(session: session).transition_to!("ready_to_create")
       StateMachine.new(session: session).transition_to!("creating_project")
@@ -257,10 +263,12 @@ module ProjectSetup
       board = ensure_default_board!(project)
       attribute_ids = materialize_project_attributes!(project)
       document = write_setup_summary_document!(project)
+      starter_ticket = ensure_starter_workflow_ticket!(project: project, board: board, document: document)
       finalize_session_metadata!(
         project: project,
         board: board,
         document: document,
+        starter_ticket: starter_ticket,
         attribute_ids: attribute_ids
       )
       StateMachine.new(session: session).transition_to!("completed", terminal_reason: "completed_without_alignment")
@@ -290,7 +298,20 @@ module ProjectSetup
             "session_id" => session.id,
             "project_id" => project.id,
             "board_id" => board.id
-          },
+          }
+        ]
+      )
+      if starter_ticket
+        effects << {
+          "type" => "setup_starter_ticket_written",
+          "session_id" => session.id,
+          "project_id" => project.id,
+          "board_id" => board.id,
+          "ticket_id" => starter_ticket.id
+        }
+      end
+      effects.concat(
+        [
           {
             "type" => "project_setup_completed",
             "session_id" => session.id,
@@ -307,6 +328,7 @@ module ProjectSetup
           "project" => project_data(project),
           "board_id" => board.id,
           "setup_summary_document_id" => document.id,
+          "starter_ticket_id" => starter_ticket&.id,
           "setup_project_attribute_ids" => attribute_ids
         }
       )
@@ -416,6 +438,8 @@ module ProjectSetup
       assign_default_slot!("language_runtime", DEFAULT_LANGUAGE_RUNTIME)
       assign_default_slot!("framework", DEFAULT_FRAMEWORK)
       assign_default_slot!("libraries", DEFAULT_LIBRARIES)
+      assign_default_slot!("runtime_container_profile", DEFAULT_RUNTIME_CONTAINER_PROFILE)
+      assign_default_slot!("agent_workflow_mode", DEFAULT_AGENT_WORKFLOW_MODE)
       clear_next_prompt_intent!
     end
 
@@ -435,6 +459,19 @@ module ProjectSetup
       value = normalized[slot_key]
       value = normalized["value"] if value.to_s.strip.empty?
       value.to_s.strip.empty? ? answer : value
+    end
+
+    def assign_auxiliary_normalized_slots!(current_slot_key:, normalized_fields:)
+      normalized = normalized_fields.to_h.transform_keys(&:to_s)
+      ProjectSetupSession::SETUP_SLOT_KEYS.each do |slot_key|
+        next if slot_key == current_slot_key
+        next unless normalized.key?(slot_key)
+
+        value = normalized[slot_key]
+        next if value.to_s.strip.empty?
+
+        session.assign_setup_slot(key: slot_key, value: value, source: "normalized_context")
+      end
     end
 
     def control_from(answer)
@@ -505,6 +542,35 @@ module ProjectSetup
       document
     end
 
+    def ensure_starter_workflow_ticket!(project:, board:, document:)
+      return nil unless agent_workflow_requested?
+
+      column = board.columns.find_by!(key: "backlog")
+      ticket = board.tickets.find_or_initialize_by(title: STARTER_TICKET_TITLE)
+      ticket.column ||= column
+      ticket.description = starter_ticket_description(project)
+      ticket.priority = :high
+      ticket.assignee ||= STARTER_TICKET_ASSIGNEE
+      ticket.save!
+
+      link = ticket.ticket_document_links.find_or_initialize_by(document: document)
+      link.role = "reference"
+      link.save!
+      ticket
+    end
+
+    def starter_ticket_description(project)
+      [
+        "Use the project setup context to produce the initial implementation plan.",
+        "Project: #{project.name}",
+        "Type: #{slot_value("project_type")}",
+        "Language/runtime: #{slot_value("language_runtime")}",
+        "Framework: #{slot_value("framework")}",
+        "Libraries: #{slot_value("libraries")}",
+        "Runtime container profile: #{slot_value("runtime_container_profile")}"
+      ].join("\n")
+    end
+
     def setup_summary_body(project)
       lines = [
         "# Project Setup Summary",
@@ -521,11 +587,12 @@ module ProjectSetup
       lines.join("\n")
     end
 
-    def finalize_session_metadata!(project:, board:, document:, attribute_ids:)
+    def finalize_session_metadata!(project:, board:, document:, starter_ticket:, attribute_ids:)
       metadata = session.metadata
       metadata["project_id"] = project.id
       metadata["board_id"] = board.id
       metadata["setup_summary_document_id"] = document.id
+      metadata["starter_ticket_id"] = starter_ticket&.id if starter_ticket
       metadata["setup_project_attribute_ids"] = attribute_ids
       metadata["guided_alignment_pending"] = false
       metadata["repository_placeholder"] = project.repo_url if repository_slot_missing?
@@ -542,6 +609,14 @@ module ProjectSetup
 
     def repository_slot_missing?
       slot_value("repository").empty?
+    end
+
+    def agent_workflow_requested?
+      normalized = slot_value("agent_workflow_mode").downcase
+      return false if normalized.empty?
+      return false if %w[manual none no disabled off false].include?(normalized)
+
+      normalized.match?(/agent|auto|workflow|ticket|start|execute|enabled|yes|true/)
     end
 
     def stack_value_for_project

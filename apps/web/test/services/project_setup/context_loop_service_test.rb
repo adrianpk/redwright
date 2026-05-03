@@ -147,7 +147,43 @@ module ProjectSetup
       assert_equal "ruby-3.4", session.project.stack_slug
       assert session.project.documents.exists?(title: "Project Setup Summary", artifact_type: "draft")
       assert_equal %w[backlog in_progress review approved merged], session.project.boards.first.columns.order(:position).pluck(:key)
+      assert_empty session.project.tickets_scope
       assert_includes result.effects.map { |effect| effect.fetch("type") }, "setup_context_materialized"
+    end
+
+    test "creates starter workflow ticket when setup requests agent workflow" do
+      session = context_session
+      session.assign_setup_slot(key: "project_name", value: "starter-flow", source: "payload")
+      session.assign_setup_slot(key: "description", value: "A small service for starter workflow coverage.", source: "payload")
+      session.assign_setup_slot(key: "project_type", value: "api_service", source: "user_answer")
+      session.assign_setup_slot(key: "language_runtime", value: "Ruby 3.4", source: "user_answer")
+      session.assign_setup_slot(key: "framework", value: "Rails", source: "user_answer")
+      session.metadata = session.metadata.merge(
+        "next_prompt_intent" => prompt_intent("libraries")
+      )
+      session.save!
+
+      result = ContextLoopService.new(session: session).advance!(
+        answer: "SQLite",
+        normalized_fields: {
+          "libraries" => "SQLite",
+          "agent_workflow_mode" => "agent_assisted",
+          "runtime_container_profile" => "ephemeral_docker"
+        },
+        source_channel: "telegram",
+        request_id: "req-context-service-starter-ticket"
+      )
+
+      assert result.ok?
+      project = session.reload.project
+      ticket = Ticket.find(result.data.fetch("starter_ticket_id"))
+      assert_equal project.id, ticket.project_id
+      assert_equal "Prepare initial implementation plan", ticket.title
+      assert_equal "backlog", ticket.column.key
+      assert_equal "agent-coder", ticket.assignee
+      assert_equal ["Project Setup Summary"], ticket.documents.pluck(:title)
+      assert_equal "agent_assisted", project.project_attributes.find_by!(key: "setup_context.agent_workflow_mode").value
+      assert_includes result.effects.map { |effect| effect.fetch("type") }, "setup_starter_ticket_written"
     end
 
     private
