@@ -41,3 +41,21 @@ Both files are living artifacts until promoted.
 
 - Iterate with drafts in `ops/specs/drafts/` and conversation notes in `ops/specs/conv/` until stable.
 - Promote to `ops/specs/specs/*` once behavior and decisions are sufficiently converged.
+
+## Questionnaire-Driven Direct Spec Path
+
+When a topic is explored through the questionnaires playbook, the pre-spec artifacts may be:
+
+- Raw capture: `ops/specs/conv/...-conv-raw.md`
+- Curated conversation notes: `ops/specs/conv/...-conv.md`
+
+In that path, a separate `ops/specs/drafts/...-draft.md` artifact is optional. A sufficiently complete curated conversation file can replace the draft and serve as the direct source for a formal spec under `ops/specs/specs/`.
+
+Use this path when:
+
+- the questionnaire was bounded and completed
+- the raw capture preserves the question/answer flow
+- the curated conversation notes preserve decisions, tensions, and open questions
+- the user explicitly agrees that no separate spec draft is needed
+
+Do not create a draft merely to satisfy ceremony when `...-conv-raw.md` and `...-conv.md` already provide stronger alignment context.

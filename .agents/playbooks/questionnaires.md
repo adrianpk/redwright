@@ -132,6 +132,21 @@ The questionnaire session does not produce a transcript.
 
 It produces curated insights extracted from the interaction and structured according to the canonical format defined by the relevant curation playbook.
 
+When the questionnaire has enough coverage and a curated `...-conv.md` exists, that conversation artifact may be sufficient pre-spec alignment. In that case, a separate spec draft is optional rather than mandatory, and the next artifact may be a formal spec under `ops/specs/specs/`.
+
+## Raw Capture During Execution
+
+For long questionnaire sessions, maintain a sibling raw capture file while the session progresses.
+
+- Use the filename pattern `...-conv-raw.md`.
+- Update this file incrementally after each answer or small group of related turns.
+- Preserve enough question and answer context to prevent information loss during long sessions.
+- Record user answers in English with polished style and fully corrected spelling and grammar while preserving the user's intent.
+- Treat the raw capture as temporary working memory, not as the final curated artifact.
+- After the questionnaire ends, curate the raw capture into the canonical `...-conv.md` conversation notes.
+- Do not map the raw file one-to-one into the curated file; retain only distilled, decision-relevant content.
+- Raw capture files may be versioned when they preserve useful alignment context, but they remain working-memory artifacts rather than curated final notes.
+
 ### Key Rule
 
 - Do not map questions one-to-one to outputs.
