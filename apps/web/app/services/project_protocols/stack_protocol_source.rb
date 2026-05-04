@@ -12,6 +12,17 @@ module ProjectProtocols
           ["linting", ".agents/LINTING.md", "Linting", 3]
         ]
       },
+      "elixir" => {
+        name: "Elixir Protocol Template",
+        matchers: ["elixir"],
+        root: "elixir",
+        documents: [
+          ["architecture", ".agents/ARCHITECTURE.md", "Architecture", 0],
+          ["conventions", ".agents/CONVENTIONS.md", "Conventions", 1],
+          ["documenting", ".agents/DOCUMENTING.md", "Documenting", 2],
+          ["linting", ".agents/LINTING.md", "Linting", 3]
+        ]
+      },
       "ruby" => {
         name: "Ruby Protocol Template",
         matchers: ["ruby"],

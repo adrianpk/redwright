@@ -36,6 +36,17 @@ module ProjectProtocols
       refute_match(/Warden|RedWright/, go_template.documents.map(&:body).join("\n"))
     end
 
+    test "seeds elixir stack template from stack protocol markdown source" do
+      catalog = TemplateCatalog.new
+
+      elixir_template = catalog.all_templates.find { |template| template.template_kind == "stack" && template.key == "elixir" }
+
+      assert_equal "Elixir Protocol Template", elixir_template.name
+      assert_equal ["architecture", "conventions", "documenting", "linting"], elixir_template.documents.order(:position).pluck(:key)
+      assert_match(/Elixir repository structure/, elixir_template.documents.find_by!(key: "architecture").body)
+      refute_match(/Warden|RedWright/, elixir_template.documents.map(&:body).join("\n"))
+    end
+
     test "seeds rails stack template from stack protocol markdown source" do
       catalog = TemplateCatalog.new
 
