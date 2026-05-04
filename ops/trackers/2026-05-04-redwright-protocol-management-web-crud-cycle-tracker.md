@@ -44,9 +44,9 @@ Validation:
 
 ### Slice 2: Project Protocol Read-Edit Surface and Playbooks
 
-- status: `implemented`
+- status: `pr_open`
 - branch: `fix/slice-2-protocol-management-project-editing`
-- PR: `tbd`
+- PR: `#293 https://codeberg.org/adrianpk/redwright/pulls/293`
 - merge_target: `dev`
 - last_sync_commit: `3d655a0`
 
@@ -131,3 +131,4 @@ Validation:
 - `2026-05-04 16:19` state=`slice_1_pr_open` note=`opened Codeberg PR #292 from fix/slice-1-protocol-management-project-index into dev`
 - `2026-05-04 16:32` state=`slice_1_merged` note=`merged PR #292 into dev`
 - `2026-05-04 16:45` state=`slice_2_implemented` note=`collapsed project Protocol show and edit into one screen, added autosave with visible last-save state, enabled delete and recreate for canonical entries, and validated the project Protocol controller flows on fix/slice-2-protocol-management-project-editing`
+- `2026-05-04 17:02` state=`slice_2_pr_open` note=`opened Codeberg PR #293 from fix/slice-2-protocol-management-project-editing into dev`
