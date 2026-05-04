@@ -5,19 +5,33 @@
     </div>
   </section>
 
-  <section class="artifact-list">
+  <section class="artifact-type-nav" aria-label="Protocol navigation">
     <% @protocol_entries.each do |entry| %>
-      <article class="artifact-list-card<%= ' is-missing' if entry.missing? %>">
-        <% if entry.playbooks_index? %>
-          <%= link_to playbooks_project_protocols_path(@project) do %>
-            <strong><%= entry.title %></strong>
-          <% end %>
-        <% else %>
-          <%= link_to project_protocol_path(@project, entry.document) do %>
-            <strong><%= entry.title %></strong>
+      <% if entry.playbooks_index? %>
+        <%= link_to playbooks_project_protocols_path(@project), class: "artifact-type-card" do %>
+          <h2><%= entry.title %></h2>
+          <% preview_lines = @playbook_listing_lines.first(6) %>
+          <% if preview_lines.any? %>
+            <div class="protocol-card-preview" aria-hidden="true">
+              <% preview_lines.each do |line| %>
+                <span><%= line %></span>
+              <% end %>
+            </div>
           <% end %>
         <% end %>
-      </article>
+      <% else %>
+        <%= link_to project_protocol_path(@project, entry.document), class: "artifact-type-card" do %>
+          <h2><%= entry.title %></h2>
+          <% preview_lines = entry.body.to_s.lines.map(&:strip).reject(&:blank?).first(6) %>
+          <% if preview_lines.any? %>
+            <div class="protocol-card-preview" aria-hidden="true">
+              <% preview_lines.each do |line| %>
+              <span><%= line %></span>
+            <% end %>
+          </div>
+          <% end %>
+        <% end %>
+      <% end %>
     <% end %>
   </section>
 </main>

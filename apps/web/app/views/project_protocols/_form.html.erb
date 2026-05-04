@@ -18,12 +18,7 @@
     </div>
   <% end %>
 
-  <div class="document-artifact-field">
-    <%= f.label :title %>
-    <%= f.text_field :title, required: true %>
-  </div>
-  <div class="document-artifact-field">
-    <%= f.label :body %>
+  <div class="document-artifact-field document-artifact-field-body-only">
     <%= f.text_area :body,
                     rows: 18,
                     placeholder: local_assigns[:body_placeholder] %>

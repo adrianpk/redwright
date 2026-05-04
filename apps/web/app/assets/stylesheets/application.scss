@@ -353,6 +353,30 @@ body {
   color: var(--muted);
 }
 
+.protocol-card-preview {
+  margin-top: auto;
+  min-height: 96px;
+  max-height: 106px;
+  border: 1px solid rgba(31, 42, 68, 0.1);
+  border-radius: 6px;
+  background: #f7f7f4;
+  color: rgba(31, 42, 68, 0.6);
+  display: grid;
+  gap: 2px;
+  padding: 7px 8px;
+  overflow: hidden;
+}
+
+.protocol-card-preview span {
+  display: block;
+  font-family: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+  font-size: 0.66rem;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .artifact-type-card:hover,
 .artifact-type-card.is-active {
   border-color: var(--accent-red);
@@ -591,6 +615,10 @@ body {
 
 .document-artifact-field textarea {
   resize: vertical;
+}
+
+.document-artifact-field-body-only {
+  margin-top: 0;
 }
 
 .document-artifact-actions {

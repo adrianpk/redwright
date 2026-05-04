@@ -12,41 +12,42 @@
     <div class="board-title-row">
       <h1><%= @template.name %></h1>
     </div>
-    <p class="board-key"><%= @template.template_kind %>: <%= @template.key %></p>
-    <div class="artifact-context-row">
-      <span class="artifact-context-chip"><%= @template.common? ? "Common" : "Stack" %></span>
-      <span class="artifact-context-chip"><%= pluralize(@entries.count, "entry") %></span>
-      <span class="artifact-context-chip"><%= @template.key %></span>
-    </div>
   </section>
 
-  <section class="artifact-list">
+  <section class="artifact-type-nav" aria-label="Protocol template document navigation">
     <% @entries.each do |entry| %>
-      <article class="artifact-list-card<%= ' is-missing' if entry.missing? %>">
-        <% if entry.playbooks_index? %>
-          <%= link_to(@template.common? ? common_playbooks_protocol_templates_path : playbooks_protocol_template_path(@template)) do %>
-            <strong><%= entry.title %></strong>
-            <span><%= entry.path %></span>
-            <span class="artifact-card-note">Open dedicated view</span>
-            <span class="artifact-context-chip artifact-context-chip-inline">Playbooks</span>
-          <% end %>
-        <% elsif entry.missing? %>
-          <div class="artifact-list-card-body">
-            <strong><%= entry.title %></strong>
-            <span><%= entry.path %></span>
-            <span class="artifact-status artifact-status-missing">Missing</span>
-            <span class="artifact-card-note">Create this canonical template entry directly from the set.</span>
-            <%= button_to "Create", documents_protocol_template_path(@template, key: entry.key), method: :post, class: "ticket-action" %>
-          </div>
-        <% else %>
-          <%= link_to edit_protocol_template_document_path(@template, entry.document) do %>
-            <strong><%= entry.title %></strong>
-            <span><%= entry.path %></span>
-            <span class="artifact-card-note">Open the template document editor.</span>
-            <span class="artifact-context-chip artifact-context-chip-inline"><%= entry.layer.capitalize %></span>
+      <% if entry.playbooks_index? %>
+        <%= link_to(@template.common? ? common_playbooks_protocol_templates_path : playbooks_protocol_template_path(@template), class: "artifact-type-card") do %>
+          <h2><%= entry.title %></h2>
+          <% preview_lines = ProjectProtocols::LocalProtocolSource::PROTOCOL_FILES.map { |file| file[1] }.select { |path| path.start_with?(".agents/playbooks/") }.map { |path| File.basename(path) }.first(6) %>
+          <% if preview_lines.any? %>
+            <div class="protocol-card-preview" aria-hidden="true">
+              <% preview_lines.each do |line| %>
+                <span><%= line %></span>
+              <% end %>
+            </div>
           <% end %>
         <% end %>
-      </article>
+      <% elsif entry.missing? %>
+        <div class="artifact-type-card">
+          <h2><%= entry.title %></h2>
+          <div class="artifact-list-card-body">
+            <%= button_to "Create", documents_protocol_template_path(@template, key: entry.key), method: :post, class: "ticket-action" %>
+          </div>
+        </div>
+      <% else %>
+        <%= link_to edit_protocol_template_document_path(@template, entry.document), class: "artifact-type-card" do %>
+          <h2><%= entry.title %></h2>
+          <% preview_lines = entry.body.to_s.lines.map(&:strip).reject(&:blank?).first(6) %>
+          <% if preview_lines.any? %>
+            <div class="protocol-card-preview" aria-hidden="true">
+              <% preview_lines.each do |line| %>
+                <span><%= line %></span>
+              <% end %>
+            </div>
+          <% end %>
+        <% end %>
+      <% end %>
     <% end %>
   </section>
 </main>

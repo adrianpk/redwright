@@ -7,23 +7,21 @@
       <h1>Stack Protocol Templates</h1>
       <%= link_to "New Stack Template", new_stack_protocol_templates_path, class: "ticket-action" %>
     </div>
-    <div class="artifact-context-row">
-      <span class="artifact-context-chip">Global scope</span>
-      <span class="artifact-context-chip"><%= pluralize(@stack_templates.count, "stack set") %></span>
-      <span class="artifact-context-chip">One screen per stack</span>
-    </div>
   </section>
 
-  <section class="artifact-list">
+  <section class="artifact-type-nav" aria-label="Stack protocol template navigation">
     <% @stack_templates.each do |template| %>
-      <article class="artifact-list-card">
-        <%= link_to protocol_template_path(template) do %>
-          <strong><%= template.name %></strong>
-          <span><%= template.key %></span>
-          <span class="artifact-card-note">Open this stack set.</span>
-          <span class="artifact-context-chip artifact-context-chip-inline"><%= pluralize(template.documents.size, "entry") %></span>
+      <%= link_to protocol_template_path(template), class: "artifact-type-card" do %>
+        <h2><%= template.name %></h2>
+        <% preview_lines = template.documents.order(:position).flat_map { |document| document.body.to_s.lines.map(&:strip).reject(&:blank?).first(3) }.first(6) %>
+        <% if preview_lines.any? %>
+          <div class="protocol-card-preview" aria-hidden="true">
+            <% preview_lines.each do |line| %>
+              <span><%= line %></span>
+            <% end %>
+          </div>
         <% end %>
-      </article>
+      <% end %>
     <% end %>
   </section>
 </main>

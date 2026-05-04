@@ -82,7 +82,7 @@ class ProjectProtocolsControllerTest < ActionDispatch::IntegrationTest
     refute_match "AGENTS.md", response.body
   end
 
-  test "materialized canonical protocol entry renders template body as placeholder only" do
+  test "materialized canonical protocol entry persists local template body" do
     admin = create_admin_user!
     sign_in_as(admin)
     project = create_project(key: "protocols-placeholder")
@@ -94,10 +94,9 @@ class ProjectProtocolsControllerTest < ActionDispatch::IntegrationTest
     get project_protocol_path(project, document)
 
     assert_response :success
-    assert_equal "", document.body
-    assert_match "placeholder=", response.body
+    assert_match "Engineering Conventions", document.body
     assert_match "<textarea", response.body
-    refute_match "># Conventions", response.body
+    assert_match "Engineering Conventions", response.body
   end
 
   test "show renders combined read edit protocol screen" do
@@ -141,7 +140,7 @@ class ProjectProtocolsControllerTest < ActionDispatch::IntegrationTest
     }
 
     assert_redirected_to project_protocol_path(project, document)
-    assert_equal "AGENTS Updated", document.reload.title
+    assert_equal "AGENTS", document.reload.title
     assert_equal "# Updated Root", document.reload.body
   end
 
@@ -164,12 +163,13 @@ class ProjectProtocolsControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     payload = JSON.parse(response.body)
-    assert_equal "AGENTS Autosaved", payload.fetch("title")
+    refute payload.key?("title")
     assert payload.fetch("updated_at").present?
-    assert_equal "AGENTS Autosaved", document.reload.title
+    assert_equal "AGENTS", document.reload.title
+    assert_equal "# Autosaved Root", document.reload.body
   end
 
-  test "index reconstitutes deleted canonical protocol entry as empty slot" do
+  test "index reconstitutes deleted canonical protocol entry from local template source" do
     admin = create_admin_user!
     sign_in_as(admin)
     project = create_project(key: "protocols-delete")
@@ -187,7 +187,7 @@ class ProjectProtocolsControllerTest < ActionDispatch::IntegrationTest
     get project_protocols_path(project)
 
     recreated = project.reload.protocol.documents.find_by!(key: "conventions")
-    assert_equal "", recreated.body
+    assert_match "Engineering Conventions", recreated.body
   end
 
   test "index does not duplicate existing canonical protocol entry" do

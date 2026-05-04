@@ -49,8 +49,8 @@ class ProjectProtocolTemplatesControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_match "Common Protocol Template", response.body
-    assert_match "Open dedicated view", response.body
-    assert_match "AGENTS.md", response.body
+    assert_match "Playbooks", response.body
+    assert_match "Agent Operating Contract", response.body
   end
 
   test "stacks overview renders stack templates and create entry point" do

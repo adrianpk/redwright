@@ -8,13 +8,19 @@
     </div>
   </section>
 
-  <section class="artifact-list">
+  <section class="artifact-type-nav" aria-label="Playbook navigation">
     <% @playbook_entries.each do |entry| %>
-      <article class="artifact-list-card<%= ' is-missing' if entry.missing? %>">
-        <%= link_to project_protocol_path(@project, entry.document) do %>
-          <strong><%= entry.title %></strong>
+      <%= link_to project_protocol_path(@project, entry.document), class: "artifact-type-card" do %>
+        <h2><%= entry.title %></h2>
+        <% preview_lines = entry.body.to_s.lines.map(&:strip).reject(&:blank?).first(6) %>
+        <% if preview_lines.any? %>
+          <div class="protocol-card-preview" aria-hidden="true">
+            <% preview_lines.each do |line| %>
+              <span><%= line %></span>
+            <% end %>
+          </div>
         <% end %>
-      </article>
+      <% end %>
     <% end %>
   </section>
 </main>

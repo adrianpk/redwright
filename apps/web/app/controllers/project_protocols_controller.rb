@@ -5,6 +5,8 @@ class ProjectProtocolsController < ApplicationController
 
   def index
     @protocol_entries = @catalog.top_level_entries
+    @playbook_entries = @catalog.playbook_entries
+    @playbook_listing_lines = @playbook_entries.map { |entry| File.basename(entry.path) }
   end
 
   def playbooks
@@ -25,7 +27,6 @@ class ProjectProtocolsController < ApplicationController
         format.json do
           render json: {
             id: @protocol_document.id,
-            title: @protocol_document.title,
             updated_at: @protocol_document.updated_at&.iso8601
           }
         end
@@ -63,6 +64,7 @@ class ProjectProtocolsController < ApplicationController
   end
 
   def protocol_document_params
-    params.require(:project_protocol_document).permit(:title, :body)
+    params.require(:project_protocol_document).permit(:body)
   end
+
 end

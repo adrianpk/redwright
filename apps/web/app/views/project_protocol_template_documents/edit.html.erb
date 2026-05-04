@@ -4,12 +4,6 @@
   </p>
   <header class="document-artifacts-header">
     <h1>Edit Template Document</h1>
-    <p class="board-key"><%= @document.path %></p>
-    <div class="artifact-context-row">
-      <span class="artifact-context-chip"><%= @template.common? ? "Common" : "Stack" %></span>
-      <span class="artifact-context-chip"><%= @document.layer.capitalize %></span>
-      <span class="artifact-context-chip"><%= @template.key %></span>
-    </div>
   </header>
   <section class="document-artifact-panel">
     <%= form_with model: @document,
