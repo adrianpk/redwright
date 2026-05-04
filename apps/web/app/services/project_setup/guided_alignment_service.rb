@@ -40,11 +40,7 @@ module ProjectSetup
         turn: turn,
         summary: summary_for(session),
         effects: [
-          {
-            "type" => "project_setup_turn_reused",
-            "session_id" => session.id,
-            "turn_index" => turn.turn_index
-          }
+          saga_effect("project_setup_turn_reused", visibility: "internal", session_id: session.id, turn_index: turn.turn_index)
         ]
       )
     end
@@ -61,16 +57,14 @@ module ProjectSetup
 
         repeated = alignment_turn_for_request(request_id)
         if repeated
+          effects = [
+            saga_effect("project_setup_turn_reused", visibility: "internal", session_id: session.id, turn_index: repeated.turn_index)
+          ]
+          SagaState.new(session: session).record_effects!(effects)
           result = success(
             turn: repeated,
             summary: summary_for(session),
-            effects: [
-              {
-                "type" => "project_setup_turn_reused",
-                "session_id" => session.id,
-                "turn_index" => repeated.turn_index
-              }
-            ]
+            effects: effects
           )
           next
         end
@@ -120,41 +114,38 @@ module ProjectSetup
             attribute_ids: output_data.fetch("alignment_project_attribute_ids"),
             workspace: {}
           )
+          effects = [
+            turn_recorded_effect(turn),
+            saga_effect(
+              "guided_alignment_artifacts_written",
+              visibility: "internal",
+              session_id: session.id,
+              project_id: session.project_id,
+              document_id: output_data.fetch("alignment_document_id"),
+              project_attribute_ids: output_data.fetch("alignment_project_attribute_ids")
+            ),
+            saga_effect("project_setup_completed", visibility: "public", session_id: session.id, terminal_reason: "completed_with_alignment")
+          ]
+          SagaState.new(session: session).record_effects!(effects)
           result = success(
             turn: turn,
             summary: "Guided alignment completed.",
-            effects: [
-              turn_recorded_effect(turn),
-              {
-                "type" => "guided_alignment_artifacts_written",
-                "session_id" => session.id,
-                "project_id" => session.project_id,
-                "document_id" => output_data.fetch("alignment_document_id"),
-                "project_attribute_ids" => output_data.fetch("alignment_project_attribute_ids")
-              },
-              {
-                "type" => "project_setup_completed",
-                "session_id" => session.id,
-                "terminal_reason" => "completed_with_alignment"
-              }
-            ],
+            effects: effects,
             data: output_data
           )
         else
           next_question = QUESTIONS.fetch(question_index + 1)
           StateMachine.new(session: session).transition_to!("collecting_alignment", pending_question: next_question.fetch("question"))
           SagaState.new(session: session).mark_questionnaire!
+          effects = [
+            turn_recorded_effect(turn),
+            saga_effect("guided_alignment_question_advanced", visibility: "internal", session_id: session.id, next_question_index: question_index + 2)
+          ]
+          SagaState.new(session: session).record_effects!(effects)
           result = success(
             turn: turn,
             summary: "Guided alignment advanced.",
-            effects: [
-              turn_recorded_effect(turn),
-              {
-                "type" => "guided_alignment_question_advanced",
-                "session_id" => session.id,
-                "next_question_index" => question_index + 2
-              }
-            ]
+            effects: effects
           )
         end
       end
@@ -286,11 +277,11 @@ module ProjectSetup
     end
 
     def turn_recorded_effect(turn)
-      {
-        "type" => "project_setup_turn_recorded",
-        "session_id" => session.id,
-        "turn_index" => turn.turn_index
-      }
+      saga_effect("project_setup_turn_recorded", visibility: "internal", session_id: session.id, turn_index: turn.turn_index)
+    end
+
+    def saga_effect(type, visibility:, **data)
+      HeavyInteractionSagas::Effect.new(type: type, visibility: visibility, data: data).to_h
     end
 
     def summary_for(session)

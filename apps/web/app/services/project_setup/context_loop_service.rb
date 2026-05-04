@@ -44,11 +44,7 @@ module ProjectSetup
       return nil unless turn
 
       effects = [
-        {
-          "type" => "project_setup_turn_reused",
-          "session_id" => session.id,
-          "turn_index" => turn.turn_index
-        }
+        saga_effect("project_setup_turn_reused", visibility: "internal", session_id: session.id, turn_index: turn.turn_index)
       ]
       effects << completion_reused_effect if completion_materialized?
 
@@ -71,16 +67,14 @@ module ProjectSetup
 
         repeated = context_turn_for_request(request_id)
         if repeated
+          effects = [
+            saga_effect("project_setup_turn_reused", visibility: "internal", session_id: session.id, turn_index: repeated.turn_index)
+          ]
+          SagaState.new(session: session).record_effects!(effects)
           result = success(
             turn: repeated,
             summary: summary_for(session),
-            effects: [
-              {
-                "type" => "project_setup_turn_reused",
-                "session_id" => session.id,
-                "turn_index" => repeated.turn_index
-              }
-            ]
+            effects: effects
           )
           next
         end
@@ -138,17 +132,15 @@ module ProjectSetup
         session.save!
         store_next_prompt_intent!(slot_key)
         SagaState.new(session: session).mark_questionnaire!
+        effects = [
+          turn_recorded_effect(turn),
+          saga_effect("project_setup_prompt_repeated", visibility: "internal", session_id: session.id, slot: slot_key)
+        ]
+        SagaState.new(session: session).record_effects!(effects)
         return success(
           turn: turn,
           summary: "Project setup needs a clearer answer.",
-          effects: [
-            turn_recorded_effect(turn),
-            {
-              "type" => "project_setup_prompt_repeated",
-              "session_id" => session.id,
-              "slot" => slot_key
-            }
-          ]
+          effects: effects
         )
       end
 
@@ -169,17 +161,15 @@ module ProjectSetup
 
       store_next_prompt_intent!(next_slot)
       SagaState.new(session: session).mark_questionnaire!
+      effects = [
+        turn_recorded_effect(turn),
+        saga_effect("project_setup_prompt_advanced", visibility: "internal", session_id: session.id, slot: next_slot)
+      ]
+      SagaState.new(session: session).record_effects!(effects)
       success(
         turn: turn,
         summary: "Project setup context updated.",
-        effects: [
-          turn_recorded_effect(turn),
-          {
-            "type" => "project_setup_prompt_advanced",
-            "session_id" => session.id,
-            "slot" => next_slot
-          }
-        ]
+        effects: effects
       )
     end
 
@@ -198,17 +188,15 @@ module ProjectSetup
       if blocking_slot?(slot_key)
         store_next_prompt_intent!(slot_key)
         SagaState.new(session: session).mark_questionnaire!
+        effects = [
+          turn_recorded_effect(turn),
+          saga_effect("project_setup_prompt_repeated", visibility: "internal", session_id: session.id, slot: slot_key)
+        ]
+        SagaState.new(session: session).record_effects!(effects)
         return success(
           turn: turn,
           summary: "Project setup still needs a project name.",
-          effects: [
-            turn_recorded_effect(turn),
-            {
-              "type" => "project_setup_prompt_repeated",
-              "session_id" => session.id,
-              "slot" => slot_key
-            }
-          ]
+          effects: effects
         )
       end
 
@@ -220,17 +208,15 @@ module ProjectSetup
 
       store_next_prompt_intent!(next_slot)
       SagaState.new(session: session).mark_questionnaire!
+      effects = [
+        turn_recorded_effect(turn),
+        saga_effect("project_setup_prompt_advanced", visibility: "internal", session_id: session.id, slot: next_slot)
+      ]
+      SagaState.new(session: session).record_effects!(effects)
       success(
         turn: turn,
         summary: "Project setup slot skipped.",
-        effects: [
-          turn_recorded_effect(turn),
-          {
-            "type" => "project_setup_prompt_advanced",
-            "session_id" => session.id,
-            "slot" => next_slot
-          }
-        ]
+        effects: effects
       )
     end
 
@@ -247,17 +233,15 @@ module ProjectSetup
       if missing
         store_next_prompt_intent!(missing)
         SagaState.new(session: session).mark_questionnaire!
+        effects = [
+          turn_recorded_effect(turn),
+          saga_effect("project_setup_prompt_repeated", visibility: "internal", session_id: session.id, slot: missing)
+        ]
+        SagaState.new(session: session).record_effects!(effects)
         return success(
           turn: turn,
           summary: "Project setup still needs a project name.",
-          effects: [
-            turn_recorded_effect(turn),
-            {
-              "type" => "project_setup_prompt_repeated",
-              "session_id" => session.id,
-              "slot" => missing
-            }
-          ]
+          effects: effects
         )
       end
 
@@ -278,17 +262,16 @@ module ProjectSetup
       session.metadata = metadata
       session.save!
       SagaState.new(session: session).mark_cancelled!
+      effects = [
+        turn_recorded_effect(turn),
+        saga_effect("project_setup_cancelled", visibility: "public", session_id: session.id)
+      ]
+      SagaState.new(session: session).record_effects!(effects)
 
       success(
         turn: turn,
         summary: "Project setup cancelled.",
-        effects: [
-          turn_recorded_effect(turn),
-          {
-            "type" => "project_setup_cancelled",
-            "session_id" => session.id
-          }
-        ]
+        effects: effects
       )
     end
 
@@ -324,81 +307,39 @@ module ProjectSetup
       effects << turn_recorded_effect(turn) if turn
       effects.concat(
         [
-          {
-            "type" => "project_protocols_initialized",
-            "session_id" => session.id,
-            "project_id" => project.id
-          },
-          {
-            "type" => "project_created",
-            "project_id" => project.id
-          },
-          {
-            "type" => "setup_context_materialized",
-            "session_id" => session.id,
-            "project_id" => project.id,
-            "project_attribute_ids" => attribute_ids
-          },
-          {
-            "type" => "setup_summary_document_written",
-            "session_id" => session.id,
-            "project_id" => project.id,
-            "document_id" => document.id
-          },
-          {
-            "type" => "default_board_structure_written",
-            "session_id" => session.id,
-            "project_id" => project.id,
-            "board_id" => board.id
-          }
+          saga_effect("project_protocols_initialized", visibility: "internal", session_id: session.id, project_id: project.id),
+          saga_effect("project_created", visibility: "public", project_id: project.id),
+          saga_effect("setup_context_materialized", visibility: "public", session_id: session.id, project_id: project.id, project_attribute_ids: attribute_ids),
+          saga_effect("setup_summary_document_written", visibility: "internal", session_id: session.id, project_id: project.id, document_id: document.id),
+          saga_effect("default_board_structure_written", visibility: "internal", session_id: session.id, project_id: project.id, board_id: board.id)
         ]
       )
       if starter_ticket
-        effects << {
-          "type" => "setup_starter_ticket_written",
-          "session_id" => session.id,
-          "project_id" => project.id,
-          "board_id" => board.id,
-          "ticket_id" => starter_ticket.id
-        }
+        effects << saga_effect("setup_starter_ticket_written", visibility: "internal", session_id: session.id, project_id: project.id, board_id: board.id, ticket_id: starter_ticket.id)
       end
       if runtime_generation
-        effects << {
-          "type" => "runtime_containers_initialized",
-          "session_id" => session.id,
-          "project_id" => project.id,
-          "runtime_container_id" => project.runtime_container&.id,
-          "readiness" => project.runtime_container&.readiness,
-          "generator_source" => runtime_generation.generator_source
-        }
+        effects << saga_effect(
+          "runtime_containers_initialized",
+          visibility: "internal",
+          session_id: session.id,
+          project_id: project.id,
+          runtime_container_id: project.runtime_container&.id,
+          readiness: project.runtime_container&.readiness,
+          generator_source: runtime_generation.generator_source
+        )
       end
       if runtime_readiness_ticket
-        effects << {
-          "type" => "runtime_containers_readiness_ticket_written",
-          "session_id" => session.id,
-          "project_id" => project.id,
-          "board_id" => board.id,
-          "ticket_id" => runtime_readiness_ticket.id
-        }
+        effects << saga_effect("runtime_containers_readiness_ticket_written", visibility: "internal", session_id: session.id, project_id: project.id, board_id: board.id, ticket_id: runtime_readiness_ticket.id)
       end
       if workspace && workspace["materialized"] == true
-        effects << {
-          "type" => "local_workspace_materialized",
-          "session_id" => session.id,
-          "project_id" => project.id,
-          "path" => workspace["path"],
-          "manifest_path" => workspace["manifest_path"]
-        }
+        effects << saga_effect("local_workspace_materialized", visibility: "debug", session_id: session.id, project_id: project.id, path: workspace["path"], manifest_path: workspace["manifest_path"])
       end
       effects.concat(
         [
-          {
-          "type" => "project_setup_completed",
-            "session_id" => session.id,
-            "terminal_reason" => "completed_without_alignment"
-          }
+          saga_effect("project_setup_completed", visibility: "public", session_id: session.id, terminal_reason: "completed_without_alignment")
         ]
       )
+      SagaState.new(session: session).record_effects!(effects)
 
       success(
         turn: turn,
@@ -534,11 +475,7 @@ module ProjectSetup
     end
 
     def turn_recorded_effect(turn)
-      {
-        "type" => "project_setup_turn_recorded",
-        "session_id" => session.id,
-        "turn_index" => turn.turn_index
-      }
+      saga_effect("project_setup_turn_recorded", visibility: "internal", session_id: session.id, turn_index: turn.turn_index)
     end
 
     def current_slot_key
@@ -896,7 +833,9 @@ module ProjectSetup
 
     def persist_materialization_steps!(step_results)
       metadata = session.metadata
-      metadata["materialization_steps"] = Array(step_results)
+      metadata["materialization_steps"] = Array(step_results).map do |step_result|
+        step_result.to_h.merge("visibility" => "debug")
+      end
       session.metadata = metadata
       session.save!
     end
@@ -969,11 +908,11 @@ module ProjectSetup
     end
 
     def completion_reused_effect
-      {
-        "type" => "project_setup_completion_reused",
-        "session_id" => session.id,
-        "project_id" => session.project_id
-      }
+      saga_effect("project_setup_completion_reused", visibility: "internal", session_id: session.id, project_id: session.project_id)
+    end
+
+    def saga_effect(type, visibility:, **data)
+      HeavyInteractionSagas::Effect.new(type: type, visibility: visibility, data: data).to_h
     end
 
     def repository_url_for(directory_name)

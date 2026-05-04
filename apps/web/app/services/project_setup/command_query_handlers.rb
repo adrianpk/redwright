@@ -90,11 +90,7 @@ module ProjectSetup
         request_id: request_id,
         data: session_data(session.reload, summary: "Project setup advanced."),
         effects: [
-          {
-            "type" => "project_setup_turn_recorded",
-            "session_id" => session.id,
-            "turn_index" => turn.turn_index
-          }
+          saga_effect("project_setup_turn_recorded", visibility: "internal", session_id: session.id, turn_index: turn.turn_index)
         ]
       )
     end
@@ -116,11 +112,7 @@ module ProjectSetup
         request_id: request_id,
         data: session_data(session.reload, summary: "Project setup cancelled."),
         effects: [
-          {
-            "type" => "project_setup_cancelled",
-            "session_id" => session.id,
-            "actor_identifier" => actor_identifier_from(context)
-          }
+          saga_effect("project_setup_cancelled", visibility: "public", session_id: session.id, actor_identifier: actor_identifier_from(context))
         ]
       )
     rescue StateMachine::InvalidTransition => e
@@ -184,6 +176,10 @@ module ProjectSetup
     private
 
     def setup_result(result, request_id:)
+      effects = setup_effects_from(result)
+      if result.setup_session
+        ProjectSetup::SagaState.new(session: result.setup_session).record_effects!(effects)
+      end
       data = setup_result_data(result)
       errors = setup_errors_from(result)
 
@@ -191,7 +187,7 @@ module ProjectSetup
         status: ERROR_SETUP_STATUSES.include?(result.status) ? "error" : "ok",
         request_id: request_id,
         data: data,
-        effects: setup_effects_from(result),
+        effects: effects,
         errors: errors
       )
     end
@@ -216,8 +212,8 @@ module ProjectSetup
     def setup_effects_from(result)
       session = result.setup_session
       effects = []
-      effects << {"type" => "project_setup_session_written", "session_id" => session.id} if session
-      effects << {"type" => "project_created", "project_id" => result.project[:id]} if result.project[:created] == true
+      effects << saga_effect("project_setup_session_written", visibility: "internal", session_id: session.id) if session
+      effects << saga_effect("project_created", visibility: "public", project_id: result.project[:id]) if result.project[:created] == true
       effects
     end
 
@@ -443,6 +439,10 @@ module ProjectSetup
         code: "invalid_payload",
         message: message
       )
+    end
+
+    def saga_effect(type, visibility:, **data)
+      HeavyInteractionSagas::Effect.new(type: type, visibility: visibility, data: data).to_h
     end
 
     def find_session(session_id)
