@@ -1,6 +1,17 @@
 module ProjectProtocols
   class StackProtocolSource
     STACKS = {
+      "go" => {
+        name: "Go Protocol Template",
+        matchers: ["go", "golang"],
+        root: "go",
+        documents: [
+          ["architecture", ".agents/ARCHITECTURE.md", "Architecture", 0],
+          ["conventions", ".agents/CONVENTIONS.md", "Conventions", 1],
+          ["documenting", ".agents/DOCUMENTING.md", "Documenting", 2],
+          ["linting", ".agents/LINTING.md", "Linting", 3]
+        ]
+      },
       "ruby" => {
         name: "Ruby Protocol Template",
         matchers: ["ruby"],

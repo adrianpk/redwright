@@ -14,7 +14,7 @@ module ProjectProtocols
       state = project.reload.protocol_state
       assert_equal "draft", state.fetch("status")
       assert_equal "AGENTS.md", state.fetch("documents").first.fetch("path")
-      assert_match(/Repository Architecture/, state.fetch("documents").find { |doc| doc.fetch("key") == "architecture" }.fetch("body"))
+      assert_match(/Go Architecture/, state.fetch("documents").find { |doc| doc.fetch("key") == "architecture" }.fetch("body"))
     end
 
     test "persists fallback project protocols when stack coverage is missing" do

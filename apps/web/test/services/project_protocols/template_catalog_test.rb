@@ -25,6 +25,17 @@ module ProjectProtocols
       refute_match(/RedWright/, ruby_template.documents.map(&:body).join("\n"))
     end
 
+    test "seeds go stack template from stack protocol markdown source" do
+      catalog = TemplateCatalog.new
+
+      go_template = catalog.all_templates.find { |template| template.template_kind == "stack" && template.key == "go" }
+
+      assert_equal "Go Protocol Template", go_template.name
+      assert_equal ["architecture", "conventions", "documenting", "linting"], go_template.documents.order(:position).pluck(:key)
+      assert_match(/Go repository structure/, go_template.documents.find_by!(key: "architecture").body)
+      refute_match(/Warden|RedWright/, go_template.documents.map(&:body).join("\n"))
+    end
+
     test "edited templates affect future composition without rewriting existing project protocol copies" do
       catalog = TemplateCatalog.new
       rails_template = catalog.all_templates.find { |template| template.key == "rails" && template.template_kind == "stack" }
