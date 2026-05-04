@@ -4,9 +4,9 @@
 
 - cycle_id: `cycle-2026-05-04-redwright-heavy-interaction-sagas`
 - status: `in_progress`
-- state: `slice_3_pr_open`
+- state: `slice_4_implemented`
 - updated: `2026-05-04`
-- active_slice: `Slice 3`
+- active_slice: `Slice 4`
 - active_task: `none`
 - source_plan: `ops/plans/2026-05-04-redwright-heavy-interaction-sagas-cycle-plan.md`
 - source_spec: `ops/specs/specs/2026-05-04-redwright-heavy-interaction-sagas-spec.md`
@@ -91,28 +91,28 @@ Validation:
 
 ### Slice 4: Failure, Reconciliation, and Observability
 
-- status: `pending`
+- status: `implemented`
 - branch: `fix/slice-4-saga-failure-reconciliation-observability`
 - PR: `tbd`
 - merge_target: `dev`
-- last_sync_commit: `tbd`
+- last_sync_commit: `02e3f73`
 
 Tasks:
 
-- [ ] `T4.1 add failure and reconciliation state handling consistent with the shared saga contract`
-- [ ] `T4.2 classify saga effects with public, internal, and debug visibility`
-- [ ] `T4.3 expose preserved-context and reconciliation signals in Project Setup failure paths`
-- [ ] `T4.4 add targeted tests for partial failure, preserved context, reconciliation metadata, and effect visibility`
+- [x] `T4.1 add failure and reconciliation state handling consistent with the shared saga contract`
+- [x] `T4.2 classify saga effects with public, internal, and debug visibility`
+- [x] `T4.3 expose preserved-context and reconciliation signals in Project Setup failure paths`
+- [x] `T4.4 add targeted tests for partial failure, preserved context, reconciliation metadata, and effect visibility`
 
 Commits:
 
-- [ ] `tbd feat(web): add saga reconciliation state handling`
-- [ ] `tbd feat(web): classify saga effects and debug visibility`
-- [ ] `tbd test(web): cover saga failure and reconciliation behavior`
+- [x] `33ea1f5 feat(web): add saga reconciliation state handling`
+- [x] `a51fc5e feat(web): classify saga effects and observability`
+- [x] `02e3f73 test(web): cover saga failure and reconciliation behavior`
 
 Validation:
 
-- [ ] `bundle exec bin/rails test <saga failure and observability paths>` (pending)
+- [x] `bundle exec bin/rails test test/services/project_initialization/setup_session_runner_test.rb test/services/project_setup/context_loop_service_test.rb test/controllers/api/v1/command_queries_controller_test.rb` (pass)
 
 ### Slice 5: Adapter Rendering and Prompt Intent Integration
 
@@ -173,3 +173,4 @@ Validation:
 - `2026-05-04` state=`slice_2_pr_open` note=`opened Codeberg PR #286 from fix/slice-2-project-setup-saga-alignment into dev`
 - `2026-05-04` state=`slice_3_implemented` note=`extracted Project Setup materialization into an explicit named pipeline, preserved the existing step order and side effects, exposed structured materialization step results, and validated the behavior through direct pipeline, setup service, Telegram, conversational, and runtime-bridge coverage on fix/slice-3-project-setup-materialization-pipeline`
 - `2026-05-04` state=`slice_3_pr_open` note=`opened Codeberg PR #287 from fix/slice-3-project-setup-materialization-pipeline into dev`
+- `2026-05-04` state=`slice_4_implemented` note=`made failure and needs-reconciliation outcomes explicit in the shared saga contract, preserved setup context and reconciliation metadata through failure snapshots, classified saga effects and debug step visibility, and validated the behavior through setup runner, context loop, and command API coverage on fix/slice-4-saga-failure-reconciliation-observability`

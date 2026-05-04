@@ -75,15 +75,15 @@
 
 ### Slice 4: Failure, Reconciliation, and Observability
 
-- status: `pending`
+- status: `implemented`
 - branch: `fix/slice-4-saga-failure-reconciliation-observability`
 - pr_title: `feat(slice-4): add saga reconciliation and observability`
 - objective: `make partial failure, preserved context, reconciliation choices, and debug visibility explicit in saga execution paths`
 - tasks:
-- [ ] `T4.1 add failure and reconciliation state handling consistent with the shared saga contract`
-- [ ] `T4.2 classify saga effects with public, internal, and debug visibility`
-- [ ] `T4.3 expose preserved-context and reconciliation signals in Project Setup failure paths`
-- [ ] `T4.4 add targeted tests for partial failure, preserved context, reconciliation metadata, and effect visibility`
+- [x] `T4.1 add failure and reconciliation state handling consistent with the shared saga contract`
+- [x] `T4.2 classify saga effects with public, internal, and debug visibility`
+- [x] `T4.3 expose preserved-context and reconciliation signals in Project Setup failure paths`
+- [x] `T4.4 add targeted tests for partial failure, preserved context, reconciliation metadata, and effect visibility`
 - acceptance:
 - `late materialization failure does not silently discard valuable setup context`
 - `reconciliation signals are explicit and machine-readable`
