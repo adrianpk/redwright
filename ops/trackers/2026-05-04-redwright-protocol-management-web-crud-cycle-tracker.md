@@ -18,9 +18,9 @@
 
 ### Slice 1: Project Protocol Navigation and Canonical Index
 
-- status: `implemented`
+- status: `pr_open`
 - branch: `fix/slice-1-protocol-management-project-index`
-- PR: `tbd`
+- PR: `#292 https://codeberg.org/adrianpk/redwright/pulls/292`
 - merge_target: `dev`
 - last_sync_commit: `8b3145d`
 
@@ -129,3 +129,4 @@ Validation:
 
 - `2026-05-04 00:00` state=`planning` note=`formalized the protocol management web CRUD spec from questionnaire artifacts and initialized the associated cycle plan and tracker for execution planning`
 - `2026-05-04 15:18` state=`slice_1_implemented` note=`added project-scoped Protocols navigation, built the canonical card index with missing-entry create actions and dedicated Playbooks routing, and validated controller coverage on fix/slice-1-protocol-management-project-index`
+- `2026-05-04 16:19` state=`slice_1_pr_open` note=`opened Codeberg PR #292 from fix/slice-1-protocol-management-project-index into dev`
