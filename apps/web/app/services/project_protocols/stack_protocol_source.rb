@@ -44,6 +44,17 @@ module ProjectProtocols
           ["documenting", ".agents/DOCUMENTING.md", "Documenting", 2],
           ["linting", ".agents/LINTING.md", "Linting", 3]
         ]
+      },
+      "zig" => {
+        name: "Zig Protocol Template",
+        matchers: ["zig"],
+        root: "zig",
+        documents: [
+          ["architecture", ".agents/ARCHITECTURE.md", "Architecture", 0],
+          ["conventions", ".agents/CONVENTIONS.md", "Conventions", 1],
+          ["documenting", ".agents/DOCUMENTING.md", "Documenting", 2],
+          ["linting", ".agents/LINTING.md", "Linting", 3]
+        ]
       }
     }.freeze
 

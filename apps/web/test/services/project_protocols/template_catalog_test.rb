@@ -58,6 +58,17 @@ module ProjectProtocols
       refute_match(/RedWright/, rails_template.documents.map(&:body).join("\n"))
     end
 
+    test "seeds zig stack template from stack protocol markdown source" do
+      catalog = TemplateCatalog.new
+
+      zig_template = catalog.all_templates.find { |template| template.template_kind == "stack" && template.key == "zig" }
+
+      assert_equal "Zig Protocol Template", zig_template.name
+      assert_equal ["architecture", "conventions", "documenting", "linting"], zig_template.documents.order(:position).pluck(:key)
+      assert_match(/Zig repository structure/, zig_template.documents.find_by!(key: "architecture").body)
+      refute_match(/Warden|RedWright/, zig_template.documents.map(&:body).join("\n"))
+    end
+
     test "edited templates affect future composition without rewriting existing project protocol copies" do
       catalog = TemplateCatalog.new
       rails_template = catalog.all_templates.find { |template| template.key == "rails" && template.template_kind == "stack" }
