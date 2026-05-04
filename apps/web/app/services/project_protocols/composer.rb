@@ -63,7 +63,7 @@ module ProjectProtocols
       stack_templates.each do |template|
         template.fetch("documents").each do |document|
           key = document.fetch("key")
-          common = merged.fetch(key)
+          common = merged.fetch(key, document.merge("position" => stack_overlay_position(key, document)))
           merged[key] = common.merge(
             "layer" => document.fetch("layer"),
             "body" => document.fetch("body"),
@@ -80,6 +80,12 @@ module ProjectProtocols
           "provenance" => document.fetch("provenance", {"source" => "common_template"})
         )
       end
+    end
+
+    def stack_overlay_position(key, document)
+      return 2 if key == "architecture"
+
+      document.fetch("position", 999)
     end
 
     def apply_fallback(documents, missing_tokens)

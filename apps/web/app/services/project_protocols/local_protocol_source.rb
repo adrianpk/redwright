@@ -12,12 +12,12 @@ module ProjectProtocols
       ["slices", ".agents/SLICES.md", "Slices", "behavioral"],
       ["versioning", ".agents/VERSIONING.md", "Versioning", "behavioral"],
       ["playbooks_index", ".agents/PLAYBOOKS.md", "Playbooks", "behavioral"],
-      ["playbook_branching_and_pr_flow", ".agents/playbooks/branching-and-pr-flow.md", "Branching and PR Flow", "behavioral"],
-      ["playbook_plan_driven_workflow", ".agents/playbooks/plan-driven-workflow.md", "Plan-Driven Workflow", "behavioral"],
+      ["playbook_version_control_workflow", ".agents/playbooks/version-control-workflow.md", "Version Control Workflow", "behavioral"],
+      ["playbook_planned_delivery_workflow", ".agents/playbooks/planned-delivery-workflow.md", "Planned Delivery Workflow", "behavioral"],
       ["playbook_questionnaires", ".agents/playbooks/questionnaires.md", "Questionnaires", "behavioral"],
       ["playbook_release_alignment", ".agents/playbooks/release-alignment.md", "Release Alignment", "behavioral"],
       ["playbook_slice_delivery", ".agents/playbooks/slice-delivery.md", "Slice Delivery", "behavioral"],
-      ["playbook_spec_draft_conversation_workflow", ".agents/playbooks/spec-draft-conversation-workflow.md", "Spec Draft Conversation Workflow", "behavioral"],
+      ["playbook_specification_workflow", ".agents/playbooks/specification-workflow.md", "Specification Workflow", "behavioral"],
       ["playbook_ticket_workflow", ".agents/playbooks/ticket-workflow.md", "Ticket Workflow", "behavioral"]
     ].freeze
 

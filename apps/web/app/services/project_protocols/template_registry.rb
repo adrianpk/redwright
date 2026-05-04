@@ -2,8 +2,9 @@ module ProjectProtocols
   class TemplateRegistry
     STACK_KEYS = %w[go ruby rails typescript elixir gleam zig rust angular].freeze
 
-    def initialize(source: LocalProtocolSource.new)
+    def initialize(source: DefaultBehavioralProtocolSource.new, stack_source: LocalProtocolSource.new)
       @source = source
+      @stack_source = stack_source
     end
 
     def common_documents
@@ -22,15 +23,15 @@ module ProjectProtocols
 
     private
 
-    attr_reader :source
+    attr_reader :source, :stack_source
 
     def stack_template(stack_key:, matchers:, architecture:, conventions:)
       {
         "stack_key" => stack_key,
         "matchers" => matchers,
         "documents" => [
-          stack_doc("architecture", ".agents/ARCHITECTURE.md", "Architecture", architecture),
-          stack_doc("conventions", ".agents/CONVENTIONS.md", "Conventions", conventions)
+          stack_doc("architecture", ".agents/ARCHITECTURE.md", "Architecture", architecture, 0),
+          stack_doc("conventions", ".agents/CONVENTIONS.md", "Conventions", conventions, 1)
         ]
       }
     end
@@ -39,17 +40,18 @@ module ProjectProtocols
       stack_template(
         stack_key: stack_key,
         matchers: [stack_key],
-        architecture: source.body_for(".agents/ARCHITECTURE.md"),
-        conventions: source.body_for(".agents/CONVENTIONS.md")
+        architecture: stack_source.body_for(".agents/ARCHITECTURE.md"),
+        conventions: stack_source.body_for(".agents/CONVENTIONS.md")
       )
     end
 
-    def stack_doc(key, path, title, body)
+    def stack_doc(key, path, title, body, position)
       {
         "key" => key,
         "path" => path,
         "title" => title,
         "layer" => "stack",
+        "position" => position,
         "body" => body.strip
       }
     end
