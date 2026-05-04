@@ -295,51 +295,21 @@ module ProjectSetup
     def complete_setup!(turn:)
       default_missing_slots!
 
-      project = nil
-      board = nil
-      document = nil
-      starter_ticket = nil
-      protocol_generation = nil
-      runtime_generation = nil
-      runtime_readiness_ticket = nil
-      workspace = nil
-      attribute_ids = []
       StateMachine.new(session: session).transition_to!("ready_to_create")
       StateMachine.new(session: session).transition_to!("creating_project")
       SagaState.new(session: session).mark_materialization_started!
 
-      project = create_project!
-      session.project = project
-      board = ensure_default_board!(project)
-      attribute_ids = materialize_project_attributes!(project)
-      document = write_setup_summary_document!(project)
-      protocol_generation = initialize_project_protocols!(project)
-      runtime_generation = initialize_runtime_containers!(project)
-      starter_ticket = ensure_starter_workflow_ticket!(project: project, board: board, document: document)
-      runtime_readiness_ticket = ensure_runtime_containers_readiness_ticket!(
-        project: project,
-        board: board,
-        document: document,
-        runtime_generation: runtime_generation
-      )
-      workspace = materialize_local_workspace(
-        project,
-        starter_ticket: starter_ticket,
-        runtime_containers_readiness_ticket: runtime_readiness_ticket
-      )
-      reconcile_starter_ticket_description!(starter_ticket, project, workspace)
-      reconcile_runtime_containers_readiness_ticket_description!(runtime_readiness_ticket, project, runtime_generation)
-      finalize_session_metadata!(
-        project: project,
-        board: board,
-        document: document,
-        starter_ticket: starter_ticket,
-        protocol_generation: protocol_generation,
-        runtime_containers_readiness_ticket: runtime_readiness_ticket,
-        attribute_ids: attribute_ids,
-        workspace: workspace,
-        runtime_generation: runtime_generation
-      )
+      pipeline_result = materialization_pipeline.call
+      project = pipeline_result.outputs.fetch(:project)
+      board = pipeline_result.outputs.fetch(:board)
+      document = pipeline_result.outputs.fetch(:document)
+      starter_ticket = pipeline_result.outputs[:starter_ticket]
+      protocol_generation = pipeline_result.outputs[:protocol_generation]
+      runtime_generation = pipeline_result.outputs[:runtime_generation]
+      runtime_readiness_ticket = pipeline_result.outputs[:runtime_containers_readiness_ticket]
+      workspace = pipeline_result.outputs[:workspace]
+      attribute_ids = pipeline_result.outputs.fetch(:attribute_ids)
+      persist_materialization_steps!(pipeline_result.step_results)
       StateMachine.new(session: session).transition_to!("completed", terminal_reason: "completed_without_alignment")
       SagaState.new(session: session).mark_completed!(
         project: project,
@@ -423,7 +393,7 @@ module ProjectSetup
       effects.concat(
         [
           {
-            "type" => "project_setup_completed",
+          "type" => "project_setup_completed",
             "session_id" => session.id,
             "terminal_reason" => "completed_without_alignment"
           }
@@ -443,8 +413,92 @@ module ProjectSetup
           runtime_containers_readiness_ticket: runtime_readiness_ticket,
           attribute_ids: attribute_ids,
           workspace: workspace,
-          runtime_generation: runtime_generation
+          runtime_generation: runtime_generation,
+          materialization_steps: pipeline_result.step_results
         )
+      )
+    end
+
+    def materialization_pipeline
+      MaterializationPipeline.new(
+        session: session,
+        operations: {
+          create_project: lambda { |_outputs|
+            project = create_project!
+            session.project = project
+            {project: project}
+          },
+          ensure_default_board: lambda { |outputs|
+            {board: ensure_default_board!(outputs.fetch(:project))}
+          },
+          materialize_project_attributes: lambda { |outputs|
+            {attribute_ids: materialize_project_attributes!(outputs.fetch(:project))}
+          },
+          write_setup_summary_document: lambda { |outputs|
+            {document: write_setup_summary_document!(outputs.fetch(:project))}
+          },
+          initialize_project_protocols: lambda { |outputs|
+            {protocol_generation: initialize_project_protocols!(outputs.fetch(:project))}
+          },
+          initialize_runtime_containers: lambda { |outputs|
+            {runtime_generation: initialize_runtime_containers!(outputs.fetch(:project))}
+          },
+          ensure_starter_workflow_ticket: lambda { |outputs|
+            {
+              starter_ticket: ensure_starter_workflow_ticket!(
+                project: outputs.fetch(:project),
+                board: outputs.fetch(:board),
+                document: outputs.fetch(:document)
+              )
+            }
+          },
+          ensure_runtime_containers_readiness_ticket: lambda { |outputs|
+            {
+              runtime_containers_readiness_ticket: ensure_runtime_containers_readiness_ticket!(
+                project: outputs.fetch(:project),
+                board: outputs.fetch(:board),
+                document: outputs.fetch(:document),
+                runtime_generation: outputs.fetch(:runtime_generation)
+              )
+            }
+          },
+          materialize_local_workspace: lambda { |outputs|
+            {
+              workspace: materialize_local_workspace(
+                outputs.fetch(:project),
+                starter_ticket: outputs[:starter_ticket],
+                runtime_containers_readiness_ticket: outputs[:runtime_containers_readiness_ticket]
+              )
+            }
+          },
+          reconcile_starter_ticket_description: lambda { |outputs|
+            reconcile_starter_ticket_description!(outputs[:starter_ticket], outputs.fetch(:project), outputs[:workspace])
+            {}
+          },
+          reconcile_runtime_containers_readiness_ticket_description: lambda { |outputs|
+            reconcile_runtime_containers_readiness_ticket_description!(
+              outputs[:runtime_containers_readiness_ticket],
+              outputs.fetch(:project),
+              outputs.fetch(:runtime_generation)
+            )
+            {}
+          },
+          finalize_session_metadata: lambda { |outputs|
+            finalize_session_metadata!(
+              project: outputs.fetch(:project),
+              board: outputs.fetch(:board),
+              document: outputs.fetch(:document),
+              starter_ticket: outputs[:starter_ticket],
+              protocol_generation: outputs.fetch(:protocol_generation),
+              runtime_containers_readiness_ticket: outputs[:runtime_containers_readiness_ticket],
+              attribute_ids: outputs.fetch(:attribute_ids),
+              workspace: outputs[:workspace],
+              runtime_generation: outputs.fetch(:runtime_generation),
+              materialization_steps: []
+            )
+            {}
+          }
+        }
       )
     end
 
@@ -815,7 +869,7 @@ module ProjectSetup
       lines.join("\n")
     end
 
-    def finalize_session_metadata!(project:, board:, document:, starter_ticket:, protocol_generation:, runtime_containers_readiness_ticket:, attribute_ids:, workspace:, runtime_generation:)
+    def finalize_session_metadata!(project:, board:, document:, starter_ticket:, protocol_generation:, runtime_containers_readiness_ticket:, attribute_ids:, workspace:, runtime_generation:, materialization_steps:)
       metadata = session.metadata
       metadata["project_id"] = project.id
       metadata["board_id"] = board.id
@@ -835,6 +889,14 @@ module ProjectSetup
       metadata["setup_completion_materialized"] = true
       metadata["setup_completion_materialized_at"] ||= Time.current.iso8601
       metadata["workspace"] = workspace if workspace
+      metadata["materialization_steps"] = Array(materialization_steps)
+      session.metadata = metadata
+      session.save!
+    end
+
+    def persist_materialization_steps!(step_results)
+      metadata = session.metadata
+      metadata["materialization_steps"] = Array(step_results)
       session.metadata = metadata
       session.save!
     end
@@ -861,7 +923,7 @@ module ProjectSetup
       }
     end
 
-    def materialization_data(project:, board:, document:, starter_ticket:, protocol_generation:, runtime_containers_readiness_ticket:, attribute_ids:, workspace:, runtime_generation:)
+    def materialization_data(project:, board:, document:, starter_ticket:, protocol_generation:, runtime_containers_readiness_ticket:, attribute_ids:, workspace:, runtime_generation:, materialization_steps:)
       data = {
         "project" => project_data(project),
         "board_id" => board.id,
@@ -872,7 +934,8 @@ module ProjectSetup
         "runtime_containers_readiness_ticket_id" => runtime_containers_readiness_ticket&.id,
         "runtime_containers" => project.reload.runtime_container_state,
         "runtime_containers_generation" => runtime_generation_metadata(runtime_generation),
-        "setup_project_attribute_ids" => attribute_ids
+        "setup_project_attribute_ids" => attribute_ids,
+        "materialization_steps" => materialization_steps
       }
       data["workspace"] = workspace if workspace
       data
@@ -894,7 +957,8 @@ module ProjectSetup
         "runtime_containers_readiness_ticket_id" => metadata["runtime_containers_readiness_ticket_id"],
         "runtime_containers" => metadata["runtime_containers"] || project.runtime_container_state,
         "runtime_containers_generation" => metadata["runtime_containers_generation"] || {},
-        "setup_project_attribute_ids" => metadata["setup_project_attribute_ids"] || []
+        "setup_project_attribute_ids" => metadata["setup_project_attribute_ids"] || [],
+        "materialization_steps" => metadata["materialization_steps"] || []
       }
       data["workspace"] = metadata["workspace"] if metadata["workspace"].is_a?(Hash)
       data
