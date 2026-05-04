@@ -24,7 +24,7 @@ Examples:
 - `main` is protected; no direct commits.
 - `dev` is the mandatory trunk branch for all planned and day-to-day delivery work.
 - Day-to-day work happens on `dev` or short-lived branches created from `dev`.
-- Merge to `main` only via pull request.
+- Merge to `main` only through explicit `dev -> main` release-alignment pull requests.
 - Slice branches should use: `fix/slice-<n>-<short-slug>`.
 
 ## Pull request base policy
@@ -37,6 +37,7 @@ Examples:
 
 - Regular implementation flow is linear through `dev`.
 - `main` receives changes only from explicit alignment actions requested by the user.
+- `dev -> main` alignment uses rebase + fast-forward.
 - If an unintended PR targets `main`, stop and realign by replaying the missing commit chain into `dev` without destructive history edits.
 
 ## Workflow policy

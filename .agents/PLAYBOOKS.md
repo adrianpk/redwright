@@ -4,12 +4,12 @@ This file indexes focused playbooks under `.agents/playbooks/`.
 
 ## Core Playbooks
 
-- `.agents/playbooks/branching-and-pr-flow.md`
+- `.agents/playbooks/version-control-workflow.md`
 - `.agents/playbooks/slice-delivery.md`
 - `.agents/playbooks/ticket-workflow.md`
-- `.agents/playbooks/plan-driven-workflow.md`
+- `.agents/playbooks/planned-delivery-workflow.md`
 - `.agents/playbooks/release-alignment.md`
-- `.agents/playbooks/spec-draft-conversation-workflow.md`
+- `.agents/playbooks/specification-workflow.md`
 - `.agents/playbooks/questionnaires.md`
 
 ## Usage

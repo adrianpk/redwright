@@ -33,4 +33,4 @@ If blocked:
 ## 5. Handoff artifact policy
 
 - `ops/handovers/` is runtime scratch space and is not versioned.
-- durable delivery records must live in `ops/plans/*`, `ops/trackers/*`, and `ops/artifacts/*`.
+- Durable delivery records must live in `ops/plans/*`, `ops/trackers/*`, and `ops/artifacts/*`.

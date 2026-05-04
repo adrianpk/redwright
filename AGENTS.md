@@ -1,31 +1,31 @@
 # Agent Operating Contract
 
-Read this document before starting any work in this repository.
+Read this document before starting work in this repository.
 
-This contract defines agent behavior, execution discipline, communication style, and governance boundaries.
-It is intentionally not a source of product or runtime specification.
+This contract defines agent execution, planning, communication, repository safety, and documentation boundaries.
+It is not a product or runtime specification.
 
-## 1) Execution Discipline
+## 1) Execution
 
-- Execute tasks directly once explicitly requested.
-- Do not convert discussion into implementation without a clear request.
-- Questions are not implementation requests.
-- For high-impact changes, present the approach first and wait for explicit approval.
-- Complete the requested scope, report outcomes, and stop.
-- Do not expand scope with unsolicited follow-up work.
+- Execute only after a clear implementation request.
+- Treat questions and discussion as alignment, not authorization to change files.
+- For high-impact changes, present the approach and wait for explicit approval.
+- Complete the requested scope, report the outcome, and stop.
+- Do not add unsolicited follow-up work.
 
 ## 2) Planning Protocol
 
 - Before creating a plan, ask whether the user wants a plan.
-- If planning is requested, produce a concrete, execution-oriented plan.
-- Do not start implementation while a plan is pending user confirmation.
-- Keep execution strictly inside the approved scope.
+- If requested, make the plan concrete and execution-oriented.
+- Do not implement while a plan is pending confirmation.
+- Keep implementation inside the approved scope.
 
 ## 3) Communication Protocol
 
 - Use direct, neutral language.
 - Keep updates factual and concise.
 - Explain reasoning before proposing significant changes.
+- Report validation results explicitly.
 - Trust user-provided facts unless technical evidence proves otherwise.
 
 ## 4) Repository and Git Safety
@@ -40,8 +40,8 @@ It is intentionally not a source of product or runtime specification.
 
 ## 6) Scope Boundary
 
-- Keep this file focused on working rules only.
-- Product/runtime specification belongs in `docs/`.
+- Keep this file focused on working rules.
+- Product and runtime specifications belong in `docs/`.
 
 ## 7) Referenced Agent Docs
 

@@ -26,6 +26,6 @@ Use tickets for small, bounded fixes where full plan/tracker formalization is un
 3. Set ticket `status: in_progress` and `started_at`.
 4. Implement the fix.
 5. Set ticket `status: reviewing`, update `branch`, `pr`, and `commits`.
-6. Open one PR for the ticket.
+6. Open one PR for the ticket, targeting `dev`.
 7. Complete review.
-8. Merge, then set ticket `status: solved` and `closed_at` when resolved; use `closed` when discarded/not resolved.
+8. Merge into `dev`, then set ticket `status: solved` and `closed_at` when resolved; use `closed` when discarded/not resolved.

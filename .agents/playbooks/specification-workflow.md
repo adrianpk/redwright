@@ -1,4 +1,4 @@
-# Spec Draft + Conversation Workflow
+# Specification Workflow
 
 Use this playbook when a topic is in active design/brainstorming and not ready for stable specification.
 

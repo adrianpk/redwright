@@ -29,4 +29,4 @@ For docs-only alignment PRs, use this validation section instead:
 - pr:dev_to_main:gate skipped by docs-only exception
 ```
 
-6. Merge `dev -> main` only through PR.
+6. Merge `dev -> main` only through PR, using rebase + fast-forward.

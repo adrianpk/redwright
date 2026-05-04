@@ -1,6 +1,7 @@
 # Slice-Based Development Strategy
 
 This document defines delivery strategy for non-trivial work.
+Use the Slice Delivery playbook for the step-by-step execution procedure.
 
 ## 1. Definitions
 
@@ -43,8 +44,10 @@ Each slice must:
 
 ## 5. Integration
 
-- Integrate slices in safe order.
+- Integrate slices in safe order through PRs targeting `dev`.
 - Keep repository passing checks after each integrated slice.
+- Do not integrate slices directly into `main`.
+- Align `dev -> main` only through the release-alignment playbook.
 
 ## 6. Traceable execution
 
@@ -56,7 +59,7 @@ For approved multi-slice work:
 5. Never open PRs per task or per commit.
 6. Update `ops/trackers/*` with tasks, commits, and validation outcomes.
 7. Complete review (manual and/or automated) before merge.
-8. Integrate to `main` with fast-forward policy after approved review.
+8. Merge the approved slice PR into `dev`.
 9. Report slice status before starting the next slice.
 
 ## 7. Execution gate

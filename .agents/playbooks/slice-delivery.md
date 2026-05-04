@@ -73,6 +73,13 @@
 4. Keep the same delivery discipline: one branch + one PR per tuning slice, base `dev`.
 5. Record the decision (`tuning needed: yes/no`) and evidence in the tracker.
 
+## Main Alignment
+
+1. Slice PRs target `dev`, not `main`.
+2. Never work on `main` directly.
+3. Align `dev -> main` only through the release-alignment playbook.
+4. The `main` update is a PR merge using rebase + fast-forward from `dev`.
+
 ## Mandatory Execution Rules
 
 1. Execute one slice at a time.
@@ -81,6 +88,6 @@
 4. Open one PR per slice.
 5. Do not open PRs per task or per commit.
 6. Complete PR review.
-7. Integrate with fast-forward policy to `main` after approval.
+7. Merge the approved slice PR into `dev`.
 8. Report implementation and validation status.
 9. Start next slice only after previous slice is fully closed.
