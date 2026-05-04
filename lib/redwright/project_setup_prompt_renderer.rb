@@ -33,6 +33,9 @@ module Redwright
         message = render_prompt_via_llm(payload: payload, intent: intent, user_text: user_text, trace_id: trace_id)
         return with_debug(message, trace_id: trace_id)
       end
+      if generic_question_intent?(intent)
+        return with_debug(fallback_prompt(payload: payload, intent: intent), trace_id: trace_id)
+      end
 
       with_debug(payload["summary"].to_s.empty? ? "Project setup is waiting for more context." : payload["summary"], trace_id: trace_id)
     end
@@ -168,9 +171,16 @@ module Redwright
 
     def fallback_prompt(payload:, intent:)
       understood = understood_context(payload)
-      question = fallback_question(intent["slot"])
-      controls = fallback_controls(intent["slot"])
+      question = intent_question_text(intent)
+      controls = fallback_controls(intent)
       sanitize_message([understood, question, controls].compact.join("\n"))
+    end
+
+    def intent_question_text(intent)
+      metadata_question = intent.dig("metadata", "question_text").to_s.strip
+      return metadata_question unless metadata_question.empty?
+
+      fallback_question(intent["slot"])
     end
 
     def understood_context(payload)
@@ -210,7 +220,11 @@ module Redwright
       end
     end
 
-    def fallback_controls(slot)
+    def fallback_controls(intent)
+      kind = intent["kind"].to_s
+      slot = intent["slot"].to_s
+      return "Reply with the repository reference or use /cancel to stop setup." if kind == "repository_clarification_question"
+      return "Reply with your answer or use /cancel to stop setup." if kind == "guided_alignment_question"
       return "Use /cancel to stop setup." if slot.to_s == "project_name"
 
       "Reply with an answer, /skip to skip this slot, /done to create the project with defaults, or /cancel to stop setup."
@@ -218,6 +232,12 @@ module Redwright
 
     def setup_slot_intent?(intent)
       intent.is_a?(Hash) && intent["kind"].to_s == "setup_slot_question" && !intent["slot"].to_s.empty?
+    end
+
+    def generic_question_intent?(intent)
+      return false unless intent.is_a?(Hash)
+
+      %w[guided_alignment_question repository_clarification_question].include?(intent["kind"].to_s)
     end
 
     def terminal_completed?(payload)
