@@ -96,11 +96,11 @@ Validation:
 
 ### Slice 4: Visual Harmonization and Validation Closure
 
-- status: `implemented`
+- status: `pr_open`
 - branch: `fix/slice-4-protocol-management-visual-harmonization`
-- PR: `tbd`
+- PR: `#295 https://codeberg.org/adrianpk/redwright/pulls/295`
 - merge_target: `dev`
-- last_sync_commit: `17f3e5e`
+- last_sync_commit: `410c685`
 
 Tasks:
 
@@ -113,8 +113,8 @@ Tasks:
 
 Commits:
 
-- [ ] `<sha> feat(web): harmonize protocol management styling`
-- [ ] `<sha> docs(ops): close protocol management web CRUD cycle`
+- [x] `879a056 feat(web): harmonize protocol management styling`
+- [x] `410c685 docs(ops): close protocol management web CRUD cycle`
 
 Validation:
 
@@ -135,3 +135,4 @@ Validation:
 - `2026-05-04 17:49` state=`slice_3_pr_open` note=`opened Codeberg PR #294 from fix/slice-3-protocol-management-template-surfaces into dev`
 - `2026-05-04 18:05` state=`slice_3_merged` note=`merged PR #294 into dev`
 - `2026-05-04 18:31` state=`slice_4_implemented` note=`harmonized the Protocol and Template surfaces with clearer chips, calmer card hierarchy, stronger form focus states, compact Settings navigation, and completed the targeted, full-suite, and coverage validations on fix/slice-4-protocol-management-visual-harmonization`
+- `2026-05-04 18:46` state=`slice_4_pr_open` note=`opened Codeberg PR #295 from fix/slice-4-protocol-management-visual-harmonization into dev`
