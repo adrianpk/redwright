@@ -1,19 +1,22 @@
 # Linting and Quality Gates
 
-This repository uses a minimal quality gate suitable for a Ruby prototype.
+This repository uses focused quality gates for a Rails prototype under `apps/web`.
 
 ## Baseline checks
 
 - Syntax check:
   - `ruby -wc <file>` for changed Ruby files
 - Test suite:
-  - `ruby -Itest test/**/*_test.rb` or project test command
+  - from `apps/web`: `bundle exec rails test`
+  - for focused Rails validation: `bundle exec rails test <test path>`
 
 ## Optional stricter checks
 
 If enabled by project setup:
 - `rubocop` for style/static checks
 - `standardrb` as an alternative style baseline
+- `bundle exec brakeman` for Rails security checks
+- `bundle exec bundler-audit` for dependency advisories
 
 ## Hook policy
 
@@ -27,9 +30,10 @@ Full suite should run before merge.
 
 - Do not skip tests for behavior changes.
 - Fix failing checks before declaring work complete.
+- For docs-only changes, validate the diff and whitespace instead of running unrelated application tests.
 
-## Coverage Command Scope
+## Root-level gates
 
-- The coverage task must be run from repository root (`~/Projects/redwright/redwright`).
-- Canonical command:
-  - `bundle exec rake test:coverage`
+- Repository-level quality tasks run from the repository root.
+- Coverage command: `bundle exec rake test:coverage`.
+- Dev-to-main alignment gate: `bundle exec rake pr:dev_to_main:gate`.

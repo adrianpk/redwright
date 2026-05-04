@@ -1,6 +1,6 @@
 # Documentation Guidelines
 
-This repository uses Diataxis under `docs/`:
+This repository uses Diataxis under `docs/` for durable user-facing and technical documentation:
 https://diataxis.fr
 
 ## Categories
@@ -10,10 +10,19 @@ https://diataxis.fr
 - `docs/reference/` for contracts and exact behavior
 - `docs/explanation/` for rationale and tradeoffs
 
-## Ruby-first documentation rules
+## Operational documents
 
-- Keep setup and execution examples in Ruby project terms (`bundle install`, `bundle exec ...`).
-- Keep CLI examples aligned with this repository entrypoints (`bin/` or `exe/` as defined by the project).
+- `ops/specs/` stores formal specs, drafts, and curated alignment conversations.
+- `ops/plans/` stores cycle plans.
+- `ops/trackers/` stores execution trackers.
+- `ops/artifacts/` stores durable cycle outputs and reports.
+- Do not mix operational delivery records into `docs/` unless they become durable product documentation.
+
+## Ruby and Rails examples
+
+- Keep setup and execution examples in Ruby/Rails project terms (`bundle install`, `bundle exec ...`, `bundle exec rails ...`).
+- Keep app examples aligned with `apps/web`.
+- Keep CLI examples aligned with repository entrypoints when they exist.
 - API/reference docs should use Ruby naming and signatures.
 - If API docs are generated, keep source comments compatible with YARD style.
 
