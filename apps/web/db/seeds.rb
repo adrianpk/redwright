@@ -58,10 +58,13 @@ board.columns.where.not(key: columns.map(&:first)).find_each do |column|
 end
 
 labels = {
-  "frontend" => "#2563eb",
-  "product" => "#0f766e",
-  "review" => "#7c3aed",
-  "docs" => "#92400e"
+  "browser" => "#2563eb",
+  "docs" => "#92400e",
+  "i18n" => "#b45309",
+  "import" => "#0f766e",
+  "reliability" => "#be123c",
+  "ux" => "#7c3aed",
+  "workflow" => "#475569"
 }
 
 labels.each do |name, color|
@@ -89,6 +92,8 @@ def seed_ticket(board:, labels:, title:, column_key:, description:, priority:, a
   label_names.each do |label_name|
     TicketLabel.find_or_create_by!(ticket: ticket, label: labels.fetch(label_name))
   end
+
+  ticket.ticket_labels.joins(:label).where.not(labels: {name: label_names}).destroy_all
 end
 
 def sync_project_protocol_from_templates(project, catalog)
@@ -124,7 +129,7 @@ seed_ticket(
   description: "Some customer exports use ; instead of , and currently fail parsing.",
   priority: :high,
   assignee: "product-dev-1",
-  label_names: ["product"]
+  label_names: ["import"]
 )
 
 seed_ticket(
@@ -135,7 +140,7 @@ seed_ticket(
   description: "Show first-steps text when board has no tickets to reduce onboarding friction.",
   priority: :medium,
   assignee: "product-dev-2",
-  label_names: ["product"]
+  label_names: ["ux"]
 )
 
 seed_ticket(
@@ -147,7 +152,7 @@ seed_ticket(
   priority: :high,
   assignee: "frontend-1",
   total: 3.hours + 2.minutes,
-  label_names: ["frontend"]
+  label_names: ["browser"]
 )
 
 seed_ticket(
@@ -159,19 +164,20 @@ seed_ticket(
   priority: :medium,
   assignee: "frontend-2",
   total: 1.hour + 52.minutes,
-  label_names: ["frontend"]
+  label_names: ["workflow"]
 )
 
 seed_ticket(
   board: board,
   labels: board.labels.index_by(&:name),
   title: "Improve keyboard focus ring contrast",
-  column_key: "in_progress",
+  column_key: "approved",
   description: "Make focus states clear on ticket cards and modal controls.",
   priority: :low,
-  assignee: "frontend-3",
-  total: 34.minutes,
-  label_names: ["frontend"]
+  assignee: "approver-3",
+  total: 2.hours + 14.minutes,
+  review: 42.minutes,
+  label_names: ["ux"]
 )
 
 seed_ticket(
@@ -184,20 +190,18 @@ seed_ticket(
   assignee: "reviewer-a",
   total: 6.hours + 2.minutes,
   review: 1.hour + 32.minutes,
-  label_names: ["review"]
+  label_names: ["reliability"]
 )
 
 seed_ticket(
   board: board,
   labels: board.labels.index_by(&:name),
   title: "Normalize timestamps to user locale",
-  column_key: "review",
+  column_key: "backlog",
   description: "Board currently mixes server time and local time in elapsed labels.",
   priority: :medium,
-  assignee: "reviewer-b",
-  total: 5.hours + 2.minutes,
-  review: 58.minutes,
-  label_names: ["review"]
+  assignee: "product-dev-3",
+  label_names: ["i18n"]
 )
 
 seed_ticket(
@@ -210,22 +214,24 @@ seed_ticket(
   assignee: "approver-1",
   total: 8.hours + 2.minutes,
   review: 2.hours,
-  label_names: ["review"]
+  label_names: ["workflow"]
 )
 
 seed_ticket(
   board: board,
   labels: board.labels.index_by(&:name),
   title: "Update docs labels from technical jargon",
-  column_key: "approved",
+  column_key: "backlog",
   description: "Replace internal wording with user-facing terms in board and docs UI.",
   priority: :low,
-  assignee: "approver-2",
-  total: 7.hours + 2.minutes,
-  review: 1.hour + 36.minutes,
+  assignee: "docs-dev-1",
   label_names: ["docs"]
 )
 
 catalog = ProjectProtocols::TemplateCatalog.new
 catalog.all_templates
 sync_project_protocol_from_templates(project, catalog)
+
+board.labels.where.not(name: labels.keys).find_each do |label|
+  label.destroy! if label.tickets.empty?
+end
