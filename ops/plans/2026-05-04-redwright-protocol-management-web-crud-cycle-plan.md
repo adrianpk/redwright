@@ -40,7 +40,7 @@
 
 ### Slice 2: Project Protocol Read-Edit Surface and Playbooks
 
-- status: `implemented`
+- status: `merged`
 - branch: `fix/slice-2-protocol-management-project-editing`
 - pr_title: `feat(slice-2): add project protocol editing flow`
 - objective: `deliver the low-ceremony project Protocol editing experience with combined read-edit screens, explicit save, autosave, last-save feedback, and fixed-set Playbooks management`
@@ -63,7 +63,7 @@
 
 ### Slice 3: Global Template Administration Surfaces
 
-- status: `pending`
+- status: `implemented`
 - branch: `fix/slice-3-protocol-management-template-surfaces`
 - pr_title: `feat(slice-3): add protocol template management surfaces`
 - objective: `deliver Settings-based Common and Stack Protocol Template management with one-screen-per-stack behavior, canonical-entry CRUD rules, and stack-set creation beyond seeded defaults`

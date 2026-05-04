@@ -4,9 +4,9 @@
 
 - cycle_id: `cycle-2026-05-04-redwright-protocol-management-web-crud`
 - status: `in_progress`
-- state: `slice_2_implemented`
+- state: `slice_3_implemented`
 - updated: `2026-05-04`
-- active_slice: `Slice 2`
+- active_slice: `Slice 3`
 - active_task: `none`
 - source_plan: `ops/plans/2026-05-04-redwright-protocol-management-web-crud-cycle-plan.md`
 - source_spec: `ops/specs/specs/2026-05-04-redwright-protocol-management-web-crud-spec.md`
@@ -44,11 +44,11 @@ Validation:
 
 ### Slice 2: Project Protocol Read-Edit Surface and Playbooks
 
-- status: `pr_open`
+- status: `merged`
 - branch: `fix/slice-2-protocol-management-project-editing`
 - PR: `#293 https://codeberg.org/adrianpk/redwright/pulls/293`
 - merge_target: `dev`
-- last_sync_commit: `3d655a0`
+- last_sync_commit: `d9142d0`
 
 Tasks:
 
@@ -70,30 +70,29 @@ Validation:
 
 ### Slice 3: Global Template Administration Surfaces
 
-- status: `pending`
+- status: `implemented`
 - branch: `fix/slice-3-protocol-management-template-surfaces`
 - PR: `tbd`
 - merge_target: `dev`
-- last_sync_commit: `tbd`
+- last_sync_commit: `73d6d11`
 
 Tasks:
 
-- [ ] `T3.1 add Settings entry points for Common Protocol Templates and Stack Protocol Templates as separate cards`
-- [ ] `T3.2 align Common Protocol Template management with the same card and low-ceremony editing model used for project Protocols`
-- [ ] `T3.3 implement one-screen-per-stack template management rather than a combined cross-stack editor`
-- [ ] `T3.4 support creating new stack template sets by stack identity and seeding empty canonical entries`
-- [ ] `T3.5 apply the fixed-set PLAYBOOKS subview pattern to template management with playbooks treated as common-only in MVP`
-- [ ] `T3.6 add tests for template navigation, stack-set creation, duplicate prevention within a set, delete and recreate, and Playbooks routing`
+- [x] `T3.1 add Settings entry points for Common Protocol Templates and Stack Protocol Templates as separate cards`
+- [x] `T3.2 align Common Protocol Template management with the same card and low-ceremony editing model used for project Protocols`
+- [x] `T3.3 implement one-screen-per-stack template management rather than a combined cross-stack editor`
+- [x] `T3.4 support creating new stack template sets by stack identity and seeding empty canonical entries`
+- [x] `T3.5 apply the fixed-set PLAYBOOKS subview pattern to template management with playbooks treated as common-only in MVP`
+- [x] `T3.6 add tests for template navigation, stack-set creation, duplicate prevention within a set, delete and recreate, and Playbooks routing`
 
 Commits:
 
-- [ ] `<sha> feat(web): add protocol template settings surfaces`
-- [ ] `<sha> feat(web): add stack template set creation`
-- [ ] `<sha> test(web): cover protocol template management`
+- [x] `4244cba feat(web): add protocol template settings surfaces`
+- [x] `73d6d11 test(web): cover protocol template management`
 
 Validation:
 
-- [ ] `bundle exec bin/rails test <protocol template surface paths>` (tbd)
+- [x] `bundle exec bin/rails test test/controllers/project_protocol_templates_controller_test.rb` (pass)
 
 ### Slice 4: Visual Harmonization and Validation Closure
 
@@ -132,3 +131,5 @@ Validation:
 - `2026-05-04 16:32` state=`slice_1_merged` note=`merged PR #292 into dev`
 - `2026-05-04 16:45` state=`slice_2_implemented` note=`collapsed project Protocol show and edit into one screen, added autosave with visible last-save state, enabled delete and recreate for canonical entries, and validated the project Protocol controller flows on fix/slice-2-protocol-management-project-editing`
 - `2026-05-04 17:02` state=`slice_2_pr_open` note=`opened Codeberg PR #293 from fix/slice-2-protocol-management-project-editing into dev`
+- `2026-05-04 17:10` state=`slice_2_merged` note=`merged PR #293 into dev`
+- `2026-05-04 17:24` state=`slice_3_implemented` note=`introduced Settings-based template entry cards, per-stack template set management, new stack-set creation with empty canonical entries, common-only Playbooks routing, and template entry delete/recreate coverage on fix/slice-3-protocol-management-template-surfaces`
