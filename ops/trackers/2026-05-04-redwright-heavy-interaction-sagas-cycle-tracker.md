@@ -146,7 +146,7 @@ Validation:
 - branch: `fix/slice-6-heavy-interaction-sagas-e2e`
 - PR: `tbd`
 - merge_target: `dev`
-- last_sync_commit: `a121a5e`
+- last_sync_commit: `ade7e7a`
 
 Tasks:
 
@@ -159,7 +159,7 @@ Commits:
 
 - [x] `a953b6b test(integration): cover heavy interaction saga end to end`
 - [x] `ade7e7a docs(ops): close heavy interaction sagas cycle`
-- [x] `a121a5e docs(ops): finalize heavy interaction sagas tracker`
+- [x] `a0ef57c docs(ops): finalize heavy interaction sagas tracker`
 
 Validation:
 
