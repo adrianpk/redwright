@@ -32,8 +32,8 @@ That experience must remain compatible with the current product language and ope
 - expose global Protocol Template management under `Settings`, not in the main top navigation
 - provide a card-based CRUD experience aligned with the current `Documents` interaction model
 - manage Protocol entries as a closed canonical set in MVP
-- allow users to create missing canonical entries, edit existing entries, delete entries, and recreate them later
-- keep creation constrained enough to preserve the current operating model without introducing duplicate entries of the same canonical type
+- keep every canonical project Protocol entry present at all times
+- allow users to edit entries and leave body content empty when they do not want guidance in that slot
 - allow stack template administration beyond the seeded default stacks
 - treat `PLAYBOOKS` as a dedicated subview with its own fixed canonical set in MVP
 - preserve a direct, low-ceremony editing flow with read and edit combined in one screen
@@ -93,11 +93,12 @@ This avoids an unnecessary extra navigation hop in the first version.
 - The card model should not be built around filesystem-path-first semantics.
 - Semantic information matters more than raw projected path details in the primary UX.
 
-### Missing Entries
+### Canonical Entries
 
-- Missing canonical Protocol entries must appear as empty cards rather than through a generic add flow only.
-- Empty cards must visually read as intentionally absent, using a subtle missing or empty treatment.
-- Empty cards must include a direct action to create that specific canonical entry.
+- Canonical Project Protocol entries always exist.
+- The index must not expose create or delete controls for canonical Project Protocol entries.
+- Empty body content is the supported way to leave a Protocol slot intentionally blank.
+- Canonical template text may be used as placeholder guidance in the editor, but it must not be persisted as fake user content.
 
 ### Editing Flow
 
@@ -144,15 +145,16 @@ For MVP, both project Protocols and Protocol Templates operate on a closed canon
 
 ### Core Rules
 
-- creation is for missing canonical entries only
+- project Protocol canonical entries always exist
 - duplicate entries of the same canonical type are not allowed within one managed set
 - existing entries are edited rather than duplicated
-- deletion is allowed
-- deleted canonical entries may later be recreated
+- project Protocol entries are not created or destroyed from the web UI
+- empty body content is the supported way to leave a project Protocol slot intentionally blank
+- Protocol Template sets may still support create/delete/recreate behavior where the template administration workflow requires it
 
 ### Project Protocol Sets
 
-Each project starts from an initial generated set created by project initialization, and the web surface then supports tweaking that set.
+Each project starts from a complete canonical set created by project initialization, and the web surface then supports editing that set. The set remains stable even when individual entries are empty.
 
 ### Template Sets
 
@@ -237,10 +239,10 @@ Last-edited metadata is optional in cards and more appropriate inside the edit c
 6. Protocol editing combines read and edit in one screen rather than a show page followed by edit.
 7. The editing surface provides explicit `Save`.
 8. The editing surface also provides autosave with a visible last-save indicator.
-9. Missing canonical entries appear as empty cards with a subtle missing treatment and a direct creation action.
-10. Project Protocol creation is limited to missing canonical entries of the fixed MVP set.
+9. Project Protocol canonical entries always appear as stable cards.
+10. Project Protocol entries may have empty body content.
 11. Existing canonical project Protocol entries cannot be duplicated within the same project set.
-12. Project Protocol deletion is allowed and recreation is allowed.
+12. Project Protocol create/delete controls are not exposed in the web UI.
 13. `Protocol Templates` are managed under `Settings`, not in the main top navigation.
 14. `Settings` exposes separate cards for `Common Protocol Templates` and `Stack Protocol Templates`.
 15. `Common Protocol Templates` follow the same core interaction pattern as project Protocols.

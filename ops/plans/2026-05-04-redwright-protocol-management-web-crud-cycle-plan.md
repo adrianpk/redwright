@@ -21,18 +21,18 @@
 - status: `merged`
 - branch: `fix/slice-1-protocol-management-project-index`
 - pr_title: `feat(slice-1): add project protocols navigation and canonical index`
-- objective: `expose Protocols as a top-level Rails area and render the project-scoped canonical card index, including empty-card handling for missing entries and PLAYBOOKS entry routing`
+- objective: `expose Protocols as a top-level Rails area and render the project-scoped canonical card index, including always-present canonical entries and PLAYBOOKS entry routing`
 - tasks:
 - [ ] `T1.1 add Protocols top-level navigation alongside Boards and Documents`
 - [ ] `T1.2 render project Protocols as a card-based canonical index aligned with the existing Documents interaction model`
 - [ ] `T1.3 show AGENTS plus the .agents-backed protocol entries in one unified Protocol view`
-- [ ] `T1.4 represent missing canonical entries as empty cards with direct create actions rather than generic add flows`
+- [ ] `T1.4 represent canonical entries as always-present editable slots rather than create/delete records`
 - [ ] `T1.5 treat PLAYBOOKS as a special card that routes to a dedicated Playbooks subview`
-- [ ] `T1.6 add controller and integration coverage for navigation, canonical ordering, and empty-card behavior`
+- [ ] `T1.6 add controller and integration coverage for navigation, canonical ordering, and stable-slot behavior`
 - acceptance:
 - `Protocols appears in the top navigation`
 - `the project Protocol index is card-based and recognizably consistent with current product surfaces`
-- `missing canonical entries render as empty cards`
+- `canonical entries render as stable editable cards`
 - `PLAYBOOKS routes into its own subview`
 - planned_commits:
 - `feat(web): add protocols navigation and project index`
@@ -47,10 +47,10 @@
 - tasks:
 - [ ] `T2.1 replace show-then-edit ceremony with a combined read-edit Protocol screen`
 - [ ] `T2.2 keep explicit Save while adding autosave behavior and visible last-successful-save feedback`
-- [ ] `T2.3 ensure project Protocol creation is limited to missing canonical entries and disallows duplicate canonical types within one project set`
-- [ ] `T2.4 allow deletion and later recreation of canonical project Protocol entries`
+- [ ] `T2.3 ensure project Protocol entries are stable canonical slots without create/delete UI`
+- [ ] `T2.4 support empty body content for intentionally blank project Protocol slots`
 - [ ] `T2.5 implement the dedicated project Playbooks subview using the fixed canonical set`
-- [ ] `T2.6 add tests for project Protocol create, edit, autosave, delete, recreate, and Playbooks flows`
+- [ ] `T2.6 add coverage for project Protocol edit, autosave, stable canonical slots, and Playbooks flows`
 - acceptance:
 - `project Protocols can be read and edited in the same screen`
 - `explicit Save and autosave coexist`
@@ -110,12 +110,12 @@
 ## Global Exit Criteria
 
 - `Protocols` is exposed as a top-level Rails area distinct from `Documents`
-- project Protocols use a canonical card index with empty-card handling for missing entries
+- project Protocols use a canonical card index with stable always-present entries
 - project Protocol editing is direct and low-ceremony, with explicit save and autosave
 - PLAYBOOKS is managed through dedicated subviews rather than inline blocks
 - Protocol Templates are managed under `Settings` through separate Common and Stack entry points
 - stack template sets can be created beyond seeded defaults
-- duplicate canonical entries are prevented within a managed set, while delete and recreate remain allowed
+- duplicate canonical entries are prevented within a managed set, while project Protocol entries remain stable editable slots
 - the resulting surfaces are visually harmonious with the current app and meet a professional design bar
 - targeted and full relevant validation pass and are recorded explicitly
 

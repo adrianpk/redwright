@@ -29,9 +29,9 @@ Tasks:
 - [x] `T1.1 add Protocols top-level navigation alongside Boards and Documents`
 - [x] `T1.2 render project Protocols as a card-based canonical index aligned with the existing Documents interaction model`
 - [x] `T1.3 show AGENTS plus the .agents-backed protocol entries in one unified Protocol view`
-- [x] `T1.4 represent missing canonical entries as empty cards with direct create actions rather than generic add flows`
+- [x] `T1.4 represent canonical entries as always-present editable slots rather than create/delete records`
 - [x] `T1.5 treat PLAYBOOKS as a special card that routes to a dedicated Playbooks subview`
-- [x] `T1.6 add controller and integration coverage for navigation, canonical ordering, and empty-card behavior`
+- [x] `T1.6 add controller and integration coverage for navigation, canonical ordering, and stable-slot behavior`
 
 Commits:
 
@@ -54,10 +54,10 @@ Tasks:
 
 - [x] `T2.1 replace show-then-edit ceremony with a combined read-edit Protocol screen`
 - [x] `T2.2 keep explicit Save while adding autosave behavior and visible last-successful-save feedback`
-- [x] `T2.3 ensure project Protocol creation is limited to missing canonical entries and disallows duplicate canonical types within one project set`
-- [x] `T2.4 allow deletion and later recreation of canonical project Protocol entries`
+- [x] `T2.3 ensure project Protocol entries are stable canonical slots without create/delete UI`
+- [x] `T2.4 support empty body content for intentionally blank project Protocol slots`
 - [x] `T2.5 implement the dedicated project Playbooks subview using the fixed canonical set`
-- [x] `T2.6 add tests for project Protocol create, edit, autosave, delete, recreate, and Playbooks flows`
+- [x] `T2.6 add coverage for project Protocol edit, autosave, stable canonical slots, and Playbooks flows`
 
 Commits:
 
@@ -125,10 +125,10 @@ Validation:
 ## Event Log
 
 - `2026-05-04 00:00` state=`planning` note=`formalized the protocol management web CRUD spec from questionnaire artifacts and initialized the associated cycle plan and tracker for execution planning`
-- `2026-05-04 15:18` state=`slice_1_implemented` note=`added project-scoped Protocols navigation, built the canonical card index with missing-entry create actions and dedicated Playbooks routing, and validated controller coverage on fix/slice-1-protocol-management-project-index`
+- `2026-05-04 15:18` state=`slice_1_implemented` note=`added project-scoped Protocols navigation, built the canonical card index with stable canonical slots and dedicated Playbooks routing, and validated controller coverage on fix/slice-1-protocol-management-project-index`
 - `2026-05-04 16:19` state=`slice_1_pr_open` note=`opened Codeberg PR #292 from fix/slice-1-protocol-management-project-index into dev`
 - `2026-05-04 16:32` state=`slice_1_merged` note=`merged PR #292 into dev`
-- `2026-05-04 16:45` state=`slice_2_implemented` note=`collapsed project Protocol show and edit into one screen, added autosave with visible last-save state, enabled delete and recreate for canonical entries, and validated the project Protocol controller flows on fix/slice-2-protocol-management-project-editing`
+- `2026-05-04 16:45` state=`slice_2_implemented` note=`collapsed project Protocol show and edit into one screen, added autosave with visible last-save state, stabilized canonical entries without create/delete UI, and validated the project Protocol controller flows on fix/slice-2-protocol-management-project-editing`
 - `2026-05-04 17:02` state=`slice_2_pr_open` note=`opened Codeberg PR #293 from fix/slice-2-protocol-management-project-editing into dev`
 - `2026-05-04 17:10` state=`slice_2_merged` note=`merged PR #293 into dev`
 - `2026-05-04 17:24` state=`slice_3_implemented` note=`introduced Settings-based template entry cards, per-stack template set management, new stack-set creation with empty canonical entries, common-only Playbooks routing, and template entry delete/recreate coverage on fix/slice-3-protocol-management-template-surfaces`
