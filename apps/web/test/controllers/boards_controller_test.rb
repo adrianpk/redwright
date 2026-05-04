@@ -15,14 +15,17 @@ class BoardsControllerTest < ActionDispatch::IntegrationTest
       password_confirmation: "password-123",
       roles: [ "admin" ]
     )
-    create_board(project_key: "factory")
+    board = create_board(project_key: "factory")
 
     sign_in_as(user)
     get boards_path
+    assert_redirected_to board_path(board)
+
+    follow_redirect!
     assert_response :success
     assert_match "Factory", response.body
     assert_match "Docs", response.body
-    assert_match "href=\"#{documents_path}\"", response.body
+    assert_match "href=\"#{documents_path(project_id: board.project_id)}\"", response.body
   end
 
   test "board lifecycle shows elapsed metrics after review and merge transitions" do

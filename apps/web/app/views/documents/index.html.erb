@@ -5,15 +5,15 @@
       <%= link_to "New Draft", new_document_path, class: "ticket-action" %>
     </div>
     <section class="artifact-type-nav" aria-label="Document type navigation">
-      <%= link_to documents_path(type: "draft"), class: "artifact-type-card#{' is-active' if @selected_type == 'draft'}" do %>
+      <%= link_to documents_navigation_path(type: "draft"), class: "artifact-type-card#{' is-active' if @selected_type == 'draft'}" do %>
         <h2>Drafts</h2>
         <p>Working notes and iterative drafts.</p>
       <% end %>
-      <%= link_to documents_path(type: "spec"), class: "artifact-type-card#{' is-active' if @selected_type == 'spec'}" do %>
+      <%= link_to documents_navigation_path(type: "spec"), class: "artifact-type-card#{' is-active' if @selected_type == 'spec'}" do %>
         <h2>Specs</h2>
         <p>Approved, read-only specification documents.</p>
       <% end %>
-      <%= link_to documents_path(type: "plan_tracker"), class: "artifact-type-card#{' is-active' if @selected_type == 'plan_tracker'}" do %>
+      <%= link_to documents_navigation_path(type: "plan_tracker"), class: "artifact-type-card#{' is-active' if @selected_type == 'plan_tracker'}" do %>
         <h2>Plan Trackers</h2>
         <p>Execution plans and delivery tracking records.</p>
       <% end %>

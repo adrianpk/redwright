@@ -6,12 +6,14 @@ class DocumentsController < ApplicationController
     selected_type = params[:type].to_s
     selected_type = "draft" unless allowed_types.include?(selected_type)
     @selected_type = selected_type
+    persist_current_project!(current_project) if current_project.present?
     artifacts = Document.where(artifact_type: selected_type)
-    artifacts = artifacts.for_project(params[:project_id]) if params[:project_id].present?
+    artifacts = artifacts.for_project(active_project_id) if active_project_id.present?
     @artifacts = artifacts.order(updated_at: :desc, created_at: :desc)
   end
 
   def show
+    persist_current_project!(@artifact.project)
     @related_artifacts = @artifact.related_artifacts
   end
 
@@ -22,6 +24,7 @@ class DocumentsController < ApplicationController
   def create
     @artifact = Document.new(draft_params.merge(artifact_type: "draft", editable: true, project: default_project))
     if @artifact.save
+      persist_current_project!(@artifact.project)
       redirect_to document_path(@artifact), notice: "Draft created."
     else
       render :new, status: :unprocessable_entity
@@ -66,6 +69,10 @@ class DocumentsController < ApplicationController
     @artifact = Document.find(params[:id])
   end
 
+  def active_project_id
+    params[:project_id].presence || current_project&.id
+  end
+
   def draft_params
     params.require(:document).permit(:title, :body)
   end
@@ -75,6 +82,8 @@ class DocumentsController < ApplicationController
   end
 
   def default_project
+    return current_project if current_project.present?
+
     Project.find_or_create_by!(root_path: "/workspace/projects/documents") do |project|
       project.name = "Documents"
       project.description = "Default project context for document flows"

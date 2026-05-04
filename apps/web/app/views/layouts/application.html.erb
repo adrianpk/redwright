@@ -28,8 +28,37 @@
   <body>
     <% if authenticated? %>
       <header class="top-nav" data-nav-state="expanded">
+        <div class="top-nav-corner">
+          <% if available_projects.any? %>
+            <div class="top-nav-project-menu">
+              <button type="button" class="top-nav-project-trigger" aria-haspopup="true" aria-expanded="false">
+                <span class="top-nav-project-name"><%= current_project&.name || "Select" %></span>
+                <span class="top-nav-project-caret" aria-hidden="true">▾</span>
+              </button>
+              <div class="top-nav-project-dropdown">
+                <% available_projects.each do |project| %>
+                  <%= button_to project.name,
+                                current_project_path,
+                                method: :patch,
+                                params: { project_id: project.id },
+                                class: "top-nav-project-action#{' is-active' if current_project&.id == project.id}" %>
+                <% end %>
+              </div>
+            </div>
+          <% end %>
+          <div class="top-nav-user-menu">
+            <button type="button" class="top-nav-user-trigger" aria-haspopup="true" aria-expanded="false">
+              <span class="top-nav-user-email"><%= current_user&.email_address %></span>
+              <span class="top-nav-user-caret" aria-hidden="true">▾</span>
+            </button>
+            <div class="top-nav-user-dropdown">
+              <%= button_to "Sign out", session_path, method: :delete, class: "top-nav-user-action" %>
+            </div>
+          </div>
+          <button type="button" class="top-nav-pin" aria-label="Pin menu" aria-pressed="false" title="Pin menu">📌</button>
+        </div>
         <nav aria-label="Primary navigation">
-          <%= link_to boards_path, class: "top-nav-logo-link", aria: { label: "Home" } do %>
+          <%= link_to board_navigation_path, class: "top-nav-logo-link", aria: { label: "Home" } do %>
             <%= image_tag "/logo.png",
                           alt: "RedWright",
                           class: "top-nav-logo",
@@ -38,17 +67,16 @@
                           style: "display:block;max-width:77px;max-height:77px;object-fit:contain;" %>
           <% end %>
           <div class="top-nav-links">
-            <%= link_to "Boards", boards_path, class: "top-nav-link" %>
-            <% if navigation_project %>
-              <%= link_to "Protocols", project_protocols_path(navigation_project), class: "top-nav-link" %>
+            <%= link_to "Board", board_navigation_path, class: "top-nav-link" %>
+            <% if current_project %>
+              <%= link_to "Protocols", project_protocols_path(current_project), class: "top-nav-link" %>
             <% end %>
-            <%= link_to "Docs", documents_path, class: "top-nav-link" %>
+            <%= link_to "Docs", documents_navigation_path, class: "top-nav-link" %>
             <% if current_user&.admin? %>
               <%= link_to "Settings", protocol_templates_path, class: "top-nav-link" %>
             <% end %>
           </div>
         </nav>
-        <button type="button" class="top-nav-pin" aria-label="Pin menu" aria-pressed="false" title="Pin menu">📌</button>
         <button type="button" class="top-nav-handle" aria-label="Toggle menu" aria-expanded="true"></button>
       </header>
     <% end %>

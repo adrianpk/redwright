@@ -41,12 +41,14 @@ class DocumentsControllerTest < ActionDispatch::IntegrationTest
 
   test "index renders top navigation back to board" do
     admin = create_admin_user!
+    board = create_board(project_key: "docs-nav")
     sign_in_as(admin)
 
+    patch current_project_path, params: { project_id: board.project_id }
     get documents_path
     assert_response :success
     assert_match "Board", response.body
-    assert_match "href=\"#{boards_path}\"", response.body
+    assert_match "href=\"#{board_path(board)}\"", response.body
   end
 
   test "promote draft to spec with lineage and relation" do
@@ -90,14 +92,18 @@ class DocumentsControllerTest < ActionDispatch::IntegrationTest
 
   test "index renders type navigation cards" do
     admin = create_admin_user!
+    project = create_project(key: "docs-card-nav")
+    create_board(project_key: "docs-card-nav", project: project)
     sign_in_as(admin)
 
+    patch current_project_path, params: { project_id: project.id }
     get documents_path
     assert_response :success
     assert_match "artifact-type-nav", response.body
     assert_match "Drafts", response.body
     assert_match "Specs", response.body
     assert_match "Plan Trackers", response.body
+    assert_match "href=\"#{ERB::Util.html_escape(documents_path(project_id: project.id, type: "draft"))}\"", response.body
   end
 
   test "spec and plan_tracker cannot be edited in phase one" do

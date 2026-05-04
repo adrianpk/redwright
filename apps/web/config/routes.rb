@@ -8,6 +8,7 @@ Rails.application.routes.draw do
 
   resources :users, only: [ :new, :create ]
   resource :session
+  resource :current_project, only: [ :update ]
   resources :passwords, param: :token
   resources :projects, only: [ :index, :new, :create, :show ]
   resources :projects, only: [] do

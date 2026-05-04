@@ -11,18 +11,21 @@ class DocumentCanvasNavigationFlowTest < ActionDispatch::IntegrationTest
 
   test "board and document canvas are mutually reachable from top navigation" do
     admin = create_admin_user!
-    create_board(project_key: "factory-nav")
+    board = create_board(project_key: "factory-nav")
     sign_in_as(admin)
 
     get boards_path
+    assert_redirected_to board_path(board)
+
+    follow_redirect!
     assert_response :success
     assert_match "Docs", response.body
-    assert_match "href=\"#{documents_path}\"", response.body
+    assert_match "href=\"#{documents_path(project_id: board.project_id)}\"", response.body
 
     get documents_path
     assert_response :success
     assert_match "Board", response.body
-    assert_match "href=\"#{boards_path}\"", response.body
+    assert_match "href=\"#{board_path(board)}\"", response.body
     assert_match "artifact-type-nav", response.body
   end
 end
