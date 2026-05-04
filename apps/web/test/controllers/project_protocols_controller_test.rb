@@ -81,7 +81,7 @@ class ProjectProtocolsControllerTest < ActionDispatch::IntegrationTest
     refute_match "AGENTS.md", response.body
   end
 
-  test "create builds missing canonical protocol entry and redirects to edit" do
+  test "create builds missing canonical protocol entry and redirects to the combined protocol screen" do
     admin = create_admin_user!
     sign_in_as(admin)
     project = create_project(key: "protocols-create")
@@ -89,11 +89,11 @@ class ProjectProtocolsControllerTest < ActionDispatch::IntegrationTest
     post project_protocols_path(project), params: {key: "agents_root"}
 
     document = project.reload.protocol.documents.find_by!(key: "agents_root")
-    assert_redirected_to edit_project_protocol_path(project, document)
+    assert_redirected_to project_protocol_path(project, document)
     assert_equal "AGENTS.md", document.path
   end
 
-  test "show renders one protocol document" do
+  test "show renders combined read edit protocol screen" do
     admin = create_admin_user!
     sign_in_as(admin)
     project = create_project(key: "protocols-show")
@@ -106,8 +106,9 @@ class ProjectProtocolsControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_match "AGENTS", response.body
-    assert_match "Read first.", response.body
-    assert_match "Edit Protocol", response.body
+    assert_match "textarea", response.body
+    assert_match "Last saved", response.body
+    assert_match "Delete Protocol", response.body
   end
 
   test "edit and update protocol markdown" do
@@ -121,8 +122,7 @@ class ProjectProtocolsControllerTest < ActionDispatch::IntegrationTest
     document = protocol.documents.first
 
     get edit_project_protocol_path(project, document)
-    assert_response :success
-    assert_match "Edit Protocol", response.body
+    assert_redirected_to project_protocol_path(project, document)
 
     patch project_protocol_path(project, document), params: {
       project_protocol_document: {
@@ -134,5 +134,64 @@ class ProjectProtocolsControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to project_protocol_path(project, document)
     assert_equal "AGENTS Updated", document.reload.title
     assert_equal "# Updated Root", document.reload.body
+  end
+
+  test "autosave updates protocol over json and returns updated timestamp" do
+    admin = create_admin_user!
+    sign_in_as(admin)
+    project = create_project(key: "protocols-autosave")
+    protocol = create_project_protocol(
+      project: project,
+      documents: [{key: "agents_root", path: "AGENTS.md", title: "AGENTS", body: "# Root"}]
+    )
+    document = protocol.documents.first
+
+    patch project_protocol_path(project, document, format: :json), params: {
+      project_protocol_document: {
+        title: "AGENTS Autosaved",
+        body: "# Autosaved Root"
+      }
+    }
+
+    assert_response :success
+    payload = JSON.parse(response.body)
+    assert_equal "AGENTS Autosaved", payload.fetch("title")
+    assert payload.fetch("updated_at").present?
+    assert_equal "AGENTS Autosaved", document.reload.title
+  end
+
+  test "delete and recreate canonical protocol entry" do
+    admin = create_admin_user!
+    sign_in_as(admin)
+    project = create_project(key: "protocols-delete")
+    protocol = create_project_protocol(
+      project: project,
+      documents: [{key: "conventions", path: ".agents/CONVENTIONS.md", title: "Conventions", body: "# Rules"}]
+    )
+    document = protocol.documents.first
+
+    delete project_protocol_path(project, document)
+
+    assert_redirected_to project_protocols_path(project)
+    assert_nil protocol.reload.documents.find_by(id: document.id)
+
+    post project_protocols_path(project), params: {key: "conventions"}
+
+    recreated = project.reload.protocol.documents.find_by!(key: "conventions")
+    assert_redirected_to project_protocol_path(project, recreated)
+  end
+
+  test "create does not duplicate an existing canonical protocol entry" do
+    admin = create_admin_user!
+    sign_in_as(admin)
+    project = create_project(key: "protocols-no-duplicate")
+    create_project_protocol(
+      project: project,
+      documents: [{key: "agents_root", path: "AGENTS.md", title: "AGENTS", body: "# Root"}]
+    )
+
+    assert_no_difference -> { project.reload.protocol.documents.where(key: "agents_root").count } do
+      post project_protocols_path(project), params: {key: "agents_root"}
+    end
   end
 end
