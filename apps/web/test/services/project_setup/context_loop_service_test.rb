@@ -229,6 +229,9 @@ module ProjectSetup
       ticket = session.project.tickets_scope.find_by!(title: "Prepare initial implementation plan")
       assert_equal result.data.fetch("starter_ticket_id"), ticket.id
       assert_includes result.effects.map { |effect| effect.fetch("type") }, "setup_context_materialized"
+      assert_equal 12, result.data.fetch("materialization_steps").length
+      assert_equal "create_project", result.data.fetch("materialization_steps").first.fetch("name")
+      assert_equal "ok", result.data.fetch("materialization_steps").first.fetch("status")
       saga = session.metadata.fetch("setup_saga")
       assert_equal "completed", saga.fetch("state")
       assert_equal "ticket_operation", saga.fetch("stage")
@@ -239,6 +242,7 @@ module ProjectSetup
       assert_equal "materialized_planned", saga.dig("metadata", "materialization", "status")
       assert_equal "completed", saga.fetch("questionnaire").fetch("status")
       assert_equal "materialized_planned", saga.fetch("materialization").fetch("status")
+      assert_equal 12, session.metadata.fetch("materialization_steps").length
       assert_equal false, saga.fetch("initial_implementation").fetch("runnable")
       assert_equal "planned", saga.fetch("initial_implementation").fetch("status")
       assert_includes saga.fetch("initial_implementation").fetch("linked_ticket_ids"), ticket.id
