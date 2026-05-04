@@ -52,7 +52,7 @@ module ProjectProtocols
       template = ProjectProtocolTemplate.create!(
         template_kind: "stack",
         key: normalized_key,
-        name: name.presence || "#{normalized_key.tr("-_", " ").split.map(&:capitalize).join(" ")} Protocol Template",
+        name: name.presence || "#{normalized_key.tr("-_", " ").split.map(&:capitalize).join(" ")} Protocol Templates",
         matchers: [normalized_key],
         status: "active"
       )
@@ -72,12 +72,12 @@ module ProjectProtocols
 
     def seed_common_template!
       template = ProjectProtocolTemplate.find_or_initialize_by(template_kind: "common", key: "common")
+      template.name = "Common Protocol Templates" if template.name.blank? || template.name == "Common Protocol Template"
       if template.new_record?
-        template.name = "Common Protocol Template"
         template.matchers = []
         template.status = "active"
-        template.save!
       end
+      template.save! if template.changed?
       sync_documents!(template, registry.common_documents)
       template
     end
@@ -85,12 +85,13 @@ module ProjectProtocols
     def seed_stack_templates!
       registry.stack_templates.each_value do |definition|
         template = ProjectProtocolTemplate.find_or_initialize_by(template_kind: "stack", key: definition.fetch("stack_key"))
+        default_name = definition.fetch("name", "#{definition.fetch("stack_key").tr("-_", " ").split.map(&:capitalize).join(" ")} Protocol Templates")
+        template.name = default_name if template.name.blank? || template.name == default_name.delete_suffix("s")
         if template.new_record?
-          template.name = definition.fetch("name", "#{definition.fetch('stack_key').capitalize} Protocol Template")
           template.matchers = definition.fetch("matchers")
           template.status = "active"
-          template.save!
         end
+        template.save! if template.changed?
         sync_documents!(template, definition.fetch("documents"))
       end
     end

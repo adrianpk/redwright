@@ -1,6 +1,4 @@
-# UI Screenshot Gallery
-
-This gallery collects current RedWright interface screenshots used to keep the README and visual reference documentation aligned.
+# Gallery
 
 ## Board
 

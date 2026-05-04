@@ -10,7 +10,7 @@ module ProjectProtocols
       assert ProjectProtocolTemplate.exists?(template_kind: "common", key: "common")
       assert ProjectProtocolTemplate.exists?(template_kind: "stack", key: "rails")
       common = templates.find { |template| template.template_kind == "common" }
-      assert_equal "Common Protocol Template", common.name
+      assert_equal "Common Protocol Templates", common.name
       assert_equal "AGENTS.md", common.documents.first.path
     end
 
@@ -19,7 +19,7 @@ module ProjectProtocols
 
       ruby_template = catalog.all_templates.find { |template| template.template_kind == "stack" && template.key == "ruby" }
 
-      assert_equal "Ruby Protocol Template", ruby_template.name
+      assert_equal "Ruby Protocol Templates", ruby_template.name
       assert_equal ["architecture", "conventions", "documenting", "linting"], ruby_template.documents.order(:position).pluck(:key)
       assert_match(/Ruby repository structure/, ruby_template.documents.find_by!(key: "architecture").body)
       refute_match(/RedWright/, ruby_template.documents.map(&:body).join("\n"))
@@ -30,7 +30,7 @@ module ProjectProtocols
 
       go_template = catalog.all_templates.find { |template| template.template_kind == "stack" && template.key == "go" }
 
-      assert_equal "Go Protocol Template", go_template.name
+      assert_equal "Go Protocol Templates", go_template.name
       assert_equal ["architecture", "conventions", "documenting", "linting"], go_template.documents.order(:position).pluck(:key)
       assert_match(/Go repository structure/, go_template.documents.find_by!(key: "architecture").body)
       refute_match(/Warden|RedWright/, go_template.documents.map(&:body).join("\n"))
@@ -41,7 +41,7 @@ module ProjectProtocols
 
       elixir_template = catalog.all_templates.find { |template| template.template_kind == "stack" && template.key == "elixir" }
 
-      assert_equal "Elixir Protocol Template", elixir_template.name
+      assert_equal "Elixir Protocol Templates", elixir_template.name
       assert_equal ["architecture", "conventions", "documenting", "linting"], elixir_template.documents.order(:position).pluck(:key)
       assert_match(/Elixir repository structure/, elixir_template.documents.find_by!(key: "architecture").body)
       refute_match(/Warden|RedWright/, elixir_template.documents.map(&:body).join("\n"))
@@ -52,7 +52,7 @@ module ProjectProtocols
 
       rails_template = catalog.all_templates.find { |template| template.template_kind == "stack" && template.key == "rails" }
 
-      assert_equal "Rails Protocol Template", rails_template.name
+      assert_equal "Rails Protocol Templates", rails_template.name
       assert_equal ["architecture", "conventions", "documenting", "linting"], rails_template.documents.order(:position).pluck(:key)
       assert_match(/Rails repository structure/, rails_template.documents.find_by!(key: "architecture").body)
       refute_match(/RedWright/, rails_template.documents.map(&:body).join("\n"))
@@ -63,7 +63,7 @@ module ProjectProtocols
 
       zig_template = catalog.all_templates.find { |template| template.template_kind == "stack" && template.key == "zig" }
 
-      assert_equal "Zig Protocol Template", zig_template.name
+      assert_equal "Zig Protocol Templates", zig_template.name
       assert_equal ["architecture", "conventions", "documenting", "linting"], zig_template.documents.order(:position).pluck(:key)
       assert_match(/Zig repository structure/, zig_template.documents.find_by!(key: "architecture").body)
       refute_match(/Warden|RedWright/, zig_template.documents.map(&:body).join("\n"))
@@ -74,7 +74,7 @@ module ProjectProtocols
 
       rust_template = catalog.all_templates.find { |template| template.template_kind == "stack" && template.key == "rust" }
 
-      assert_equal "Rust Protocol Template", rust_template.name
+      assert_equal "Rust Protocol Templates", rust_template.name
       assert_equal ["architecture", "conventions", "documenting", "linting"], rust_template.documents.order(:position).pluck(:key)
       assert_match(/Rust repository structure/, rust_template.documents.find_by!(key: "architecture").body)
       refute_match(/Warden|RedWright/, rust_template.documents.map(&:body).join("\n"))
@@ -85,7 +85,7 @@ module ProjectProtocols
 
       typescript_template = catalog.all_templates.find { |template| template.template_kind == "stack" && template.key == "typescript" }
 
-      assert_equal "TypeScript Protocol Template", typescript_template.name
+      assert_equal "TypeScript Protocol Templates", typescript_template.name
       assert_equal ["architecture", "conventions", "documenting", "linting"], typescript_template.documents.order(:position).pluck(:key)
       assert_match(/TypeScript repository structure/, typescript_template.documents.find_by!(key: "architecture").body)
       refute_match(/Warden|RedWright/, typescript_template.documents.map(&:body).join("\n"))
@@ -96,7 +96,7 @@ module ProjectProtocols
 
       angular_template = catalog.all_templates.find { |template| template.template_kind == "stack" && template.key == "angular" }
 
-      assert_equal "Angular Protocol Template", angular_template.name
+      assert_equal "Angular Protocol Templates", angular_template.name
       assert_equal ["architecture", "conventions", "documenting", "linting"], angular_template.documents.order(:position).pluck(:key)
       assert_match(/Angular repository structure/, angular_template.documents.find_by!(key: "architecture").body)
       refute_match(/Warden|RedWright/, angular_template.documents.map(&:body).join("\n"))

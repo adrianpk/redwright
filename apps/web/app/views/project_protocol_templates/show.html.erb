@@ -10,7 +10,7 @@
       <% end %>
     </p>
     <div class="board-title-row">
-      <h1><%= @template.name %></h1>
+      <h1><%= @template.common? ? "Common Protocol Templates" : @template.name %></h1>
     </div>
   </section>
 

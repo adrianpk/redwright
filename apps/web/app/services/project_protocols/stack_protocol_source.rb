@@ -2,7 +2,7 @@ module ProjectProtocols
   class StackProtocolSource
     STACKS = {
       "angular" => {
-        name: "Angular Protocol Template",
+        name: "Angular Protocol Templates",
         matchers: ["angular"],
         root: "angular",
         documents: [
@@ -13,7 +13,7 @@ module ProjectProtocols
         ]
       },
       "go" => {
-        name: "Go Protocol Template",
+        name: "Go Protocol Templates",
         matchers: ["go", "golang"],
         root: "go",
         documents: [
@@ -24,7 +24,7 @@ module ProjectProtocols
         ]
       },
       "elixir" => {
-        name: "Elixir Protocol Template",
+        name: "Elixir Protocol Templates",
         matchers: ["elixir"],
         root: "elixir",
         documents: [
@@ -35,7 +35,7 @@ module ProjectProtocols
         ]
       },
       "ruby" => {
-        name: "Ruby Protocol Template",
+        name: "Ruby Protocol Templates",
         matchers: ["ruby"],
         root: "ruby",
         documents: [
@@ -46,7 +46,7 @@ module ProjectProtocols
         ]
       },
       "rails" => {
-        name: "Rails Protocol Template",
+        name: "Rails Protocol Templates",
         matchers: ["rails"],
         root: "rails",
         documents: [
@@ -57,7 +57,7 @@ module ProjectProtocols
         ]
       },
       "rust" => {
-        name: "Rust Protocol Template",
+        name: "Rust Protocol Templates",
         matchers: ["rust"],
         root: "rust",
         documents: [
@@ -68,7 +68,7 @@ module ProjectProtocols
         ]
       },
       "typescript" => {
-        name: "TypeScript Protocol Template",
+        name: "TypeScript Protocol Templates",
         matchers: ["typescript", "ts"],
         root: "typescript",
         documents: [
@@ -79,7 +79,7 @@ module ProjectProtocols
         ]
       },
       "zig" => {
-        name: "Zig Protocol Template",
+        name: "Zig Protocol Templates",
         matchers: ["zig"],
         root: "zig",
         documents: [

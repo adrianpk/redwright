@@ -48,7 +48,7 @@ class ProjectProtocolTemplatesControllerTest < ActionDispatch::IntegrationTest
     get common_protocol_templates_path
 
     assert_response :success
-    assert_match "Common Protocol Template", response.body
+    assert_match "Common Protocol Templates", response.body
     assert_match "Playbooks", response.body
     assert_match "Agent Operating Contract", response.body
   end
@@ -61,7 +61,7 @@ class ProjectProtocolTemplatesControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_match "Stack Protocol Templates", response.body
-    assert_match "Rails Protocol Template", response.body
+    assert_match "Rails Protocol Templates", response.body
     assert_match "New Stack Template", response.body
   end
 
@@ -91,7 +91,7 @@ class ProjectProtocolTemplatesControllerTest < ActionDispatch::IntegrationTest
 
     get protocol_template_path(template)
     assert_response :success
-    assert_match "Rails Protocol Template", response.body
+    assert_match "Rails Protocol Templates", response.body
 
     get edit_protocol_template_document_path(template, document)
     assert_response :success
