@@ -7,6 +7,11 @@
       <h1>Stack Protocol Templates</h1>
       <%= link_to "New Stack Template", new_stack_protocol_templates_path, class: "ticket-action" %>
     </div>
+    <div class="artifact-context-row">
+      <span class="artifact-context-chip">Global scope</span>
+      <span class="artifact-context-chip"><%= pluralize(@stack_templates.count, "stack set") %></span>
+      <span class="artifact-context-chip">One screen per stack</span>
+    </div>
   </section>
 
   <section class="artifact-list">
@@ -15,7 +20,8 @@
         <%= link_to protocol_template_path(template) do %>
           <strong><%= template.name %></strong>
           <span><%= template.key %></span>
-          <span><%= pluralize(template.documents.size, "entry") %></span>
+          <span class="artifact-card-note">Open this stack set.</span>
+          <span class="artifact-context-chip artifact-context-chip-inline"><%= pluralize(template.documents.size, "entry") %></span>
         <% end %>
       </article>
     <% end %>
