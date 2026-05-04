@@ -4,9 +4,9 @@
 
 - cycle_id: `cycle-2026-05-04-redwright-protocol-management-web-crud`
 - status: `in_progress`
-- state: `planning`
+- state: `slice_1_implemented`
 - updated: `2026-05-04`
-- active_slice: `none`
+- active_slice: `Slice 1`
 - active_task: `none`
 - source_plan: `ops/plans/2026-05-04-redwright-protocol-management-web-crud-cycle-plan.md`
 - source_spec: `ops/specs/specs/2026-05-04-redwright-protocol-management-web-crud-spec.md`
@@ -18,29 +18,29 @@
 
 ### Slice 1: Project Protocol Navigation and Canonical Index
 
-- status: `pending`
+- status: `implemented`
 - branch: `fix/slice-1-protocol-management-project-index`
 - PR: `tbd`
 - merge_target: `dev`
-- last_sync_commit: `tbd`
+- last_sync_commit: `8b3145d`
 
 Tasks:
 
-- [ ] `T1.1 add Protocols top-level navigation alongside Boards and Documents`
-- [ ] `T1.2 render project Protocols as a card-based canonical index aligned with the existing Documents interaction model`
-- [ ] `T1.3 show AGENTS plus the .agents-backed protocol entries in one unified Protocol view`
-- [ ] `T1.4 represent missing canonical entries as empty cards with direct create actions rather than generic add flows`
-- [ ] `T1.5 treat PLAYBOOKS as a special card that routes to a dedicated Playbooks subview`
-- [ ] `T1.6 add controller and integration coverage for navigation, canonical ordering, and empty-card behavior`
+- [x] `T1.1 add Protocols top-level navigation alongside Boards and Documents`
+- [x] `T1.2 render project Protocols as a card-based canonical index aligned with the existing Documents interaction model`
+- [x] `T1.3 show AGENTS plus the .agents-backed protocol entries in one unified Protocol view`
+- [x] `T1.4 represent missing canonical entries as empty cards with direct create actions rather than generic add flows`
+- [x] `T1.5 treat PLAYBOOKS as a special card that routes to a dedicated Playbooks subview`
+- [x] `T1.6 add controller and integration coverage for navigation, canonical ordering, and empty-card behavior`
 
 Commits:
 
-- [ ] `<sha> feat(web): add protocols navigation and project index`
-- [ ] `<sha> test(web): cover project protocol index navigation`
+- [x] `957fccf feat(web): add protocols navigation and project index`
+- [x] `8b3145d test(web): cover project protocol index navigation`
 
 Validation:
 
-- [ ] `bundle exec bin/rails test <project protocol navigation and index paths>` (tbd)
+- [x] `bundle exec bin/rails test test/controllers/project_protocols_controller_test.rb test/controllers/projects_controller_test.rb` (pass)
 
 ### Slice 2: Project Protocol Read-Edit Surface and Playbooks
 
@@ -128,3 +128,4 @@ Validation:
 ## Event Log
 
 - `2026-05-04 00:00` state=`planning` note=`formalized the protocol management web CRUD spec from questionnaire artifacts and initialized the associated cycle plan and tracker for execution planning`
+- `2026-05-04 15:18` state=`slice_1_implemented` note=`added project-scoped Protocols navigation, built the canonical card index with missing-entry create actions and dedicated Playbooks routing, and validated controller coverage on fix/slice-1-protocol-management-project-index`

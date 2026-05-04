@@ -3,7 +3,7 @@
 ## Metadata
 
 - cycle_id: `cycle-2026-05-04-redwright-protocol-management-web-crud`
-- status: `draft`
+- status: `in_progress`
 - owner: `adrianpk`
 - created: `2026-05-04`
 - updated: `2026-05-04`
@@ -18,7 +18,7 @@
 
 ### Slice 1: Project Protocol Navigation and Canonical Index
 
-- status: `pending`
+- status: `implemented`
 - branch: `fix/slice-1-protocol-management-project-index`
 - pr_title: `feat(slice-1): add project protocols navigation and canonical index`
 - objective: `expose Protocols as a top-level Rails area and render the project-scoped canonical card index, including empty-card handling for missing entries and PLAYBOOKS entry routing`
