@@ -9,6 +9,8 @@
   <img src="docs/reference/assets/img/gallery/boards.png" alt="RedWright board screenshot" width="860" />
 </div>
 
+<p align="right"><a href="docs/reference/ui/gallery.md">See gallery</a></p>
+
 RedWright is a **black-box software factory platform** where one runtime agent operates directly from the Kanban board.
 Telegram and local TUI are the current interactive surfaces. The agent reads board state, decides the next ticket to execute, and can create new tickets when incoming work is not yet represented on the board.
 
