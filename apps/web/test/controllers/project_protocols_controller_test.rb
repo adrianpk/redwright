@@ -34,10 +34,63 @@ class ProjectProtocolsControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_match "Protocols", response.body
+    assert_match "href=\"#{project_protocols_path(project)}\"", response.body
     assert_match "AGENTS.md", response.body
     assert_match ".agents/ARCHITECTURE.md", response.body
-    assert_match ".agents/PLAYBOOKS.md", response.body
+    assert_match "Open dedicated view", response.body
     assert_operator response.body.index("AGENTS.md"), :<, response.body.index(".agents/ARCHITECTURE.md")
+  end
+
+  test "index renders missing canonical entries as empty cards with create actions" do
+    admin = create_admin_user!
+    sign_in_as(admin)
+    project = create_project(key: "protocols-missing")
+    create_project_protocol(
+      project: project,
+      documents: [
+        {key: "agents_root", path: "AGENTS.md", title: "AGENTS", position: 0, body: "# Root"}
+      ]
+    )
+
+    get project_protocols_path(project)
+
+    assert_response :success
+    assert_match "Missing", response.body
+    assert_match ".agents/CONVENTIONS.md", response.body
+    assert_match "Create", response.body
+  end
+
+  test "playbooks renders dedicated subview" do
+    admin = create_admin_user!
+    sign_in_as(admin)
+    project = create_project(key: "protocols-playbooks")
+    create_project_protocol(
+      project: project,
+      documents: [
+        {key: "agents_root", path: "AGENTS.md", title: "AGENTS", position: 0, body: "# Root"},
+        {key: "playbooks_index", path: ".agents/PLAYBOOKS.md", title: "Playbooks", position: 3, body: "# Playbooks"},
+        {key: "playbook_slice_delivery", path: ".agents/playbooks/slice-delivery.md", title: "Slice Delivery", position: 4, body: "# Slice Delivery"}
+      ]
+    )
+
+    get playbooks_project_protocols_path(project)
+
+    assert_response :success
+    assert_match "Playbooks", response.body
+    assert_match ".agents/playbooks/slice-delivery.md", response.body
+    refute_match "AGENTS.md", response.body
+  end
+
+  test "create builds missing canonical protocol entry and redirects to edit" do
+    admin = create_admin_user!
+    sign_in_as(admin)
+    project = create_project(key: "protocols-create")
+
+    post project_protocols_path(project), params: {key: "agents_root"}
+
+    document = project.reload.protocol.documents.find_by!(key: "agents_root")
+    assert_redirected_to edit_project_protocol_path(project, document)
+    assert_equal "AGENTS.md", document.path
   end
 
   test "show renders one protocol document" do
