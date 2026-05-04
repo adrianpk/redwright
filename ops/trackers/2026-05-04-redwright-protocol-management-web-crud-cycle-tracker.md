@@ -3,10 +3,10 @@
 ## Metadata
 
 - cycle_id: `cycle-2026-05-04-redwright-protocol-management-web-crud`
-- status: `in_progress`
-- state: `slice_3_implemented`
+- status: `implemented_pending_review`
+- state: `slice_4_implemented`
 - updated: `2026-05-04`
-- active_slice: `Slice 3`
+- active_slice: `Slice 4`
 - active_task: `none`
 - source_plan: `ops/plans/2026-05-04-redwright-protocol-management-web-crud-cycle-plan.md`
 - source_spec: `ops/specs/specs/2026-05-04-redwright-protocol-management-web-crud-spec.md`
@@ -70,11 +70,11 @@ Validation:
 
 ### Slice 3: Global Template Administration Surfaces
 
-- status: `pr_open`
+- status: `merged`
 - branch: `fix/slice-3-protocol-management-template-surfaces`
 - PR: `#294 https://codeberg.org/adrianpk/redwright/pulls/294`
 - merge_target: `dev`
-- last_sync_commit: `73d6d11`
+- last_sync_commit: `17f3e5e`
 
 Tasks:
 
@@ -96,32 +96,31 @@ Validation:
 
 ### Slice 4: Visual Harmonization and Validation Closure
 
-- status: `pending`
+- status: `implemented`
 - branch: `fix/slice-4-protocol-management-visual-harmonization`
 - PR: `tbd`
 - merge_target: `dev`
-- last_sync_commit: `tbd`
+- last_sync_commit: `17f3e5e`
 
 Tasks:
 
-- [ ] `T4.1 harmonize spacing, typography, card treatment, and form hierarchy across Protocols, Protocol Templates, and Playbooks`
-- [ ] `T4.2 eliminate any generic scaffold-like or outdated model-form presentation from the new Protocol management surfaces`
-- [ ] `T4.3 avoid introducing a disconnected trend-driven redesign that clashes with current Documents and neighboring views`
-- [ ] `T4.4 verify that semantic stack cues and save-state feedback remain legible without overcrowding cards`
-- [ ] `T4.5 run targeted and full relevant validation from canonical command locations`
-- [ ] `T4.6 publish cycle closure artifacts with residual risks and follow-up notes`
+- [x] `T4.1 harmonize spacing, typography, card treatment, and form hierarchy across Protocols, Protocol Templates, and Playbooks`
+- [x] `T4.2 eliminate any generic scaffold-like or outdated model-form presentation from the new Protocol management surfaces`
+- [x] `T4.3 avoid introducing a disconnected trend-driven redesign that clashes with current Documents and neighboring views`
+- [x] `T4.4 verify that semantic stack cues and save-state feedback remain legible without overcrowding cards`
+- [x] `T4.5 run targeted and full relevant validation from canonical command locations`
+- [x] `T4.6 publish cycle closure artifacts with residual risks and follow-up notes`
 
 Commits:
 
 - [ ] `<sha> feat(web): harmonize protocol management styling`
-- [ ] `<sha> test(web): validate protocol management flows`
 - [ ] `<sha> docs(ops): close protocol management web CRUD cycle`
 
 Validation:
 
-- [ ] `bundle exec bin/rails test <full relevant protocol management paths>` (tbd)
-- [ ] `bundle exec bin/rails test` (tbd)
-- [ ] `bundle exec rake test:coverage` (tbd)
+- [x] `bundle exec bin/rails test test/controllers/project_protocols_controller_test.rb test/controllers/project_protocol_templates_controller_test.rb test/controllers/projects_controller_test.rb` (pass)
+- [x] `bundle exec bin/rails test` (pass)
+- [x] `bundle exec rake test:coverage` (pass, coverage 91.6)
 
 ## Event Log
 
@@ -134,3 +133,5 @@ Validation:
 - `2026-05-04 17:10` state=`slice_2_merged` note=`merged PR #293 into dev`
 - `2026-05-04 17:24` state=`slice_3_implemented` note=`introduced Settings-based template entry cards, per-stack template set management, new stack-set creation with empty canonical entries, common-only Playbooks routing, and template entry delete/recreate coverage on fix/slice-3-protocol-management-template-surfaces`
 - `2026-05-04 17:49` state=`slice_3_pr_open` note=`opened Codeberg PR #294 from fix/slice-3-protocol-management-template-surfaces into dev`
+- `2026-05-04 18:05` state=`slice_3_merged` note=`merged PR #294 into dev`
+- `2026-05-04 18:31` state=`slice_4_implemented` note=`harmonized the Protocol and Template surfaces with clearer chips, calmer card hierarchy, stronger form focus states, compact Settings navigation, and completed the targeted, full-suite, and coverage validations on fix/slice-4-protocol-management-visual-harmonization`

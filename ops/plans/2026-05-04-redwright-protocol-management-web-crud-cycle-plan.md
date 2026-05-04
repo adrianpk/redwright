@@ -3,7 +3,7 @@
 ## Metadata
 
 - cycle_id: `cycle-2026-05-04-redwright-protocol-management-web-crud`
-- status: `in_progress`
+- status: `implemented_pending_review`
 - owner: `adrianpk`
 - created: `2026-05-04`
 - updated: `2026-05-04`
@@ -63,7 +63,7 @@
 
 ### Slice 3: Global Template Administration Surfaces
 
-- status: `implemented`
+- status: `merged`
 - branch: `fix/slice-3-protocol-management-template-surfaces`
 - pr_title: `feat(slice-3): add protocol template management surfaces`
 - objective: `deliver Settings-based Common and Stack Protocol Template management with one-screen-per-stack behavior, canonical-entry CRUD rules, and stack-set creation beyond seeded defaults`
@@ -86,7 +86,7 @@
 
 ### Slice 4: Visual Harmonization and Validation Closure
 
-- status: `pending`
+- status: `implemented`
 - branch: `fix/slice-4-protocol-management-visual-harmonization`
 - pr_title: `feat(slice-4): harmonize protocol management UI`
 - objective: `raise the Protocol management surfaces to a professional visual quality while preserving harmony with the current app and close the cycle with full validation evidence`
