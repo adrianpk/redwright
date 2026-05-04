@@ -4,9 +4,9 @@
 
 - cycle_id: `cycle-2026-05-04-redwright-heavy-interaction-sagas`
 - status: `in_progress`
-- state: `slice_1_pr_open`
+- state: `slice_2_pr_open`
 - updated: `2026-05-04`
-- active_slice: `Slice 1`
+- active_slice: `Slice 2`
 - active_task: `none`
 - source_plan: `ops/plans/2026-05-04-redwright-heavy-interaction-sagas-cycle-plan.md`
 - source_spec: `ops/specs/specs/2026-05-04-redwright-heavy-interaction-sagas-spec.md`
@@ -43,28 +43,27 @@ Validation:
 
 ### Slice 2: Project Setup Session Alignment
 
-- status: `pending`
+- status: `pr_open`
 - branch: `fix/slice-2-project-setup-saga-alignment`
-- PR: `tbd`
+- PR: `#286 https://codeberg.org/adrianpk/redwright/pulls/286`
 - merge_target: `dev`
-- last_sync_commit: `tbd`
+- last_sync_commit: `ec5c341`
 
 Tasks:
 
-- [ ] `T2.1 map ProjectSetupSession and related state to the common saga contract fields`
-- [ ] `T2.2 persist or expose normalized turns and terminal reasons through the shared contract`
-- [ ] `T2.3 make questionnaire boundaries explicit so context collection remains distinct from materialization intent`
-- [ ] `T2.4 add targeted tests for setup session contract projection, turn ordering, and terminal outcomes`
+- [x] `T2.1 map ProjectSetupSession and related state to the common saga contract fields`
+- [x] `T2.2 persist or expose normalized turns and terminal reasons through the shared contract`
+- [x] `T2.3 make questionnaire boundaries explicit so context collection remains distinct from materialization intent`
+- [x] `T2.4 add targeted tests for setup session contract projection, turn ordering, and terminal outcomes`
 
 Commits:
 
-- [ ] `tbd feat(web): align project setup session with saga contract`
-- [ ] `tbd feat(web): expose project setup turns and terminal reasons`
-- [ ] `tbd test(web): cover project setup saga contract alignment`
+- [x] `debf6cf feat(web): align project setup session with saga contract`
+- [x] `ec5c341 test(web): cover project setup saga contract alignment`
 
 Validation:
 
-- [ ] `bundle exec bin/rails test <project setup session alignment paths>` (pending)
+- [x] `bundle exec bin/rails test test/models/project_setup_session_test.rb test/models/project_setup_turn_test.rb test/services/project_setup/state_machine_test.rb test/services/project_setup/context_loop_service_test.rb test/services/project_setup/guided_alignment_service_test.rb test/integration/project_setup_conversational_e2e_test.rb` (pass)
 
 ### Slice 3: Materialization Pipeline Extraction
 
@@ -171,3 +170,5 @@ Validation:
 - `2026-05-04` state=`planned` note=`promoted the heavy interaction sagas alignment work into a formal implementation cycle with Project Setup as the first reference saga and the curated/raw conversation artifacts preserved as implementation context`
 - `2026-05-04` state=`slice_1_implemented` note=`implemented shared heavy interaction saga contract primitives, effect visibility, structured prompt intent, structured step results, and focused Rails-side tests on fix/slice-1-heavy-interaction-saga-contract`
 - `2026-05-04` state=`slice_1_pr_open` note=`opened Codeberg PR #285 from fix/slice-1-heavy-interaction-saga-contract into dev`
+- `2026-05-04` state=`slice_2_implemented` note=`aligned Project Setup saga snapshot to the shared contract, exposed ordered turns and contract metadata, preserved current setup snapshot consumers, and validated the projection through model, service, and conversational integration tests on fix/slice-2-project-setup-saga-alignment`
+- `2026-05-04` state=`slice_2_pr_open` note=`opened Codeberg PR #286 from fix/slice-2-project-setup-saga-alignment into dev`

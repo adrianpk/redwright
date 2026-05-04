@@ -35,15 +35,15 @@
 
 ### Slice 2: Project Setup Session Alignment
 
-- status: `pending`
+- status: `pr_open`
 - branch: `fix/slice-2-project-setup-saga-alignment`
 - pr_title: `feat(slice-2): align project setup with saga contract`
 - objective: `align Project Setup persistence and state handling with the new saga contract while preserving current external command/query and Telegram behavior`
 - tasks:
-- [ ] `T2.1 map ProjectSetupSession and related state to the common saga contract fields`
-- [ ] `T2.2 persist or expose normalized turns and terminal reasons through the shared contract`
-- [ ] `T2.3 make questionnaire boundaries explicit so context collection remains distinct from materialization intent`
-- [ ] `T2.4 add targeted tests for setup session contract projection, turn ordering, and terminal outcomes`
+- [x] `T2.1 map ProjectSetupSession and related state to the common saga contract fields`
+- [x] `T2.2 persist or expose normalized turns and terminal reasons through the shared contract`
+- [x] `T2.3 make questionnaire boundaries explicit so context collection remains distinct from materialization intent`
+- [x] `T2.4 add targeted tests for setup session contract projection, turn ordering, and terminal outcomes`
 - acceptance:
 - `Project Setup exposes the common saga contract without breaking current behavior`
 - `questionnaire state and terminal outcomes are explicit in Rails-owned state`
