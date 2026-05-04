@@ -199,14 +199,15 @@ module ProjectSetup
         "session_id" => session&.id,
         "project_id" => session&.project_id || result.project[:id],
         "state" => session&.current_state,
-        "next_prompt" => session&.pending_question,
         "next_prompt_intent" => next_prompt_intent_from(session, result),
         "setup_saga" => setup_saga_from(session),
         "summary" => setup_summary_from(result),
         "repository" => string_keyed(result.repository),
         "project" => string_keyed(result.project),
         "setup_context" => session&.setup_context || {}
-      }
+      }.tap do |data|
+        data["next_prompt"] = prompt_text_from(data["next_prompt_intent"], fallback: session&.pending_question)
+      end
     end
 
     def setup_effects_from(result)
@@ -271,7 +272,6 @@ module ProjectSetup
         "session_id" => session.id,
         "project_id" => session.project_id,
         "state" => session.current_state,
-        "next_prompt" => session.pending_question,
         "next_prompt_intent" => session.metadata["next_prompt_intent"] || {},
         "summary" => summary,
         "repository_input" => session.repository_input,
@@ -282,7 +282,9 @@ module ProjectSetup
         "runtime_containers" => runtime_containers_state_from(session),
         "turn_counter" => session.turn_counter,
         "terminal_reason" => session.terminal_reason
-      }
+      }.tap do |data|
+        data["next_prompt"] = prompt_text_from(data["next_prompt_intent"], fallback: session.pending_question)
+      end
     end
 
     def guided_alignment_result(result, request_id:)
@@ -319,6 +321,10 @@ module ProjectSetup
 
       intent = result.guided_alignment[:next_prompt_intent]
       intent.is_a?(Hash) ? intent.transform_keys(&:to_s) : {}
+    end
+
+    def prompt_text_from(intent, fallback:)
+      ProjectSetup::PromptIntentBuilder.prompt_text(intent, fallback: fallback)
     end
 
     def project_data(project, include_setup_saga: false)

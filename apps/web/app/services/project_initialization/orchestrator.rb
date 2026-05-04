@@ -33,12 +33,7 @@ module ProjectInitialization
                "project_type"
              end
 
-      {
-        kind: "setup_slot_question",
-        slot: slot,
-        locale: "auto",
-        llm_required: true
-      }
+      ProjectSetup::PromptIntentBuilder.setup_slot(slot)
     end
   end
 end

@@ -74,6 +74,10 @@ module ProjectInitialization
           result(orchestration, setup_session: session)
         when :repository_resolution_ambiguous
           machine.transition_to!("awaiting_repository", pending_question: REPOSITORY_CLARIFICATION)
+          session.metadata = session.metadata.merge(
+            "next_prompt_intent" => ProjectSetup::PromptIntentBuilder.repository_clarification(question_text: REPOSITORY_CLARIFICATION)
+          )
+          session.save!
           ProjectSetup::SagaState.new(session: session).mark_questionnaire!
           result(orchestration, setup_session: session)
         when :repository_resolved
@@ -157,6 +161,7 @@ module ProjectInitialization
         ProjectSetup::SagaState.new(session: session).mark_materialized!(project: project)
 
         if command.guided_alignment == true
+          write_guided_alignment_prompt_intent!(session, question_text: ALIGNMENT_QUESTION, question_index: 1)
           machine.transition_to!("collecting_alignment", pending_question: ALIGNMENT_QUESTION)
           ProjectSetup::SagaState.new(session: session).mark_questionnaire!
         else
@@ -225,6 +230,19 @@ module ProjectInitialization
 
     def result(initialization_result, setup_session:)
       Result.new(initialization_result: initialization_result, setup_session: setup_session)
+    end
+
+    def write_guided_alignment_prompt_intent!(session, question_text:, question_index:)
+      question = ProjectSetup::GuidedAlignmentService::QUESTIONS.fetch(question_index - 1)
+      session.metadata = session.metadata.merge(
+        "next_prompt_intent" => ProjectSetup::PromptIntentBuilder.guided_alignment(
+          question_key: question.fetch("key"),
+          question_text: question_text,
+          question_index: question_index,
+          question_count: ProjectSetup::GuidedAlignmentService::QUESTIONS.length
+        )
+      )
+      session.save!
     end
   end
 end

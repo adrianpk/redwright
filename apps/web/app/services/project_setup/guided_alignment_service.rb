@@ -105,6 +105,7 @@ module ProjectSetup
 
         if completed
           output_data = persist_alignment_outputs!(answers: next_answers)
+          clear_next_prompt_intent!
           StateMachine.new(session: session).transition_to!("completed", terminal_reason: "completed_with_alignment")
           SagaState.new(session: session).mark_completed!(
             project: session.project,
@@ -135,6 +136,7 @@ module ProjectSetup
           )
         else
           next_question = QUESTIONS.fetch(question_index + 1)
+          store_next_prompt_intent!(question: next_question, question_index: question_index + 2)
           StateMachine.new(session: session).transition_to!("collecting_alignment", pending_question: next_question.fetch("question"))
           SagaState.new(session: session).mark_questionnaire!
           effects = [
@@ -237,6 +239,25 @@ module ProjectSetup
       session.metadata = metadata
       session.save!
       output_data
+    end
+
+    def store_next_prompt_intent!(question:, question_index:)
+      metadata = session.metadata
+      metadata["next_prompt_intent"] = PromptIntentBuilder.guided_alignment(
+        question_key: question.fetch("key"),
+        question_text: question.fetch("question"),
+        question_index: question_index,
+        question_count: QUESTIONS.length
+      )
+      session.metadata = metadata
+      session.save!
+    end
+
+    def clear_next_prompt_intent!
+      metadata = session.metadata
+      metadata.delete("next_prompt_intent")
+      session.metadata = metadata
+      session.save!
     end
 
     def alignment_document_body(answers:)

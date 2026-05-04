@@ -508,12 +508,7 @@ module ProjectSetup
 
     def store_next_prompt_intent!(slot_key)
       metadata = session.metadata
-      metadata["next_prompt_intent"] = {
-        "kind" => "setup_slot_question",
-        "slot" => slot_key,
-        "locale" => "auto",
-        "llm_required" => true
-      }
+      metadata["next_prompt_intent"] = PromptIntentBuilder.setup_slot(slot_key)
       session.metadata = metadata
       session.save!
     end
