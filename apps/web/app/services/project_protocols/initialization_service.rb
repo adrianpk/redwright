@@ -25,10 +25,14 @@ module ProjectProtocols
       composition = Composer.new(project: project, registry: registry).call
       generated_state = {"status" => "generated", "documents" => composition.documents}
 
-      if persist && project.protocol.nil?
-        protocol = project.build_protocol(status: "draft")
-        protocol.save!
+      if persist
+        protocol = project.protocol || project.create_protocol!(status: "draft")
+        persisted = protocol.documents.index_by(&:key)
+        created = false
+
         composition.documents.each do |document|
+          next if persisted.key?(document.fetch("key"))
+
           protocol.documents.create!(
             key: document.fetch("key"),
             path: document.fetch("path"),
@@ -38,13 +42,14 @@ module ProjectProtocols
             body: document.fetch("body"),
             provenance: document.fetch("provenance", {})
           )
+          created = true
         end
 
         return Result.new(
           project: project,
           protocol_state: protocol.reload.to_state,
           generated_state: generated_state,
-          persisted: true,
+          persisted: created,
           stack_keys: composition.stack_keys,
           fallback_used: composition.fallback_used,
           missing_stack_tokens: composition.missing_stack_tokens

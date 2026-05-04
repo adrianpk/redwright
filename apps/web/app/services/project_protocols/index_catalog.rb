@@ -36,10 +36,12 @@ module ProjectProtocols
     end
 
     def top_level_entries
+      ensure_canonical_documents!
       entries.reject(&:playbook?)
     end
 
     def playbook_entries
+      ensure_canonical_documents!
       entries.select(&:playbook?)
     end
 
@@ -53,6 +55,27 @@ module ProjectProtocols
     private
 
     attr_reader :project, :registry
+
+    def ensure_canonical_documents!
+      protocol = project.protocol || project.create_protocol!(status: "draft")
+      persisted = protocol.documents.index_by(&:key)
+
+      Composer.new(project: project, registry: registry).call.documents.each do |definition|
+        next if persisted.key?(definition.fetch("key"))
+
+        protocol.documents.create!(
+          key: definition.fetch("key"),
+          path: definition.fetch("path"),
+          title: definition.fetch("title"),
+          layer: definition.fetch("layer"),
+          position: definition.fetch("position"),
+          body: "",
+          provenance: {"source" => "canonical_protocol_slot", "placeholder_source" => "canonical_definition"}
+        )
+      end
+
+      @entries = nil
+    end
 
     def entries
       @entries ||= begin
@@ -69,7 +92,7 @@ module ProjectProtocols
             position: definition.fetch("position"),
             body: document&.body || definition.fetch("body"),
             document: document,
-            missing: document.nil?,
+            missing: false,
             playbooks_index: definition.fetch("key") == "playbooks_index",
             playbook: definition.fetch("path").start_with?(".agents/playbooks/")
           )

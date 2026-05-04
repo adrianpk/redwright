@@ -10,7 +10,6 @@ class ProjectProtocolDocument < ApplicationRecord
   validates :title, presence: true
   validates :layer, inclusion: {in: LAYERS}
   validates :position, presence: true
-  validates :body, presence: true
 
   before_validation :set_defaults
   after_save :materialize_filesystem
@@ -47,6 +46,7 @@ class ProjectProtocolDocument < ApplicationRecord
 
   def set_defaults
     self.position = 0 if position.nil?
+    self.body = "" if body.nil?
     self.provenance_json = "{}" if provenance_json.blank?
   end
 

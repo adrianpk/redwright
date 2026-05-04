@@ -24,7 +24,9 @@
   </div>
   <div class="document-artifact-field">
     <%= f.label :body %>
-    <%= f.text_area :body, rows: 18, required: true %>
+    <%= f.text_area :body,
+                    rows: 18,
+                    placeholder: local_assigns[:body_placeholder] %>
   </div>
   <div class="document-artifact-actions">
     <span class="document-save-status" data-protocol-save-status><%= protocol_document.updated_at ? "Last saved #{protocol_document.updated_at.localtime.strftime("%Y-%m-%d %H:%M:%S")}" : "Not saved yet" %></span>

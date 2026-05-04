@@ -4,18 +4,12 @@
   </p>
   <header class="document-artifacts-header">
     <h1><%= @protocol_document.title %></h1>
-    <p class="board-key"><%= @protocol_document.path %></p>
-    <div class="artifact-context-row">
-      <span class="artifact-context-chip"><%= @protocol_document.layer.capitalize %></span>
-      <span class="artifact-context-chip">Project protocol</span>
-      <span class="artifact-context-chip"><%= @project.name %></span>
-    </div>
   </header>
   <section class="document-artifact-panel">
-    <%= render "form", project: @project, protocol_document: @protocol_document, submit_label: "Save" %>
+    <%= render "form",
+               project: @project,
+               protocol_document: @protocol_document,
+               submit_label: "Save",
+               body_placeholder: @body_placeholder %>
   </section>
-
-  <div class="document-artifact-inline-actions">
-    <%= button_to "Delete Protocol", project_protocol_path(@project, @protocol_document), method: :delete, class: "ticket-action ticket-action-danger" %>
-  </div>
 </main>

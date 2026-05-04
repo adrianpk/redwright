@@ -17,6 +17,7 @@ module ProjectInitialization
         repo_url: repository[:canonical],
         stack_slug: "ruby"
       )
+      ProjectProtocols::InitializationService.new(project: project).call
 
       {id: project.id, model: project}
     end

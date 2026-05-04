@@ -35,13 +35,12 @@ class ProjectProtocolsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_match "Protocols", response.body
     assert_match "href=\"#{project_protocols_path(project)}\"", response.body
-    assert_match "AGENTS.md", response.body
-    assert_match ".agents/ARCHITECTURE.md", response.body
-    assert_match "Open dedicated view", response.body
-    assert_operator response.body.index("AGENTS.md"), :<, response.body.index(".agents/ARCHITECTURE.md")
+    assert_match "Playbooks", response.body
+    assert_operator response.body.index("AGENTS"), :<, response.body.index("Architecture")
+    refute_match ".agents/ARCHITECTURE.md", response.body
   end
 
-  test "index renders missing canonical entries as empty cards with create actions" do
+  test "index materializes missing canonical entries as stable editable slots" do
     admin = create_admin_user!
     sign_in_as(admin)
     project = create_project(key: "protocols-missing")
@@ -55,9 +54,10 @@ class ProjectProtocolsControllerTest < ActionDispatch::IntegrationTest
     get project_protocols_path(project)
 
     assert_response :success
-    assert_match "Missing", response.body
-    assert_match ".agents/CONVENTIONS.md", response.body
-    assert_match "Create", response.body
+    assert_match "Conventions", response.body
+    refute_match ".agents/CONVENTIONS.md", response.body
+    refute_match "Create", response.body
+    assert project.reload.protocol.documents.find_by(key: "conventions")
   end
 
   test "playbooks renders dedicated subview" do
@@ -77,20 +77,27 @@ class ProjectProtocolsControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_match "Playbooks", response.body
-    assert_match ".agents/playbooks/slice-delivery.md", response.body
+    assert_match "Slice Delivery", response.body
+    refute_match ".agents/playbooks/slice-delivery.md", response.body
     refute_match "AGENTS.md", response.body
   end
 
-  test "create builds missing canonical protocol entry and redirects to the combined protocol screen" do
+  test "materialized canonical protocol entry renders template body as placeholder only" do
     admin = create_admin_user!
     sign_in_as(admin)
-    project = create_project(key: "protocols-create")
+    project = create_project(key: "protocols-placeholder")
 
-    post project_protocols_path(project), params: {key: "agents_root"}
+    get project_protocols_path(project)
+    document = project.reload.protocol.documents.find_by!(key: "conventions")
 
-    document = project.reload.protocol.documents.find_by!(key: "agents_root")
-    assert_redirected_to project_protocol_path(project, document)
-    assert_equal "AGENTS.md", document.path
+
+    get project_protocol_path(project, document)
+
+    assert_response :success
+    assert_equal "", document.body
+    assert_match "placeholder=", response.body
+    assert_match "<textarea", response.body
+    refute_match "># Conventions", response.body
   end
 
   test "show renders combined read edit protocol screen" do
@@ -108,7 +115,9 @@ class ProjectProtocolsControllerTest < ActionDispatch::IntegrationTest
     assert_match "AGENTS", response.body
     assert_match "textarea", response.body
     assert_match "Last saved", response.body
-    assert_match "Delete Protocol", response.body
+    refute_match "Delete Protocol", response.body
+    refute_match "AGENTS.md", response.body
+    refute_match "Project protocol", response.body
   end
 
   test "edit and update protocol markdown" do
@@ -160,7 +169,7 @@ class ProjectProtocolsControllerTest < ActionDispatch::IntegrationTest
     assert_equal "AGENTS Autosaved", document.reload.title
   end
 
-  test "delete and recreate canonical protocol entry" do
+  test "index reconstitutes deleted canonical protocol entry as empty slot" do
     admin = create_admin_user!
     sign_in_as(admin)
     project = create_project(key: "protocols-delete")
@@ -175,13 +184,13 @@ class ProjectProtocolsControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to project_protocols_path(project)
     assert_nil protocol.reload.documents.find_by(id: document.id)
 
-    post project_protocols_path(project), params: {key: "conventions"}
+    get project_protocols_path(project)
 
     recreated = project.reload.protocol.documents.find_by!(key: "conventions")
-    assert_redirected_to project_protocol_path(project, recreated)
+    assert_equal "", recreated.body
   end
 
-  test "create does not duplicate an existing canonical protocol entry" do
+  test "index does not duplicate existing canonical protocol entry" do
     admin = create_admin_user!
     sign_in_as(admin)
     project = create_project(key: "protocols-no-duplicate")
@@ -191,7 +200,7 @@ class ProjectProtocolsControllerTest < ActionDispatch::IntegrationTest
     )
 
     assert_no_difference -> { project.reload.protocol.documents.where(key: "agents_root").count } do
-      post project_protocols_path(project), params: {key: "agents_root"}
+      get project_protocols_path(project)
     end
   end
 end
