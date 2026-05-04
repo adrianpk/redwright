@@ -55,15 +55,15 @@
 
 ### Slice 3: Materialization Pipeline Extraction
 
-- status: `pending`
+- status: `pr_open`
 - branch: `fix/slice-3-project-setup-materialization-pipeline`
 - pr_title: `feat(slice-3): extract project setup materialization pipeline`
 - objective: `separate Project Setup context collection from materialization and express materialization as named step pipelines with one responsibility per step`
 - tasks:
-- [ ] `T3.1 extract Project Setup materialization steps into explicit pipeline units`
-- [ ] `T3.2 make project, board, protocol, runtime container, ticket, and workspace creation steps return structured step results`
-- [ ] `T3.3 ensure question-answer collection no longer performs materialization side effects directly`
-- [ ] `T3.4 add targeted tests for step ordering, step results, and preserved current setup outcomes`
+- [x] `T3.1 extract Project Setup materialization steps into explicit pipeline units`
+- [x] `T3.2 make project, board, protocol, runtime container, ticket, and workspace creation steps return structured step results`
+- [x] `T3.3 ensure question-answer collection no longer performs materialization side effects directly`
+- [x] `T3.4 add targeted tests for step ordering, step results, and preserved current setup outcomes`
 - acceptance:
 - `Project Setup materialization is modeled as a named step pipeline`
 - `questionnaire/context collection is separated from side-effectful materialization`

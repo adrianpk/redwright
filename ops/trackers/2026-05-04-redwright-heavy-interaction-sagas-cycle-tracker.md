@@ -4,9 +4,9 @@
 
 - cycle_id: `cycle-2026-05-04-redwright-heavy-interaction-sagas`
 - status: `in_progress`
-- state: `slice_2_pr_open`
+- state: `slice_3_pr_open`
 - updated: `2026-05-04`
-- active_slice: `Slice 2`
+- active_slice: `Slice 3`
 - active_task: `none`
 - source_plan: `ops/plans/2026-05-04-redwright-heavy-interaction-sagas-cycle-plan.md`
 - source_spec: `ops/specs/specs/2026-05-04-redwright-heavy-interaction-sagas-spec.md`
@@ -67,28 +67,27 @@ Validation:
 
 ### Slice 3: Materialization Pipeline Extraction
 
-- status: `pending`
+- status: `pr_open`
 - branch: `fix/slice-3-project-setup-materialization-pipeline`
-- PR: `tbd`
+- PR: `#287 https://codeberg.org/adrianpk/redwright/pulls/287`
 - merge_target: `dev`
-- last_sync_commit: `tbd`
+- last_sync_commit: `4052f6b`
 
 Tasks:
 
-- [ ] `T3.1 extract Project Setup materialization steps into explicit pipeline units`
-- [ ] `T3.2 make project, board, protocol, runtime container, ticket, and workspace creation steps return structured step results`
-- [ ] `T3.3 ensure question-answer collection no longer performs materialization side effects directly`
-- [ ] `T3.4 add targeted tests for step ordering, step results, and preserved current setup outcomes`
+- [x] `T3.1 extract Project Setup materialization steps into explicit pipeline units`
+- [x] `T3.2 make project, board, protocol, runtime container, ticket, and workspace creation steps return structured step results`
+- [x] `T3.3 ensure question-answer collection no longer performs materialization side effects directly`
+- [x] `T3.4 add targeted tests for step ordering, step results, and preserved current setup outcomes`
 
 Commits:
 
-- [ ] `tbd refactor(web): extract project setup materialization pipeline`
-- [ ] `tbd feat(web): add structured project setup step results`
-- [ ] `tbd test(web): cover project setup materialization pipeline`
+- [x] `1fbd6ce refactor(web): extract project setup materialization pipeline`
+- [x] `4052f6b test(web): cover project setup materialization pipeline`
 
 Validation:
 
-- [ ] `bundle exec bin/rails test <project setup materialization pipeline paths>` (pending)
+- [x] `bundle exec bin/rails test test/services/project_setup/materialization_pipeline_test.rb test/services/project_setup/context_loop_service_test.rb test/integration/project_setup_conversational_e2e_test.rb test/integration/project_setup_telegram_e2e_test.rb test/services/project_setup/setup_runtime_bridge_integration_test.rb` (pass)
 
 ### Slice 4: Failure, Reconciliation, and Observability
 
@@ -172,3 +171,5 @@ Validation:
 - `2026-05-04` state=`slice_1_pr_open` note=`opened Codeberg PR #285 from fix/slice-1-heavy-interaction-saga-contract into dev`
 - `2026-05-04` state=`slice_2_implemented` note=`aligned Project Setup saga snapshot to the shared contract, exposed ordered turns and contract metadata, preserved current setup snapshot consumers, and validated the projection through model, service, and conversational integration tests on fix/slice-2-project-setup-saga-alignment`
 - `2026-05-04` state=`slice_2_pr_open` note=`opened Codeberg PR #286 from fix/slice-2-project-setup-saga-alignment into dev`
+- `2026-05-04` state=`slice_3_implemented` note=`extracted Project Setup materialization into an explicit named pipeline, preserved the existing step order and side effects, exposed structured materialization step results, and validated the behavior through direct pipeline, setup service, Telegram, conversational, and runtime-bridge coverage on fix/slice-3-project-setup-materialization-pipeline`
+- `2026-05-04` state=`slice_3_pr_open` note=`opened Codeberg PR #287 from fix/slice-3-project-setup-materialization-pipeline into dev`
