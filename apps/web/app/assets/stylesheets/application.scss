@@ -878,6 +878,8 @@ body {
   border-radius: 10px;
   background: #fff;
   padding: 10px;
+  display: flex;
+  flex-direction: column;
   cursor: grab;
   user-select: none;
   -webkit-user-select: none;
@@ -939,17 +941,27 @@ body {
 
 .ticket-card footer {
   margin-top: 10px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: flex-end;
+  column-gap: 12px;
+  min-height: 22px;
+}
+
+.ticket-labels {
   display: flex;
   flex-wrap: wrap;
+  align-items: flex-end;
   gap: 6px;
-  min-height: 18px;
+  min-width: 0;
 }
 
 .ticket-assignee {
-  margin-top: 6px;
+  justify-self: end;
   text-align: right;
   color: var(--muted);
   font-size: 0.72rem;
+  line-height: 1.35;
 }
 
 .ticket-label {

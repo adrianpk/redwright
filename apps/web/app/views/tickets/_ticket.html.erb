@@ -20,11 +20,13 @@
     <span>Review: <%= seconds_to_readable(ticket.review_elapsed_seconds) %></span>
   </div>
   <footer>
-    <% ticket.labels.each do |label| %>
-      <span class="ticket-label" style="background-color: <%= label.color %>"><%= label.name %></span>
+    <div class="ticket-labels">
+      <% ticket.labels.each do |label| %>
+        <span class="ticket-label" style="background-color: <%= label.color %>"><%= label.name %></span>
+      <% end %>
+    </div>
+    <% if ticket.assignee.present? %>
+      <div class="ticket-assignee">@<%= ticket.assignee %></div>
     <% end %>
   </footer>
-  <% if ticket.assignee.present? %>
-    <div class="ticket-assignee">@<%= ticket.assignee %></div>
-  <% end %>
 </article>
