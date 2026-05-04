@@ -172,10 +172,52 @@ module ProjectInitialization
         end
       when :initialization_failed
         machine.transition_to!("failed", terminal_reason: "failed_reconciled")
-        ProjectSetup::SagaState.new(session: session).mark_failed!(reason: execution.errors.dig(:initialization, :message))
+        ProjectSetup::SagaState.new(session: session).mark_failed!(
+          reason: execution.errors.dig(:initialization, :message),
+          reconciliation: execution.errors.dig(:initialization, :reconciliation) || {},
+          effects: [
+            HeavyInteractionSagas::Effect.new(
+              type: "project_setup_failed",
+              visibility: "public",
+              data: {
+                session_id: session.id,
+                terminal_reason: "failed_reconciled"
+              }
+            ),
+            HeavyInteractionSagas::Effect.new(
+              type: "project_setup_reconciled",
+              visibility: "internal",
+              data: {
+                session_id: session.id,
+                reconciliation_status: execution.errors.dig(:initialization, :reconciliation, :status)
+              }
+            )
+          ]
+        )
       when :initialization_incomplete
         machine.transition_to!("needs_reconciliation", terminal_reason: "failed_needs_reconciliation")
-        ProjectSetup::SagaState.new(session: session).mark_failed!(reason: execution.errors.dig(:initialization, :message))
+        ProjectSetup::SagaState.new(session: session).mark_failed!(
+          reason: execution.errors.dig(:initialization, :message),
+          reconciliation: execution.errors.dig(:initialization, :reconciliation) || {},
+          effects: [
+            HeavyInteractionSagas::Effect.new(
+              type: "project_setup_failed",
+              visibility: "public",
+              data: {
+                session_id: session.id,
+                terminal_reason: "failed_needs_reconciliation"
+              }
+            ),
+            HeavyInteractionSagas::Effect.new(
+              type: "project_setup_reconciliation_required",
+              visibility: "public",
+              data: {
+                session_id: session.id,
+                reconciliation_status: execution.errors.dig(:initialization, :reconciliation, :status)
+              }
+            )
+          ]
+        )
       else
         raise "unsupported project execution status: #{execution.status}"
       end

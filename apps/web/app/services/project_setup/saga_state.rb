@@ -119,14 +119,30 @@ module ProjectSetup
       )
     end
 
-    def mark_failed!(reason:)
+    def record_effects!(effects)
+      write!({}, effects: effects)
+    end
+
+    def mark_failed!(reason:, reconciliation: {}, effects: [])
+      failure_status = session.current_state == "needs_reconciliation" ? "needs_reconciliation" : "failed"
       write!(
-        "stage" => "failed",
-        "status" => "failed",
-        "materialization" => {
-          "status" => "failed",
-          "reason" => reason.to_s
-        }
+        {
+          "stage" => "failed",
+          "status" => failure_status,
+          "questionnaire" => {
+            "status" => questionnaire_status,
+            "turn_counter" => session.turn_counter.to_i,
+            "next_prompt_intent" => next_prompt_intent
+          },
+          "materialization" => {
+            "status" => failure_status,
+            "reason" => reason.to_s,
+            "failed_at" => Time.current.iso8601,
+            "reconciliation" => normalize_value(reconciliation),
+            "preserved_context" => preserved_context
+          }
+        },
+        effects: effects
       )
     end
 
@@ -134,8 +150,11 @@ module ProjectSetup
 
     attr_reader :session
 
-    def write!(updates)
+    def write!(updates, options = {})
+      effects = options[:effects]
       metadata = session.metadata
+      metadata["saga_effects"] = merge_effects(metadata["saga_effects"], effects) unless effects.nil?
+      session.metadata = metadata
       next_state = deep_merge(snapshot, updates)
       next_state["updated_at"] = Time.current.iso8601
       next_state = deep_merge(next_state, contract_state(next_state))
@@ -230,7 +249,9 @@ module ProjectSetup
         "ready"
       when "cancelled"
         "cancelled"
-      when "failed", "needs_reconciliation"
+      when "needs_reconciliation"
+        "needs_reconciliation"
+      when "failed"
         "failed"
       when "ready_to_create", "creating_project"
         "running"
@@ -267,7 +288,7 @@ module ProjectSetup
       return [] unless effects.is_a?(Array)
 
       effects.map do |effect|
-        effect.respond_to?(:to_h) ? effect.to_h : stringify_hash(effect)
+        effect.respond_to?(:to_h) ? effect.to_h : normalize_value(effect)
       end
     end
 
@@ -349,10 +370,46 @@ module ProjectSetup
       end
     end
 
-    def stringify_hash(value)
-      return {} unless value.is_a?(Hash)
+    def merge_effects(existing, incoming)
+      persisted = Array(existing).map { |effect| normalize_effect(effect) }
+      additions = Array(incoming).map { |effect| normalize_effect(effect) }
+      (persisted + additions).uniq
+    end
 
-      value.to_h.transform_keys(&:to_s)
+    def normalize_effect(effect)
+      payload = effect.respond_to?(:to_h) ? effect.to_h : effect
+      normalized = normalize_value(payload)
+      return normalized unless normalized.is_a?(Hash)
+
+      normalized["visibility"] = "public" if normalized["visibility"].to_s.empty?
+      normalized
+    end
+
+    def preserved_context
+      {
+        "turn_counter" => session.turn_counter.to_i,
+        "project_id" => session.project_id,
+        "setup_context" => normalize_value(session.setup_context),
+        "materialization_steps" => normalize_value(session.metadata["materialization_steps"] || [])
+      }
+    end
+
+    def normalize_value(value)
+      case value
+      when Hash
+        value.each_with_object({}) do |(key, inner_value), normalized|
+          normalized[key.to_s] = normalize_value(inner_value)
+        end
+      when Array
+        value.map { |item| normalize_value(item) }
+      else
+        value
+      end
+    end
+
+    def stringify_hash(value)
+      normalized = normalize_value(value)
+      normalized.is_a?(Hash) ? normalized : {}
     end
   end
 end
