@@ -26,30 +26,32 @@
   </head>
 
   <body>
-    <header class="top-nav" data-nav-state="expanded">
-      <nav aria-label="Primary navigation">
-        <%= link_to boards_path, class: "top-nav-logo-link", aria: { label: "Home" } do %>
-          <%= image_tag "/logo.png",
-                        alt: "RedWright",
-                        class: "top-nav-logo",
-                        width: 77,
-                        height: 77,
-                        style: "display:block;max-width:77px;max-height:77px;object-fit:contain;" %>
-        <% end %>
-        <div class="top-nav-links">
-          <%= link_to "Boards", boards_path, class: "top-nav-link" %>
-          <% if navigation_project %>
-            <%= link_to "Protocols", project_protocols_path(navigation_project), class: "top-nav-link" %>
+    <% if authenticated? %>
+      <header class="top-nav" data-nav-state="expanded">
+        <nav aria-label="Primary navigation">
+          <%= link_to boards_path, class: "top-nav-logo-link", aria: { label: "Home" } do %>
+            <%= image_tag "/logo.png",
+                          alt: "RedWright",
+                          class: "top-nav-logo",
+                          width: 77,
+                          height: 77,
+                          style: "display:block;max-width:77px;max-height:77px;object-fit:contain;" %>
           <% end %>
-          <%= link_to "Docs", documents_path, class: "top-nav-link" %>
-          <% if current_user&.admin? %>
-            <%= link_to "Settings", protocol_templates_path, class: "top-nav-link" %>
-          <% end %>
-        </div>
-      </nav>
-      <button type="button" class="top-nav-pin" aria-label="Pin menu" aria-pressed="false" title="Pin menu">📌</button>
-      <button type="button" class="top-nav-handle" aria-label="Toggle menu" aria-expanded="true"></button>
-    </header>
+          <div class="top-nav-links">
+            <%= link_to "Boards", boards_path, class: "top-nav-link" %>
+            <% if navigation_project %>
+              <%= link_to "Protocols", project_protocols_path(navigation_project), class: "top-nav-link" %>
+            <% end %>
+            <%= link_to "Docs", documents_path, class: "top-nav-link" %>
+            <% if current_user&.admin? %>
+              <%= link_to "Settings", protocol_templates_path, class: "top-nav-link" %>
+            <% end %>
+          </div>
+        </nav>
+        <button type="button" class="top-nav-pin" aria-label="Pin menu" aria-pressed="false" title="Pin menu">📌</button>
+        <button type="button" class="top-nav-handle" aria-label="Toggle menu" aria-expanded="true"></button>
+      </header>
+    <% end %>
     <%= yield %>
   </body>
 </html>

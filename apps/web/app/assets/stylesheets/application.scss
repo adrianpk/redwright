@@ -1096,13 +1096,14 @@ body {
 .auth-brand {
   display: flex;
   justify-content: center;
-  margin-bottom: 10px;
+  margin-bottom: 18px;
 }
 
 .auth-brand img {
   width: min(220px, 62vw);
   height: auto;
   display: block;
+  mix-blend-mode: multiply;
 }
 
 .auth-header h1 {
@@ -1121,12 +1122,33 @@ body {
   margin-top: 14px;
 }
 
+.auth-form .form-actions {
+  justify-content: center;
+}
+
+.auth-form .ticket-action {
+  min-width: 112px;
+  min-height: 36px;
+  font-size: 0.82rem;
+  padding: 8px 16px;
+}
+
 .auth-links {
   margin-top: 12px;
   display: flex;
+  justify-content: center;
   gap: 12px;
   flex-wrap: wrap;
   font-size: 0.82rem;
+}
+
+.auth-links a {
+  color: var(--navy-soft);
+  text-decoration: none;
+}
+
+.auth-links a:hover {
+  color: var(--accent-red);
 }
 
 .auth-flash {

@@ -1,3 +1,10 @@
+admin = User.find_by(email_address: "admin@redwright.local") || User.all.find(&:admin?) || User.new
+admin.email_address = "admin@redwright.local"
+admin.roles = ["admin"]
+admin.password = "password-123"
+admin.password_confirmation = "password-123"
+admin.save!
+
 project = Project.find_or_create_by!(root_path: "/tmp/redwright-demo-factory") do |p|
   p.name = "Demo Factory"
   p.description = "Default local demo project for board bootstrap."
