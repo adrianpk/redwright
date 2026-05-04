@@ -4,7 +4,7 @@
 
 - cycle_id: `cycle-2026-05-04-redwright-heavy-interaction-sagas`
 - status: `in_progress`
-- state: `slice_4_implemented`
+- state: `slice_4_pr_open`
 - updated: `2026-05-04`
 - active_slice: `Slice 4`
 - active_task: `none`
@@ -91,9 +91,9 @@ Validation:
 
 ### Slice 4: Failure, Reconciliation, and Observability
 
-- status: `implemented`
+- status: `pr_open`
 - branch: `fix/slice-4-saga-failure-reconciliation-observability`
-- PR: `tbd`
+- PR: `#288 https://codeberg.org/adrianpk/redwright/pulls/288`
 - merge_target: `dev`
 - last_sync_commit: `02e3f73`
 
@@ -174,3 +174,4 @@ Validation:
 - `2026-05-04` state=`slice_3_implemented` note=`extracted Project Setup materialization into an explicit named pipeline, preserved the existing step order and side effects, exposed structured materialization step results, and validated the behavior through direct pipeline, setup service, Telegram, conversational, and runtime-bridge coverage on fix/slice-3-project-setup-materialization-pipeline`
 - `2026-05-04` state=`slice_3_pr_open` note=`opened Codeberg PR #287 from fix/slice-3-project-setup-materialization-pipeline into dev`
 - `2026-05-04` state=`slice_4_implemented` note=`made failure and needs-reconciliation outcomes explicit in the shared saga contract, preserved setup context and reconciliation metadata through failure snapshots, classified saga effects and debug step visibility, and validated the behavior through setup runner, context loop, and command API coverage on fix/slice-4-saga-failure-reconciliation-observability`
+- `2026-05-04` state=`slice_4_pr_open` note=`opened Codeberg PR #288 from fix/slice-4-saga-failure-reconciliation-observability into dev`

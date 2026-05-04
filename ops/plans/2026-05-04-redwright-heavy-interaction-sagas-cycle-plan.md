@@ -75,7 +75,7 @@
 
 ### Slice 4: Failure, Reconciliation, and Observability
 
-- status: `implemented`
+- status: `pr_open`
 - branch: `fix/slice-4-saga-failure-reconciliation-observability`
 - pr_title: `feat(slice-4): add saga reconciliation and observability`
 - objective: `make partial failure, preserved context, reconciliation choices, and debug visibility explicit in saga execution paths`
