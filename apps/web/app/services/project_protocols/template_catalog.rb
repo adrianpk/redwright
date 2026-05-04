@@ -9,6 +9,11 @@ module ProjectProtocols
       common_template.documents.map { |document| template_document_state(document) }
     end
 
+    def common_template
+      ensure_seeded!
+      ProjectProtocolTemplate.find_by!(template_kind: "common", key: "common")
+    end
+
     def stack_templates
       ensure_seeded!
       ProjectProtocolTemplate.where(template_kind: "stack", status: "active").order(:key).each_with_object({}) do |template, hash|
@@ -29,9 +34,31 @@ module ProjectProtocols
       ProjectProtocolTemplate.includes(:documents).order(:template_kind, :key)
     end
 
+    def stack_template_sets
+      ensure_seeded!
+      ProjectProtocolTemplate.includes(:documents).where(template_kind: "stack", status: "active").order(:key)
+    end
+
     def find_template(id)
       ensure_seeded!
       ProjectProtocolTemplate.includes(:documents).find(id)
+    end
+
+    def create_stack_template!(stack_key:, name: nil)
+      ensure_seeded!
+      normalized_key = stack_key.to_s.strip.downcase.gsub(/\s+/, "-")
+      raise ActiveRecord::RecordInvalid, ProjectProtocolTemplate.new if normalized_key.blank?
+
+      template = ProjectProtocolTemplate.create!(
+        template_kind: "stack",
+        key: normalized_key,
+        name: name.presence || "#{normalized_key.tr("-_", " ").split.map(&:capitalize).join(" ")} Protocol Template",
+        matchers: [normalized_key],
+        status: "active"
+      )
+
+      sync_documents!(template, empty_stack_documents_for(normalized_key))
+      template.reload
     end
 
     private
@@ -41,10 +68,6 @@ module ProjectProtocols
     def ensure_seeded!
       seed_common_template!
       seed_stack_templates!
-    end
-
-    def common_template
-      ProjectProtocolTemplate.find_by!(template_kind: "common", key: "common")
     end
 
     def seed_common_template!
@@ -83,6 +106,16 @@ module ProjectProtocols
           body: document.fetch("body")
         )
       end
+    end
+
+    def empty_stack_documents_for(stack_key)
+      registry.stack_template_definition(stack_key).fetch("documents").map do |document|
+        document.merge("body" => empty_body_for(document.fetch("title")))
+      end
+    end
+
+    def empty_body_for(title)
+      "# #{title}\n\n"
     end
 
     def template_document_state(document)

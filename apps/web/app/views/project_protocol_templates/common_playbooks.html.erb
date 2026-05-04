@@ -1,0 +1,34 @@
+<main class="document-artifacts-index">
+  <section class="documents-top-shell">
+    <p class="document-artifact-breadcrumb">
+      <%= link_to "Settings", protocol_templates_path %>
+      /
+      <%= link_to "Common Protocol Templates", common_protocol_templates_path %>
+    </p>
+    <div class="board-title-row">
+      <h1>Playbooks</h1>
+    </div>
+    <p class="board-key">Common protocol templates</p>
+  </section>
+
+  <section class="artifact-list">
+    <% @playbook_entries.each do |entry| %>
+      <article class="artifact-list-card<%= ' is-missing' if entry.missing? %>">
+        <% if entry.missing? %>
+          <div class="artifact-list-card-body">
+            <strong><%= entry.title %></strong>
+            <span><%= entry.path %></span>
+            <span class="artifact-status artifact-status-missing">Missing</span>
+            <%= button_to "Create", documents_protocol_template_path(@template, key: entry.key), method: :post, class: "ticket-action" %>
+          </div>
+        <% else %>
+          <%= link_to edit_protocol_template_document_path(@template, entry.document) do %>
+            <strong><%= entry.title %></strong>
+            <span><%= entry.path %></span>
+            <span><%= entry.layer.capitalize %></span>
+          <% end %>
+        <% end %>
+      </article>
+    <% end %>
+  </section>
+</main>

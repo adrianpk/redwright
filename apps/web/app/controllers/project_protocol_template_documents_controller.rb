@@ -1,7 +1,7 @@
 class ProjectProtocolTemplateDocumentsController < ApplicationController
   before_action :require_admin!
   before_action :set_template
-  before_action :set_document, only: [ :edit, :update ]
+  before_action :set_document, only: [ :edit, :update, :destroy ]
 
   def edit
   end
@@ -12,6 +12,12 @@ class ProjectProtocolTemplateDocumentsController < ApplicationController
     else
       render :edit, status: :unprocessable_entity
     end
+  end
+
+  def destroy
+    redirect_path = @document.path.start_with?(".agents/playbooks/") ? playbooks_protocol_template_path(@template) : protocol_template_path(@template)
+    @document.destroy!
+    redirect_to redirect_path, notice: "Protocol template entry deleted."
   end
 
   private

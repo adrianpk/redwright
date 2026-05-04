@@ -17,8 +17,19 @@ Rails.application.routes.draw do
       end
     end
   end
-  resources :protocol_templates, controller: "project_protocol_templates", only: [ :index, :show ] do
-    resources :documents, controller: "project_protocol_template_documents", only: [ :edit, :update ]
+  resources :protocol_templates, controller: "project_protocol_templates", only: [ :index, :show, :create ] do
+    collection do
+      get :common
+      get :common_playbooks
+      get "stacks", action: :stacks, as: :stacks
+      get "stacks/new", action: :new_stack, as: :new_stack
+      post "stacks", action: :create_stack
+    end
+    member do
+      get :playbooks
+      post :documents, action: :create_document
+    end
+    resources :documents, controller: "project_protocol_template_documents", only: [ :edit, :update, :destroy ]
   end
   resources :boards, only: [ :index, :show ]
   resources :boards, only: [] do

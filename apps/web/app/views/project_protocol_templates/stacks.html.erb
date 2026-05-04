@@ -1,0 +1,23 @@
+<main class="document-artifacts-index">
+  <section class="documents-top-shell">
+    <p class="document-artifact-breadcrumb">
+      <%= link_to "Settings", protocol_templates_path %>
+    </p>
+    <div class="board-title-row">
+      <h1>Stack Protocol Templates</h1>
+      <%= link_to "New Stack Template", new_stack_protocol_templates_path, class: "ticket-action" %>
+    </div>
+  </section>
+
+  <section class="artifact-list">
+    <% @stack_templates.each do |template| %>
+      <article class="artifact-list-card">
+        <%= link_to protocol_template_path(template) do %>
+          <strong><%= template.name %></strong>
+          <span><%= template.key %></span>
+          <span><%= pluralize(template.documents.size, "entry") %></span>
+        <% end %>
+      </article>
+    <% end %>
+  </section>
+</main>

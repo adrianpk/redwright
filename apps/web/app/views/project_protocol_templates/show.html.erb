@@ -1,18 +1,42 @@
-<main class="document-artifacts-show">
-  <p class="document-artifact-breadcrumb">
-    <%= link_to "Protocol Templates", protocol_templates_path %>
-  </p>
-  <header class="document-artifacts-header">
-    <h1><%= @template.name %></h1>
+<main class="document-artifacts-index">
+  <section class="documents-top-shell">
+    <p class="document-artifact-breadcrumb">
+      <%= link_to "Settings", protocol_templates_path %>
+      /
+      <% if @template.common? %>
+        <%= link_to "Common Protocol Templates", common_protocol_templates_path %>
+      <% else %>
+        <%= link_to "Stack Protocol Templates", stacks_protocol_templates_path %>
+      <% end %>
+    </p>
+    <div class="board-title-row">
+      <h1><%= @template.name %></h1>
+    </div>
     <p class="board-key"><%= @template.template_kind %>: <%= @template.key %></p>
-  </header>
+  </section>
 
   <section class="artifact-list">
-    <% @template.documents.each do |document| %>
-      <article class="artifact-list-card">
-        <%= link_to edit_protocol_template_document_path(@template, document) do %>
-          <strong><%= document.title %></strong>
-          <span><%= document.path %></span>
+    <% @entries.each do |entry| %>
+      <article class="artifact-list-card<%= ' is-missing' if entry.missing? %>">
+        <% if entry.playbooks_index? %>
+          <%= link_to(@template.common? ? common_playbooks_protocol_templates_path : playbooks_protocol_template_path(@template)) do %>
+            <strong><%= entry.title %></strong>
+            <span><%= entry.path %></span>
+            <span>Open dedicated view</span>
+          <% end %>
+        <% elsif entry.missing? %>
+          <div class="artifact-list-card-body">
+            <strong><%= entry.title %></strong>
+            <span><%= entry.path %></span>
+            <span class="artifact-status artifact-status-missing">Missing</span>
+            <%= button_to "Create", documents_protocol_template_path(@template, key: entry.key), method: :post, class: "ticket-action" %>
+          </div>
+        <% else %>
+          <%= link_to edit_protocol_template_document_path(@template, entry.document) do %>
+            <strong><%= entry.title %></strong>
+            <span><%= entry.path %></span>
+            <span><%= entry.layer.capitalize %></span>
+          <% end %>
         <% end %>
       </article>
     <% end %>

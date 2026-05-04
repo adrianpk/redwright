@@ -1,35 +1,19 @@
 <main class="document-artifacts-index">
   <section class="documents-top-shell">
     <div class="board-title-row">
-      <h1>Protocol Templates</h1>
+      <h1>Settings</h1>
     </div>
+    <p class="board-key">Protocol template administration</p>
   </section>
 
-  <section class="template-group">
-    <h2>Common Templates</h2>
-    <div class="artifact-list">
-      <% @common_templates.each do |template| %>
-        <article class="artifact-list-card">
-          <%= link_to protocol_template_path(template) do %>
-            <strong><%= template.name %></strong>
-            <span><%= pluralize(template.documents.size, "document") %></span>
-          <% end %>
-        </article>
-      <% end %>
-    </div>
-  </section>
-
-  <section class="template-group">
-    <h2>Stack Templates</h2>
-    <div class="artifact-list">
-      <% @stack_templates.each do |template| %>
-        <article class="artifact-list-card">
-          <%= link_to protocol_template_path(template) do %>
-            <strong><%= template.name %></strong>
-            <span><%= template.key %></span>
-          <% end %>
-        </article>
-      <% end %>
-    </div>
+  <section class="artifact-type-nav" aria-label="Protocol template navigation">
+    <%= link_to common_protocol_templates_path, class: "artifact-type-card" do %>
+      <h2>Common Protocol Templates</h2>
+      <p>Shared AGENTS, behavioral protocols, and Playbooks.</p>
+    <% end %>
+    <%= link_to stacks_protocol_templates_path, class: "artifact-type-card" do %>
+      <h2>Stack Protocol Templates</h2>
+      <p>One template set per stack identity, with direct stack-set management.</p>
+    <% end %>
   </section>
 </main>

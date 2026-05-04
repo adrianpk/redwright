@@ -146,6 +146,12 @@ module ProjectProtocols
       }
     end
 
+    def stack_template_definition(stack_key)
+      stack_templates.fetch(stack_key.to_s) do
+        generic_template(stack_key.to_s, stack_key.to_s.tr("_-", " ").split.map(&:capitalize).join(" "))
+      end
+    end
+
     private
 
     def stack_template(stack_key:, matchers:, architecture:, conventions:)
