@@ -69,8 +69,8 @@ module ProjectProtocols
           title: definition.fetch("title"),
           layer: definition.fetch("layer"),
           position: definition.fetch("position"),
-          body: "",
-          provenance: {"source" => "canonical_protocol_slot", "placeholder_source" => "canonical_definition"}
+          body: definition.fetch("body"),
+          provenance: definition.fetch("provenance", {"source" => "canonical_protocol_slot"})
         )
       end
 
@@ -90,7 +90,7 @@ module ProjectProtocols
             title: definition.fetch("title"),
             layer: definition.fetch("layer"),
             position: definition.fetch("position"),
-            body: document&.body || definition.fetch("body"),
+            body: document&.body.presence || definition.fetch("body"),
             document: document,
             missing: false,
             playbooks_index: definition.fetch("key") == "playbooks_index",

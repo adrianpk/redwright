@@ -37,9 +37,9 @@ module ProjectProtocols
       architecture = result.documents.find { |document| document.fetch("key") == "architecture" }
       conventions = result.documents.find { |document| document.fetch("key") == "conventions" }
       assert_equal "stack", architecture.fetch("layer")
-      assert_match(/Rails Architecture/, architecture.fetch("body"))
+      assert_match(/Repository Architecture/, architecture.fetch("body"))
       assert_equal "rails", architecture.fetch("provenance").fetch("stack_key")
-      assert_match(/Rails Conventions/, conventions.fetch("body"))
+      assert_match(/Engineering Conventions/, conventions.fetch("body"))
     end
 
     test "uses generated fallback when stack coverage is missing" do

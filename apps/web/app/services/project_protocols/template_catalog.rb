@@ -77,8 +77,8 @@ module ProjectProtocols
         template.matchers = []
         template.status = "active"
         template.save!
-        sync_documents!(template, registry.common_documents)
       end
+      sync_documents!(template, registry.common_documents)
       template
     end
 
@@ -90,19 +90,30 @@ module ProjectProtocols
           template.matchers = definition.fetch("matchers")
           template.status = "active"
           template.save!
-          sync_documents!(template, definition.fetch("documents"))
         end
+        sync_documents!(template, definition.fetch("documents"))
       end
     end
 
     def sync_documents!(template, documents)
+      existing_keys = template.documents.index_by(&:key)
+
       documents.each_with_index do |document, index|
-        template.documents.create!(
-          key: document.fetch("key"),
+        attributes = {
           path: document.fetch("path"),
           title: document.fetch("title"),
           layer: document.fetch("layer"),
-          position: document.fetch("position", index),
+          position: document.fetch("position", index)
+        }
+
+        if (existing_document = existing_keys[document.fetch("key")])
+          existing_document.update!(attributes)
+          next
+        end
+
+        template.documents.create!(
+          key: document.fetch("key"),
+          **attributes,
           body: document.fetch("body")
         )
       end
