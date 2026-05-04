@@ -30,18 +30,34 @@ body {
   background: rgba(254, 243, 228, 0.96);
   border-bottom: 1px solid var(--border-soft);
   backdrop-filter: blur(6px);
-  overflow: hidden;
+  overflow: visible;
   height: 112px;
   transition: height 90ms ease-out;
 }
 
 .top-nav nav {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 6px;
+  width: 100%;
+  height: 100%;
   padding: 6px 12px 8px;
   transition: opacity 70ms ease-out, transform 90ms ease-out;
+}
+
+.top-nav-corner {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .top-nav-logo-link {
@@ -76,10 +92,104 @@ body {
   color: var(--accent-red);
 }
 
-.top-nav-pin {
+.top-nav-project-menu,
+.top-nav-user-menu {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.top-nav-project-trigger,
+.top-nav-user-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 24px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--navy-soft);
+  font: inherit;
+  font-size: 0.76rem;
+  font-weight: 600;
+  white-space: nowrap;
+  padding: 0;
+  cursor: pointer;
+  box-shadow: none;
+}
+
+.top-nav-project-name,
+.top-nav-user-email {
+  max-width: 132px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.top-nav-project-caret,
+.top-nav-user-caret {
+  font-size: 0.72rem;
+}
+
+.top-nav-project-trigger:hover,
+.top-nav-project-menu:focus-within .top-nav-project-trigger,
+.top-nav-user-trigger:hover,
+.top-nav-user-menu:focus-within .top-nav-user-trigger {
+  color: var(--navy);
+}
+
+.top-nav-project-dropdown,
+.top-nav-user-dropdown {
   position: absolute;
-  top: 6px;
-  right: 10px;
+  top: 34px;
+  right: 0;
+  z-index: 30;
+  display: none;
+  min-width: 180px;
+  max-width: 220px;
+  padding: 6px;
+  border: 1px solid var(--border-soft);
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 8px 20px rgba(31, 42, 68, 0.12);
+}
+
+.top-nav-project-menu:hover .top-nav-project-dropdown,
+.top-nav-project-menu:focus-within .top-nav-project-dropdown,
+.top-nav-user-menu:hover .top-nav-user-dropdown,
+.top-nav-user-menu:focus-within .top-nav-user-dropdown {
+  display: block;
+}
+
+.top-nav-project-dropdown form,
+.top-nav-user-dropdown form {
+  margin: 0;
+}
+
+.top-nav-project-action,
+.top-nav-user-action {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: var(--navy);
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-align: left;
+  padding: 6px 8px;
+  cursor: pointer;
+}
+
+.top-nav-project-action.is-active {
+  color: var(--accent-red);
+}
+
+.top-nav-project-action:hover,
+.top-nav-user-action:hover {
+  color: var(--accent-red);
+}
+
+.top-nav-pin {
+  position: static;
   border: 0;
   border-radius: 0;
   background: transparent;
@@ -136,6 +246,19 @@ body {
 .top-nav[data-nav-state="collapsed"] .top-nav-pin {
   opacity: 0;
   pointer-events: none;
+}
+
+.top-nav[data-nav-state="collapsed"] .top-nav-corner {
+  opacity: 0;
+  pointer-events: none;
+}
+
+@media (max-width: 900px) {
+  .top-nav-project-name,
+  .top-nav-user-email {
+    max-width: 96px;
+  }
+
 }
 
 .boards-index,
@@ -245,6 +368,7 @@ body {
 }
 
 .artifact-list-card {
+  position: relative;
   aspect-ratio: var(--catalog-card-ratio);
   min-height: var(--catalog-card-min-height);
   border: 1px solid var(--border-soft);
@@ -258,8 +382,8 @@ body {
 }
 
 .artifact-list-card.is-missing {
-  background: #fffaf4;
-  border-style: dashed;
+  background: #fff;
+  border-style: solid;
 }
 
 .artifact-list-card a {
@@ -292,6 +416,17 @@ body {
   flex-direction: column;
   gap: 6px;
   color: var(--navy);
+}
+
+.artifact-list-card-body form {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  margin: 0;
+}
+
+.artifact-list-card-body .ticket-action {
+  padding: 6px 10px;
 }
 
 .artifact-card-note {
@@ -482,10 +617,6 @@ body {
   color: var(--muted);
   font-size: 0.8rem;
   font-weight: 500;
-  border: 1px solid var(--border-soft);
-  border-radius: 999px;
-  background: #fff;
-  padding: 4px 10px;
 }
 
 .ticket-action-danger {
@@ -501,6 +632,10 @@ body {
 
 .document-artifact-actions .ticket-action {
   margin-left: auto;
+  min-width: 86px;
+  min-height: 34px;
+  font-size: 0.82rem;
+  padding: 7px 14px;
 }
 
 .document-artifact-panel textarea {
