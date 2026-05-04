@@ -36,11 +36,51 @@ class ProjectProtocolTemplatesControllerTest < ActionDispatch::IntegrationTest
     get protocol_templates_path
 
     assert_response :success
-    assert_match "Protocol Templates", response.body
-    assert_match "Common Templates", response.body
-    assert_match "Stack Templates", response.body
+    assert_match "Settings", response.body
+    assert_match "Common Protocol Templates", response.body
+    assert_match "Stack Protocol Templates", response.body
+  end
+
+  test "common template renders canonical cards and playbooks route" do
+    admin = create_admin_user!
+    sign_in_as(admin)
+
+    get common_protocol_templates_path
+
+    assert_response :success
     assert_match "Common Protocol Template", response.body
+    assert_match "Open dedicated view", response.body
+    assert_match "AGENTS.md", response.body
+  end
+
+  test "stacks overview renders stack templates and create entry point" do
+    admin = create_admin_user!
+    sign_in_as(admin)
+
+    get stacks_protocol_templates_path
+
+    assert_response :success
+    assert_match "Stack Protocol Templates", response.body
     assert_match "Rails Protocol Template", response.body
+    assert_match "New Stack Template", response.body
+  end
+
+  test "create stack template set and show per-stack management screen" do
+    admin = create_admin_user!
+    sign_in_as(admin)
+
+    post stacks_protocol_templates_path, params: {
+      project_protocol_template: {
+        key: "zig-web",
+        name: "Zig Web Protocol Template"
+      }
+    }
+
+    template = ProjectProtocolTemplate.find_by!(template_kind: "stack", key: "zig-web")
+    assert_redirected_to protocol_template_path(template)
+    assert_equal ["zig-web"], template.matchers
+    assert_equal ["architecture", "conventions"], template.documents.order(:position).pluck(:key)
+    assert_equal "# Architecture\n\n", template.documents.find_by!(key: "architecture").body
   end
 
   test "show and update template document for admin" do
@@ -67,5 +107,26 @@ class ProjectProtocolTemplatesControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to protocol_template_path(template)
     assert_equal "Architecture Updated", document.reload.title
     assert_match(/Updated through admin/, document.reload.body)
+  end
+
+  test "delete and recreate template entry without duplication" do
+    admin = create_admin_user!
+    sign_in_as(admin)
+    template = ProjectProtocols::TemplateCatalog.new.all_templates.find { |entry| entry.key == "rails" && entry.template_kind == "stack" }
+    document = template.documents.find_by!(key: "architecture")
+
+    delete protocol_template_document_path(template, document)
+
+    assert_redirected_to protocol_template_path(template)
+    assert_nil template.reload.documents.find_by(id: document.id)
+
+    post documents_protocol_template_path(template), params: {key: "architecture"}
+
+    recreated = template.reload.documents.find_by!(key: "architecture")
+    assert_redirected_to edit_protocol_template_document_path(template, recreated)
+
+    assert_no_difference -> { template.reload.documents.where(key: "architecture").count } do
+      post documents_protocol_template_path(template), params: {key: "architecture"}
+    end
   end
 end
