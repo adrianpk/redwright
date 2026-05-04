@@ -1,15 +1,21 @@
 class DocumentsController < ApplicationController
+  DOCUMENT_TYPE_CARDS = [
+    {type: "draft", title: "Drafts"},
+    {type: "spec", title: "Specs"},
+    {type: "plan_tracker", title: "Plan Trackers"}
+  ].freeze
+
   before_action :set_document, only: [ :show, :edit, :update, :promote ]
 
   def index
-    allowed_types = %w[draft spec plan_tracker]
+    allowed_types = DOCUMENT_TYPE_CARDS.map { |card| card.fetch(:type) }
     selected_type = params[:type].to_s
     selected_type = "draft" unless allowed_types.include?(selected_type)
     @selected_type = selected_type
     persist_current_project!(current_project) if current_project.present?
-    artifacts = Document.where(artifact_type: selected_type)
-    artifacts = artifacts.for_project(active_project_id) if active_project_id.present?
-    @artifacts = artifacts.order(updated_at: :desc, created_at: :desc)
+    scoped_documents = documents_scope_for(active_project_id)
+    @document_type_cards = DOCUMENT_TYPE_CARDS.map { |card| document_type_card(card, scoped_documents) }
+    @artifacts = scoped_documents.where(artifact_type: selected_type).order(updated_at: :desc, created_at: :desc)
   end
 
   def show
@@ -71,6 +77,21 @@ class DocumentsController < ApplicationController
 
   def active_project_id
     params[:project_id].presence || current_project&.id
+  end
+
+  def documents_scope_for(project_id)
+    artifacts = Document.all
+    artifacts = artifacts.for_project(project_id) if project_id.present?
+    artifacts
+  end
+
+  def document_type_card(card, scoped_documents)
+    documents = scoped_documents
+      .where(artifact_type: card.fetch(:type))
+      .order(updated_at: :desc, created_at: :desc)
+      .limit(6)
+
+    card.merge(preview_lines: documents.map(&:title))
   end
 
   def draft_params

@@ -5,25 +5,33 @@
       <%= link_to "New Draft", new_document_path, class: "ticket-action" %>
     </div>
     <section class="artifact-type-nav" aria-label="Document type navigation">
-      <%= link_to documents_navigation_path(type: "draft"), class: "artifact-type-card#{' is-active' if @selected_type == 'draft'}" do %>
-        <h2>Drafts</h2>
-        <p>Working notes and iterative drafts.</p>
-      <% end %>
-      <%= link_to documents_navigation_path(type: "spec"), class: "artifact-type-card#{' is-active' if @selected_type == 'spec'}" do %>
-        <h2>Specs</h2>
-        <p>Approved, read-only specification documents.</p>
-      <% end %>
-      <%= link_to documents_navigation_path(type: "plan_tracker"), class: "artifact-type-card#{' is-active' if @selected_type == 'plan_tracker'}" do %>
-        <h2>Plan Trackers</h2>
-        <p>Execution plans and delivery tracking records.</p>
+      <% @document_type_cards.each do |card| %>
+        <%= link_to documents_navigation_path(type: card.fetch(:type)), class: "artifact-type-card#{' is-active' if @selected_type == card.fetch(:type)}" do %>
+          <h2><%= card.fetch(:title) %></h2>
+          <% if card.fetch(:preview_lines).any? %>
+            <div class="protocol-card-preview" aria-hidden="true">
+              <% card.fetch(:preview_lines).each do |line| %>
+                <span><%= line %></span>
+              <% end %>
+            </div>
+          <% end %>
+        <% end %>
       <% end %>
     </section>
   </section>
-  <section class="artifact-list">
+  <section class="artifact-type-nav" aria-label="Document navigation">
     <% @artifacts.each do |artifact| %>
-      <article class="artifact-list-card">
-        <%= link_to artifact.title, document_path(artifact) %>
-      </article>
+      <%= link_to document_path(artifact), class: "artifact-type-card" do %>
+        <h2><%= artifact.title %></h2>
+        <% preview_lines = artifact.body.to_s.lines.map(&:strip).reject(&:blank?).first(6) %>
+        <% if preview_lines.any? %>
+          <div class="protocol-card-preview" aria-hidden="true">
+            <% preview_lines.each do |line| %>
+              <span><%= line %></span>
+            <% end %>
+          </div>
+        <% end %>
+      <% end %>
     <% end %>
   </section>
 </main>
