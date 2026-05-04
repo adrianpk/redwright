@@ -14,6 +14,17 @@ module ProjectProtocols
       assert_equal "AGENTS.md", common.documents.first.path
     end
 
+    test "seeds ruby stack template from stack protocol markdown source" do
+      catalog = TemplateCatalog.new
+
+      ruby_template = catalog.all_templates.find { |template| template.template_kind == "stack" && template.key == "ruby" }
+
+      assert_equal "Ruby Protocol Template", ruby_template.name
+      assert_equal ["architecture", "conventions", "documenting", "linting"], ruby_template.documents.order(:position).pluck(:key)
+      assert_match(/Ruby repository structure/, ruby_template.documents.find_by!(key: "architecture").body)
+      refute_match(/RedWright/, ruby_template.documents.map(&:body).join("\n"))
+    end
+
     test "edited templates affect future composition without rewriting existing project protocol copies" do
       catalog = TemplateCatalog.new
       rails_template = catalog.all_templates.find { |template| template.key == "rails" && template.template_kind == "stack" }

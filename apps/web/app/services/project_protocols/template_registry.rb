@@ -2,9 +2,10 @@ module ProjectProtocols
   class TemplateRegistry
     STACK_KEYS = %w[go ruby rails typescript elixir gleam zig rust angular].freeze
 
-    def initialize(source: DefaultBehavioralProtocolSource.new, stack_source: LocalProtocolSource.new)
+    def initialize(source: DefaultBehavioralProtocolSource.new, stack_source: StackProtocolSource.new, fallback_stack_source: LocalProtocolSource.new)
       @source = source
       @stack_source = stack_source
+      @fallback_stack_source = fallback_stack_source
     end
 
     def common_documents
@@ -12,7 +13,7 @@ module ProjectProtocols
     end
 
     def stack_templates
-      STACK_KEYS.index_with { |stack_key| generic_template(stack_key) }
+      STACK_KEYS.index_with { |stack_key| generic_template(stack_key) }.merge(stack_source.templates)
     end
 
     def stack_template_definition(stack_key)
@@ -23,7 +24,7 @@ module ProjectProtocols
 
     private
 
-    attr_reader :source, :stack_source
+    attr_reader :source, :stack_source, :fallback_stack_source
 
     def stack_template(stack_key:, matchers:, architecture:, conventions:)
       {
@@ -40,8 +41,8 @@ module ProjectProtocols
       stack_template(
         stack_key: stack_key,
         matchers: [stack_key],
-        architecture: stack_source.body_for(".agents/ARCHITECTURE.md"),
-        conventions: stack_source.body_for(".agents/CONVENTIONS.md")
+        architecture: fallback_stack_source.body_for(".agents/ARCHITECTURE.md"),
+        conventions: fallback_stack_source.body_for(".agents/CONVENTIONS.md")
       )
     end
 
