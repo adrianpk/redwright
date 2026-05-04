@@ -10,7 +10,7 @@ This file indexes focused playbooks under `.agents/playbooks/`.
 - `.agents/playbooks/plan-driven-workflow.md`
 - `.agents/playbooks/release-alignment.md`
 - `.agents/playbooks/spec-draft-conversation-workflow.md`
-- `.agents/playbooks/questionnaire-execution.md`
+- `.agents/playbooks/questionnaires.md`
 
 ## Usage
 
