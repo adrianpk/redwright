@@ -3,7 +3,7 @@
 ## Metadata
 
 - cycle_id: `cycle-2026-05-04-redwright-heavy-interaction-sagas`
-- status: `planned`
+- status: `in_progress`
 - owner: `adrianpk`
 - created: `2026-05-04`
 - updated: `2026-05-04`
@@ -15,15 +15,15 @@
 
 ### Slice 1: Saga Contract Foundation
 
-- status: `pending`
+- status: `pr_open`
 - branch: `fix/slice-1-heavy-interaction-saga-contract`
 - pr_title: `feat(slice-1): add heavy interaction saga contract`
 - objective: `introduce the common heavy-interaction saga contract, shared result shapes, and transport-neutral prompt intent primitives without forcing a generic workflow engine`
 - tasks:
-- [ ] `T1.1 define shared saga contract fields for state, stage, status, turns, effects, next_prompt_intent, terminal_reason, and metadata`
-- [ ] `T1.2 add shared value objects or helpers for effect visibility, terminal reasons, and structured prompt intent`
-- [ ] `T1.3 define structured step result primitives for status, data, effects, errors, and reconciliation`
-- [ ] `T1.4 add focused tests for the shared contract shapes and serialization behavior`
+- [x] `T1.1 define shared saga contract fields for state, stage, status, turns, effects, next_prompt_intent, terminal_reason, and metadata`
+- [x] `T1.2 add shared value objects or helpers for effect visibility, terminal reasons, and structured prompt intent`
+- [x] `T1.3 define structured step result primitives for status, data, effects, errors, and reconciliation`
+- [x] `T1.4 add focused tests for the shared contract shapes and serialization behavior`
 - acceptance:
 - `shared saga contract primitives exist in Rails application code`
 - `effect visibility and prompt intent are structured rather than ad hoc`

@@ -3,10 +3,10 @@
 ## Metadata
 
 - cycle_id: `cycle-2026-05-04-redwright-heavy-interaction-sagas`
-- status: `planned`
-- state: `planning`
+- status: `in_progress`
+- state: `slice_1_pr_open`
 - updated: `2026-05-04`
-- active_slice: `none`
+- active_slice: `Slice 1`
 - active_task: `none`
 - source_plan: `ops/plans/2026-05-04-redwright-heavy-interaction-sagas-cycle-plan.md`
 - source_spec: `ops/specs/specs/2026-05-04-redwright-heavy-interaction-sagas-spec.md`
@@ -18,28 +18,28 @@
 
 ### Slice 1: Saga Contract Foundation
 
-- status: `pending`
+- status: `pr_open`
 - branch: `fix/slice-1-heavy-interaction-saga-contract`
-- PR: `tbd`
+- PR: `#285 https://codeberg.org/adrianpk/redwright/pulls/285`
 - merge_target: `dev`
-- last_sync_commit: `tbd`
+- last_sync_commit: `231ca07`
 
 Tasks:
 
-- [ ] `T1.1 define shared saga contract fields for state, stage, status, turns, effects, next_prompt_intent, terminal_reason, and metadata`
-- [ ] `T1.2 add shared value objects or helpers for effect visibility, terminal reasons, and structured prompt intent`
-- [ ] `T1.3 define structured step result primitives for status, data, effects, errors, and reconciliation`
-- [ ] `T1.4 add focused tests for the shared contract shapes and serialization behavior`
+- [x] `T1.1 define shared saga contract fields for state, stage, status, turns, effects, next_prompt_intent, terminal_reason, and metadata`
+- [x] `T1.2 add shared value objects or helpers for effect visibility, terminal reasons, and structured prompt intent`
+- [x] `T1.3 define structured step result primitives for status, data, effects, errors, and reconciliation`
+- [x] `T1.4 add focused tests for the shared contract shapes and serialization behavior`
 
 Commits:
 
-- [ ] `tbd feat(web): add heavy interaction saga contract`
-- [ ] `tbd feat(web): add saga result and prompt intent primitives`
-- [ ] `tbd test(web): cover heavy interaction saga contract`
+- [x] `8d5af4a feat(web): add heavy interaction saga contract`
+- [x] `4827af7 feat(web): add saga result and prompt intent primitives`
+- [x] `231ca07 test(web): cover heavy interaction saga contract`
 
 Validation:
 
-- [ ] `bundle exec bin/rails test <targeted heavy interaction saga contract paths>` (pending)
+- [x] `bundle exec bin/rails test test/services/heavy_interaction_sagas/effect_test.rb test/services/heavy_interaction_sagas/prompt_intent_test.rb test/services/heavy_interaction_sagas/step_result_test.rb test/services/heavy_interaction_sagas/contract_test.rb` (pass)
 
 ### Slice 2: Project Setup Session Alignment
 
@@ -169,3 +169,5 @@ Validation:
 ## Event Log
 
 - `2026-05-04` state=`planned` note=`promoted the heavy interaction sagas alignment work into a formal implementation cycle with Project Setup as the first reference saga and the curated/raw conversation artifacts preserved as implementation context`
+- `2026-05-04` state=`slice_1_implemented` note=`implemented shared heavy interaction saga contract primitives, effect visibility, structured prompt intent, structured step results, and focused Rails-side tests on fix/slice-1-heavy-interaction-saga-contract`
+- `2026-05-04` state=`slice_1_pr_open` note=`opened Codeberg PR #285 from fix/slice-1-heavy-interaction-saga-contract into dev`
