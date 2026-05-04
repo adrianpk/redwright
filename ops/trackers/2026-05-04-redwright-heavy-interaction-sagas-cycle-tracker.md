@@ -3,10 +3,10 @@
 ## Metadata
 
 - cycle_id: `cycle-2026-05-04-redwright-heavy-interaction-sagas`
-- status: `in_progress`
-- state: `slice_5_implemented`
+- status: `implemented_pending_review`
+- state: `slice_6_implemented`
 - updated: `2026-05-04`
-- active_slice: `Slice 5`
+- active_slice: `Slice 6`
 - active_task: `none`
 - source_plan: `ops/plans/2026-05-04-redwright-heavy-interaction-sagas-cycle-plan.md`
 - source_spec: `ops/specs/specs/2026-05-04-redwright-heavy-interaction-sagas-spec.md`
@@ -116,11 +116,11 @@ Validation:
 
 ### Slice 5: Adapter Rendering and Prompt Intent Integration
 
-- status: `implemented`
+- status: `merged`
 - branch: `fix/slice-5-saga-adapter-prompt-intent`
-- PR: `tbd`
+- PR: `#290 https://codeberg.org/adrianpk/redwright/pulls/290`
 - merge_target: `dev`
-- last_sync_commit: `tbd`
+- last_sync_commit: `d795c90`
 
 Tasks:
 
@@ -131,9 +131,9 @@ Tasks:
 
 Commits:
 
-- [ ] `tbd feat(web): expose structured saga prompt intent`
-- [ ] `tbd feat(telegram): render project setup from saga prompt intent`
-- [ ] `tbd test(integration): cover saga prompt intent adapter parity`
+- [x] `0a109fd feat(web): expose structured saga prompt intent`
+- [x] `38b885a feat(telegram): render project setup from saga prompt intent`
+- [x] `8e4436d test(integration): cover saga prompt intent adapter parity`
 
 Validation:
 
@@ -142,28 +142,29 @@ Validation:
 
 ### Slice 6: End-to-End Closure and Architecture Hardening
 
-- status: `pending`
+- status: `implemented`
 - branch: `fix/slice-6-heavy-interaction-sagas-e2e`
 - PR: `tbd`
 - merge_target: `dev`
-- last_sync_commit: `tbd`
+- last_sync_commit: `ade7e7a`
 
 Tasks:
 
-- [ ] `T6.1 run targeted Rails and integration coverage for Project Setup through the refactored saga architecture`
-- [ ] `T6.2 add end-to-end assertions for questionnaire progression, materialization, preserved failures, and final completion`
-- [ ] `T6.3 publish cycle closure notes with residual risks and deferred follow-up items`
-- [ ] `T6.4 update plan and tracker status to reflect completed slices and remaining future-saga open questions`
+- [x] `T6.1 run targeted Rails and integration coverage for Project Setup through the refactored saga architecture`
+- [x] `T6.2 add end-to-end assertions for questionnaire progression, materialization, preserved failures, and final completion`
+- [x] `T6.3 publish cycle closure notes with residual risks and deferred follow-up items`
+- [x] `T6.4 update plan and tracker status to reflect completed slices and remaining future-saga open questions`
 
 Commits:
 
-- [ ] `tbd test(integration): cover heavy interaction saga end to end`
-- [ ] `tbd docs(ops): close heavy interaction sagas cycle`
+- [x] `a953b6b test(integration): cover heavy interaction saga end to end`
+- [x] `ade7e7a docs(ops): close heavy interaction sagas cycle`
 
 Validation:
 
-- [ ] `bundle exec bin/rails test <heavy interaction saga e2e paths>` (pending)
-- [ ] `bundle exec rake test:coverage` (pending)
+- [x] `bundle exec bin/rails test test/integration/project_setup_conversational_e2e_test.rb test/integration/project_setup_telegram_e2e_test.rb test/controllers/api/v1/command_queries_controller_test.rb test/services/project_initialization/setup_session_runner_test.rb test/services/project_setup/context_loop_service_test.rb test/services/project_setup/guided_alignment_service_test.rb test/services/project_setup/materialization_pipeline_test.rb test/services/project_setup/setup_runtime_bridge_integration_test.rb test/services/heavy_interaction_sagas/contract_test.rb test/services/heavy_interaction_sagas/effect_test.rb test/services/heavy_interaction_sagas/prompt_intent_test.rb test/services/heavy_interaction_sagas/step_result_test.rb` (pass)
+- [x] `bundle exec bin/rails test` (pass)
+- [x] `bundle exec rake test:coverage` (pass, coverage 91.58)
 
 ## Event Log
 
@@ -177,3 +178,6 @@ Validation:
 - `2026-05-04` state=`slice_4_implemented` note=`made failure and needs-reconciliation outcomes explicit in the shared saga contract, preserved setup context and reconciliation metadata through failure snapshots, classified saga effects and debug step visibility, and validated the behavior through setup runner, context loop, and command API coverage on fix/slice-4-saga-failure-reconciliation-observability`
 - `2026-05-04` state=`slice_4_pr_open` note=`opened Codeberg PR #288 from fix/slice-4-saga-failure-reconciliation-observability into dev`
 - `2026-05-04` state=`slice_5_implemented` note=`extended structured prompt intents beyond setup slot questions into repository clarification and guided alignment, rendered web-facing next prompts from intent metadata, adapted Telegram prompt rendering to consume generic question intents, and validated parity through Rails and Ruby adapter coverage on fix/slice-5-saga-adapter-prompt-intent`
+- `2026-05-04` state=`slice_5_pr_open` note=`opened Codeberg PR #290 from fix/slice-5-saga-adapter-prompt-intent into dev`
+- `2026-05-04` state=`slice_5_merged` note=`merged PR #290 into dev`
+- `2026-05-04` state=`slice_6_implemented` note=`added failure-path end-to-end coverage for preserved setup saga context, reran the targeted saga suites, reran the full Rails suite, confirmed repository-wide coverage at 91.58, and prepared cycle closure artifacts on fix/slice-6-heavy-interaction-sagas-e2e`

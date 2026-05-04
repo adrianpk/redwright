@@ -3,7 +3,7 @@
 ## Metadata
 
 - cycle_id: `cycle-2026-05-04-redwright-heavy-interaction-sagas`
-- status: `in_progress`
+- status: `implemented_pending_review`
 - owner: `adrianpk`
 - created: `2026-05-04`
 - updated: `2026-05-04`
@@ -95,7 +95,7 @@
 
 ### Slice 5: Adapter Rendering and Prompt Intent Integration
 
-- status: `implemented`
+- status: `merged`
 - branch: `fix/slice-5-saga-adapter-prompt-intent`
 - pr_title: `feat(slice-5): integrate saga prompt intent rendering`
 - objective: `route Project Setup prompting through structured next_prompt_intent so Telegram and web remain adapters over shared Rails behavior`
@@ -115,15 +115,15 @@
 
 ### Slice 6: End-to-End Closure and Architecture Hardening
 
-- status: `pending`
+- status: `implemented`
 - branch: `fix/slice-6-heavy-interaction-sagas-e2e`
 - pr_title: `feat(slice-6): close heavy interaction sagas cycle`
 - objective: `validate the reference saga end to end, close residual gaps, and record the cycle outcome for future saga implementations`
 - tasks:
-- [ ] `T6.1 run targeted Rails and integration coverage for Project Setup through the refactored saga architecture`
-- [ ] `T6.2 add end-to-end assertions for questionnaire progression, materialization, preserved failures, and final completion`
-- [ ] `T6.3 publish cycle closure notes with residual risks and deferred follow-up items`
-- [ ] `T6.4 update plan and tracker status to reflect completed slices and remaining future-saga open questions`
+- [x] `T6.1 run targeted Rails and integration coverage for Project Setup through the refactored saga architecture`
+- [x] `T6.2 add end-to-end assertions for questionnaire progression, materialization, preserved failures, and final completion`
+- [x] `T6.3 publish cycle closure notes with residual risks and deferred follow-up items`
+- [x] `T6.4 update plan and tracker status to reflect completed slices and remaining future-saga open questions`
 - acceptance:
 - `Project Setup works through the refactored heavy-interaction saga architecture end to end`
 - `the architecture is validated without changing existing external behavior by accident`
