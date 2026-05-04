@@ -4,10 +4,10 @@
 Draft
 
 ## Conversation
-- Derive from this draft filename by replacing `-draft.md` with `-conv.md`.
+- Derive from this draft filename by replacing `-draft.md` with `-conv.md` and placing it under `ops/specs/conv/`.
 - Example:
   - draft: `2026-05-01-project-new-operational-loop-behavior-draft.md`
-  - conversation: `2026-05-01-project-new-operational-loop-behavior-conv.md`
+  - conversation: `../conv/2026-05-01-project-new-operational-loop-behavior-conv.md`
 
 ## Scope
 - <what this draft covers>

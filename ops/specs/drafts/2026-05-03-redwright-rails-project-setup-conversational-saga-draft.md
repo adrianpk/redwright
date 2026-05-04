@@ -4,7 +4,7 @@
 Draft
 
 ## Conversation
-- `2026-05-03-redwright-rails-project-setup-conversational-saga-conv.md`
+- `../conv/2026-05-03-redwright-rails-project-setup-conversational-saga-conv.md`
 
 ## Promoted Specification
 - `ops/specs/specs/2026-05-03-redwright-rails-project-setup-conversational-saga-spec.md`

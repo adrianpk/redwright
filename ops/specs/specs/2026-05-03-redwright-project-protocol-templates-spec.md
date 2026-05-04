@@ -10,7 +10,7 @@
 - scope: `rails-core/project-protocols/template-seeding/filesystem-materialization/agent-guidance`
 - derived_from:
   - `ops/specs/drafts/2026-05-03-redwright-project-protocol-templates-draft.md`
-  - `ops/specs/drafts/2026-05-03-redwright-project-protocol-templates-conv.md`
+  - `ops/specs/conv/2026-05-03-redwright-project-protocol-templates-conv.md`
 
 ## Problem Statement
 

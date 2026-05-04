@@ -4,7 +4,7 @@
 Draft
 
 ## Conversation
-- `2026-05-02-semantic-layered-context-pipeline-conv.md`
+- `../conv/2026-05-02-semantic-layered-context-pipeline-conv.md`
 
 ## Scope
 - Define a deterministic and model-agnostic context construction pipeline for LLM payloads.

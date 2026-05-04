@@ -4,7 +4,7 @@
 Draft
 
 ## Conversation
-- `2026-05-02-redwright-layered-semantic-context-pipeline-conv.md`
+- `../conv/2026-05-02-redwright-layered-semantic-context-pipeline-conv.md`
 
 ## Scope
 - Define a repository-grounded context pipeline for LLM payload construction in runtime planning/change loops.

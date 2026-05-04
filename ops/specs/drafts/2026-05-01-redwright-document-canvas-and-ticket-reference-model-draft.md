@@ -4,7 +4,7 @@
 Draft
 
 ## Conversation
-- `2026-05-01-redwright-document-canvas-and-ticket-reference-model-conv.md`
+- `../conv/2026-05-01-redwright-document-canvas-and-ticket-reference-model-conv.md`
 
 ## Scope
 - Define a document model centered on `draft`, `spec`, and `plan+tracking`.

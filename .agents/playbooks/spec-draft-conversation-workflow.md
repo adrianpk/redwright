@@ -10,10 +10,10 @@ Use this playbook when a topic is in active design/brainstorming and not ready f
 
 ## Artifact Pairing
 
-For each draft in `ops/specs/drafts/`, maintain a paired conversation file.
+For each draft in `ops/specs/drafts/`, maintain a paired conversation file in `ops/specs/conv/`.
 
-- Draft: `...-draft.md`
-- Conversation notes: `...-conv.md`
+- Draft: `ops/specs/drafts/...-draft.md`
+- Conversation notes: `ops/specs/conv/...-conv.md`
 
 Both files are living artifacts until promoted.
 
@@ -39,5 +39,5 @@ Both files are living artifacts until promoted.
 
 ## Promotion Path
 
-- Iterate in `ops/specs/drafts/` until stable.
+- Iterate with drafts in `ops/specs/drafts/` and conversation notes in `ops/specs/conv/` until stable.
 - Promote to `ops/specs/specs/*` once behavior and decisions are sufficiently converged.

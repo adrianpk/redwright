@@ -10,7 +10,7 @@
 - scope: `runtime/project-new-conversation`
 - derived_from:
   - `ops/specs/drafts/2026-05-01-project-new-operational-loop-behavior-draft.md`
-  - `ops/specs/drafts/2026-05-01-project-new-operational-loop-behavior-conv.md`
+  - `ops/specs/conv/2026-05-01-project-new-operational-loop-behavior-conv.md`
 
 ## Problem Statement
 

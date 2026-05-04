@@ -4,7 +4,7 @@
 Draft
 
 ## Conversation
-- `2026-05-02-project-context-umbrella-model-conv.md`
+- `../conv/2026-05-02-project-context-umbrella-model-conv.md`
 
 ## Scope
 - Define a first operational model where `Project` becomes the root context for boards, tickets, and documents.

@@ -132,7 +132,7 @@ Draft
 - Prompt-level tuning details unrelated to domain command/query contract.
 
 ## Next Iteration Inputs
-- Convert this draft into canonical spec + conversation pair under `ops/specs/specs` and `ops/specs/drafts/*-conv.md`.
+- Convert this draft into canonical spec + conversation pair under `ops/specs/specs` and `../conv/*-conv.md`.
 - Derive execution slices for:
   - project initialization command/query contract
   - questionnaire persistence model

@@ -10,7 +10,7 @@
 - scope: `rails-core/api/telegram/project-setup-conversation`
 - derived_from:
   - `ops/specs/drafts/2026-05-03-redwright-rails-project-setup-conversational-saga-draft.md`
-  - `ops/specs/drafts/2026-05-03-redwright-rails-project-setup-conversational-saga-conv.md`
+  - `ops/specs/conv/2026-05-03-redwright-rails-project-setup-conversational-saga-conv.md`
   - `ops/specs/specs/2026-05-02-redwright-rails-core-command-api-and-project-setup-saga-spec.md`
   - `ops/specs/specs/2026-05-01-project-new-operational-loop-behavior-spec.md`
   - `ops/specs/specs/2026-05-02-redwright-project-context-umbrella-model-spec.md`

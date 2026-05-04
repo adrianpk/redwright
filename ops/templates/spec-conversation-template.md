@@ -4,7 +4,7 @@
 Living discussion
 
 ## Related Draft
-`<YYYY-MM-DD-topic-draft.md>`
+`../drafts/<YYYY-MM-DD-topic-draft.md>`
 
 ## Purpose
 Curated discussion log supporting `<related-draft-file>`.
