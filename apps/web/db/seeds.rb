@@ -121,6 +121,118 @@ def sync_project_protocol_from_templates(project, catalog)
   protocol.documents.where.not(key: expected_keys).destroy_all
 end
 
+def seed_project_document(project:, artifact_type:, title:, body:, source_draft: nil)
+  document = project.documents.find_or_initialize_by(artifact_type: artifact_type, title: title)
+  document.body = body
+  document.editable = (artifact_type == "draft")
+  document.source_draft = (artifact_type == "spec") ? source_draft : nil
+  document.save!
+  document
+end
+
+def seed_document_relation(from:, to:, relation_type:)
+  DocumentRelation.find_or_create_by!(
+    from_artifact: from,
+    to_artifact: to,
+    relation_type: relation_type
+  )
+end
+
+def seed_demo_project_documents(project:)
+  draft = seed_project_document(
+    project: project,
+    artifact_type: "draft",
+    title: "Board Workflow Reliability Draft",
+    body: <<~MARKDOWN
+      # Board Workflow Reliability Draft
+
+      ## Context
+
+      The Factory demo project is a Ruby application with a kanban board used by humans and agents. The board already exposes realistic workflow tickets, but it needs a small reference artifact set so the Documents area feels connected to the work queue.
+
+      ## Candidate Scope
+
+      - Persist selected board filters in the URL so refreshes and shared links preserve context.
+      - Prevent duplicate ticket creation when a slow network response makes a user retry the submit action.
+      - Keep archived tickets out of pick-next flows so agents only receive active work.
+
+      ## Related Tickets
+
+      - Persist selected board filter in URL
+      - Guard against duplicate ticket creation on slow network
+      - Hide archived tickets from pick-next endpoint
+
+      ## Open Questions
+
+      - Which filter parameters are stable enough to become part of the URL contract?
+      - Should duplicate ticket protection rely on an idempotency token, a server-side fingerprint, or both?
+      - Should archived tickets be hidden only from agent assignment, or also from default board queries?
+    MARKDOWN
+  )
+
+  spec = seed_project_document(
+    project: project,
+    artifact_type: "spec",
+    title: "Board Workflow Reliability Spec",
+    source_draft: draft,
+    body: <<~MARKDOWN
+      # Board Workflow Reliability Spec
+
+      ## Objective
+
+      Make board state and ticket assignment predictable enough for a Ruby-based agent workflow demo.
+
+      ## Requirements
+
+      1. Board filter state is represented in URL query parameters.
+      2. Refreshing or sharing a filtered board URL restores the same visible filter state.
+      3. Ticket creation rejects duplicate submissions produced by slow network retries.
+      4. Pick-next assignment ignores archived tickets for both explicit and automatic assignee selection.
+
+      ## Acceptance Criteria
+
+      - A filtered board URL can be copied, opened in a new session, and rendered with the same filter values.
+      - Repeating the same ticket creation request with the same idempotency key returns the original ticket instead of creating a second record.
+      - Archived tickets are absent from pick-next results even when they have higher priority than active tickets.
+      - Existing board drag-and-drop behavior remains unchanged.
+
+      ## Out of Scope
+
+      - New board analytics.
+      - Bulk archive management.
+      - A full saved-view system.
+    MARKDOWN
+  )
+
+  plan_tracker = seed_project_document(
+    project: project,
+    artifact_type: "plan_tracker",
+    title: "Board Workflow Reliability Plan Tracker",
+    body: <<~MARKDOWN
+      # Board Workflow Reliability Plan Tracker
+
+      ## Delivery Slices
+
+      - [ ] Slice 1: URL-backed board filter state.
+      - [ ] Slice 2: Idempotent ticket creation guard.
+      - [ ] Slice 3: Archived-ticket exclusion for pick-next.
+
+      ## Tracking Notes
+
+      - Start with controller/service coverage for the URL contract.
+      - Add a model or service-level uniqueness guard for retry-safe ticket creation.
+      - Verify pick-next behavior with archived high-priority tickets in the candidate pool.
+
+      ## Current Status
+
+      Seeded example. No implementation branch has been opened for this demo artifact.
+    MARKDOWN
+  )
+
+  seed_document_relation(from: spec, to: draft, relation_type: "derives_from")
+  seed_document_relation(from: plan_tracker, to: spec, relation_type: "tracks")
+end
+
 seed_ticket(
   board: board,
   labels: board.labels.index_by(&:name),
@@ -231,6 +343,7 @@ seed_ticket(
 catalog = ProjectProtocols::TemplateCatalog.new
 catalog.all_templates
 sync_project_protocol_from_templates(project, catalog)
+seed_demo_project_documents(project: project)
 
 board.labels.where.not(name: labels.keys).find_each do |label|
   label.destroy! if label.tickets.empty?
