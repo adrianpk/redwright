@@ -1,7 +1,7 @@
 class ProjectProtocolsController < ApplicationController
   before_action :set_project
   before_action :set_catalog
-  before_action :set_protocol_document, only: [ :show, :edit, :update ]
+  before_action :set_protocol_document, only: [ :show, :edit, :update, :destroy ]
 
   def index
     @protocol_entries = @catalog.top_level_entries
@@ -28,21 +28,40 @@ class ProjectProtocolsController < ApplicationController
       )
     end
 
-    redirect_to(entry.playbooks_index? ? playbooks_project_protocols_path(@project) : edit_project_protocol_path(@project, document), notice: "Protocol created.")
+    redirect_to(entry.playbooks_index? ? playbooks_project_protocols_path(@project) : project_protocol_path(@project, document), notice: "Protocol created.")
   end
 
   def show
   end
 
   def edit
+    redirect_to project_protocol_path(@project, @protocol_document)
   end
 
   def update
     if @protocol_document.update(protocol_document_params)
-      redirect_to project_protocol_path(@project, @protocol_document), notice: "Protocol updated."
+      respond_to do |format|
+        format.json do
+          render json: {
+            id: @protocol_document.id,
+            title: @protocol_document.title,
+            updated_at: @protocol_document.updated_at&.iso8601
+          }
+        end
+        format.html { redirect_to project_protocol_path(@project, @protocol_document), notice: "Protocol updated." }
+      end
     else
-      render :edit, status: :unprocessable_entity
+      respond_to do |format|
+        format.json { render json: {errors: @protocol_document.errors.full_messages}, status: :unprocessable_entity }
+        format.html { render :show, status: :unprocessable_entity }
+      end
     end
+  end
+
+  def destroy
+    redirect_path = @protocol_document.path.start_with?(".agents/playbooks/") ? playbooks_project_protocols_path(@project) : project_protocols_path(@project)
+    @protocol_document.destroy!
+    redirect_to redirect_path, notice: "Protocol deleted."
   end
 
   private

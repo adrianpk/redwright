@@ -1,6 +1,12 @@
 <%= form_with model: protocol_document,
               url: project_protocol_path(project, protocol_document),
-              html: { class: "document-artifact-form" } do |f| %>
+              html: {
+                class: "document-artifact-form",
+                data: {
+                  protocol_autosave_form: true,
+                  last_saved_at: protocol_document.updated_at&.iso8601
+                }
+              } do |f| %>
   <% if protocol_document.errors.any? %>
     <div class="document-artifact-errors">
       <h2><%= pluralize(protocol_document.errors.count, "error") %> blocked this protocol:</h2>
@@ -21,6 +27,7 @@
     <%= f.text_area :body, rows: 18, required: true %>
   </div>
   <div class="document-artifact-actions">
+    <span class="document-save-status" data-protocol-save-status><%= protocol_document.updated_at ? "Last saved #{protocol_document.updated_at.localtime.strftime("%Y-%m-%d %H:%M:%S")}" : "Not saved yet" %></span>
     <%= f.submit (local_assigns[:submit_label] || "Save"), class: "ticket-action" %>
   </div>
 <% end %>

@@ -443,8 +443,9 @@ body {
   margin-top: 10px;
   display: flex;
   align-items: center;
-  justify-content: flex-end;
-  gap: 8px;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
 .document-artifact-inline-actions {
@@ -456,6 +457,31 @@ body {
 .document-artifact-inline-actions form {
   display: inline-block;
   margin: 0;
+}
+
+.document-save-status {
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.ticket-action-danger {
+  background: #fff;
+  color: var(--accent-red-dark);
+  border: 1px solid rgba(140, 44, 36, 0.24);
+}
+
+.ticket-action-danger:hover {
+  border-color: var(--accent-red-dark);
+  color: var(--accent-red-dark);
+}
+
+.document-artifact-actions .ticket-action {
+  margin-left: auto;
+}
+
+.document-artifact-panel textarea {
+  min-height: 22rem;
 }
 
 .artifact-relations {
