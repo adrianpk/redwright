@@ -252,6 +252,11 @@ body {
   transition: border-color 120ms ease, box-shadow 120ms ease;
 }
 
+.artifact-list-card.is-missing {
+  background: #fffaf4;
+  border-style: dashed;
+}
+
 .artifact-list-card a {
   display: flex;
   flex-direction: column;
@@ -269,6 +274,23 @@ body {
 
 .artifact-list-card a:hover {
   color: var(--accent-red);
+}
+
+.artifact-list-card-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 6px;
+  color: var(--navy);
+}
+
+.artifact-status {
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.artifact-status-missing {
+  color: var(--accent-red-dark);
 }
 
 .boards-list {

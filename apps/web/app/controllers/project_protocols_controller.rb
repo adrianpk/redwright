@@ -1,10 +1,34 @@
 class ProjectProtocolsController < ApplicationController
   before_action :set_project
+  before_action :set_catalog
   before_action :set_protocol_document, only: [ :show, :edit, :update ]
 
   def index
-    @protocol = @project.protocol
-    @protocol_documents = @protocol ? @protocol.documents : []
+    @protocol_entries = @catalog.top_level_entries
+  end
+
+  def playbooks
+    @playbook_entries = @catalog.playbook_entries
+  end
+
+  def create
+    entry = @catalog.find_expected_entry!(params.require(:key))
+    protocol = @project.protocol || @project.create_protocol!(status: "draft")
+    document = protocol.documents.find_by(key: entry.key)
+
+    unless document
+      document = protocol.documents.create!(
+        key: entry.key,
+        path: entry.path,
+        title: entry.title,
+        layer: entry.layer,
+        position: entry.position,
+        body: entry.body,
+        provenance: {"source" => "web_protocols_create"}
+      )
+    end
+
+    redirect_to(entry.playbooks_index? ? playbooks_project_protocols_path(@project) : edit_project_protocol_path(@project, document), notice: "Protocol created.")
   end
 
   def show
@@ -25,6 +49,10 @@ class ProjectProtocolsController < ApplicationController
 
   def set_project
     @project = Project.find(params[:project_id])
+  end
+
+  def set_catalog
+    @catalog = ProjectProtocols::IndexCatalog.new(project: @project)
   end
 
   def set_protocol_document

@@ -11,7 +11,11 @@ Rails.application.routes.draw do
   resources :passwords, param: :token
   resources :projects, only: [ :index, :new, :create, :show ]
   resources :projects, only: [] do
-    resources :protocols, controller: "project_protocols", only: [ :index, :show, :edit, :update ]
+    resources :protocols, controller: "project_protocols", only: [ :index, :show, :edit, :create, :update ] do
+      collection do
+        get :playbooks
+      end
+    end
   end
   resources :protocol_templates, controller: "project_protocol_templates", only: [ :index, :show ] do
     resources :documents, controller: "project_protocol_template_documents", only: [ :edit, :update ]

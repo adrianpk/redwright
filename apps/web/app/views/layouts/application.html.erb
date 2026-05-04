@@ -37,6 +37,9 @@
         <% end %>
         <div class="top-nav-links">
           <%= link_to "Boards", boards_path, class: "top-nav-link" %>
+          <% if navigation_project %>
+            <%= link_to "Protocols", project_protocols_path(navigation_project), class: "top-nav-link" %>
+          <% end %>
           <%= link_to "Docs", documents_path, class: "top-nav-link" %>
           <% if current_user&.admin? %>
             <%= link_to "Protocol Templates", protocol_templates_path, class: "top-nav-link" %>
