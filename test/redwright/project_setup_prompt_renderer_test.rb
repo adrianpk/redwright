@@ -276,6 +276,55 @@ class ProjectSetupPromptRendererTest < Minitest::Test
     refute_match(/\bSession:/, message)
   end
 
+  def test_renders_guided_alignment_question_from_structured_intent
+    renderer = Redwright::ProjectSetupPromptRenderer.new
+
+    message = renderer.render(
+      body: {
+        "status" => "ok",
+        "summary" => "Guided alignment advanced.",
+        "data" => {
+          "next_prompt_intent" => {
+            "kind" => "guided_alignment_question",
+            "question_key" => "operators",
+            "metadata" => {
+              "question_text" => "Who will use or operate this project?"
+            }
+          }
+        }
+      },
+      user_text: "Optimize for fast reviews.",
+      trace_id: "trc-test"
+    )
+
+    assert_match "Who will use or operate this project?", message
+    assert_match "/cancel", message
+  end
+
+  def test_renders_repository_clarification_from_structured_intent
+    renderer = Redwright::ProjectSetupPromptRenderer.new
+
+    message = renderer.render(
+      body: {
+        "status" => "ok",
+        "summary" => "Repository input requires clarification.",
+        "data" => {
+          "next_prompt_intent" => {
+            "kind" => "repository_clarification_question",
+            "metadata" => {
+              "question_text" => "Repository input is ambiguous. Use URL, git@host:owner/repo, or owner/repo."
+            }
+          }
+        }
+      },
+      user_text: "repo maybe",
+      trace_id: "trc-test"
+    )
+
+    assert_match "Repository input is ambiguous.", message
+    assert_match "Reply with the repository reference", message
+  end
+
   def test_fallback_prompt_includes_understood_context_and_controls
     renderer = Redwright::ProjectSetupPromptRenderer.new
 

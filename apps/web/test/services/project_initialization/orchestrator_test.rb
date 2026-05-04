@@ -11,7 +11,7 @@ module ProjectInitialization
       assert_equal :collect_setup_context, result.next_action
       assert_equal ["project_name"], result.project[:missing_slots]
       assert_equal(
-        {kind: "setup_slot_question", slot: "project_name", locale: "auto", llm_required: true},
+        {"kind" => "setup_slot_question", "slot" => "project_name", "locale" => "auto", "llm_required" => true},
         result.guided_alignment[:next_prompt_intent]
       )
       assert_equal({}, result.errors)
@@ -35,7 +35,7 @@ module ProjectInitialization
       assert_equal "", result.repository[:input]
       assert_equal false, result.repository[:required]
       assert_equal(
-        {kind: "setup_slot_question", slot: "project_type", locale: "auto", llm_required: true},
+        {"kind" => "setup_slot_question", "slot" => "project_type", "locale" => "auto", "llm_required" => true},
         result.guided_alignment[:next_prompt_intent]
       )
     end

@@ -10,6 +10,9 @@ module ProjectSetup
       assert_equal "Guided alignment advanced.", first.summary
       assert_equal "collecting_alignment", session.reload.current_state
       assert_equal question_at(1), session.pending_question
+      assert_equal "guided_alignment_question", session.metadata.dig("next_prompt_intent", "kind")
+      assert_equal "operators", session.metadata.dig("next_prompt_intent", "question_key")
+      assert_equal question_at(1), session.metadata.dig("next_prompt_intent", "metadata", "question_text")
       assert_equal 1, session.turn_counter
       assert_equal 0, session.project.project_attributes.count
       assert_equal 0, session.project.documents.count
@@ -27,6 +30,7 @@ module ProjectSetup
       assert_equal "completed", session.status
       assert_equal "completed_with_alignment", session.terminal_reason
       assert_nil session.pending_question
+      assert_nil session.metadata["next_prompt_intent"]
       assert_equal false, session.metadata["guided_alignment_pending"]
       assert_equal "completed", session.metadata.dig("guided_alignment", "status")
       assert_equal 3, session.project_setup_turns.count

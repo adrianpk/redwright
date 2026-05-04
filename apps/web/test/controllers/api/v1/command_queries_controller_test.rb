@@ -42,6 +42,8 @@ class Api::V1::CommandQueriesControllerTest < ActionDispatch::IntegrationTest
     assert_equal "collecting_alignment", body.fetch("state")
     assert_equal "Project created; guided alignment is ready to continue.", body.fetch("summary")
     assert_equal ProjectSetup::GuidedAlignmentService.first_question, body.fetch("next_prompt")
+    assert_equal "guided_alignment_question", body.dig("data", "next_prompt_intent", "kind")
+    assert_equal "primary_outcome", body.dig("data", "next_prompt_intent", "question_key")
     assert body.fetch("session_id")
     assert body.fetch("project_id")
     assert_equal ["project_setup_session_written", "project_created"], body.fetch("effects").map { |effect| effect.fetch("type") }
@@ -69,7 +71,7 @@ class Api::V1::CommandQueriesControllerTest < ActionDispatch::IntegrationTest
     assert_equal "req-start-context", body.fetch("request_id")
     assert_equal "collecting_context", body.fetch("state")
     assert_equal "Project setup started.", body.fetch("summary")
-    assert_nil body.fetch("next_prompt")
+    assert_equal "What type of project should this be: CLI, API, web app, library, worker, or something else?", body.fetch("next_prompt")
     assert body.fetch("session_id")
     assert_nil body.fetch("project_id")
     assert_equal ["project_setup_session_written"], body.fetch("effects").map { |effect| effect.fetch("type") }
@@ -512,6 +514,8 @@ class Api::V1::CommandQueriesControllerTest < ActionDispatch::IntegrationTest
     assert_equal "collecting_alignment", body.fetch("state")
     assert_equal "Guided alignment advanced.", body.fetch("summary")
     assert_equal ProjectSetup::GuidedAlignmentService::QUESTIONS.fetch(1).fetch("question"), body.fetch("next_prompt")
+    assert_equal "guided_alignment_question", body.dig("data", "next_prompt_intent", "kind")
+    assert_equal "operators", body.dig("data", "next_prompt_intent", "question_key")
     assert_equal "project_setup_turn_recorded", body.fetch("effects").first.fetch("type")
     assert_equal 1, session.reload.turn_counter
     turn = session.project_setup_turns.order(:turn_index).last
@@ -644,6 +648,7 @@ class Api::V1::CommandQueriesControllerTest < ActionDispatch::IntegrationTest
     assert_equal session.id, body.fetch("session_id")
     assert_equal "collecting_context", body.fetch("state")
     assert_equal "Which repository?", body.fetch("next_prompt")
+    assert_equal({}, body.fetch("data").fetch("next_prompt_intent"))
     assert_equal "Project setup session retrieved.", body.fetch("summary")
     assert_equal "questionnaire", body.fetch("setup_saga").fetch("stage")
     assert_equal "collecting", body.fetch("data").fetch("setup_saga").fetch("status")

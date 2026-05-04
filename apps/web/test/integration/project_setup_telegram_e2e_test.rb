@@ -236,7 +236,7 @@ class ProjectSetupTelegramE2eTest < ActiveSupport::TestCase
 
     assert result.handled?
     assert_equal "collecting_alignment", result.api_response.fetch("state")
-    assert_match "Project created; guided alignment is ready to continue.", result.message
+    assert_match "What primary outcome should this project optimize for first?", result.message
     project = Project.find(result.api_response.fetch("project_id"))
     assert_equal slug, project.name
     assert_equal "https://example.com/acme/#{slug}.git", project.repo_url

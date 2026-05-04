@@ -47,6 +47,9 @@ module ProjectInitialization
       assert_equal "collecting_alignment", session.current_state
       assert_equal SetupSessionRunner::ALIGNMENT_QUESTION, session.pending_question
       assert_equal true, session.metadata["guided_alignment_pending"]
+      assert_equal "guided_alignment_question", session.metadata.dig("next_prompt_intent", "kind")
+      assert_equal "primary_outcome", session.metadata.dig("next_prompt_intent", "question_key")
+      assert_equal SetupSessionRunner::ALIGNMENT_QUESTION, session.metadata.dig("next_prompt_intent", "metadata", "question_text")
       assert_equal "collecting_alignment", result.guided_alignment[:setup_state]
     end
 
@@ -93,6 +96,8 @@ module ProjectInitialization
         assert_equal "open", session.status
         assert_equal "awaiting_repository", session.current_state
         assert_equal SetupSessionRunner::REPOSITORY_CLARIFICATION, session.pending_question
+        assert_equal "repository_clarification_question", session.metadata.dig("next_prompt_intent", "kind")
+        assert_equal SetupSessionRunner::REPOSITORY_CLARIFICATION, session.metadata.dig("next_prompt_intent", "metadata", "question_text")
         assert_nil session.project
       end
     end
