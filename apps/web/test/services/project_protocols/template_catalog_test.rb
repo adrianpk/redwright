@@ -69,6 +69,17 @@ module ProjectProtocols
       refute_match(/Warden|RedWright/, zig_template.documents.map(&:body).join("\n"))
     end
 
+    test "seeds rust stack template from stack protocol markdown source" do
+      catalog = TemplateCatalog.new
+
+      rust_template = catalog.all_templates.find { |template| template.template_kind == "stack" && template.key == "rust" }
+
+      assert_equal "Rust Protocol Template", rust_template.name
+      assert_equal ["architecture", "conventions", "documenting", "linting"], rust_template.documents.order(:position).pluck(:key)
+      assert_match(/Rust repository structure/, rust_template.documents.find_by!(key: "architecture").body)
+      refute_match(/Warden|RedWright/, rust_template.documents.map(&:body).join("\n"))
+    end
+
     test "edited templates affect future composition without rewriting existing project protocol copies" do
       catalog = TemplateCatalog.new
       rails_template = catalog.all_templates.find { |template| template.key == "rails" && template.template_kind == "stack" }

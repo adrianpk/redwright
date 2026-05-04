@@ -45,6 +45,17 @@ module ProjectProtocols
           ["linting", ".agents/LINTING.md", "Linting", 3]
         ]
       },
+      "rust" => {
+        name: "Rust Protocol Template",
+        matchers: ["rust"],
+        root: "rust",
+        documents: [
+          ["architecture", ".agents/ARCHITECTURE.md", "Architecture", 0],
+          ["conventions", ".agents/CONVENTIONS.md", "Conventions", 1],
+          ["documenting", ".agents/DOCUMENTING.md", "Documenting", 2],
+          ["linting", ".agents/LINTING.md", "Linting", 3]
+        ]
+      },
       "zig" => {
         name: "Zig Protocol Template",
         matchers: ["zig"],
