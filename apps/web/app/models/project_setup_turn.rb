@@ -24,6 +24,18 @@ class ProjectSetupTurn < ApplicationRecord
     self.normalized_fields_json = JSON.generate(fields)
   end
 
+  def to_saga_turn
+    {
+      "turn_index" => turn_index,
+      "question" => question,
+      "answer" => answer,
+      "normalized_fields" => normalized_fields,
+      "source_channel" => source_channel,
+      "request_id" => request_id,
+      "created_at" => created_at&.iso8601
+    }
+  end
+
   private
 
   def set_defaults

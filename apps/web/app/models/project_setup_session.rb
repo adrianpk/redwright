@@ -161,6 +161,10 @@ class ProjectSetupSession < ApplicationRecord
     project_setup_turns.maximum(:turn_index).to_i + 1
   end
 
+  def saga_turns
+    project_setup_turns.order(:turn_index).map(&:to_saga_turn)
+  end
+
   private
 
   def default_setup_context

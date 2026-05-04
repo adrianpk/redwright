@@ -26,14 +26,8 @@ module ProjectSetup
 
     def snapshot
       state = deep_merge(default_state, persisted_state)
-      state["version"] = VERSION
-      state["current_state"] = session.current_state
-      state["session_id"] = session.id
-      state["project_id"] = session.project_id
-      state["stage"] = persisted_state["stage"].presence || inferred_stage
-      state["status"] = persisted_state["status"].presence || inferred_status
       state["questionnaire"] = questionnaire_state(state["questionnaire"])
-      state
+      deep_merge(state, contract_state(state))
     end
 
     def mark_questionnaire!(status: "collecting")
@@ -143,11 +137,8 @@ module ProjectSetup
     def write!(updates)
       metadata = session.metadata
       next_state = deep_merge(snapshot, updates)
-      next_state["version"] = VERSION
-      next_state["current_state"] = session.current_state
-      next_state["session_id"] = session.id
-      next_state["project_id"] = session.project_id
       next_state["updated_at"] = Time.current.iso8601
+      next_state = deep_merge(next_state, contract_state(next_state))
       metadata[KEY] = next_state
       session.metadata = metadata
       session.save!
@@ -191,6 +182,27 @@ module ProjectSetup
           "status" => ticket_operation_status
         }
       }
+    end
+
+    def contract_state(state)
+      contract = HeavyInteractionSagas::Contract.new(
+        state: session.current_state,
+        stage: state["stage"].presence || inferred_stage,
+        status: state["status"].presence || inferred_status,
+        turns: session.saga_turns,
+        effects: persisted_effects,
+        next_prompt_intent: next_prompt_intent,
+        terminal_reason: session.terminal_reason,
+        metadata: contract_metadata(state)
+      )
+
+      state.merge(
+        contract.to_h,
+        "version" => VERSION,
+        "current_state" => session.current_state,
+        "session_id" => session.id,
+        "project_id" => session.project_id
+      )
     end
 
     def questionnaire_state(existing)
@@ -250,6 +262,42 @@ module ProjectSetup
       intent.is_a?(Hash) ? stringify_hash(intent) : {}
     end
 
+    def persisted_effects
+      effects = session.metadata["saga_effects"]
+      return [] unless effects.is_a?(Array)
+
+      effects.map do |effect|
+        effect.respond_to?(:to_h) ? effect.to_h : stringify_hash(effect)
+      end
+    end
+
+    def contract_metadata(state)
+      {
+        "source_channel" => session.source_channel,
+        "actor_identifier" => session.actor_identifier,
+        "request_id" => session.request_id,
+        "session_id" => session.id,
+        "project_id" => session.project_id,
+        "updated_at" => state["updated_at"],
+        "questionnaire" => stringify_hash(state["questionnaire"]),
+        "materialization" => stringify_hash(state["materialization"]),
+        "initial_implementation" => stringify_hash(state["initial_implementation"]),
+        "protocols" => stringify_hash(state["protocols"]),
+        "runtime_containers" => stringify_hash(state["runtime_containers"]),
+        "ticket_operation" => stringify_hash(state["ticket_operation"]),
+        "boundaries" => {
+          "questionnaire" => {
+            "role" => "context_collection",
+            "creates_persistent_domain_artifacts" => false
+          },
+          "materialization" => {
+            "role" => "artifact_creation",
+            "creates_persistent_domain_artifacts" => true
+          }
+        }
+      }
+    end
+
     def materialization_status_from(workspace)
       value_from(workspace, "materialization_status", "materialized")
     end
@@ -302,6 +350,8 @@ module ProjectSetup
     end
 
     def stringify_hash(value)
+      return {} unless value.is_a?(Hash)
+
       value.to_h.transform_keys(&:to_s)
     end
   end
