@@ -95,15 +95,15 @@
 
 ### Slice 5: Adapter Rendering and Prompt Intent Integration
 
-- status: `pending`
+- status: `implemented`
 - branch: `fix/slice-5-saga-adapter-prompt-intent`
 - pr_title: `feat(slice-5): integrate saga prompt intent rendering`
 - objective: `route Project Setup prompting through structured next_prompt_intent so Telegram and web remain adapters over shared Rails behavior`
 - tasks:
-- [ ] `T5.1 replace remaining ad hoc next-question rendering dependencies with structured next_prompt_intent`
-- [ ] `T5.2 adapt Telegram rendering to consume structured prompt intent while preserving current user-visible behavior`
-- [ ] `T5.3 adapt web-facing setup surfaces to consume the same structured intent where applicable`
-- [ ] `T5.4 add targeted tests for prompt intent shapes and adapter rendering parity`
+- [x] `T5.1 replace remaining ad hoc next-question rendering dependencies with structured next_prompt_intent`
+- [x] `T5.2 adapt Telegram rendering to consume structured prompt intent while preserving current user-visible behavior`
+- [x] `T5.3 adapt web-facing setup surfaces to consume the same structured intent where applicable`
+- [x] `T5.4 add targeted tests for prompt intent shapes and adapter rendering parity`
 - acceptance:
 - `Project Setup prompting is driven by structured intent rather than transport-owned control flow`
 - `Telegram and web remain renderers over the same Rails saga behavior`

@@ -4,9 +4,9 @@
 
 - cycle_id: `cycle-2026-05-04-redwright-heavy-interaction-sagas`
 - status: `in_progress`
-- state: `slice_4_pr_open`
+- state: `slice_5_implemented`
 - updated: `2026-05-04`
-- active_slice: `Slice 4`
+- active_slice: `Slice 5`
 - active_task: `none`
 - source_plan: `ops/plans/2026-05-04-redwright-heavy-interaction-sagas-cycle-plan.md`
 - source_spec: `ops/specs/specs/2026-05-04-redwright-heavy-interaction-sagas-spec.md`
@@ -116,7 +116,7 @@ Validation:
 
 ### Slice 5: Adapter Rendering and Prompt Intent Integration
 
-- status: `pending`
+- status: `implemented`
 - branch: `fix/slice-5-saga-adapter-prompt-intent`
 - PR: `tbd`
 - merge_target: `dev`
@@ -124,10 +124,10 @@ Validation:
 
 Tasks:
 
-- [ ] `T5.1 replace remaining ad hoc next-question rendering dependencies with structured next_prompt_intent`
-- [ ] `T5.2 adapt Telegram rendering to consume structured prompt intent while preserving current user-visible behavior`
-- [ ] `T5.3 adapt web-facing setup surfaces to consume the same structured intent where applicable`
-- [ ] `T5.4 add targeted tests for prompt intent shapes and adapter rendering parity`
+- [x] `T5.1 replace remaining ad hoc next-question rendering dependencies with structured next_prompt_intent`
+- [x] `T5.2 adapt Telegram rendering to consume structured prompt intent while preserving current user-visible behavior`
+- [x] `T5.3 adapt web-facing setup surfaces to consume the same structured intent where applicable`
+- [x] `T5.4 add targeted tests for prompt intent shapes and adapter rendering parity`
 
 Commits:
 
@@ -137,7 +137,8 @@ Commits:
 
 Validation:
 
-- [ ] `bundle exec bin/rails test <prompt intent and adapter parity paths>` (pending)
+- [x] `bundle exec bin/rails test test/services/project_initialization/orchestrator_test.rb test/services/project_initialization/setup_session_runner_test.rb test/services/project_setup/guided_alignment_service_test.rb test/controllers/api/v1/command_queries_controller_test.rb test/integration/project_setup_conversational_e2e_test.rb test/integration/project_setup_telegram_e2e_test.rb` (pass)
+- [x] `ruby -Ilib:test test/redwright/project_setup_prompt_renderer_test.rb test/redwright/telegram_project_setup_adapter_test.rb test/redwright/telegram_runtime_handler_test.rb` (pass)
 
 ### Slice 6: End-to-End Closure and Architecture Hardening
 
@@ -175,3 +176,4 @@ Validation:
 - `2026-05-04` state=`slice_3_pr_open` note=`opened Codeberg PR #287 from fix/slice-3-project-setup-materialization-pipeline into dev`
 - `2026-05-04` state=`slice_4_implemented` note=`made failure and needs-reconciliation outcomes explicit in the shared saga contract, preserved setup context and reconciliation metadata through failure snapshots, classified saga effects and debug step visibility, and validated the behavior through setup runner, context loop, and command API coverage on fix/slice-4-saga-failure-reconciliation-observability`
 - `2026-05-04` state=`slice_4_pr_open` note=`opened Codeberg PR #288 from fix/slice-4-saga-failure-reconciliation-observability into dev`
+- `2026-05-04` state=`slice_5_implemented` note=`extended structured prompt intents beyond setup slot questions into repository clarification and guided alignment, rendered web-facing next prompts from intent metadata, adapted Telegram prompt rendering to consume generic question intents, and validated parity through Rails and Ruby adapter coverage on fix/slice-5-saga-adapter-prompt-intent`
