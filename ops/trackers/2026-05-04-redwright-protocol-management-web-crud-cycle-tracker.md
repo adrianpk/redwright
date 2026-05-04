@@ -70,9 +70,9 @@ Validation:
 
 ### Slice 3: Global Template Administration Surfaces
 
-- status: `implemented`
+- status: `pr_open`
 - branch: `fix/slice-3-protocol-management-template-surfaces`
-- PR: `tbd`
+- PR: `#294 https://codeberg.org/adrianpk/redwright/pulls/294`
 - merge_target: `dev`
 - last_sync_commit: `73d6d11`
 
@@ -133,3 +133,4 @@ Validation:
 - `2026-05-04 17:02` state=`slice_2_pr_open` note=`opened Codeberg PR #293 from fix/slice-2-protocol-management-project-editing into dev`
 - `2026-05-04 17:10` state=`slice_2_merged` note=`merged PR #293 into dev`
 - `2026-05-04 17:24` state=`slice_3_implemented` note=`introduced Settings-based template entry cards, per-stack template set management, new stack-set creation with empty canonical entries, common-only Playbooks routing, and template entry delete/recreate coverage on fix/slice-3-protocol-management-template-surfaces`
+- `2026-05-04 17:49` state=`slice_3_pr_open` note=`opened Codeberg PR #294 from fix/slice-3-protocol-management-template-surfaces into dev`
