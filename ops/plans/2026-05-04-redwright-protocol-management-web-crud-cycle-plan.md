@@ -18,7 +18,7 @@
 
 ### Slice 1: Project Protocol Navigation and Canonical Index
 
-- status: `implemented`
+- status: `merged`
 - branch: `fix/slice-1-protocol-management-project-index`
 - pr_title: `feat(slice-1): add project protocols navigation and canonical index`
 - objective: `expose Protocols as a top-level Rails area and render the project-scoped canonical card index, including empty-card handling for missing entries and PLAYBOOKS entry routing`
@@ -40,7 +40,7 @@
 
 ### Slice 2: Project Protocol Read-Edit Surface and Playbooks
 
-- status: `pending`
+- status: `implemented`
 - branch: `fix/slice-2-protocol-management-project-editing`
 - pr_title: `feat(slice-2): add project protocol editing flow`
 - objective: `deliver the low-ceremony project Protocol editing experience with combined read-edit screens, explicit save, autosave, last-save feedback, and fixed-set Playbooks management`

@@ -4,9 +4,9 @@
 
 - cycle_id: `cycle-2026-05-04-redwright-protocol-management-web-crud`
 - status: `in_progress`
-- state: `slice_1_implemented`
+- state: `slice_2_implemented`
 - updated: `2026-05-04`
-- active_slice: `Slice 1`
+- active_slice: `Slice 2`
 - active_task: `none`
 - source_plan: `ops/plans/2026-05-04-redwright-protocol-management-web-crud-cycle-plan.md`
 - source_spec: `ops/specs/specs/2026-05-04-redwright-protocol-management-web-crud-spec.md`
@@ -18,11 +18,11 @@
 
 ### Slice 1: Project Protocol Navigation and Canonical Index
 
-- status: `pr_open`
+- status: `merged`
 - branch: `fix/slice-1-protocol-management-project-index`
 - PR: `#292 https://codeberg.org/adrianpk/redwright/pulls/292`
 - merge_target: `dev`
-- last_sync_commit: `8b3145d`
+- last_sync_commit: `41019ce`
 
 Tasks:
 
@@ -44,30 +44,29 @@ Validation:
 
 ### Slice 2: Project Protocol Read-Edit Surface and Playbooks
 
-- status: `pending`
+- status: `implemented`
 - branch: `fix/slice-2-protocol-management-project-editing`
 - PR: `tbd`
 - merge_target: `dev`
-- last_sync_commit: `tbd`
+- last_sync_commit: `3d655a0`
 
 Tasks:
 
-- [ ] `T2.1 replace show-then-edit ceremony with a combined read-edit Protocol screen`
-- [ ] `T2.2 keep explicit Save while adding autosave behavior and visible last-successful-save feedback`
-- [ ] `T2.3 ensure project Protocol creation is limited to missing canonical entries and disallows duplicate canonical types within one project set`
-- [ ] `T2.4 allow deletion and later recreation of canonical project Protocol entries`
-- [ ] `T2.5 implement the dedicated project Playbooks subview using the fixed canonical set`
-- [ ] `T2.6 add tests for project Protocol create, edit, autosave, delete, recreate, and Playbooks flows`
+- [x] `T2.1 replace show-then-edit ceremony with a combined read-edit Protocol screen`
+- [x] `T2.2 keep explicit Save while adding autosave behavior and visible last-successful-save feedback`
+- [x] `T2.3 ensure project Protocol creation is limited to missing canonical entries and disallows duplicate canonical types within one project set`
+- [x] `T2.4 allow deletion and later recreation of canonical project Protocol entries`
+- [x] `T2.5 implement the dedicated project Playbooks subview using the fixed canonical set`
+- [x] `T2.6 add tests for project Protocol create, edit, autosave, delete, recreate, and Playbooks flows`
 
 Commits:
 
-- [ ] `<sha> feat(web): add project protocol editing flow`
-- [ ] `<sha> feat(web): add project protocol autosave and playbooks`
-- [ ] `<sha> test(web): cover project protocol editing flows`
+- [x] `45e9dc4 feat(web): add direct project protocol editing flow`
+- [x] `3d655a0 test(web): cover project protocol editing flows`
 
 Validation:
 
-- [ ] `bundle exec bin/rails test <project protocol editing and playbooks paths>` (tbd)
+- [x] `bundle exec bin/rails test test/controllers/project_protocols_controller_test.rb test/controllers/projects_controller_test.rb` (pass)
 
 ### Slice 3: Global Template Administration Surfaces
 
@@ -130,3 +129,5 @@ Validation:
 - `2026-05-04 00:00` state=`planning` note=`formalized the protocol management web CRUD spec from questionnaire artifacts and initialized the associated cycle plan and tracker for execution planning`
 - `2026-05-04 15:18` state=`slice_1_implemented` note=`added project-scoped Protocols navigation, built the canonical card index with missing-entry create actions and dedicated Playbooks routing, and validated controller coverage on fix/slice-1-protocol-management-project-index`
 - `2026-05-04 16:19` state=`slice_1_pr_open` note=`opened Codeberg PR #292 from fix/slice-1-protocol-management-project-index into dev`
+- `2026-05-04 16:32` state=`slice_1_merged` note=`merged PR #292 into dev`
+- `2026-05-04 16:45` state=`slice_2_implemented` note=`collapsed project Protocol show and edit into one screen, added autosave with visible last-save state, enabled delete and recreate for canonical entries, and validated the project Protocol controller flows on fix/slice-2-protocol-management-project-editing`
