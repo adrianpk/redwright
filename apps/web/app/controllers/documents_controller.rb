@@ -91,11 +91,7 @@ class DocumentsController < ApplicationController
       .order(updated_at: :desc, created_at: :desc)
       .limit(6)
 
-    preview_lines = documents.flat_map do |document|
-      document.body.to_s.lines.map(&:strip).reject(&:blank?).first(3)
-    end.first(6)
-
-    card.merge(preview_lines: preview_lines)
+    card.merge(preview_lines: documents.map(&:title))
   end
 
   def draft_params
