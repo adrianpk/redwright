@@ -28,8 +28,12 @@ module ProjectSetup
       assert_equal "setup_slot:project_type", result.turn.question
       assert_equal "answer", result.turn.normalized_fields.fetch("setup_context_action")
       saga = session.metadata.fetch("setup_saga")
+      assert_equal "collecting_context", saga.fetch("state")
       assert_equal "questionnaire", saga.fetch("stage")
       assert_equal "collecting", saga.fetch("status")
+      assert_equal 1, saga.fetch("turns").length
+      assert_equal "telegram", saga.dig("metadata", "source_channel")
+      assert_equal false, saga.dig("metadata", "boundaries", "questionnaire", "creates_persistent_domain_artifacts")
       assert_equal "language_runtime", saga.fetch("questionnaire").fetch("next_prompt_intent").fetch("slot")
     end
 
@@ -226,8 +230,13 @@ module ProjectSetup
       assert_equal result.data.fetch("starter_ticket_id"), ticket.id
       assert_includes result.effects.map { |effect| effect.fetch("type") }, "setup_context_materialized"
       saga = session.metadata.fetch("setup_saga")
+      assert_equal "completed", saga.fetch("state")
       assert_equal "ticket_operation", saga.fetch("stage")
       assert_equal "ready", saga.fetch("status")
+      assert_equal "completed_without_alignment", saga.fetch("terminal_reason")
+      assert_operator saga.fetch("turns").length, :>=, 1
+      assert_equal true, saga.dig("metadata", "boundaries", "materialization", "creates_persistent_domain_artifacts")
+      assert_equal "materialized_planned", saga.dig("metadata", "materialization", "status")
       assert_equal "completed", saga.fetch("questionnaire").fetch("status")
       assert_equal "materialized_planned", saga.fetch("materialization").fetch("status")
       assert_equal false, saga.fetch("initial_implementation").fetch("runnable")

@@ -133,4 +133,48 @@ class ProjectSetupSessionTest < ActiveSupport::TestCase
 
     assert_equal 2, session.next_turn_index
   end
+
+  test "saga turns expose deterministic ordered turn payloads" do
+    session = ProjectSetupSession.create!(actor_identifier: "human-1", request_id: "req-saga-turns")
+    first = session.project_setup_turns.create!(
+      turn_index: 1,
+      source_channel: "web",
+      question: "Repository?",
+      answer: "acme/repo",
+      normalized_fields: {repository_input: "acme/repo"},
+      request_id: "req-turn-1"
+    )
+    second = session.project_setup_turns.create!(
+      turn_index: 2,
+      source_channel: "web",
+      question: "Use guided alignment?",
+      answer: "yes",
+      normalized_fields: {guided_alignment: true},
+      request_id: "req-turn-2"
+    )
+
+    assert_equal(
+      [
+        {
+          "turn_index" => 1,
+          "question" => "Repository?",
+          "answer" => "acme/repo",
+          "normalized_fields" => {"repository_input" => "acme/repo"},
+          "source_channel" => "web",
+          "request_id" => "req-turn-1",
+          "created_at" => first.created_at.iso8601
+        },
+        {
+          "turn_index" => 2,
+          "question" => "Use guided alignment?",
+          "answer" => "yes",
+          "normalized_fields" => {"guided_alignment" => true},
+          "source_channel" => "web",
+          "request_id" => "req-turn-2",
+          "created_at" => second.created_at.iso8601
+        }
+      ],
+      session.reload.saga_turns
+    )
+  end
 end
