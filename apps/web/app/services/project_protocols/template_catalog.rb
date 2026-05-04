@@ -86,7 +86,7 @@ module ProjectProtocols
       registry.stack_templates.each_value do |definition|
         template = ProjectProtocolTemplate.find_or_initialize_by(template_kind: "stack", key: definition.fetch("stack_key"))
         if template.new_record?
-          template.name = "#{definition.fetch('stack_key').capitalize} Protocol Template"
+          template.name = definition.fetch("name", "#{definition.fetch('stack_key').capitalize} Protocol Template")
           template.matchers = definition.fetch("matchers")
           template.status = "active"
           template.save!

@@ -80,6 +80,17 @@ module ProjectProtocols
       refute_match(/Warden|RedWright/, rust_template.documents.map(&:body).join("\n"))
     end
 
+    test "seeds typescript stack template from stack protocol markdown source" do
+      catalog = TemplateCatalog.new
+
+      typescript_template = catalog.all_templates.find { |template| template.template_kind == "stack" && template.key == "typescript" }
+
+      assert_equal "TypeScript Protocol Template", typescript_template.name
+      assert_equal ["architecture", "conventions", "documenting", "linting"], typescript_template.documents.order(:position).pluck(:key)
+      assert_match(/TypeScript repository structure/, typescript_template.documents.find_by!(key: "architecture").body)
+      refute_match(/Warden|RedWright/, typescript_template.documents.map(&:body).join("\n"))
+    end
+
     test "edited templates affect future composition without rewriting existing project protocol copies" do
       catalog = TemplateCatalog.new
       rails_template = catalog.all_templates.find { |template| template.key == "rails" && template.template_kind == "stack" }
