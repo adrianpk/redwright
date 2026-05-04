@@ -238,6 +238,31 @@ class ProjectSetupConversationalE2eTest < ActionDispatch::IntegrationTest
     assert_equal "Project created; guided alignment is ready to continue.", body.fetch("summary")
   end
 
+  test "reconciled initialization failure preserves setup saga failure context" do
+    slug = "repo-duplicate-#{SecureRandom.hex(4)}"
+    create_project(name: "Existing Duplicate", key: slug)
+
+    body = command(
+      "StartProjectSetup",
+      {
+        project_name: "Repo Duplicate",
+        directory_name: slug,
+        repository_input: "acme/#{slug}",
+        guided_alignment: true
+      },
+      request_id: request_id("repo-duplicate"),
+      response_status: :unprocessable_entity
+    )
+
+    assert_equal "error", body.fetch("status")
+    assert_equal "failed", body.fetch("state")
+    assert_equal "failed", body.fetch("setup_saga").fetch("status")
+    assert_equal "failed", body.dig("setup_saga", "materialization", "status")
+    assert_equal "reconciled", body.dig("setup_saga", "metadata", "materialization", "reconciliation", "status")
+    assert_equal true, body.dig("setup_saga", "metadata", "materialization", "preserved_context", "setup_context", "slots").is_a?(Hash)
+    assert_equal "project_setup_failed", body.fetch("setup_saga").fetch("effects").find { |effect| effect.fetch("type") == "project_setup_failed" }.fetch("type")
+  end
+
   private
 
   def command(name, payload, request_id:, response_status: :success)
