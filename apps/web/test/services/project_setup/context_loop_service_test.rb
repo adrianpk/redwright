@@ -238,6 +238,10 @@ module ProjectSetup
       assert_equal "ready", saga.fetch("status")
       assert_equal "completed_without_alignment", saga.fetch("terminal_reason")
       assert_operator saga.fetch("turns").length, :>=, 1
+      assert_equal "public", result.effects.find { |effect| effect.fetch("type") == "project_created" }.fetch("visibility")
+      assert_equal "debug", result.effects.find { |effect| effect.fetch("type") == "local_workspace_materialized" }.fetch("visibility")
+      assert_equal "internal", saga.fetch("effects").find { |effect| effect.fetch("type") == "setup_summary_document_written" }.fetch("visibility")
+      assert_equal "debug", session.metadata.fetch("materialization_steps").first.fetch("visibility")
       assert_equal true, saga.dig("metadata", "boundaries", "materialization", "creates_persistent_domain_artifacts")
       assert_equal "materialized_planned", saga.dig("metadata", "materialization", "status")
       assert_equal "completed", saga.fetch("questionnaire").fetch("status")

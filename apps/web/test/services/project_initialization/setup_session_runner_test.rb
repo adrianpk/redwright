@@ -2,6 +2,38 @@ require "test_helper"
 
 module ProjectInitialization
   class SetupSessionRunnerTest < ActiveSupport::TestCase
+    LifecycleDouble = Struct.new(:failure_step, :rollback_status, keyword_init: true) do
+      def create_repository(command:, resolved_repository:)
+        raise "repository failed" if failure_step == :repository
+
+        {id: "repo-1", canonical: resolved_repository[:canonical], name: command.project_name}
+      end
+
+      def create_project(command:, repository:)
+        raise "project failed" if failure_step == :project
+
+        {id: "project-1", repository_id: repository[:id], name: command.project_name}
+      end
+
+      def create_workspace(command:, project:)
+        raise "workspace failed" if failure_step == :workspace
+
+        {id: "workspace-1", project_id: project[:id], directory_name: command.directory_name}
+      end
+
+      def rollback(context:, error:)
+        {
+          status: rollback_status || :reconciled,
+          cleaned: {
+            repository: !context[:repository].nil?,
+            project: !context[:project].nil?,
+            workspace: !context[:workspace].nil?
+          },
+          error: error.message
+        }
+      end
+    end
+
     test "creates project and leaves setup session collecting alignment when guided alignment is requested" do
       command = build_command(slug: "inventory-alignment", guided_alignment: true)
 
@@ -139,6 +171,37 @@ module ProjectInitialization
         assert_equal "failed", session.current_state
         assert_equal "failed_reconciled", session.terminal_reason
         assert_nil session.project
+        saga = session.metadata.fetch("setup_saga")
+        assert_equal "failed", saga.fetch("stage")
+        assert_equal "failed", saga.fetch("status")
+        assert_equal "failed", saga.fetch("materialization").fetch("status")
+        failed_effect = saga.fetch("effects").find { |effect| effect.fetch("type") == "project_setup_failed" }
+        assert_equal "public", failed_effect.fetch("visibility")
+      end
+    end
+
+    test "persists needs_reconciliation saga state and preserved context when rollback is incomplete" do
+      command = build_command(slug: "inventory-incomplete", guided_alignment: true)
+
+      assert_no_difference -> { Project.count } do
+        result = run_command(
+          command,
+          lifecycle: LifecycleDouble.new(failure_step: :workspace, rollback_status: :incomplete)
+        )
+
+        assert_equal :initialization_incomplete, result.status
+        session = result.setup_session.reload
+        assert_equal "needs_reconciliation", session.status
+        assert_equal "needs_reconciliation", session.current_state
+        assert_equal "failed_needs_reconciliation", session.terminal_reason
+        saga = session.metadata.fetch("setup_saga")
+        assert_equal "failed", saga.fetch("stage")
+        assert_equal "needs_reconciliation", saga.fetch("status")
+        assert_equal "needs_reconciliation", saga.fetch("materialization").fetch("status")
+        assert_equal "incomplete", saga.dig("metadata", "materialization", "reconciliation", "status")
+        assert_equal true, saga.dig("metadata", "materialization", "preserved_context", "setup_context", "slots").is_a?(Hash)
+        reconciliation_effect = saga.fetch("effects").find { |effect| effect.fetch("type") == "project_setup_reconciliation_required" }
+        assert_equal "public", reconciliation_effect.fetch("visibility")
       end
     end
 
@@ -153,12 +216,13 @@ module ProjectInitialization
       )
     end
 
-    def run_command(command)
+    def run_command(command, lifecycle: ProjectInitialization::ActiveRecordLifecycle.new)
       SetupSessionRunner.new(
         command: command,
         actor_identifier: "web:user@example.com",
         request_id: "req-#{SecureRandom.hex(4)}",
-        source_channel: "web"
+        source_channel: "web",
+        lifecycle: lifecycle
       ).call
     end
   end

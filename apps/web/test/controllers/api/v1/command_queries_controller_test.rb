@@ -45,6 +45,8 @@ class Api::V1::CommandQueriesControllerTest < ActionDispatch::IntegrationTest
     assert body.fetch("session_id")
     assert body.fetch("project_id")
     assert_equal ["project_setup_session_written", "project_created"], body.fetch("effects").map { |effect| effect.fetch("type") }
+    assert_equal "internal", body.fetch("effects").first.fetch("visibility")
+    assert_equal "public", body.fetch("effects").last.fetch("visibility")
   end
 
   test "starts project setup context without repository input through command api" do
@@ -81,6 +83,35 @@ class Api::V1::CommandQueriesControllerTest < ActionDispatch::IntegrationTest
     assert_equal "Notes CLI", slots.fetch("project_name").fetch("value")
     assert_equal "A small local notes manager", slots.fetch("description").fetch("value")
     refute slots.key?("repository")
+  end
+
+  test "returns reconciliation-aware setup saga through command api when initialization fails" do
+    slug = "api-duplicate-#{SecureRandom.hex(4)}"
+    create_project(name: "Existing API Duplicate", key: slug)
+
+    post "/api/v1/commands",
+      params: {
+        name: "StartProjectSetup",
+        payload: {
+          project_name: "API Duplicate",
+          directory_name: slug,
+          repository_input: "acme/#{slug}",
+          guided_alignment: true
+        },
+        request_id: "req-start-duplicate"
+      },
+      headers: actor_headers,
+      as: :json
+
+    assert_response :unprocessable_entity
+    body = json_body
+    assert_equal "error", body.fetch("status")
+    assert_equal "failed", body.fetch("state")
+    assert_equal "failed", body.fetch("setup_saga").fetch("status")
+    assert_equal "failed", body.fetch("setup_saga").fetch("materialization").fetch("status")
+    failed_effect = body.fetch("setup_saga").fetch("effects").find { |effect| effect.fetch("type") == "project_setup_failed" }
+    assert_equal "public", failed_effect.fetch("visibility")
+    assert_equal "reconciled", body.dig("setup_saga", "metadata", "materialization", "reconciliation", "status")
   end
 
   test "completes sparse project setup context through command api" do
