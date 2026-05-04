@@ -54,7 +54,7 @@ Extracted signal:
 ### Q3
 Question: Should the general saga architecture use one shared persistent saga/session model for all heavy interactions, or should each saga keep its own domain-specific session model while following a common contract?
 
-Answer: The initial inclination was toward a shared generic model, but start with domain-specific session models following a common contract, as suggested. This is the pragmatic starting point.
+Answer: The initial inclination was toward a shared generic model, but domain-specific session models following a common contract are the pragmatic starting point.
 
 Extracted signal:
 - Choose domain-specific saga/session models initially.
@@ -105,7 +105,7 @@ Extracted signal:
 ### Q8
 Question: Should each saga materializer be a pipeline of named steps, where each step has one responsibility and returns a structured result?
 
-Answer: Yes. Materializers should be pipelines of named steps with one responsibility each and structured results. Additional clarification from Q7: not every saga necessarily needs a questionnaire, or at least not a large one. Some sagas may be resolved with a single interaction or one question-and-answer turn.
+Answer: Yes. Materializers should be pipelines of named steps with one responsibility each and structured results. Additional clarification from the previous answer: not every saga necessarily needs a questionnaire, or at least not a large one. Some sagas may be resolved with a single interaction or one question-and-answer turn.
 
 Extracted signal:
 - Saga materialization should be step-based.
@@ -126,7 +126,7 @@ Extracted signal:
 ### Q10
 Question: When a materializer pipeline fails after some steps succeeded, should the default behavior be rollback when safe, or preserve partial state and mark the saga as needing reconciliation?
 
-Answer: If state includes persisted information such as questions and answers, it would be a shame to lose it because a later step failed. A confirmation step inviting the user to preserve or discard partial state could be a clean approach.
+Answer: If state includes persisted information such as questions and answers, it would be undesirable to lose it because a later step failed. A confirmation step inviting the user to preserve or discard partial state could be a clean approach.
 
 Extracted signal:
 - Do not discard valuable persisted context by default.
@@ -137,7 +137,7 @@ Extracted signal:
 ### Q11
 Question: Should failed materialization default to preserving all saga context and only ask for confirmation before deleting or rolling back created domain artifacts?
 
-Answer: Yes. The interaction should use language in the tone of asking whether the user wants to preserve the partial state to continue later or discard it.
+Answer: Yes. The interaction should ask whether the user wants to preserve the partial state to continue later or discard it.
 
 Extracted signal:
 - Preserve saga/questionnaire context by default.
@@ -147,7 +147,7 @@ Extracted signal:
 ### Q12
 Question: Should saga effects be treated as an audit/output contract returned to clients, or as internal implementation details that adapters may ignore?
 
-Answer: It can depend on the case.
+Answer: It depends on the case.
 
 Extracted signal:
 - Effects should not be assumed to have one universal visibility level.
@@ -177,7 +177,7 @@ Extracted signal:
 ### Q15
 Question: Is the intended practical effect that web can render forms/cards while Telegram renders one concise message, both from the same structured saga intent?
 
-Answer: Yes. Telegram actions will likely tend to decompose into bounded loops inside the main loop because resolving multiple concerns in one Telegram response is not ergonomic and can create chaos. This can be understood as a mini-saga inside the main saga, but avoid adding extravagant terminology.
+Answer: Yes. Telegram actions will likely decompose into bounded loops inside the main loop because resolving multiple concerns in one Telegram response is not ergonomic and can become chaotic. This can be understood as a mini-saga inside the main saga, but avoid adding unnecessary terminology.
 
 Extracted signal:
 - Same structured saga intent should support different channel renderings.
@@ -188,7 +188,7 @@ Extracted signal:
 ### Q16
 Question: Should the saga contract support these bounded internal interaction segments explicitly, while still presenting them externally as normal stage/state progression?
 
-Answer: Accept the suggested answer: do not model mini-sagas as a new entity for now. Use `stage`, `state`, `turns`, and `next_prompt_intent`. If later needed, a lightweight `segment` concept can be added for internal progress such as step 2 of 4.
+Answer: Yes. Do not model mini-sagas as a new entity for now. Use `stage`, `state`, `turns`, and `next_prompt_intent`. If later needed, a lightweight `segment` concept can be added for internal progress such as step 2 of 4.
 
 Extracted signal:
 - Avoid adding a new nested-saga abstraction now.
@@ -219,7 +219,7 @@ Extracted signal:
 ### Q19
 Question: Should the minimal lifecycle contract be: start, advance, materialize/execute steps, complete, fail/reconcile, cancel, and inspect current state?
 
-Answer: Leaning yes.
+Answer: Yes, as a practical starting point.
 
 Extracted signal:
 - Minimal lifecycle likely includes start, advance, execute/materialize steps, complete, fail/reconcile, cancel, and inspect current state.
