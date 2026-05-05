@@ -54,9 +54,9 @@ Validation:
 
 ### Slice 2: Transversal Tagging Foundation
 
-- status: `implemented`
+- status: `pr_merged`
 - branch: `fix/slice-2-quiz-transversal-tagging`
-- PR: `pending`
+- PR: `https://codeberg.org/adrianpk/redwright/pulls/304`
 - merge_target: `dev`
 - last_sync_commit: `4fa24a0`
 
@@ -81,28 +81,30 @@ Validation:
 
 ### Slice 3: Quiz Loop Contract and LLM Question Service
 
-- status: `planned`
+- status: `implemented`
 - branch: `fix/slice-3-quiz-loop-llm-contract`
 - PR: `pending`
 - merge_target: `dev`
-- last_sync_commit: `pending`
+- last_sync_commit: `029c989`
 
 Tasks:
 
-- [ ] `T3.1 define a structured LLM output contract for next quiz question generation`
-- [ ] `T3.2 reuse or adapt existing project setup question machinery where practical`
-- [ ] `T3.3 include tag suggestions in the LLM interpretation flow`
-- [ ] `T3.4 enforce max question count, max follow-up depth, and max tag count from configuration`
-- [ ] `T3.5 add guardrails against secrets, credentials, tokens, passwords, and PII`
-- [ ] `T3.6 add deterministic fallback behavior for unavailable or invalid LLM output`
+- [x] `T3.1 define a structured LLM output contract for next quiz question generation`
+- [x] `T3.2 reuse or adapt existing project setup question machinery where practical`
+- [x] `T3.3 include tag suggestions in the LLM interpretation flow`
+- [x] `T3.4 enforce max question count, max follow-up depth, and max tag count from configuration`
+- [x] `T3.5 add guardrails against secrets, credentials, tokens, passwords, and PII`
+- [x] `T3.6 add deterministic fallback behavior for unavailable or invalid LLM output`
 
 Commits:
 
-- [ ] `pending`
+- [x] `69f3367 feat(web): add quiz question generation contract`
+- [x] `fb9742b test(web): cover quiz LLM contract guardrails`
 
 Validation:
 
-- [ ] `pending`
+- [x] `bundle exec bin/rails test test/services/quiz_loops/question_contract_test.rb test/services/quiz_loops/question_provider_test.rb` (pass)
+- [x] `bundle exec bin/rails test` (pass)
 
 ### Slice 4: Quiz Loop Runtime and Controls
 
@@ -235,6 +237,7 @@ Validation:
 - `2026-05-05 00:00` state=`planning_complete` note=`formalized the Quiz questionnaire context spec and initialized an eight-slice implementation cycle covering domain, tagging, LLM question loop, runtime controls, Telegram, web, context retrieval preparation, configuration, and closure`
 - `2026-05-05 10:00` state=`slice_1_implemented` note=`implemented UseCase, Quiz, and QuizEntry domain foundation with denormalized scope fields, cardinality helpers, model coverage, and green Rails suite`
 - `2026-05-05 15:50` state=`slice_2_implemented` note=`implemented transversal Tag and Tagging models for QuizEntry with normalized tag names, denormalized project/use-case scope, scoped retrieval queries, and green Rails suite`
+- `2026-05-05 16:05` state=`slice_3_implemented` note=`implemented quiz LLM question contract, prompt intent builder, provider fallback behavior, tag bounding, follow-up depth bounding, and sensitive-information guardrails with green Rails suite`
 
 ## Open Risks
 
