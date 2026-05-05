@@ -10,7 +10,7 @@
 - scope: `rails-core/api/telegram/project-setup-conversation`
 - derived_from:
   - `ops/specs/drafts/2026-05-03-redwright-rails-project-setup-conversational-saga-draft.md`
-  - `ops/specs/conv/2026-05-03-redwright-rails-project-setup-conversational-saga-conv.md`
+  - `ops/quiz/2026-05-03-redwright-rails-project-setup-conversational-saga-quiz.md`
   - `ops/specs/specs/2026-05-02-redwright-rails-core-command-api-and-project-setup-saga-spec.md`
   - `ops/specs/specs/2026-05-01-project-new-operational-loop-behavior-spec.md`
   - `ops/specs/specs/2026-05-02-redwright-project-context-umbrella-model-spec.md`
@@ -147,7 +147,7 @@ After completion:
 
 A completed project setup must remain traceable back to its setup session and turns. Audit data may live in session metadata, setup summary documents, or explicit references, but it must not depend on Telegram logs.
 
-## Conversational Loop Contract
+## Quizal Loop Contract
 
 ### Phases
 

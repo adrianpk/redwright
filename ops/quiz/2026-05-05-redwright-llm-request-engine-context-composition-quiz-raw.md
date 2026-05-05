@@ -1,4 +1,4 @@
-# RedWright LLM Request Engine Context Composition Raw Conversation
+# RedWright LLM Request Engine Context Composition Raw Quiz
 
 ## Status
 
@@ -11,7 +11,7 @@
 
 ## Working Notes
 
-This raw capture preserves the questionnaire answers in polished English while the alignment session progresses. It is working memory for later curation into a canonical `...-conv.md` artifact.
+This raw capture preserves the questionnaire answers in polished English while the alignment session progresses. It is working memory for later curation into a canonical `...-quiz.md` artifact.
 
 ## Answers
 

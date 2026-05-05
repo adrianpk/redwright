@@ -1,8 +1,8 @@
-# RedWright Project Setup Runnable Saga Conversation Notes
+# RedWright Project Setup Runnable Saga Quiz Notes
 
 ## Status
 
-- type: `conversation-notes`
+- type: `quiz-notes`
 - status: `living`
 - date: `2026-05-03`
 - related_draft: `ops/specs/drafts/2026-05-03-redwright-project-setup-runnable-saga-draft.md`

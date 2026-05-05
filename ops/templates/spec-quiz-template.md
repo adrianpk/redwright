@@ -1,13 +1,13 @@
-# <Topic> Conversation Notes
+# <Topic> Quiz Notes
 
 ## Status
-Living discussion
+Living quiz
 
 ## Related Draft
-`../drafts/<YYYY-MM-DD-topic-draft.md>`
+`../specs/drafts/<YYYY-MM-DD-topic-draft.md>`
 
 ## Purpose
-Curated discussion log supporting `<related-draft-file>`.
+Curated quiz log supporting `<related-draft-file>`.
 
 ## Sessions
 

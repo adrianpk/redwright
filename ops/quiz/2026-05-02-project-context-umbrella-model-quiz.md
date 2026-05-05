@@ -1,13 +1,13 @@
-# Project Context Umbrella Model Conversation Notes
+# Project Context Umbrella Model Quiz Notes
 
 ## Status
-Living discussion
+Living quiz
 
 ## Related Draft
 `2026-05-02-project-context-umbrella-model-draft.md`
 
 ## Purpose
-Curated discussion log supporting `2026-05-02-project-context-umbrella-model-draft.md`.
+Curated quiz log supporting `2026-05-02-project-context-umbrella-model-draft.md`.
 
 ## Sessions
 

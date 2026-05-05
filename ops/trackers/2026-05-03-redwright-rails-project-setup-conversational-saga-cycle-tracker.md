@@ -191,7 +191,7 @@ Validation:
 
 ## Event Log
 
-- `2026-05-03` state=`planning` note=`created draft, conversation notes, promoted spec, cycle plan, and tracker for Rails project setup conversational saga after manual Telegram verification showed repository-first behavior still exposed to users`
+- `2026-05-03` state=`planning` note=`created draft, quiz notes, promoted spec, cycle plan, and tracker for Rails project setup conversational saga after manual Telegram verification showed repository-first behavior still exposed to users`
 - `2026-05-03` state=`awaiting_review` slice=`Slice 1` note=`implemented repository-independent project setup start, canonical setup context slots, and Telegram payload routing that no longer maps project names to repository input`
 - `2026-05-03` state=`awaiting_review` slice=`Slice 1` note=`corrected setup prompt handling to persist semantic prompt intent for LLM-localized rendering instead of treating fixed question text as the contract`
 - `2026-05-03` state=`in_progress` slice=`Slice 1` note=`extended slice 1 to close the minimum Telegram setup loop instead of deferring renderer, controls, and materialization`

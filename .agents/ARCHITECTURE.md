@@ -12,7 +12,7 @@ Keep the Rails prototype simple, navigable, and easy to promote without hiding w
 apps/web/      # Rails application
 apps/web/app/  # controllers, models, views, services, and protocol templates
 apps/web/test/ # Rails tests
-ops/           # specs, plans, trackers, artifacts, and curated conversations
+ops/           # specs, plans, trackers, artifacts, and curated quiz artifacts
 docs/          # user-facing and technical documentation
 .agents/       # collaboration and execution rules for this repository
 AGENTS.md      # top-level agent operating contract

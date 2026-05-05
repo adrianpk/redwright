@@ -10,9 +10,9 @@
 - active_task: `none`
 - source_plan: `ops/plans/2026-05-04-redwright-heavy-interaction-sagas-cycle-plan.md`
 - source_spec: `ops/specs/specs/2026-05-04-redwright-heavy-interaction-sagas-spec.md`
-- source_conversations:
-  - `ops/specs/conv/2026-05-04-redwright-heavy-interaction-sagas-conv.md`
-  - `ops/specs/conv/2026-05-04-redwright-heavy-interaction-sagas-conv-raw.md`
+- source_quizzes:
+  - `ops/quiz/2026-05-04-redwright-heavy-interaction-sagas-quiz.md`
+  - `ops/quiz/2026-05-04-redwright-heavy-interaction-sagas-quiz-raw.md`
 
 ## Slice Progress
 

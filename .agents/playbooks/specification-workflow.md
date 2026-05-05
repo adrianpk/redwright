@@ -10,10 +10,10 @@ Use this playbook when a topic is in active design/brainstorming and not ready f
 
 ## Artifact Pairing
 
-For each draft in `ops/specs/drafts/`, maintain a paired conversation file in `ops/specs/conv/`.
+For each draft in `ops/specs/drafts/`, maintain a paired quiz file in `ops/quiz/`.
 
 - Draft: `ops/specs/drafts/...-draft.md`
-- Conversation notes: `ops/specs/conv/...-conv.md`
+- Quiz notes: `ops/quiz/...-quiz.md`
 
 Both files are living artifacts until promoted.
 
@@ -21,41 +21,41 @@ Both files are living artifacts until promoted.
 
 1. Keep both files in English.
 2. `...-draft.md` captures structured behavior/proposal.
-3. `...-conv.md` captures curated discussion, not raw transcript.
+3. `...-quiz.md` captures curated discussion, not raw transcript.
 4. Include `Open Questions` explicitly in both artifacts.
 5. Mark provisional decisions clearly (for example: `keep`, `unsure`, `discard`).
-6. Remove noise, typos, and irrelevant detours from conversation notes.
-7. Keep the conversation file editable for future expansion.
+6. Remove noise, typos, and irrelevant detours from quiz notes.
+7. Keep the quiz file editable for future expansion.
 8. Do not use title or heading suffixes in parentheses such as `(Draft)`.
 9. Use semantic fields for state metadata (for example `Status`) only when they add operational value.
-10. Add explicit cross-references: each draft must reference its conversation counterpart and vice versa.
+10. Add explicit cross-references: each draft must reference its quiz counterpart and vice versa.
 11. Before commit, run a full consistency pass across playbook, templates, and concrete artifacts.
 12. For each iteration, prefer one cohesive commit over corrective micro-commits.
 
 ## Template Locations
 
 - `ops/templates/spec-draft-template.md`
-- `ops/templates/spec-conversation-template.md`
+- `ops/templates/spec-quiz-template.md`
 
 ## Promotion Path
 
-- Iterate with drafts in `ops/specs/drafts/` and conversation notes in `ops/specs/conv/` until stable.
+- Iterate with drafts in `ops/specs/drafts/` and quiz notes in `ops/quiz/` until stable.
 - Promote to `ops/specs/specs/*` once behavior and decisions are sufficiently converged.
 
 ## Questionnaire-Driven Direct Spec Path
 
-When a topic is explored through the questionnaires playbook, the pre-spec artifacts may be:
+When a topic is explored through the quiz playbook, the pre-spec artifacts may be:
 
-- Raw capture: `ops/specs/conv/...-conv-raw.md`
-- Curated conversation notes: `ops/specs/conv/...-conv.md`
+- Raw capture: `ops/quiz/...-quiz-raw.md`
+- Curated quiz notes: `ops/quiz/...-quiz.md`
 
-In that path, a separate `ops/specs/drafts/...-draft.md` artifact is optional. A sufficiently complete curated conversation file can replace the draft and serve as the direct source for a formal spec under `ops/specs/specs/`.
+In that path, a separate `ops/specs/drafts/...-draft.md` artifact is optional. A sufficiently complete curated quiz file can replace the draft and serve as the direct source for a formal spec under `ops/specs/specs/`.
 
 Use this path when:
 
 - the questionnaire was bounded and completed
 - the raw capture preserves the question/answer flow
-- the curated conversation notes preserve decisions, tensions, and open questions
+- the curated quiz notes preserve decisions, tensions, and open questions
 - the user explicitly agrees that no separate spec draft is needed
 
-Do not create a draft merely to satisfy ceremony when `...-conv-raw.md` and `...-conv.md` already provide stronger alignment context.
+Do not create a draft merely to satisfy ceremony when `...-quiz-raw.md` and `...-quiz.md` already provide stronger alignment context.

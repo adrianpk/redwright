@@ -1,18 +1,18 @@
-# RedWright Quiz Questionnaire Context Conversation
+# RedWright Quiz Questionnaire Context Quiz
 
 ## Status
 
-- type: `alignment-conversation`
+- type: `alignment-quiz`
 - date: `2026-05-05`
 - source: curated questionnaire about `quiz` commands, questionnaire persistence, web counterpart, tagging, and future context retrieval
 
 ## 1. Scope
 
-This conversation captures curated alignment for the RedWright quiz feature centered on persistent project and use-case questionnaires, Telegram commands, web counterpart behavior, tagging, and future context retrieval for ticket-driven engineering.
+This quiz captures curated alignment for the RedWright quiz feature centered on persistent project and use-case questionnaires, Telegram commands, web counterpart behavior, tagging, and future context retrieval for ticket-driven engineering.
 
 It is derived from the raw questionnaire capture:
 
-`ops/specs/conv/2026-05-05-redwright-quiz-me-questionnaire-context-conv-raw.md`
+`ops/quiz/2026-05-05-redwright-quiz-me-questionnaire-context-quiz-raw.md`
 
 ## 2. Product Boundary
 

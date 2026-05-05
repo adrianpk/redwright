@@ -9,7 +9,7 @@
 - updated: `2026-05-04`
 - scope: `rails-core/heavy-interaction-sagas/application-architecture/project-setup-reference`
 - derived_from:
-  - `ops/specs/conv/2026-05-04-redwright-heavy-interaction-sagas-conv.md`
+  - `ops/quiz/2026-05-04-redwright-heavy-interaction-sagas-quiz.md`
   - `ops/specs/specs/2026-05-03-redwright-project-setup-runnable-saga-spec.md`
   - `ops/specs/specs/2026-05-03-redwright-rails-project-setup-conversational-saga-spec.md`
   - `ops/specs/specs/2026-05-02-redwright-rails-core-command-api-and-project-setup-saga-spec.md`
@@ -191,7 +191,7 @@ Examples:
 
 Questionnaires are optional.
 
-If a saga includes a questionnaire, it must follow the questionnaires playbook.
+If a saga includes a questionnaire, it must follow the quiz playbook.
 
 Required behavior:
 
@@ -200,8 +200,8 @@ Required behavior:
 - ask exactly one question at a time
 - allow bounded follow-up depth
 - stop early when sufficient clarity is reached
-- maintain raw questionnaire capture during long sessions with `...-conv-raw.md`
-- curate raw capture into canonical `...-conv.md` notes when needed
+- maintain raw questionnaire capture during long sessions with `...-quiz-raw.md`
+- curate raw capture into canonical `...-quiz.md` notes when needed
 
 The questionnaire phase collects and normalizes context. It must not create persistent domain artifacts that belong to materialization.
 
@@ -415,7 +415,7 @@ Debug effects and structured step results are part of this observability model.
 7. Each saga declares its own stage taxonomy.
 8. No rigid global stage taxonomy is required in the first phase.
 9. Questionnaires are optional per saga.
-10. Questionnaire-based sagas follow the bounded questionnaires playbook.
+10. Questionnaire-based sagas follow the bounded quiz playbook.
 11. Questionnaire/context collection is separate from materialization.
 12. Materialization is modeled as a named step pipeline.
 13. Materializer steps have one primary responsibility.

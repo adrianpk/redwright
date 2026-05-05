@@ -179,7 +179,7 @@ Validation:
 
 ## Event Log
 
-- `2026-05-03` state=`planned` note=`created runnable setup saga draft, conversation notes, promoted spec, cycle plan, and tracker after manual Telegram verification showed setup completion still ended at metadata/materialization instead of runnable or explicitly planned project state`
+- `2026-05-03` state=`planned` note=`created runnable setup saga draft, quiz notes, promoted spec, cycle plan, and tracker after manual Telegram verification showed setup completion still ended at metadata/materialization instead of runnable or explicitly planned project state`
 - `2026-05-03` state=`slice_1_reviewing` note=`rebased Slice 1 on origin/dev@85c9afb after typing-indicator and planning PRs were merged or closed, added setup prompt LLM traces and semantic slot normalization, and validated syntax, Rails tests, and repository coverage`
 - `2026-05-03` state=`slice_1_reviewing` note=`opened Slice 1 PR #263 against dev with no reported conflicts`
 - `2026-05-03` state=`slice_2_reviewing` note=`started from origin/dev@ec38edf after Slice 1 merge, added persisted setup saga state, exposed it through Rails command/query responses, rendered it in /project where, and validated full Rails tests plus repository coverage`

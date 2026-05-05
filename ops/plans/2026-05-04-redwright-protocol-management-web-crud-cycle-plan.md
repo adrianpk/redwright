@@ -10,9 +10,9 @@
 - goal: `deliver a coherent Rails web CRUD experience for project Protocols, global Protocol Templates, and Playbooks that preserves the current product language while raising the design quality to a professional and harmonious level`
 - scope: `feature`
 - source_spec: `ops/specs/specs/2026-05-04-redwright-protocol-management-web-crud-spec.md`
-- source_conversation:
-  - `ops/specs/conv/2026-05-04-redwright-protocol-management-web-crud-conv.md`
-  - `ops/specs/conv/2026-05-04-redwright-protocol-management-web-crud-conv-raw.md`
+- source_quiz:
+  - `ops/quiz/2026-05-04-redwright-protocol-management-web-crud-quiz.md`
+  - `ops/quiz/2026-05-04-redwright-protocol-management-web-crud-quiz-raw.md`
 
 ## Slice List
 

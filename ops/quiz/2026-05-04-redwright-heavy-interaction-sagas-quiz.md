@@ -1,12 +1,12 @@
-# RedWright Heavy Interaction Sagas Conversation Notes
+# RedWright Heavy Interaction Sagas Quiz Notes
 
 ## Status
 
-- type: `conversation-notes`
+- type: `quiz-notes`
 - status: `curated`
 - date: `2026-05-04`
 - related_spec: `ops/specs/specs/2026-05-04-redwright-heavy-interaction-sagas-spec.md`
-- raw_capture: `ops/specs/conv/2026-05-04-redwright-heavy-interaction-sagas-conv-raw.md`
+- raw_capture: `ops/quiz/2026-05-04-redwright-heavy-interaction-sagas-quiz-raw.md`
 
 ## Purpose
 
@@ -23,7 +23,7 @@ The raw capture exists as temporary working memory and keeps the questionnaire f
 - Project Setup is now working close to the envisioned shape, but its implementation shows pressure around modularity.
 - The current Project Setup flow includes questionnaire, persistence, materialization, protocol generation, runtime container generation, ticket creation, and workspace materialization.
 - The user wants a maintainable architecture for heavy interactions triggered from Telegram, web, or future channels.
-- The new questionnaires playbook was used to conduct a bounded alignment session.
+- The new quiz playbook was used to conduct a bounded quiz session.
 - The user clarified that sagas are broader than questionnaires; a questionnaire is only one possible phase inside a saga.
 - The user also clarified that `conv-raw` plus curated `conv` is enough source material for a formal spec, so no separate spec draft is needed.
 
@@ -78,7 +78,7 @@ The raw capture exists as temporary working memory and keeps the questionnaire f
 - Domain-specific saga session models are preferred initially.
 - All saga models should follow a common contract.
 - A questionnaire is not mandatory for every saga.
-- If a saga includes a questionnaire, it must be bounded and planned according to the questionnaires playbook.
+- If a saga includes a questionnaire, it must be bounded and planned according to the quiz playbook.
 - Project Setup is the first reference saga, not proof that all sagas will share the same shape.
 - Project Setup should separate context collection from materialization.
 - Materialization should be implemented as a pipeline of named steps.
@@ -127,7 +127,7 @@ The raw capture exists as temporary working memory and keeps the questionnaire f
 
 #### Deferred / Out of Scope
 
-- implementing the refactor directly from conversation notes
+- implementing the refactor directly from quiz notes
 - generic workflow engine DSL
 - shared saga database tables
 - exact class/module names for every future saga
@@ -145,6 +145,6 @@ The raw capture exists as temporary working memory and keeps the questionnaire f
 
 ## Edit Notes
 
-- This file was curated from `2026-05-04-redwright-heavy-interaction-sagas-conv-raw.md`.
+- This file was curated from `2026-05-04-redwright-heavy-interaction-sagas-quiz-raw.md`.
 - The raw capture preserves the questionnaire flow; this file preserves the distilled architectural decisions.
-- No separate spec draft is required for this topic because the questionnaire raw capture and curated conversation notes provide the pre-spec alignment artifact.
+- No separate spec draft is required for this topic because the questionnaire raw capture and curated quiz notes provide the pre-spec alignment artifact.

@@ -10,9 +10,9 @@
 - active_task: `none`
 - source_plan: `ops/plans/2026-05-04-redwright-protocol-management-web-crud-cycle-plan.md`
 - source_spec: `ops/specs/specs/2026-05-04-redwright-protocol-management-web-crud-spec.md`
-- source_conversation:
-  - `ops/specs/conv/2026-05-04-redwright-protocol-management-web-crud-conv.md`
-  - `ops/specs/conv/2026-05-04-redwright-protocol-management-web-crud-conv-raw.md`
+- source_quiz:
+  - `ops/quiz/2026-05-04-redwright-protocol-management-web-crud-quiz.md`
+  - `ops/quiz/2026-05-04-redwright-protocol-management-web-crud-quiz-raw.md`
 
 ## Slice Progress
 

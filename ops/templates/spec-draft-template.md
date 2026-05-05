@@ -3,11 +3,11 @@
 ## Status
 Draft
 
-## Conversation
-- Derive from this draft filename by replacing `-draft.md` with `-conv.md` and placing it under `ops/specs/conv/`.
+## Quiz
+- Derive from this draft filename by replacing `-draft.md` with `-quiz.md` and placing it under `ops/quiz/`.
 - Example:
   - draft: `2026-05-01-project-new-operational-loop-behavior-draft.md`
-  - conversation: `../conv/2026-05-01-project-new-operational-loop-behavior-conv.md`
+  - quiz: `../../quiz/2026-05-01-project-new-operational-loop-behavior-quiz.md`
 
 ## Scope
 - <what this draft covers>

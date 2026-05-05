@@ -1,13 +1,13 @@
-# RedWright Document Canvas and Ticket Reference Model Conversation Notes
+# RedWright Document Canvas and Ticket Reference Model Quiz Notes
 
 ## Status
-Living discussion
+Living quiz
 
 ## Related Draft
 `2026-05-01-redwright-document-canvas-and-ticket-reference-model-draft.md`
 
 ## Purpose
-Curated discussion log supporting `2026-05-01-redwright-document-canvas-and-ticket-reference-model-draft.md`.
+Curated quiz log supporting `2026-05-01-redwright-document-canvas-and-ticket-reference-model-draft.md`.
 
 ## Sessions
 

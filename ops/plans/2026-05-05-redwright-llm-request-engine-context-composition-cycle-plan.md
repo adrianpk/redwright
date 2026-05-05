@@ -10,9 +10,9 @@
 - goal: `introduce a practical Redwright::LLM request engine and external trace recorder that can replace existing LLM calls one caller at a time while preserving explicit inputs, normalized responses, and clean tracing boundaries`
 - scope: `feature`
 - source_spec: `ops/specs/specs/2026-05-05-redwright-llm-request-engine-context-composition-spec.md`
-- source_conversation:
-  - `ops/specs/conv/2026-05-05-redwright-llm-request-engine-context-composition-conv.md`
-  - `ops/specs/conv/2026-05-05-redwright-llm-request-engine-context-composition-conv-raw.md`
+- source_quiz:
+  - `ops/quiz/2026-05-05-redwright-llm-request-engine-context-composition-quiz.md`
+  - `ops/quiz/2026-05-05-redwright-llm-request-engine-context-composition-quiz-raw.md`
 - source_drafts:
   - `ops/specs/drafts/2026-05-05-redwright-prompt-engine-context-composition-draft.md`
   - `ops/specs/drafts/2026-05-03-redwright-llm-rolling-trace-file-draft.md`

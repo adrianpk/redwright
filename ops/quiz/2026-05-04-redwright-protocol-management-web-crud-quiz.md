@@ -1,11 +1,11 @@
-# RedWright Protocol Management Web CRUD Conversation Notes
+# RedWright Protocol Management Web CRUD Quiz Notes
 
 ## Status
 
-- type: `conversation-notes`
+- type: `quiz-notes`
 - status: `living`
 - date: `2026-05-04`
-- related_raw: `ops/specs/conv/2026-05-04-redwright-protocol-management-web-crud-conv-raw.md`
+- related_raw: `ops/quiz/2026-05-04-redwright-protocol-management-web-crud-quiz-raw.md`
 
 ## Purpose
 
@@ -18,7 +18,7 @@ They are not an implementation plan and not a raw transcript.
 - The session was explicitly limited to questionnaire-driven clarification.
 - No implementation work was allowed during the session.
 - The intended focus was the Rails web CRUD and management experience for Protocols rather than the already-established Protocol concept itself.
-- Existing Protocol draft, spec, and conversation artifacts were treated as valid alignment context.
+- Existing Protocol draft, spec, and quiz artifacts were treated as valid alignment context.
 
 ## Convergences
 

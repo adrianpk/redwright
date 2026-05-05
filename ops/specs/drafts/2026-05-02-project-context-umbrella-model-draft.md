@@ -3,8 +3,8 @@
 ## Status
 Draft
 
-## Conversation
-- `../conv/2026-05-02-project-context-umbrella-model-conv.md`
+## Quiz
+- `../../quiz/2026-05-02-project-context-umbrella-model-quiz.md`
 
 ## Scope
 - Define a first operational model where `Project` becomes the root context for boards, tickets, and documents.

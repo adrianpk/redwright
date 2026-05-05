@@ -1,7 +1,7 @@
-# RedWright Rails Project Setup Conversational Saga Conversation Notes
+# RedWright Rails Project Setup Conversational Saga Quiz Notes
 
 ## Status
-Living discussion
+Living quiz
 
 ## Related Draft
 `2026-05-03-redwright-rails-project-setup-conversational-saga-draft.md`
@@ -10,7 +10,7 @@ Living discussion
 `ops/specs/specs/2026-05-03-redwright-rails-project-setup-conversational-saga-spec.md`
 
 ## Purpose
-Curated discussion log supporting the Rails project setup conversational saga draft.
+Curated quiz log supporting the Rails project setup conversational saga draft.
 
 ## Sessions
 

@@ -2,7 +2,7 @@
 
 ## Status
 
-- type: `conversation-raw`
+- type: `quiz-raw`
 - status: `completed`
 - date: `2026-05-04`
 - question_count: `26`
@@ -11,7 +11,7 @@
 
 - The session is only about questionnaire-driven clarification for Protocol management in the Rails web app.
 - No implementation work is allowed in this session.
-- No files outside `...-conv.md` or `...-conv-raw.md` may be edited.
+- No files outside `...-quiz.md` or `...-quiz-raw.md` may be edited.
 
 ## Captured Answers
 
@@ -55,7 +55,7 @@
 
 - Global Protocol Templates should follow the same MVP rule: a closed canonical file set.
 - Templates are not free-form arbitrary bundles in this phase.
-- Existing protocol draft, spec, and curated conversation artifacts remain valid alignment context even when they are not specifically about the web CRUD.
+- Existing protocol draft, spec, and curated quiz artifacts remain valid alignment context even when they are not specifically about the web CRUD.
 
 ### Answer 7
 
@@ -206,4 +206,4 @@
 ## Closing Note
 
 - The questionnaire ended early by sufficiency rather than by budget exhaustion.
-- The resulting alignment is intended to feed a curated `...-conv.md` artifact directly, without requiring a separate draft artifact first.
+- The resulting alignment is intended to feed a curated `...-quiz.md` artifact directly, without requiring a separate draft artifact first.

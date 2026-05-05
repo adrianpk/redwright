@@ -10,7 +10,7 @@
 - scope: `web/document-canvas-and-ticket-reference-model`
 - derived_from:
   - `ops/specs/drafts/2026-05-01-redwright-document-canvas-and-ticket-reference-model-draft.md`
-  - `ops/specs/conv/2026-05-01-redwright-document-canvas-and-ticket-reference-model-conv.md`
+  - `ops/quiz/2026-05-01-redwright-document-canvas-and-ticket-reference-model-quiz.md`
 
 ## Problem Statement
 

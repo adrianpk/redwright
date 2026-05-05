@@ -1,7 +1,7 @@
-# Project New Operational Loop Behavior Conversation Notes
+# Project New Operational Loop Behavior Quiz Notes
 
 ## Status
-Living discussion
+Living quiz
 
 ## Related Draft
 `2026-05-01-project-new-operational-loop-behavior-draft.md`
@@ -10,7 +10,7 @@ Living discussion
 `ops/specs/specs/2026-05-01-project-new-operational-loop-behavior-spec.md`
 
 ## Purpose
-Curated discussion log supporting `2026-05-01-project-new-operational-loop-behavior-draft.md`.
+Curated quiz log supporting `2026-05-01-project-new-operational-loop-behavior-draft.md`.
 
 ## Sessions
 
@@ -47,7 +47,7 @@ Curated discussion log supporting `2026-05-01-project-new-operational-loop-behav
 
 #### Provisional Decisions
 - Keep exploration active; do not freeze implementation decisions yet.
-- Maintain a running draft plus a curated conversation counterpart.
+- Maintain a running draft plus a curated quiz counterpart.
 - Treat this pair as living artifacts; refine and edit continuously.
 
 #### Deferred / Out of Scope

@@ -12,7 +12,7 @@ https://diataxis.fr
 
 ## Operational documents
 
-- `ops/specs/` stores formal specs, drafts, and curated alignment conversations.
+- `ops/specs/` stores formal specs, drafts, and curated alignment quiz artifacts.
 - `ops/plans/` stores cycle plans.
 - `ops/trackers/` stores execution trackers.
 - `ops/artifacts/` stores durable cycle outputs and reports.

@@ -1,8 +1,8 @@
-# RedWright Project Protocol Templates Conversation Notes
+# RedWright Project Protocol Templates Quiz Notes
 
 ## Status
 
-- type: `conversation-notes`
+- type: `quiz-notes`
 - status: `living`
 - date: `2026-05-03`
 - related_draft: `ops/specs/drafts/2026-05-03-redwright-project-protocol-templates-draft.md`

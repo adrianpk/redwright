@@ -1,4 +1,4 @@
-# RedWright Quiz-Me Questionnaire Context Raw Conversation
+# RedWright Quiz-Me Questionnaire Context Raw Quiz
 
 ## Status
 
@@ -21,9 +21,9 @@ This raw file captures polished user answers and key question context during the
 
 It is working memory, not the final curated artifact.
 
-The final curated conversation will be maintained in:
+The final curated quiz will be maintained in:
 
-`ops/specs/conv/2026-05-05-redwright-quiz-me-questionnaire-context-conv.md`
+`ops/quiz/2026-05-05-redwright-quiz-me-questionnaire-context-quiz.md`
 
 ## Raw Q/A
 

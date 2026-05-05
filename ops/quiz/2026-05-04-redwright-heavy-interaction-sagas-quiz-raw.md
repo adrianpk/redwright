@@ -9,7 +9,7 @@ Architecture alignment for heavy interaction sagas triggered from Telegram or we
 ## Edit Notes
 - Answers are normalized for spelling, grammar, and clarity.
 - Preserve user intent even when wording is cleaned up.
-- This raw capture remains working memory; the curated counterpart is `2026-05-04-redwright-heavy-interaction-sagas-conv.md`.
+- This raw capture remains working memory; the curated counterpart is `2026-05-04-redwright-heavy-interaction-sagas-quiz.md`.
 
 ## Session State
 - question_cap: 50
@@ -196,14 +196,14 @@ Extracted signal:
 - Keep room for a lightweight `segment` field later if UI/progress needs justify it.
 
 ### Q17
-Question: Should each saga define its own bounded questionnaire plan up front, following the new questionnaires playbook, instead of letting questions emerge without a finite candidate set?
+Question: Should each saga define its own bounded questionnaire plan up front, following the new quiz playbook, instead of letting questions emerge without a finite candidate set?
 
 Answer: Yes.
 
 Extracted signal:
 - Any saga that includes questions should define a bounded questionnaire plan up front.
 - Questions should not emerge as an unbounded ad hoc process.
-- The questionnaires playbook applies only to the questionnaire portion of a saga.
+- The quiz playbook applies only to the questionnaire portion of a saga.
 
 ### Q18
 Question: What lifecycle capabilities should every heavy-interaction saga support even when it has no questionnaire phase?
@@ -316,5 +316,5 @@ Answer: There is not much more to add. The questionnaire can be considered close
 
 Extracted signal:
 - Stop the questionnaire at 28 questions.
-- Move from raw alignment toward curated conversation/spec direction.
+- Move from raw alignment toward curated quiz/spec direction.
 - No additional exploratory questions are needed now.

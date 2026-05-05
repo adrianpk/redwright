@@ -1,16 +1,16 @@
-# RedWright LLM Request Engine Context Composition Conversation Notes
+# RedWright LLM Request Engine Context Composition Quiz Notes
 
 ## Status
 
-Living discussion
+Living quiz
 
 ## Related Draft
 
-`../drafts/2026-05-05-redwright-prompt-engine-context-composition-draft.md`
+`../specs/drafts/2026-05-05-redwright-prompt-engine-context-composition-draft.md`
 
 ## Related Raw Capture
 
-`2026-05-05-redwright-llm-request-engine-context-composition-conv-raw.md`
+`2026-05-05-redwright-llm-request-engine-context-composition-quiz-raw.md`
 
 ## Related Specification
 
