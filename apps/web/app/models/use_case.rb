@@ -2,6 +2,7 @@ class UseCase < ApplicationRecord
   belongs_to :project
   has_one :quiz, dependent: :restrict_with_error
   has_many :quiz_entries, dependent: :restrict_with_error
+  has_many :taggings, dependent: :restrict_with_error
 
   before_validation :normalize_slug
 

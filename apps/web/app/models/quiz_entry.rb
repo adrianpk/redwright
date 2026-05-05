@@ -4,6 +4,8 @@ class QuizEntry < ApplicationRecord
   belongs_to :quiz
   belongs_to :project
   belongs_to :use_case, optional: true
+  has_many :taggings, as: :taggable, dependent: :destroy
+  has_many :tags, through: :taggings
 
   before_validation :assign_scope_from_quiz
 
@@ -18,6 +20,14 @@ class QuizEntry < ApplicationRecord
 
   def skipped?
     status == "skipped"
+  end
+
+  def tag_with!(*names)
+    names.flatten.filter_map do |name|
+      tag = Tag.find_or_create_normalized!(name)
+      taggings.find_or_create_by!(tag: tag)
+      tag
+    end
   end
 
   private
