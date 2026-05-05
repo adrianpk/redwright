@@ -218,28 +218,36 @@ Validation:
 
 ### Slice 8: Configuration, Seeding Review, and Cycle Closure
 
-- status: `planned`
+- status: `implemented`
 - branch: `fix/slice-8-quiz-config-and-closure`
 - PR: `pending`
 - merge_target: `dev`
-- last_sync_commit: `pending`
+- last_sync_commit: `85bb9a2`
 
 Tasks:
 
-- [ ] `T8.1 add YAML-backed configuration for max questions, follow-up depth, and max tags`
-- [ ] `T8.2 apply configuration to loop and LLM contract services`
-- [ ] `T8.3 review demo/test seeding that creates multiple users against the single-user product assumption`
-- [ ] `T8.4 run targeted and full relevant validation from canonical command locations`
-- [ ] `T8.5 update tracker and cycle notes with validation evidence and residual risks`
-- [ ] `T8.6 keep visual/UX alignment as an explicit closure check`
+- [x] `T8.1 add YAML-backed configuration for max questions, follow-up depth, and max tags`
+- [x] `T8.2 apply configuration to loop and LLM contract services`
+- [x] `T8.3 review demo/test seeding that creates multiple users against the single-user product assumption`
+- [x] `T8.4 run targeted and full relevant validation from canonical command locations`
+- [x] `T8.5 update tracker and cycle notes with validation evidence and residual risks`
+- [x] `T8.6 keep visual/UX alignment as an explicit closure check`
 
 Commits:
 
-- [ ] `pending`
+- [x] `b05e213 feat(web): add quiz configuration`
+- [x] `bd73901 test(web): cover quiz configuration`
 
 Validation:
 
-- [ ] `pending`
+- [x] `bundle exec bin/rails test test/services/quiz_loops/configuration_test.rb test/services/quiz_loops/question_contract_test.rb test/services/quiz_loops/runtime_test.rb` (pass)
+- [x] `bundle exec bin/rails test` (pass)
+
+Closure Notes:
+
+- Demo seeding review: `apps/web/db/seeds.rb` seeds one admin user only, `admin@redwright.local`; additional users are test-only fixtures.
+- Visual/UX closure check: Slice 6 introduced Quizzes using the existing Documents/Protocols card language and avoided hidden LLM rationale in the web surface.
+- Prompt-manager boundary: retrieval hooks are prepared, but no prompt manager or context-injection runtime was introduced in this cycle.
 
 ## Event Log
 
@@ -251,11 +259,10 @@ Validation:
 - `2026-05-05 16:40` state=`slice_5_implemented` note=`implemented Telegram /quiz, /quiz for <use_case>, and /quiz list through command/query handlers and the port-agnostic runtime, with concise rendering and green Rails suite`
 - `2026-05-05 17:00` state=`slice_6_implemented` note=`implemented project-scoped web Quiz surface with navigation, list cards, question loop, answer/skip/done/cancel controls, hidden-rationale avoidance, visual alignment, and green Rails suite`
 - `2026-05-05 17:20` state=`slice_7_implemented` note=`implemented ticket use-case association and retrieval query shapes for project/use-case/tag quiz entries and tickets without introducing prompt-manager behavior, with green Rails suite`
+- `2026-05-05 17:40` state=`slice_8_implemented` note=`implemented YAML-backed quiz limits, applied configuration to contract/runtime, reviewed demo seeding against single-user assumption, recorded closure notes, and confirmed green Rails suite`
 
 ## Open Risks
 
-- nullable `use_case_id` uniqueness may need careful Rails/SQLite handling
-- existing ticket/tag semantics must be inspected before adding transversal tagging
-- LLM question generation should reuse existing setup machinery where practical
-- web UI must stay visually aligned with existing product surfaces and avoid scaffold-style CRUD
-- the cycle prepares context retrieval but intentionally avoids implementing a full prompt manager
+- prompt/context retrieval is prepared through query objects, but final prompt-manager strategy remains future work
+- LLM question quality still depends on the future production LLM client and prompt tuning
+- web visual alignment passed first implementation, but should be reviewed manually when screenshots are refreshed
