@@ -7,6 +7,7 @@ module CommandQuery
       RuntimeContainers::CommandQueryHandlers.register(dispatcher)
       DocumentManagement::CommandQueryHandlers.register(dispatcher)
       BoardWorkflow::CommandQueryHandlers.register(dispatcher)
+      QuizLoops::CommandQueryHandlers.register(dispatcher)
       dispatcher
     end
   end
