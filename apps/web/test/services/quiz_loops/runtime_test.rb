@@ -83,6 +83,22 @@ module QuizLoops
       assert_equal "collecting", reopened.status
     end
 
+    test "returns done when configured question limit is reached" do
+      project = create_project(key: "quiz-runtime-limit")
+      quiz = project.find_or_create_main_quiz!
+      quiz.entries.create!(question: "Already asked?", answer: "Yes.")
+      runtime = Runtime.new(
+        project: project,
+        question_provider: StaticQuestionProvider.new,
+        configuration: Configuration.new("max_questions" => 1)
+      )
+
+      result = runtime.open
+
+      assert_equal "done", result.status
+      assert_nil result.question
+    end
+
     class StaticQuestionProvider
       def generate(input:)
         QuestionProvider::Result.new(
