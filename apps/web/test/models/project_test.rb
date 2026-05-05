@@ -93,4 +93,13 @@ class ProjectTest < ActiveSupport::TestCase
     assert_equal "draft", project.protocol_state.fetch("status")
     assert_equal "AGENTS.md", project.protocol_state.fetch("documents").first.fetch("path")
   end
+
+  test "project exposes quiz helpers" do
+    project = create_project(key: "project-quiz-helper", name: "Quiz Helper")
+
+    quiz = project.find_or_create_main_quiz!
+
+    assert_equal quiz, project.main_quiz
+    assert_equal "Quiz Helper Quiz", quiz.name
+  end
 end

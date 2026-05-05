@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_04_002100) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_05_100300) do
   create_table "boards", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "name", null: false
@@ -219,6 +219,39 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_04_002100) do
     t.index ["root_path"], name: "index_projects_on_root_path", unique: true
   end
 
+  create_table "quiz_entries", force: :cascade do |t|
+    t.text "answer", default: "", null: false
+    t.datetime "created_at", null: false
+    t.integer "position"
+    t.integer "project_id", null: false
+    t.text "question", null: false
+    t.integer "quiz_id", null: false
+    t.string "status", default: "answered", null: false
+    t.datetime "updated_at", null: false
+    t.integer "use_case_id"
+    t.index ["project_id", "status"], name: "idx_quiz_entries_project_status"
+    t.index ["project_id", "use_case_id", "created_at"], name: "idx_quiz_entries_project_use_case_created"
+    t.index ["project_id"], name: "index_quiz_entries_on_project_id"
+    t.index ["quiz_id", "created_at"], name: "index_quiz_entries_on_quiz_id_and_created_at"
+    t.index ["quiz_id"], name: "index_quiz_entries_on_quiz_id"
+    t.index ["status"], name: "index_quiz_entries_on_status"
+    t.index ["use_case_id"], name: "index_quiz_entries_on_use_case_id"
+  end
+
+  create_table "quizzes", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "name", null: false
+    t.integer "project_id", null: false
+    t.string "status", default: "active", null: false
+    t.datetime "updated_at", null: false
+    t.integer "use_case_id"
+    t.index ["project_id", "use_case_id"], name: "idx_quizzes_unique_project_use_case", unique: true, where: "use_case_id IS NOT NULL"
+    t.index ["project_id"], name: "idx_quizzes_unique_project_main", unique: true, where: "use_case_id IS NULL"
+    t.index ["project_id"], name: "index_quizzes_on_project_id"
+    t.index ["status"], name: "index_quizzes_on_status"
+    t.index ["use_case_id"], name: "index_quizzes_on_use_case_id"
+  end
+
   create_table "sessions", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "ip_address"
@@ -284,6 +317,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_04_002100) do
     t.index ["runtime_execution_status", "updated_at"], name: "index_tickets_on_runtime_execution_status_and_updated_at"
   end
 
+  create_table "use_cases", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "name", null: false
+    t.integer "project_id", null: false
+    t.string "slug", null: false
+    t.datetime "updated_at", null: false
+    t.index ["project_id", "slug"], name: "index_use_cases_on_project_id_and_slug", unique: true
+    t.index ["project_id"], name: "index_use_cases_on_project_id"
+  end
+
   create_table "users", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "email_address", null: false
@@ -307,6 +350,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_04_002100) do
   add_foreign_key "project_runtime_containers", "projects"
   add_foreign_key "project_setup_sessions", "projects"
   add_foreign_key "project_setup_turns", "project_setup_sessions"
+  add_foreign_key "quiz_entries", "projects"
+  add_foreign_key "quiz_entries", "quizzes"
+  add_foreign_key "quiz_entries", "use_cases"
+  add_foreign_key "quizzes", "projects"
+  add_foreign_key "quizzes", "use_cases"
   add_foreign_key "sessions", "users"
   add_foreign_key "ticket_document_links", "documents"
   add_foreign_key "ticket_document_links", "tickets"
@@ -314,4 +362,5 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_04_002100) do
   add_foreign_key "ticket_labels", "tickets"
   add_foreign_key "tickets", "boards"
   add_foreign_key "tickets", "columns"
+  add_foreign_key "use_cases", "projects"
 end
