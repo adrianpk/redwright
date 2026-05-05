@@ -328,6 +328,7 @@ namespace :badges do
       summary: summary,
       coverage: coverage
     )
+    quality_helper.render_coverage_badge(path: "badges/coverage.svg", coverage: coverage)
     puts "badges:build updated README local badge section"
   end
 

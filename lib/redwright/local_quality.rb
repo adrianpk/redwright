@@ -78,6 +78,13 @@ module Redwright
       File.write(readme_path, updated)
     end
 
+    def render_coverage_badge(path:, coverage:)
+      coverage_value = coverage && coverage["line_percent"] ? "#{coverage["line_percent"]}%" : "n/a"
+      coverage_status = coverage && coverage["status"] ? coverage["status"] : "unknown"
+
+      write_svg_badge(path: path, label: "coverage", status: coverage_status, message: coverage_value)
+    end
+
     private
 
     def color_for(status)

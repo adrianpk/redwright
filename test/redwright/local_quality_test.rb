@@ -46,4 +46,18 @@ class LocalQualityTest < Minitest::Test
       assert_includes(second, "[![coverage](https://img.shields.io/badge/coverage-87.23%-brightgreen)](badges/coverage.svg)")
     end
   end
+
+  def test_coverage_badge_is_rendered_from_coverage_artifact
+    Dir.mktmpdir("redwright-local-quality-coverage-badge-") do |dir|
+      helper = Redwright::LocalQuality.new
+      badge = File.join(dir, "badges", "coverage.svg")
+      coverage = { "name" => "coverage", "status" => "pass", "line_percent" => 91.6 }
+
+      helper.render_coverage_badge(path: badge, coverage: coverage)
+
+      svg = File.read(badge)
+      assert_includes(svg, "coverage: 91.6%")
+      assert_includes(svg, ">91.6%</text>")
+    end
+  end
 end
