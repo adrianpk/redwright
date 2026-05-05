@@ -5,6 +5,7 @@ require "minitest/autorun"
 
 $LOAD_PATH.unshift(File.expand_path("../../lib", __dir__))
 require "redwright/llm/request_engine"
+require "redwright/llm/context_section"
 
 class LlmRequestEngineTest < Minitest::Test
   Completion = Struct.new(:content, :finish_reason, keyword_init: true)
@@ -55,6 +56,48 @@ class LlmRequestEngineTest < Minitest::Test
     assert_equal "non_coding", response.provider_metadata.fetch(:model_role)
     assert_equal ["setup_summary", "next_prompt_intent"], response.diagnostics.fetch(:context_sections)
     assert_equal "openrouter/auto", client.calls.first.fetch(:model)
+  end
+
+  def test_generate_structured_message_reports_context_authority_and_size
+    client = FakeClient.new(content: JSON.generate({"message" => "Question?"}))
+    engine = Redwright::LLM::RequestEngine.new(llm_client: client)
+
+    response = engine.generate_structured_message(
+      model: "openrouter/auto",
+      model_role: "non_coding",
+      provider: "openrouter",
+      action: "project_setup_prompt_render",
+      system_prompt: "Return JSON.",
+      user_text: "{}",
+      context_sections: [
+        Redwright::LLM::ContextSection.new(name: "setup_summary", content: "Started", authority: "request_context"),
+        Redwright::LLM::ContextSection.new(name: "user_text", content: "hello", authority: "current_user_request")
+      ]
+    )
+
+    assert_equal ["setup_summary", "user_text"], response.diagnostics.fetch(:context_sections)
+    assert_equal "request_context", response.diagnostics.fetch(:context_section_authorities).fetch("setup_summary")
+    assert_equal "current_user_request", response.diagnostics.fetch(:context_section_authorities).fetch("user_text")
+    assert_operator response.diagnostics.fetch(:context_bytes), :>, 0
+  end
+
+  def test_generate_structured_message_redacts_obvious_secrets_before_provider_call
+    client = FakeClient.new(content: JSON.generate({"message" => "Question?"}))
+    engine = Redwright::LLM::RequestEngine.new(llm_client: client)
+
+    response = engine.generate_structured_message(
+      model: "openrouter/auto",
+      model_role: "non_coding",
+      provider: "openrouter",
+      action: "project_setup_prompt_render",
+      system_prompt: "Authorization: Bearer abc123",
+      user_text: JSON.generate({"user_text" => "api_key=sk-secret password=hunter2"})
+    )
+
+    refute_includes client.calls.first.fetch(:system_prompt), "abc123"
+    refute_includes client.calls.first.fetch(:user_text), "sk-secret"
+    refute_includes client.calls.first.fetch(:user_text), "hunter2"
+    assert_equal true, response.diagnostics.fetch(:redacted)
   end
 
   def test_generate_structured_message_normalizes_invalid_json

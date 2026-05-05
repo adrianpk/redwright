@@ -176,9 +176,45 @@ class ProjectSetupPromptRendererTest < Minitest::Test
     assert_equal 1, trace_recorder.responses.length
     assert_equal "project_setup_prompt_render", trace_recorder.requests.first.fetch(:action)
     assert_equal "non_coding", trace_recorder.requests.first.fetch(:model_role)
-    assert_equal ["setup_summary", "next_prompt_intent", "setup_context", "user_text"], trace_recorder.requests.first.fetch(:context_sections)
+    context_sections = trace_recorder.requests.first.fetch(:context_sections)
+    assert_equal ["setup_summary", "next_prompt_intent", "setup_context", "user_text"], context_sections.map { |section| section.fetch("name") }
+    assert_equal "current_user_request", context_sections.last.fetch("authority")
     assert_equal "ok", trace_recorder.responses.first.fetch(:status)
     assert_equal "llm", trace_recorder.responses.first.fetch(:decision_source)
+  end
+
+  def test_sends_output_contract_and_redacts_sensitive_prompt_inputs
+    llm = FakeLlmClient.new("What type of project should this be?")
+    trace_recorder = RecordingTraceRecorder.new
+    renderer = Redwright::ProjectSetupPromptRenderer.new(
+      llm_client: llm,
+      model: "openrouter/auto",
+      trace_recorder: trace_recorder
+    )
+
+    renderer.render(
+      body: {
+        "status" => "ok",
+        "summary" => "Project setup started.",
+        "data" => {
+          "next_prompt_intent" => {
+            "kind" => "setup_slot_question",
+            "slot" => "project_type",
+            "locale" => "auto",
+            "llm_required" => true
+          }
+        }
+      },
+      user_text: "Use Ruby with api_key=sk-secret and password=hunter2",
+      trace_id: "trc-test"
+    )
+
+    sent_payload = llm.calls.first.fetch(:user_text)
+    assert_equal ["message"], sent_payload.fetch("output_contract").fetch("required_fields")
+    assert_equal "[REDACTED]", sent_payload.fetch("user_text").match(/api_key=([^\s]+)/)[1]
+    assert_equal "[REDACTED]", sent_payload.fetch("user_text").match(/password=([^\s]+)/)[1]
+    refute_includes trace_recorder.requests.first.fetch(:user_text), "sk-secret"
+    refute_includes trace_recorder.requests.first.fetch(:user_text), "hunter2"
   end
 
   def test_writes_project_setup_llm_trace_file_when_configured
