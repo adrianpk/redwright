@@ -124,7 +124,7 @@ The plan intentionally starts with call-site inspection and a first real migrati
 
 ### Slice 5: Context Sections, Safety Filtering, and Diagnostics
 
-- status: `planned`
+- status: `completed`
 - branch: `fix/slice-5-llm-context-section-safety`
 - pr_title: `feat(slice-5): add llm context section safety`
 - objective: `make the first engine path context-section aware, authority-labeled, and guarded against obvious sensitive content without introducing a full context allocation framework`

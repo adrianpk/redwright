@@ -6,7 +6,7 @@
 - status: `in_progress`
 - state: `awaiting_review`
 - updated: `2026-05-05`
-- active_slice: `Slice 4`
+- active_slice: `Slice 5`
 - active_task: `none`
 - source_plan: `ops/plans/2026-05-05-redwright-llm-request-engine-context-composition-cycle-plan.md`
 - source_spec: `ops/specs/specs/2026-05-05-redwright-llm-request-engine-context-composition-spec.md`
@@ -103,11 +103,11 @@ Validation:
 
 ### Slice 4: Trace Recorder Boundary
 
-- status: `completed`
+- status: `pr_merged`
 - branch: `fix/slice-4-llm-trace-recorder-boundary`
-- PR: `pending`
+- PR: `https://codeberg.org/adrianpk/redwright/pulls/314`
 - merge_target: `dev`
-- last_sync_commit: `pending_pr`
+- last_sync_commit: `0cbe189`
 
 Tasks:
 
@@ -131,30 +131,31 @@ Validation:
 
 ### Slice 5: Context Sections, Safety Filtering, and Diagnostics
 
-- status: `planned`
+- status: `completed`
 - branch: `fix/slice-5-llm-context-section-safety`
 - PR: `pending`
 - merge_target: `dev`
-- last_sync_commit: `tbd`
+- last_sync_commit: `pending_pr`
 
 Tasks:
 
-- [ ] `T5.1 introduce the smallest context section representation needed by the migrated caller`
-- [ ] `T5.2 attach section names and authority labels to selected context`
-- [ ] `T5.3 include an explicit output contract in the rendered request`
-- [ ] `T5.4 add practical redaction or rejection for obvious secrets, credentials, tokens, passwords, and PII-sensitive prompts in the selected path`
-- [ ] `T5.5 expose section names and approximate payload/context size metadata to trace diagnostics when available`
-- [ ] `T5.6 add tests for section ordering, authority labeling, output contract rendering, and sensitive-content handling`
+- [x] `T5.1 introduce the smallest context section representation needed by the migrated caller`
+- [x] `T5.2 attach section names and authority labels to selected context`
+- [x] `T5.3 include an explicit output contract in the rendered request`
+- [x] `T5.4 add practical redaction or rejection for obvious secrets, credentials, tokens, passwords, and PII-sensitive prompts in the selected path`
+- [x] `T5.5 expose section names and approximate payload/context size metadata to trace diagnostics when available`
+- [x] `T5.6 add tests for section ordering, authority labeling, output contract rendering, and sensitive-content handling`
 
 Commits:
 
-- [ ] `feat(web): add llm context section safety`
-- [ ] `test(web): cover llm context safety`
+- [x] `87a6c68 feat(web): add llm context section safety`
+- [x] `c60be3c test(web): cover llm context safety`
 
 Validation:
 
-- [ ] `targeted context section tests` (pending)
-- [ ] `targeted redaction tests` (pending)
+- [x] `ruby -Itest -Ilib test/redwright/llm_request_engine_test.rb` (pass)
+- [x] `ruby -Itest -Ilib test/redwright/project_setup_prompt_renderer_test.rb` (pass)
+- [x] `ruby -Itest -Ilib test/redwright/llm_trace_recorder_test.rb` (pass)
 
 ### Slice 6: Cycle Hardening and Next Caller Readiness
 
@@ -253,7 +254,7 @@ This is the first migration target because it is real, bounded, tested, and alre
 - [x] `no generic orchestration service is introduced`
 - [x] `no broad task taxonomy is introduced upfront`
 - [x] `raw provider diagnostics are not user-facing by default`
-- [ ] `obvious sensitive content is filtered or rejected in the selected path`
+- [x] `obvious sensitive content is filtered or rejected in the selected path`
 
 ## Event Log
 
@@ -263,3 +264,4 @@ This is the first migration target because it is real, bounded, tested, and alre
 - `2026-05-05` state=`awaiting_review` note=`completed Slice 2 foundation; added Redwright::LLM::RequestEngine, normalized response handling, provider invocation, and focused tests`
 - `2026-05-05` state=`awaiting_review` note=`completed Slice 3 first caller migration; ProjectSetupPromptRenderer now invokes LLMRequestEngine and keeps deterministic fallback behavior`
 - `2026-05-05` state=`awaiting_review` note=`completed Slice 4 trace recorder boundary; ProjectSetupPromptRenderer now coordinates LLMTraceRecorder outside LLMRequestEngine`
+- `2026-05-05` state=`awaiting_review` note=`completed Slice 5 context section safety; migrated path now uses named authority-labeled sections, explicit output contract, redaction, and context diagnostics`
