@@ -3,7 +3,7 @@
 require "json"
 
 require_relative "llm/request_engine"
-require_relative "trace"
+require_relative "llm/trace_recorder"
 
 module Redwright
   class ProjectSetupPromptRenderer
@@ -18,11 +18,12 @@ module Redwright
       Return strict JSON with exactly one key: message.
     TEXT
 
-    def initialize(llm_client: nil, model: "none", debug: false)
+    def initialize(llm_client: nil, model: "none", debug: false, trace_recorder: LLM::TraceRecorder.new)
       @llm_client = llm_client
       @model = model.to_s
       @debug = debug == true
       @request_engine = LLM::RequestEngine.new(llm_client: llm_client)
+      @trace_recorder = trace_recorder
     end
 
     def render(body:, user_text:, trace_id:)
@@ -61,8 +62,8 @@ module Redwright
           user_text: user_text.to_s
         }
       )
-      llm_call_id = Trace.llm_request(
-        role: "non_coding",
+      llm_call_id = @trace_recorder.record_request(
+        model_role: "non_coding",
         provider: provider_name,
         model: @model,
         model_alias: @model,
@@ -97,7 +98,7 @@ module Redwright
       )
       elapsed_ms = ((Process.clock_gettime(Process::CLOCK_MONOTONIC) - started_at) * 1000).to_i
       message = response.rendered_text.to_s.strip
-      Trace.llm_response(
+      @trace_recorder.record_response(
         status: response.ok? ? "ok" : "fallback",
         llm_call_id: llm_call_id,
         latency_ms: elapsed_ms,
@@ -112,7 +113,7 @@ module Redwright
         session_id: payload["session_id"],
         source_channel: "project_setup",
         action: "project_setup_prompt_render",
-        role: "non_coding",
+        model_role: "non_coding",
         provider: provider_name,
         model: @model,
         model_alias: @model,
@@ -123,7 +124,7 @@ module Redwright
       sanitize_message(message.empty? ? fallback_prompt(payload: payload, intent: intent) : message)
     rescue StandardError => e
       elapsed_ms = defined?(started_at) && started_at ? ((Process.clock_gettime(Process::CLOCK_MONOTONIC) - started_at) * 1000).to_i : 0
-      Trace.llm_response(
+      @trace_recorder.record_response(
         status: "fallback",
         llm_call_id: llm_call_id,
         latency_ms: elapsed_ms,
@@ -136,7 +137,7 @@ module Redwright
         session_id: payload["session_id"],
         source_channel: "project_setup",
         action: "project_setup_prompt_render",
-        role: "non_coding",
+        model_role: "non_coding",
         provider: provider_name,
         model: @model,
         model_alias: @model,
