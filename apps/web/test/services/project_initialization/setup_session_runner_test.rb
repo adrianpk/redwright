@@ -118,10 +118,7 @@ module ProjectInitialization
         assert_equal "open", session.status
         assert_equal "collecting_context", session.current_state
         assert_nil session.pending_question
-        assert_equal(
-          {"kind" => "setup_slot_question", "slot" => "project_type", "locale" => "auto", "llm_required" => true},
-          session.metadata.fetch("next_prompt_intent")
-        )
+        assert_setup_slot_intent session.metadata.fetch("next_prompt_intent"), "project_type"
         assert_nil session.project
         assert_equal "Notes CLI", session.setup_slot(:project_name).fetch("value")
         assert_equal "A small local notes manager", session.setup_slot(:description).fetch("value")
@@ -139,10 +136,7 @@ module ProjectInitialization
         session = result.setup_session.reload
         assert_equal "collecting_context", session.current_state
         assert_nil session.pending_question
-        assert_equal(
-          {"kind" => "setup_slot_question", "slot" => "project_name", "locale" => "auto", "llm_required" => true},
-          session.metadata.fetch("next_prompt_intent")
-        )
+        assert_setup_slot_intent session.metadata.fetch("next_prompt_intent"), "project_name"
         assert_equal({}, session.setup_slots)
       end
     end
@@ -229,6 +223,15 @@ module ProjectInitialization
         source_channel: "web",
         lifecycle: lifecycle
       ).call
+    end
+
+    def assert_setup_slot_intent(intent, slot)
+      assert_equal "setup_slot_question", intent.fetch("kind")
+      assert_equal slot, intent.fetch("slot")
+      assert_equal "auto", intent.fetch("locale")
+      assert_equal true, intent.fetch("llm_required")
+      assert_equal slot, intent.dig("metadata", "semantic_contract", "slot")
+      assert intent.dig("metadata", "semantic_contract", "intent").present?
     end
   end
 end

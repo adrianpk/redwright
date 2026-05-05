@@ -15,8 +15,9 @@ class ProjectSetupPromptRendererTest < Minitest::Test
   class FakeLlmClient
     attr_reader :calls
 
-    def initialize(message)
+    def initialize(message, semantic_slot: "project_type")
       @message = message
+      @semantic_slot = semantic_slot
       @calls = []
     end
 
@@ -30,7 +31,7 @@ class ProjectSetupPromptRendererTest < Minitest::Test
         system_prompt: system_prompt,
         user_text: JSON.parse(user_text)
       }
-      Completion.new(content: JSON.generate({"message" => @message}), finish_reason: "stop")
+      Completion.new(content: JSON.generate({"message" => @message, "semantic_slot" => @semantic_slot}), finish_reason: "stop")
     end
   end
 
@@ -108,8 +109,50 @@ class ProjectSetupPromptRendererTest < Minitest::Test
     assert_equal "Which project archetype should I use?", message
     assert_equal "example/model", llm.calls.first.fetch(:model)
     assert_equal "project_type", llm.calls.first.dig(:user_text, "next_prompt_intent", "slot")
+    assert_equal "project_type", llm.calls.first.dig(:user_text, "semantic_contract", "slot")
     refute_match(/\bTrace:/, message)
     refute_match(/\bState:/, message)
+  end
+
+  def test_falls_back_when_llm_changes_the_semantic_slot
+    llm = FakeLlmClient.new("What programming language should this use?", semantic_slot: "language_runtime")
+    trace_recorder = RecordingTraceRecorder.new
+    renderer = Redwright::ProjectSetupPromptRenderer.new(
+      llm_client: llm,
+      model: "example/model",
+      trace_recorder: trace_recorder
+    )
+
+    message = renderer.render(
+      body: {
+        "status" => "ok",
+        "summary" => "Project setup started.",
+        "data" => {
+          "next_prompt_intent" => {
+            "kind" => "setup_slot_question",
+            "slot" => "project_type",
+            "locale" => "auto",
+            "llm_required" => true,
+            "metadata" => {
+              "semantic_contract" => {
+                "slot" => "project_type",
+                "intent" => "Ask what kind of software project should be created.",
+                "expected_answer_kind" => "software project archetype",
+                "question_guidance" => "Do not ask for language runtime.",
+                "forbidden_slots" => ["language_runtime"]
+              }
+            }
+          }
+        }
+      },
+      user_text: "/project new dice",
+      trace_id: "trc-test"
+    )
+
+    assert_match "What type of project should this be", message
+    refute_match "programming language", message
+    assert_equal "fallback", trace_recorder.responses.first.fetch(:status)
+    assert_match "semantic_slot_mismatch", trace_recorder.responses.first.fetch(:decision_source)
   end
 
   def test_traces_configured_llm_prompt_rendering
@@ -210,7 +253,7 @@ class ProjectSetupPromptRendererTest < Minitest::Test
     )
 
     sent_payload = llm.calls.first.fetch(:user_text)
-    assert_equal ["message"], sent_payload.fetch("output_contract").fetch("required_fields")
+    assert_equal ["message", "semantic_slot"], sent_payload.fetch("output_contract").fetch("required_fields")
     assert_equal "[REDACTED]", sent_payload.fetch("user_text").match(/api_key=([^\s]+)/)[1]
     assert_equal "[REDACTED]", sent_payload.fetch("user_text").match(/password=([^\s]+)/)[1]
     refute_includes trace_recorder.requests.first.fetch(:user_text), "sk-secret"
@@ -267,7 +310,7 @@ class ProjectSetupPromptRendererTest < Minitest::Test
   end
 
   def test_sanitizes_colon_shortcode_tokens_from_llm_output
-    llm = FakeLlmClient.new(":gear: What framework should I use for this project? :keyboard_icon:")
+    llm = FakeLlmClient.new(":gear: What framework should I use for this project? :keyboard_icon:", semantic_slot: "framework")
     renderer = Redwright::ProjectSetupPromptRenderer.new(llm_client: llm, model: "example/model")
 
     message = renderer.render(

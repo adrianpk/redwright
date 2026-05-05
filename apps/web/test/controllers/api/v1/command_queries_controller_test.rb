@@ -77,10 +77,7 @@ class Api::V1::CommandQueriesControllerTest < ActionDispatch::IntegrationTest
     assert_equal ["project_setup_session_written"], body.fetch("effects").map { |effect| effect.fetch("type") }
     assert_equal "questionnaire", body.fetch("setup_saga").fetch("stage")
     assert_equal "collecting", body.fetch("data").fetch("setup_saga").fetch("status")
-    assert_equal(
-      {"kind" => "setup_slot_question", "slot" => "project_type", "locale" => "auto", "llm_required" => true},
-      body.fetch("data").fetch("next_prompt_intent")
-    )
+    assert_setup_slot_intent body.fetch("data").fetch("next_prompt_intent"), "project_type"
     slots = body.fetch("data").fetch("setup_context").fetch("slots")
     assert_equal "Notes CLI", slots.fetch("project_name").fetch("value")
     assert_equal "A small local notes manager", slots.fetch("description").fetch("value")
@@ -129,10 +126,7 @@ class Api::V1::CommandQueriesControllerTest < ActionDispatch::IntegrationTest
       as: :json
     assert_response :success
     session_id = json_body.fetch("session_id")
-    assert_equal(
-      {"kind" => "setup_slot_question", "slot" => "project_name", "locale" => "auto", "llm_required" => true},
-      json_body.fetch("data").fetch("next_prompt_intent")
-    )
+    assert_setup_slot_intent json_body.fetch("data").fetch("next_prompt_intent"), "project_name"
 
     post "/api/v1/commands",
       params: {
@@ -146,10 +140,7 @@ class Api::V1::CommandQueriesControllerTest < ActionDispatch::IntegrationTest
       headers: actor_headers,
       as: :json
     assert_response :success
-    assert_equal(
-      {"kind" => "setup_slot_question", "slot" => "description", "locale" => "auto", "llm_required" => true},
-      json_body.fetch("data").fetch("next_prompt_intent")
-    )
+    assert_setup_slot_intent json_body.fetch("data").fetch("next_prompt_intent"), "description"
 
     post "/api/v1/commands",
       params: {
@@ -163,10 +154,7 @@ class Api::V1::CommandQueriesControllerTest < ActionDispatch::IntegrationTest
       headers: actor_headers,
       as: :json
     assert_response :success
-    assert_equal(
-      {"kind" => "setup_slot_question", "slot" => "project_type", "locale" => "auto", "llm_required" => true},
-      json_body.fetch("data").fetch("next_prompt_intent")
-    )
+    assert_setup_slot_intent json_body.fetch("data").fetch("next_prompt_intent"), "project_type"
 
     post "/api/v1/commands",
       params: {
@@ -180,10 +168,7 @@ class Api::V1::CommandQueriesControllerTest < ActionDispatch::IntegrationTest
       headers: actor_headers,
       as: :json
     assert_response :success
-    assert_equal(
-      {"kind" => "setup_slot_question", "slot" => "language_runtime", "locale" => "auto", "llm_required" => true},
-      json_body.fetch("data").fetch("next_prompt_intent")
-    )
+    assert_setup_slot_intent json_body.fetch("data").fetch("next_prompt_intent"), "language_runtime"
 
     post "/api/v1/commands",
       params: {
@@ -197,10 +182,7 @@ class Api::V1::CommandQueriesControllerTest < ActionDispatch::IntegrationTest
       headers: actor_headers,
       as: :json
     assert_response :success
-    assert_equal(
-      {"kind" => "setup_slot_question", "slot" => "framework", "locale" => "auto", "llm_required" => true},
-      json_body.fetch("data").fetch("next_prompt_intent")
-    )
+    assert_setup_slot_intent json_body.fetch("data").fetch("next_prompt_intent"), "framework"
 
     post "/api/v1/commands",
       params: {
@@ -214,10 +196,7 @@ class Api::V1::CommandQueriesControllerTest < ActionDispatch::IntegrationTest
       headers: actor_headers,
       as: :json
     assert_response :success
-    assert_equal(
-      {"kind" => "setup_slot_question", "slot" => "libraries", "locale" => "auto", "llm_required" => true},
-      json_body.fetch("data").fetch("next_prompt_intent")
-    )
+    assert_setup_slot_intent json_body.fetch("data").fetch("next_prompt_intent"), "libraries"
 
     post "/api/v1/commands",
       params: {
@@ -857,6 +836,15 @@ class Api::V1::CommandQueriesControllerTest < ActionDispatch::IntegrationTest
 
   def json_body
     JSON.parse(response.body)
+  end
+
+  def assert_setup_slot_intent(intent, slot)
+    assert_equal "setup_slot_question", intent.fetch("kind")
+    assert_equal slot, intent.fetch("slot")
+    assert_equal "auto", intent.fetch("locale")
+    assert_equal true, intent.fetch("llm_required")
+    assert_equal slot, intent.dig("metadata", "semantic_contract", "slot")
+    assert intent.dig("metadata", "semantic_contract", "intent").present?
   end
 
   def with_local_projects_root

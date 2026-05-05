@@ -14,10 +14,12 @@ module Redwright
       Rails has already selected the next semantic setup slot; do not change the slot.
       Match the language of the user's latest message when it is clear.
       Ask exactly one concise question.
+      Use the semantic contract as binding instruction: keep the same slot, intent, expected answer kind, and forbidden slots.
       Mention available controls only when useful: /skip, /done, /cancel.
       Do not expose internal state names, session ids, trace ids, validators, or JSON.
       Do not use colon shortcode tokens such as :gear: or :keyboard:.
-      Return strict JSON with exactly one key: message.
+      Return strict JSON with exactly two keys: message, semantic_slot.
+      semantic_slot must exactly equal next_prompt_intent.slot.
     TEXT
 
     def initialize(llm_client: nil, model: "none", debug: false, trace_recorder: LLM::TraceRecorder.new)
@@ -54,7 +56,7 @@ module Redwright
     end
 
     def output_contract
-      {"required_fields" => ["message"], "rendered_text_field" => "message"}
+      {"required_fields" => ["message", "semantic_slot"], "rendered_text_field" => "message"}
     end
 
     def context_sections_for(payload:, intent:, user_text:)
@@ -73,6 +75,7 @@ module Redwright
         {
           setup_summary: payload["summary"].to_s,
           next_prompt_intent: intent,
+          semantic_contract: semantic_contract_for(intent),
           setup_context: payload["setup_context"] || {},
           user_text: user_text.to_s,
           output_contract: output_contract
@@ -116,16 +119,18 @@ module Redwright
       )
       elapsed_ms = ((Process.clock_gettime(Process::CLOCK_MONOTONIC) - started_at) * 1000).to_i
       message = response.rendered_text.to_s.strip
+      semantic_slot = response.semantic_payload.fetch("semantic_slot", "").to_s.strip
+      slot_valid = response.ok? && semantic_slot == intent["slot"].to_s
       @trace_recorder.record_response(
-        status: response.ok? ? "ok" : "fallback",
+        status: slot_valid ? "ok" : "fallback",
         llm_call_id: llm_call_id,
         latency_ms: elapsed_ms,
         output_bytes: response.raw_response_ref.to_s.bytesize,
         finish_reason: response.provider_metadata[:finish_reason],
-        decision_source: response.ok? ? "llm" : response.status,
+        decision_source: slot_valid ? "llm" : response_decision_source(response, semantic_slot: semantic_slot, intent: intent),
         parsed_message: message,
         raw_output: response.raw_response_ref,
-        error: response.ok? ? nil : response.warnings.join("; "),
+        error: slot_valid ? nil : response_error(response, semantic_slot: semantic_slot, intent: intent),
         trace_id: trace_id,
         project_id: payload["project_id"] || payload.dig("project", "id"),
         session_id: payload["session_id"],
@@ -137,7 +142,7 @@ module Redwright
         model_alias: @model,
         payload_bytes: llm_payload.bytesize
       )
-      return fallback_prompt(payload: payload, intent: intent) unless response.ok?
+      return fallback_prompt(payload: payload, intent: intent) unless slot_valid
 
       sanitize_message(message.empty? ? fallback_prompt(payload: payload, intent: intent) : message)
     rescue StandardError => e
@@ -215,6 +220,31 @@ module Redwright
       return metadata_question unless metadata_question.empty?
 
       fallback_question(intent["slot"])
+    end
+
+    def semantic_contract_for(intent)
+      contract = intent.dig("metadata", "semantic_contract")
+      return contract if contract.is_a?(Hash)
+
+      {
+        "slot" => intent["slot"].to_s,
+        "intent" => "Ask exactly one concise question for the selected project setup slot.",
+        "expected_answer_kind" => intent["slot"].to_s,
+        "question_guidance" => "Do not ask for any setup slot other than the selected slot.",
+        "forbidden_slots" => []
+      }
+    end
+
+    def response_decision_source(response, semantic_slot:, intent:)
+      return response.status unless response.ok?
+
+      "semantic_slot_mismatch:expected=#{intent["slot"]};actual=#{semantic_slot}"
+    end
+
+    def response_error(response, semantic_slot:, intent:)
+      return response.warnings.join("; ") unless response.ok?
+
+      "Provider response changed semantic slot: expected #{intent["slot"]}, got #{semantic_slot.empty? ? "(empty)" : semantic_slot}"
     end
 
     def understood_context(payload)

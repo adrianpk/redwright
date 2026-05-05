@@ -16,8 +16,13 @@
     let isHoveringNav = false;
     let autoFoldTimer = null;
 
+    function hasOpenMenu() {
+      return Boolean(nav.querySelector(".top-nav-project-menu[open], .top-nav-user-menu[open]"));
+    }
+
     function setCollapsed(nextCollapsed) {
       if (isPinned) nextCollapsed = false;
+      if (hasOpenMenu()) nextCollapsed = false;
       isCollapsed = nextCollapsed;
       nav.dataset.navState = nextCollapsed ? "collapsed" : "expanded";
       if (handle) handle.setAttribute("aria-expanded", nextCollapsed ? "false" : "true");
@@ -39,7 +44,7 @@
       if (isPinned) return;
       if (autoFoldTimer) window.clearTimeout(autoFoldTimer);
       autoFoldTimer = window.setTimeout(() => {
-        if (isPinned || isHoveringNav) return;
+        if (isPinned || isHoveringNav || hasOpenMenu()) return;
         setCollapsed(true);
       }, AUTO_FOLD_DELAY_MS);
     }
@@ -76,6 +81,16 @@
         setPinned(!isPinned);
       });
     }
+
+    nav.querySelectorAll(".top-nav-project-menu, .top-nav-user-menu").forEach((menu) => {
+      menu.addEventListener("toggle", () => {
+        if (menu.open) {
+          setCollapsed(false);
+        } else if (!isHoveringNav) {
+          scheduleAutoFold();
+        }
+      });
+    });
 
     document.addEventListener("mousemove", (event) => {
       if (event.clientY <= PROXIMITY_PX && isCollapsed && !isPinned) unfold();

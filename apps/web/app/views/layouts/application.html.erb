@@ -30,11 +30,11 @@
       <header class="top-nav" data-nav-state="expanded">
         <div class="top-nav-corner">
           <% if available_projects.any? %>
-            <div class="top-nav-project-menu">
-              <button type="button" class="top-nav-project-trigger" aria-haspopup="true" aria-expanded="false">
+            <details class="top-nav-project-menu">
+              <summary class="top-nav-project-trigger" aria-haspopup="true">
                 <span class="top-nav-project-name"><%= current_project&.name || "Select" %></span>
                 <span class="top-nav-project-caret" aria-hidden="true">▾</span>
-              </button>
+              </summary>
               <div class="top-nav-project-dropdown">
                 <% available_projects.each do |project| %>
                   <%= button_to project.name,
@@ -44,17 +44,17 @@
                                 class: "top-nav-project-action#{' is-active' if current_project&.id == project.id}" %>
                 <% end %>
               </div>
-            </div>
+            </details>
           <% end %>
-          <div class="top-nav-user-menu">
-            <button type="button" class="top-nav-user-trigger" aria-haspopup="true" aria-expanded="false">
+          <details class="top-nav-user-menu">
+            <summary class="top-nav-user-trigger" aria-haspopup="true">
               <span class="top-nav-user-email"><%= current_user&.email_address %></span>
               <span class="top-nav-user-caret" aria-hidden="true">▾</span>
-            </button>
+            </summary>
             <div class="top-nav-user-dropdown">
               <%= button_to "Sign out", session_path, method: :delete, class: "top-nav-user-action" %>
             </div>
-          </div>
+          </details>
           <button type="button" class="top-nav-pin" aria-label="Pin menu" aria-pressed="false" title="Pin menu">📌</button>
         </div>
         <nav aria-label="Primary navigation">

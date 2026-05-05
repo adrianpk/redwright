@@ -118,6 +118,16 @@ body {
   box-shadow: none;
 }
 
+.top-nav-project-trigger::-webkit-details-marker,
+.top-nav-user-trigger::-webkit-details-marker {
+  display: none;
+}
+
+.top-nav-project-trigger::marker,
+.top-nav-user-trigger::marker {
+  content: "";
+}
+
 .top-nav-project-name,
 .top-nav-user-email {
   max-width: 132px;
@@ -131,8 +141,10 @@ body {
 }
 
 .top-nav-project-trigger:hover,
+.top-nav-project-menu[open] .top-nav-project-trigger,
 .top-nav-project-menu:focus-within .top-nav-project-trigger,
 .top-nav-user-trigger:hover,
+.top-nav-user-menu[open] .top-nav-user-trigger,
 .top-nav-user-menu:focus-within .top-nav-user-trigger {
   color: var(--navy);
 }
@@ -140,7 +152,7 @@ body {
 .top-nav-project-dropdown,
 .top-nav-user-dropdown {
   position: absolute;
-  top: 34px;
+  top: calc(100% + 8px);
   right: 0;
   z-index: 30;
   display: none;
@@ -153,9 +165,9 @@ body {
   box-shadow: 0 8px 20px rgba(31, 42, 68, 0.12);
 }
 
-.top-nav-project-menu:hover .top-nav-project-dropdown,
+.top-nav-project-menu[open] .top-nav-project-dropdown,
 .top-nav-project-menu:focus-within .top-nav-project-dropdown,
-.top-nav-user-menu:hover .top-nav-user-dropdown,
+.top-nav-user-menu[open] .top-nav-user-dropdown,
 .top-nav-user-menu:focus-within .top-nav-user-dropdown {
   display: block;
 }

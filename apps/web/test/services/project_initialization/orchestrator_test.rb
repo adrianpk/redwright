@@ -10,10 +10,7 @@ module ProjectInitialization
       assert_equal :setup_context_required, result.status
       assert_equal :collect_setup_context, result.next_action
       assert_equal ["project_name"], result.project[:missing_slots]
-      assert_equal(
-        {"kind" => "setup_slot_question", "slot" => "project_name", "locale" => "auto", "llm_required" => true},
-        result.guided_alignment[:next_prompt_intent]
-      )
+      assert_setup_slot_intent result.guided_alignment[:next_prompt_intent], "project_name"
       assert_equal({}, result.errors)
     end
 
@@ -34,10 +31,7 @@ module ProjectInitialization
       assert_equal "A small local notes manager", result.project[:description]
       assert_equal "", result.repository[:input]
       assert_equal false, result.repository[:required]
-      assert_equal(
-        {"kind" => "setup_slot_question", "slot" => "project_type", "locale" => "auto", "llm_required" => true},
-        result.guided_alignment[:next_prompt_intent]
-      )
+      assert_setup_slot_intent result.guided_alignment[:next_prompt_intent], "project_type"
     end
 
     test "returns repository resolved for explicit repository input" do
@@ -113,6 +107,17 @@ module ProjectInitialization
         %i[status next_action project repository guided_alignment errors],
         payload.keys
       )
+    end
+
+    private
+
+    def assert_setup_slot_intent(intent, slot)
+      assert_equal "setup_slot_question", intent.fetch("kind")
+      assert_equal slot, intent.fetch("slot")
+      assert_equal "auto", intent.fetch("locale")
+      assert_equal true, intent.fetch("llm_required")
+      assert_equal slot, intent.dig("metadata", "semantic_contract", "slot")
+      assert intent.dig("metadata", "semantic_contract", "intent").present?
     end
   end
 end
