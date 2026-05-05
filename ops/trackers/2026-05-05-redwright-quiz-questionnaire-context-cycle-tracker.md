@@ -1,0 +1,231 @@
+# Cycle Tracker: RedWright Quiz Questionnaire Context
+
+## Metadata
+
+- cycle_id: `cycle-2026-05-05-redwright-quiz-questionnaire-context`
+- status: `planned`
+- state: `planning_complete`
+- updated: `2026-05-05`
+- active_slice: `none`
+- active_task: `none`
+- source_plan: `ops/plans/2026-05-05-redwright-quiz-questionnaire-context-cycle-plan.md`
+- source_spec: `ops/specs/specs/2026-05-05-redwright-quiz-questionnaire-context-spec.md`
+- source_conversation:
+  - `ops/specs/conv/2026-05-05-redwright-quiz-me-questionnaire-context-conv.md`
+  - `ops/specs/conv/2026-05-05-redwright-quiz-me-questionnaire-context-conv-raw.md`
+- source_draft: `ops/specs/drafts/2026-05-05-redwright-questionnaire-context-and-ticket-driven-engineering-draft.md`
+
+## Slice Progress
+
+### Slice 1: Quiz Domain Foundation
+
+- status: `planned`
+- branch: `fix/slice-1-quiz-domain-foundation`
+- PR: `pending`
+- merge_target: `dev`
+- last_sync_commit: `pending`
+
+Tasks:
+
+- [ ] `T1.1 add UseCase model scoped to Project with normalized project-local slug`
+- [ ] `T1.2 add Quiz model scoped to Project and optional UseCase`
+- [ ] `T1.3 add QuizEntry model storing question and answer together`
+- [ ] `T1.4 include denormalized project_id and use_case_id on QuizEntry`
+- [ ] `T1.5 enforce one main project quiz per project and one main use-case quiz per use case`
+- [ ] `T1.6 add focused model tests for cardinality, slug normalization, associations, and status constants`
+
+Commits:
+
+- [ ] `pending`
+
+Validation:
+
+- [ ] `pending`
+
+### Slice 2: Transversal Tagging Foundation
+
+- status: `planned`
+- branch: `fix/slice-2-quiz-transversal-tagging`
+- PR: `pending`
+- merge_target: `dev`
+- last_sync_commit: `pending`
+
+Tasks:
+
+- [ ] `T2.1 inspect current ticket/tag-related persistence and avoid duplicate tag mechanisms`
+- [ ] `T2.2 add or align Tag and Tagging models with polymorphic taggables`
+- [ ] `T2.3 normalize tags to lowercase kebab-case`
+- [ ] `T2.4 denormalize project_id and use_case_id on taggings for future retrieval queries`
+- [ ] `T2.5 support tagging QuizEntry records`
+- [ ] `T2.6 add tests for normalization, tag reuse, polymorphic tagging, and project/use-case scoped queries`
+
+Commits:
+
+- [ ] `pending`
+
+Validation:
+
+- [ ] `pending`
+
+### Slice 3: Quiz Loop Contract and LLM Question Service
+
+- status: `planned`
+- branch: `fix/slice-3-quiz-loop-llm-contract`
+- PR: `pending`
+- merge_target: `dev`
+- last_sync_commit: `pending`
+
+Tasks:
+
+- [ ] `T3.1 define a structured LLM output contract for next quiz question generation`
+- [ ] `T3.2 reuse or adapt existing project setup question machinery where practical`
+- [ ] `T3.3 include tag suggestions in the LLM interpretation flow`
+- [ ] `T3.4 enforce max question count, max follow-up depth, and max tag count from configuration`
+- [ ] `T3.5 add guardrails against secrets, credentials, tokens, passwords, and PII`
+- [ ] `T3.6 add deterministic fallback behavior for unavailable or invalid LLM output`
+
+Commits:
+
+- [ ] `pending`
+
+Validation:
+
+- [ ] `pending`
+
+### Slice 4: Quiz Loop Runtime and Controls
+
+- status: `planned`
+- branch: `fix/slice-4-quiz-loop-runtime-controls`
+- PR: `pending`
+- merge_target: `dev`
+- last_sync_commit: `pending`
+
+Tasks:
+
+- [ ] `T4.1 add a port-agnostic quiz loop service`
+- [ ] `T4.2 resolve or create the project-level quiz`
+- [ ] `T4.3 resolve or create use cases and their main quizzes`
+- [ ] `T4.4 persist answered and skipped QuizEntry records`
+- [ ] `T4.5 implement done and cancel semantics without forbidding later reopening`
+- [ ] `T4.6 add tests for project quiz, use-case quiz, skip, done, cancel, and reopening behavior`
+
+Commits:
+
+- [ ] `pending`
+
+Validation:
+
+- [ ] `pending`
+
+### Slice 5: Telegram Quiz Commands
+
+- status: `planned`
+- branch: `fix/slice-5-telegram-quiz-commands`
+- PR: `pending`
+- merge_target: `dev`
+- last_sync_commit: `pending`
+
+Tasks:
+
+- [ ] `T5.1 add slash routing for /quiz`
+- [ ] `T5.2 add slash routing for /quiz for <use_case>`
+- [ ] `T5.3 add slash routing for /quiz list`
+- [ ] `T5.4 connect Telegram commands to the port-agnostic quiz loop runtime`
+- [ ] `T5.5 render answer, skip, done, and cancel control guidance without verbose noise`
+- [ ] `T5.6 add simulated or adapter-level tests for project quiz, use-case quiz creation, and listing`
+
+Commits:
+
+- [ ] `pending`
+
+Validation:
+
+- [ ] `pending`
+
+### Slice 6: Web Quiz Surface and Visual Alignment
+
+- status: `planned`
+- branch: `fix/slice-6-web-quiz-surface`
+- PR: `pending`
+- merge_target: `dev`
+- last_sync_commit: `pending`
+
+Tasks:
+
+- [ ] `T6.1 add project navigation entry or route for Quizzes`
+- [ ] `T6.2 render quiz list for the active project`
+- [ ] `T6.3 render current-question web loop UI`
+- [ ] `T6.4 support answer, skip, done, and cancel controls from web`
+- [ ] `T6.5 avoid showing hidden agent reasoning or prior Q/A lists by default`
+- [ ] `T6.6 harmonize spacing, typography, cards, controls, and page width with existing project surfaces`
+- [ ] `T6.7 add controller/system coverage for web quiz navigation and loop controls`
+
+Commits:
+
+- [ ] `pending`
+
+Validation:
+
+- [ ] `pending`
+
+### Slice 7: Ticket/UseCase Context Preparation
+
+- status: `planned`
+- branch: `fix/slice-7-quiz-ticket-context-prep`
+- PR: `pending`
+- merge_target: `dev`
+- last_sync_commit: `pending`
+
+Tasks:
+
+- [ ] `T7.1 inspect current ticket model and board relationships`
+- [ ] `T7.2 add optional ticket use_case_id if compatible with the current Kanban domain`
+- [ ] `T7.3 add query objects or scopes for project/use-case/tag quiz entry retrieval`
+- [ ] `T7.4 add query objects or scopes for shared tag retrieval across quiz entries and tickets`
+- [ ] `T7.5 keep this slice out of final prompt-manager implementation`
+- [ ] `T7.6 add tests for retrieval-oriented query shapes`
+
+Commits:
+
+- [ ] `pending`
+
+Validation:
+
+- [ ] `pending`
+
+### Slice 8: Configuration, Seeding Review, and Cycle Closure
+
+- status: `planned`
+- branch: `fix/slice-8-quiz-config-and-closure`
+- PR: `pending`
+- merge_target: `dev`
+- last_sync_commit: `pending`
+
+Tasks:
+
+- [ ] `T8.1 add YAML-backed configuration for max questions, follow-up depth, and max tags`
+- [ ] `T8.2 apply configuration to loop and LLM contract services`
+- [ ] `T8.3 review demo/test seeding that creates multiple users against the single-user product assumption`
+- [ ] `T8.4 run targeted and full relevant validation from canonical command locations`
+- [ ] `T8.5 update tracker and cycle notes with validation evidence and residual risks`
+- [ ] `T8.6 keep visual/UX alignment as an explicit closure check`
+
+Commits:
+
+- [ ] `pending`
+
+Validation:
+
+- [ ] `pending`
+
+## Event Log
+
+- `2026-05-05 00:00` state=`planning_complete` note=`formalized the Quiz questionnaire context spec and initialized an eight-slice implementation cycle covering domain, tagging, LLM question loop, runtime controls, Telegram, web, context retrieval preparation, configuration, and closure`
+
+## Open Risks
+
+- nullable `use_case_id` uniqueness may need careful Rails/SQLite handling
+- existing ticket/tag semantics must be inspected before adding transversal tagging
+- LLM question generation should reuse existing setup machinery where practical
+- web UI must stay visually aligned with existing product surfaces and avoid scaffold-style CRUD
+- the cycle prepares context retrieval but intentionally avoids implementing a full prompt manager
