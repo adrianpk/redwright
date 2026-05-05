@@ -81,9 +81,9 @@ Validation:
 
 ### Slice 3: Quiz Loop Contract and LLM Question Service
 
-- status: `implemented`
+- status: `pr_merged`
 - branch: `fix/slice-3-quiz-loop-llm-contract`
-- PR: `pending`
+- PR: `https://codeberg.org/adrianpk/redwright/pulls/305`
 - merge_target: `dev`
 - last_sync_commit: `029c989`
 
@@ -108,28 +108,30 @@ Validation:
 
 ### Slice 4: Quiz Loop Runtime and Controls
 
-- status: `planned`
+- status: `implemented`
 - branch: `fix/slice-4-quiz-loop-runtime-controls`
 - PR: `pending`
 - merge_target: `dev`
-- last_sync_commit: `pending`
+- last_sync_commit: `d041b6b`
 
 Tasks:
 
-- [ ] `T4.1 add a port-agnostic quiz loop service`
-- [ ] `T4.2 resolve or create the project-level quiz`
-- [ ] `T4.3 resolve or create use cases and their main quizzes`
-- [ ] `T4.4 persist answered and skipped QuizEntry records`
-- [ ] `T4.5 implement done and cancel semantics without forbidding later reopening`
-- [ ] `T4.6 add tests for project quiz, use-case quiz, skip, done, cancel, and reopening behavior`
+- [x] `T4.1 add a port-agnostic quiz loop service`
+- [x] `T4.2 resolve or create the project-level quiz`
+- [x] `T4.3 resolve or create use cases and their main quizzes`
+- [x] `T4.4 persist answered and skipped QuizEntry records`
+- [x] `T4.5 implement done and cancel semantics without forbidding later reopening`
+- [x] `T4.6 add tests for project quiz, use-case quiz, skip, done, cancel, and reopening behavior`
 
 Commits:
 
-- [ ] `pending`
+- [x] `fb07e05 feat(web): add quiz loop runtime`
+- [x] `ee3a282 test(web): cover quiz loop controls`
 
 Validation:
 
-- [ ] `pending`
+- [x] `bundle exec bin/rails test test/services/quiz_loops/runtime_test.rb` (pass)
+- [x] `bundle exec bin/rails test` (pass)
 
 ### Slice 5: Telegram Quiz Commands
 
@@ -238,6 +240,7 @@ Validation:
 - `2026-05-05 10:00` state=`slice_1_implemented` note=`implemented UseCase, Quiz, and QuizEntry domain foundation with denormalized scope fields, cardinality helpers, model coverage, and green Rails suite`
 - `2026-05-05 15:50` state=`slice_2_implemented` note=`implemented transversal Tag and Tagging models for QuizEntry with normalized tag names, denormalized project/use-case scope, scoped retrieval queries, and green Rails suite`
 - `2026-05-05 16:05` state=`slice_3_implemented` note=`implemented quiz LLM question contract, prompt intent builder, provider fallback behavior, tag bounding, follow-up depth bounding, and sensitive-information guardrails with green Rails suite`
+- `2026-05-05 16:20` state=`slice_4_implemented` note=`implemented port-agnostic quiz loop runtime with project/use-case quiz resolution, answer and skip persistence, done/cancel terminal results, reopening behavior, and green Rails suite`
 
 ## Open Risks
 
