@@ -72,6 +72,7 @@ class LlmRequestEngineTest < Minitest::Test
 
     assert_equal "invalid_response", response.status
     assert_equal "", response.rendered_text
+    assert_equal "not json", response.raw_response_ref
     assert_includes response.warnings, "Provider response was not valid JSON"
     assert_equal "JSON::ParserError", response.diagnostics.fetch(:error_class)
   end

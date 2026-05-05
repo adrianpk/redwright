@@ -44,6 +44,16 @@ class ProjectSetupPromptRendererTest < Minitest::Test
     end
   end
 
+  class MalformedLlmClient
+    def configured?
+      true
+    end
+
+    def complete_json(model:, system_prompt:, user_text:)
+      Completion.new(content: "not json", finish_reason: "stop")
+    end
+  end
+
   def teardown
     Redwright::Trace.reset_configuration!
   end
@@ -406,6 +416,27 @@ class ProjectSetupPromptRendererTest < Minitest::Test
     )
 
     assert_match "What framework should this project use, if any?", message
+  end
+
+  def test_falls_back_when_llm_renderer_returns_malformed_output
+    renderer = Redwright::ProjectSetupPromptRenderer.new(llm_client: MalformedLlmClient.new, model: "example/model")
+
+    message = renderer.render(
+      body: {
+        "status" => "ok",
+        "data" => {
+          "next_prompt_intent" => {
+            "kind" => "setup_slot_question",
+            "slot" => "framework"
+          }
+        }
+      },
+      user_text: "setup",
+      trace_id: "trc-test"
+    )
+
+    assert_match "What framework should this project use, if any?", message
+    refute_match "not json", message
   end
 
   def test_renders_non_prompt_summary_and_completion_without_project_name
