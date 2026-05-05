@@ -108,9 +108,9 @@ Validation:
 
 ### Slice 4: Quiz Loop Runtime and Controls
 
-- status: `implemented`
+- status: `pr_merged`
 - branch: `fix/slice-4-quiz-loop-runtime-controls`
-- PR: `pending`
+- PR: `https://codeberg.org/adrianpk/redwright/pulls/306`
 - merge_target: `dev`
 - last_sync_commit: `d041b6b`
 
@@ -135,28 +135,31 @@ Validation:
 
 ### Slice 5: Telegram Quiz Commands
 
-- status: `planned`
+- status: `implemented`
 - branch: `fix/slice-5-telegram-quiz-commands`
 - PR: `pending`
 - merge_target: `dev`
-- last_sync_commit: `pending`
+- last_sync_commit: `05fa0d3`
 
 Tasks:
 
-- [ ] `T5.1 add slash routing for /quiz`
-- [ ] `T5.2 add slash routing for /quiz for <use_case>`
-- [ ] `T5.3 add slash routing for /quiz list`
-- [ ] `T5.4 connect Telegram commands to the port-agnostic quiz loop runtime`
-- [ ] `T5.5 render answer, skip, done, and cancel control guidance without verbose noise`
-- [ ] `T5.6 add simulated or adapter-level tests for project quiz, use-case quiz creation, and listing`
+- [x] `T5.1 add slash routing for /quiz`
+- [x] `T5.2 add slash routing for /quiz for <use_case>`
+- [x] `T5.3 add slash routing for /quiz list`
+- [x] `T5.4 connect Telegram commands to the port-agnostic quiz loop runtime`
+- [x] `T5.5 render answer, skip, done, and cancel control guidance without verbose noise`
+- [x] `T5.6 add simulated or adapter-level tests for project quiz, use-case quiz creation, and listing`
 
 Commits:
 
-- [ ] `pending`
+- [x] `ae57faf feat(web): expose quiz command queries`
+- [x] `dcb7e68 feat(telegram): add quiz commands`
+- [x] `453f7ea test(telegram): cover quiz command flows`
 
 Validation:
 
-- [ ] `pending`
+- [x] `bundle exec bin/rails test test/integration/project_setup_telegram_e2e_test.rb` (pass)
+- [x] `bundle exec bin/rails test` (pass)
 
 ### Slice 6: Web Quiz Surface and Visual Alignment
 
@@ -241,6 +244,7 @@ Validation:
 - `2026-05-05 15:50` state=`slice_2_implemented` note=`implemented transversal Tag and Tagging models for QuizEntry with normalized tag names, denormalized project/use-case scope, scoped retrieval queries, and green Rails suite`
 - `2026-05-05 16:05` state=`slice_3_implemented` note=`implemented quiz LLM question contract, prompt intent builder, provider fallback behavior, tag bounding, follow-up depth bounding, and sensitive-information guardrails with green Rails suite`
 - `2026-05-05 16:20` state=`slice_4_implemented` note=`implemented port-agnostic quiz loop runtime with project/use-case quiz resolution, answer and skip persistence, done/cancel terminal results, reopening behavior, and green Rails suite`
+- `2026-05-05 16:40` state=`slice_5_implemented` note=`implemented Telegram /quiz, /quiz for <use_case>, and /quiz list through command/query handlers and the port-agnostic runtime, with concise rendering and green Rails suite`
 
 ## Open Risks
 
