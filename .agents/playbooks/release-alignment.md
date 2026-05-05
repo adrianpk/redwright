@@ -6,6 +6,13 @@ Canonical release-alignment PR from `dev` to `main`.
 2. Run `bundle exec rake pr:dev_to_main:gate`.
 3. Docs-only gate exception: if `git diff --name-only origin/main...origin/dev` returns only `.md` repository documentation files, skip `pr:dev_to_main:gate` and the test task. Validate with the docs-only diff and `git diff --check origin/main...origin/dev`.
 4. Open PR with title: `chore(release): align dev with main`.
+   - When using `tea`, pass the Codeberg login explicitly:
+
+     ```sh
+     tea pulls create --login codeberg --repo adrianpk/redwright --head dev --base main
+     ```
+
+   - Do not rely on implicit/default login resolution for release-alignment PR creation.
 5. Use this PR body:
 
 ```md
