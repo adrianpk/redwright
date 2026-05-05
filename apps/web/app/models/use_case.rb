@@ -1,5 +1,6 @@
 class UseCase < ApplicationRecord
   belongs_to :project
+  has_one :quiz, dependent: :restrict_with_error
 
   before_validation :normalize_slug
 
