@@ -54,6 +54,25 @@ class ProjectSetupPromptRendererTest < Minitest::Test
     end
   end
 
+  class RecordingTraceRecorder
+    attr_reader :requests, :responses
+
+    def initialize
+      @requests = []
+      @responses = []
+    end
+
+    def record_request(**kwargs)
+      @requests << kwargs
+      "llm-test"
+    end
+
+    def record_response(**kwargs)
+      @responses << kwargs
+      "llm-test"
+    end
+  end
+
   def teardown
     Redwright::Trace.reset_configuration!
   end
@@ -123,6 +142,43 @@ class ProjectSetupPromptRendererTest < Minitest::Test
     assert_includes out, "provider: openrouter"
     assert_includes out, "LLM RESPONSE"
     assert_includes out, "parsed_message: What type of project should this be?"
+  end
+
+  def test_coordinates_trace_recording_outside_request_engine
+    llm = FakeLlmClient.new("What type of project should this be?")
+    trace_recorder = RecordingTraceRecorder.new
+    renderer = Redwright::ProjectSetupPromptRenderer.new(
+      llm_client: llm,
+      model: "openrouter/auto",
+      trace_recorder: trace_recorder
+    )
+
+    renderer.render(
+      body: {
+        "status" => "ok",
+        "project_id" => 77,
+        "session_id" => 41,
+        "summary" => "Project setup started.",
+        "data" => {
+          "next_prompt_intent" => {
+            "kind" => "setup_slot_question",
+            "slot" => "project_type",
+            "locale" => "auto",
+            "llm_required" => true
+          }
+        }
+      },
+      user_text: "/project new pocket-ledger",
+      trace_id: "trc-test"
+    )
+
+    assert_equal 1, trace_recorder.requests.length
+    assert_equal 1, trace_recorder.responses.length
+    assert_equal "project_setup_prompt_render", trace_recorder.requests.first.fetch(:action)
+    assert_equal "non_coding", trace_recorder.requests.first.fetch(:model_role)
+    assert_equal ["setup_summary", "next_prompt_intent", "setup_context", "user_text"], trace_recorder.requests.first.fetch(:context_sections)
+    assert_equal "ok", trace_recorder.responses.first.fetch(:status)
+    assert_equal "llm", trace_recorder.responses.first.fetch(:decision_source)
   end
 
   def test_writes_project_setup_llm_trace_file_when_configured
