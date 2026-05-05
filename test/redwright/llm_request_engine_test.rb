@@ -1,0 +1,135 @@
+# frozen_string_literal: true
+
+require "json"
+require "minitest/autorun"
+
+$LOAD_PATH.unshift(File.expand_path("../../lib", __dir__))
+require "redwright/llm/request_engine"
+
+class LlmRequestEngineTest < Minitest::Test
+  Completion = Struct.new(:content, :finish_reason, keyword_init: true)
+
+  class FakeClient
+    attr_reader :calls
+
+    def initialize(content:, configured: true, raises: nil)
+      @content = content
+      @configured = configured
+      @raises = raises
+      @calls = []
+    end
+
+    def configured?
+      @configured
+    end
+
+    def complete_json(model:, system_prompt:, user_text:)
+      raise @raises if @raises
+
+      @calls << {model: model, system_prompt: system_prompt, user_text: user_text}
+      Completion.new(content: @content, finish_reason: "stop")
+    end
+  end
+
+  def test_generate_structured_message_returns_normalized_success_response
+    client = FakeClient.new(content: JSON.generate({"message" => "What type of project is this?", "kind" => "setup_prompt"}))
+    engine = Redwright::LLM::RequestEngine.new(llm_client: client)
+
+    response = engine.generate_structured_message(
+      model: "openrouter/auto",
+      model_role: "non_coding",
+      provider: "openrouter",
+      action: "project_setup_prompt_render",
+      system_prompt: "Return JSON.",
+      user_text: JSON.generate({"summary" => "Project setup started."}),
+      output_contract: {"required_fields" => ["message"], "rendered_text_field" => "message"},
+      context_sections: ["setup_summary", "next_prompt_intent"],
+      trace_metadata: {trace_id: "trc-test"}
+    )
+
+    assert_predicate response, :ok?
+    assert_equal "ok", response.status
+    assert_equal "What type of project is this?", response.rendered_text
+    assert_equal "setup_prompt", response.semantic_payload.fetch("kind")
+    assert_equal "openrouter", response.provider_metadata.fetch(:provider)
+    assert_equal "non_coding", response.provider_metadata.fetch(:model_role)
+    assert_equal ["setup_summary", "next_prompt_intent"], response.diagnostics.fetch(:context_sections)
+    assert_equal "openrouter/auto", client.calls.first.fetch(:model)
+  end
+
+  def test_generate_structured_message_normalizes_invalid_json
+    client = FakeClient.new(content: "not json")
+    engine = Redwright::LLM::RequestEngine.new(llm_client: client)
+
+    response = engine.generate_structured_message(
+      model: "example/model",
+      model_role: "non_coding",
+      provider: "example",
+      action: "project_setup_prompt_render",
+      system_prompt: "Return JSON.",
+      user_text: "{}"
+    )
+
+    assert_equal "invalid_response", response.status
+    assert_equal "", response.rendered_text
+    assert_includes response.warnings, "Provider response was not valid JSON"
+    assert_equal "JSON::ParserError", response.diagnostics.fetch(:error_class)
+  end
+
+  def test_generate_structured_message_normalizes_missing_required_field
+    client = FakeClient.new(content: JSON.generate({"text" => "Wrong field"}))
+    engine = Redwright::LLM::RequestEngine.new(llm_client: client)
+
+    response = engine.generate_structured_message(
+      model: "example/model",
+      model_role: "non_coding",
+      provider: "example",
+      action: "project_setup_prompt_render",
+      system_prompt: "Return JSON.",
+      user_text: "{}",
+      output_contract: {"required_fields" => ["message"], "rendered_text_field" => "message"}
+    )
+
+    assert_equal "invalid_response", response.status
+    assert_equal "", response.rendered_text
+    assert_includes response.warnings, "Provider response missed required fields: message"
+  end
+
+  def test_generate_structured_message_normalizes_provider_error_without_raising
+    client = FakeClient.new(content: "{}", raises: RuntimeError.new("provider exploded"))
+    engine = Redwright::LLM::RequestEngine.new(llm_client: client)
+
+    response = engine.generate_structured_message(
+      model: "example/model",
+      model_role: "non_coding",
+      provider: "example",
+      action: "project_setup_prompt_render",
+      system_prompt: "Return JSON.",
+      user_text: "{}"
+    )
+
+    assert_equal "provider_error", response.status
+    assert_equal "", response.rendered_text
+    assert_includes response.warnings, "Provider request failed"
+    assert_equal "RuntimeError", response.diagnostics.fetch(:error_class)
+    assert_equal "provider exploded", response.diagnostics.fetch(:error_message)
+  end
+
+  def test_generate_structured_message_normalizes_unconfigured_client
+    client = FakeClient.new(content: "{}", configured: false)
+    engine = Redwright::LLM::RequestEngine.new(llm_client: client)
+
+    response = engine.generate_structured_message(
+      model: "example/model",
+      model_role: "non_coding",
+      provider: "example",
+      action: "project_setup_prompt_render",
+      system_prompt: "Return JSON.",
+      user_text: "{}"
+    )
+
+    assert_equal "llm_unavailable", response.status
+    assert_equal [], client.calls
+    assert_includes response.warnings, "LLM client is not configured"
+  end
+end
