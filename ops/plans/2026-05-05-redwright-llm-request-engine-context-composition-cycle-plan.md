@@ -146,7 +146,7 @@ The plan intentionally starts with call-site inspection and a first real migrati
 
 ### Slice 6: Cycle Hardening and Next Caller Readiness
 
-- status: `planned`
+- status: `completed`
 - branch: `fix/slice-6-llm-request-engine-hardening`
 - pr_title: `feat(slice-6): harden llm request engine cycle`
 - objective: `complete validation, remove accidental over-abstraction, update operational records, and prepare explicit criteria for the next caller migration`

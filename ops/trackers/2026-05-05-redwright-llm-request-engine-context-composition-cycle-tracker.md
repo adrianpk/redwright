@@ -6,7 +6,7 @@
 - status: `in_progress`
 - state: `awaiting_review`
 - updated: `2026-05-05`
-- active_slice: `Slice 5`
+- active_slice: `Slice 6`
 - active_task: `none`
 - source_plan: `ops/plans/2026-05-05-redwright-llm-request-engine-context-composition-cycle-plan.md`
 - source_spec: `ops/specs/specs/2026-05-05-redwright-llm-request-engine-context-composition-spec.md`
@@ -131,11 +131,11 @@ Validation:
 
 ### Slice 5: Context Sections, Safety Filtering, and Diagnostics
 
-- status: `completed`
+- status: `pr_merged`
 - branch: `fix/slice-5-llm-context-section-safety`
-- PR: `pending`
+- PR: `https://codeberg.org/adrianpk/redwright/pulls/315`
 - merge_target: `dev`
-- last_sync_commit: `pending_pr`
+- last_sync_commit: `208e280`
 
 Tasks:
 
@@ -159,29 +159,60 @@ Validation:
 
 ### Slice 6: Cycle Hardening and Next Caller Readiness
 
-- status: `planned`
+- status: `completed`
 - branch: `fix/slice-6-llm-request-engine-hardening`
 - PR: `pending`
 - merge_target: `dev`
-- last_sync_commit: `tbd`
+- last_sync_commit: `pending_pr`
 
 Tasks:
 
-- [ ] `T6.1 review new classes and helpers against the no-abstraction-by-habit constraint`
-- [ ] `T6.2 run targeted tests for the engine, recorder, and migrated caller`
-- [ ] `T6.3 run the broader relevant test suite from canonical command locations`
-- [ ] `T6.4 update tracker with migrated caller, commits, validation, and residual risks`
-- [ ] `T6.5 document next-caller readiness criteria without starting a second migration`
-- [ ] `T6.6 capture open questions for session identity, previous interactions, preflight, and conflict handling`
+- [x] `T6.1 review new classes and helpers against the no-abstraction-by-habit constraint`
+- [x] `T6.2 run targeted tests for the engine, recorder, and migrated caller`
+- [x] `T6.3 run the broader relevant test suite from canonical command locations`
+- [x] `T6.4 update tracker with migrated caller, commits, validation, and residual risks`
+- [x] `T6.5 document next-caller readiness criteria without starting a second migration`
+- [x] `T6.6 capture open questions for session identity, previous interactions, preflight, and conflict handling`
 
 Commits:
 
-- [ ] `docs(ops): close llm request engine cycle`
+- [x] `pending docs(ops): close llm request engine cycle`
 
 Validation:
 
-- [ ] `targeted engine, recorder, and migrated caller tests` (pending)
-- [ ] `broader relevant test suite` (pending)
+- [x] `ruby -Itest -Ilib test/redwright/llm_request_engine_test.rb && ruby -Itest -Ilib test/redwright/llm_trace_recorder_test.rb && ruby -Itest -Ilib test/redwright/project_setup_prompt_renderer_test.rb && ruby -Itest -Ilib test/redwright/trace_test.rb` (pass)
+- [x] `for file in test/redwright/*_test.rb; do ruby -Itest -Ilib "$file" || exit $?; done` (pass)
+
+Hardening Review:
+
+- `Redwright::LLM::RequestEngine` remains scoped to one semantic operation used by the migrated caller.
+- `Redwright::LLM::TraceRecorder` is a thin boundary over existing `Trace.llm_request` and `Trace.llm_response`; it does not select context or orchestrate business behavior.
+- `Redwright::LLM::ContextSection` is a small value object used by the migrated path for section names, authority labels, and byte estimates.
+- `Redwright::LLM::Redactor` is intentionally narrow and practical; it is not a complete DLP system.
+- No generic orchestration service, broad task taxonomy, database-backed previous interaction store, or preflight path was introduced.
+
+Residual Risks:
+
+- Redaction covers obvious bearer tokens and common secret assignments only; deeper secret detection remains future work.
+- `raw_response_ref` can still contain raw provider content for diagnostics when trace payload capture is enabled; this is intentional but should remain opt-in.
+- The first migrated caller is project setup prompt rendering, which does not stress heavy workspace/ticket context.
+- Session identity and previous-interaction storage remain unresolved outside this cycle.
+
+Next Caller Readiness Criteria:
+
+- choose a real caller with explicit inputs available at the call site
+- require a concrete output contract before migration
+- keep trace coordination outside `LLMRequestEngine`
+- avoid adding a new semantic method unless the existing one cannot express the operation cleanly
+- add caller-level success, malformed output, and provider failure tests
+- document whether the next caller requires workspace, ticket, execution, or previous-interaction context
+
+Deferred Open Questions:
+
+- where canonical conversation/session scope identity should be generated
+- how previous interactions should be summarized or stored
+- when preflight context selection is justified
+- how autonomous ticket conflict handling should interact with comments, blocked state, mentions, and notifications
 
 ## First Caller Selection Record
 
@@ -265,3 +296,4 @@ This is the first migration target because it is real, bounded, tested, and alre
 - `2026-05-05` state=`awaiting_review` note=`completed Slice 3 first caller migration; ProjectSetupPromptRenderer now invokes LLMRequestEngine and keeps deterministic fallback behavior`
 - `2026-05-05` state=`awaiting_review` note=`completed Slice 4 trace recorder boundary; ProjectSetupPromptRenderer now coordinates LLMTraceRecorder outside LLMRequestEngine`
 - `2026-05-05` state=`awaiting_review` note=`completed Slice 5 context section safety; migrated path now uses named authority-labeled sections, explicit output contract, redaction, and context diagnostics`
+- `2026-05-05` state=`awaiting_review` note=`completed Slice 6 hardening; targeted and broader Ruby tests passed, residual risks and next-caller criteria recorded`
