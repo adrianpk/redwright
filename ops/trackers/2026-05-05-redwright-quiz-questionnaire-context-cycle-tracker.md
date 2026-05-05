@@ -19,9 +19,9 @@
 
 ### Slice 1: Quiz Domain Foundation
 
-- status: `implemented`
+- status: `pr_merged`
 - branch: `fix/slice-1-quiz-domain-foundation`
-- PR: `pending`
+- PR: `https://codeberg.org/adrianpk/redwright/pulls/303`
 - merge_target: `dev`
 - last_sync_commit: `3d33c8f`
 
@@ -54,28 +54,30 @@ Validation:
 
 ### Slice 2: Transversal Tagging Foundation
 
-- status: `planned`
+- status: `implemented`
 - branch: `fix/slice-2-quiz-transversal-tagging`
 - PR: `pending`
 - merge_target: `dev`
-- last_sync_commit: `pending`
+- last_sync_commit: `4fa24a0`
 
 Tasks:
 
-- [ ] `T2.1 inspect current ticket/tag-related persistence and avoid duplicate tag mechanisms`
-- [ ] `T2.2 add or align Tag and Tagging models with polymorphic taggables`
-- [ ] `T2.3 normalize tags to lowercase kebab-case`
-- [ ] `T2.4 denormalize project_id and use_case_id on taggings for future retrieval queries`
-- [ ] `T2.5 support tagging QuizEntry records`
-- [ ] `T2.6 add tests for normalization, tag reuse, polymorphic tagging, and project/use-case scoped queries`
+- [x] `T2.1 inspect current ticket/tag-related persistence and avoid duplicate tag mechanisms`
+- [x] `T2.2 add or align Tag and Tagging models with polymorphic taggables`
+- [x] `T2.3 normalize tags to lowercase kebab-case`
+- [x] `T2.4 denormalize project_id and use_case_id on taggings for future retrieval queries`
+- [x] `T2.5 support tagging QuizEntry records`
+- [x] `T2.6 add tests for normalization, tag reuse, polymorphic tagging, and project/use-case scoped queries`
 
 Commits:
 
-- [ ] `pending`
+- [x] `cda6d9b feat(web): add transversal tagging models`
+- [x] `19c45a8 test(web): cover quiz tagging queries`
 
 Validation:
 
-- [ ] `pending`
+- [x] `bundle exec bin/rails test test/models/tag_test.rb test/models/tagging_test.rb test/models/quiz_entry_test.rb` (pass)
+- [x] `bundle exec bin/rails test` (pass)
 
 ### Slice 3: Quiz Loop Contract and LLM Question Service
 
@@ -232,6 +234,7 @@ Validation:
 
 - `2026-05-05 00:00` state=`planning_complete` note=`formalized the Quiz questionnaire context spec and initialized an eight-slice implementation cycle covering domain, tagging, LLM question loop, runtime controls, Telegram, web, context retrieval preparation, configuration, and closure`
 - `2026-05-05 10:00` state=`slice_1_implemented` note=`implemented UseCase, Quiz, and QuizEntry domain foundation with denormalized scope fields, cardinality helpers, model coverage, and green Rails suite`
+- `2026-05-05 15:50` state=`slice_2_implemented` note=`implemented transversal Tag and Tagging models for QuizEntry with normalized tag names, denormalized project/use-case scope, scoped retrieval queries, and green Rails suite`
 
 ## Open Risks
 
