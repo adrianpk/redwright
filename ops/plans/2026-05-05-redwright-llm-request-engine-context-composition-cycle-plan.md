@@ -3,7 +3,7 @@
 ## Metadata
 
 - cycle_id: `cycle-2026-05-05-redwright-llm-request-engine-context-composition`
-- status: `planned`
+- status: `in_progress`
 - owner: `adrianpk`
 - created: `2026-05-05`
 - updated: `2026-05-05`
@@ -36,7 +36,7 @@ The plan intentionally starts with call-site inspection and a first real migrati
 
 ### Slice 1: LLM Call-Site Audit and First Caller Selection
 
-- status: `planned`
+- status: `completed`
 - branch: `fix/slice-1-llm-request-callsite-audit`
 - pr_title: `feat(slice-1): select llm request engine first caller`
 - objective: `inspect existing productive LLM call sites, document the first migration target, and define the minimal semantic engine method required by that caller`

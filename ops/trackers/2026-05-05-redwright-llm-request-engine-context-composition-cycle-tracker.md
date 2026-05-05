@@ -3,10 +3,10 @@
 ## Metadata
 
 - cycle_id: `cycle-2026-05-05-redwright-llm-request-engine-context-composition`
-- status: `planned`
-- state: `planning_complete`
+- status: `in_progress`
+- state: `next_slice`
 - updated: `2026-05-05`
-- active_slice: `none`
+- active_slice: `Slice 2`
 - active_task: `none`
 - source_plan: `ops/plans/2026-05-05-redwright-llm-request-engine-context-composition-cycle-plan.md`
 - source_spec: `ops/specs/specs/2026-05-05-redwright-llm-request-engine-context-composition-spec.md`
@@ -23,28 +23,28 @@
 
 ### Slice 1: LLM Call-Site Audit and First Caller Selection
 
-- status: `planned`
+- status: `completed`
 - branch: `fix/slice-1-llm-request-callsite-audit`
 - PR: `pending`
 - merge_target: `dev`
-- last_sync_commit: `tbd`
+- last_sync_commit: `pending_pr`
 
 Tasks:
 
-- [ ] `T1.1 locate current provider invocation and LLM request construction call sites`
-- [ ] `T1.2 classify each call site by request mode, work kind, available explicit inputs, expected output shape, and failure behavior`
-- [ ] `T1.3 select the first caller using low migration risk, real value, explicit inputs, and testability as criteria`
-- [ ] `T1.4 document the selected first caller and rejected alternatives in the tracker`
-- [ ] `T1.5 define the first semantic engine method name and keyword argument set`
-- [ ] `T1.6 identify the existing provider adapter behavior the engine must reuse`
+- [x] `T1.1 locate current provider invocation and LLM request construction call sites`
+- [x] `T1.2 classify each call site by request mode, work kind, available explicit inputs, expected output shape, and failure behavior`
+- [x] `T1.3 select the first caller using low migration risk, real value, explicit inputs, and testability as criteria`
+- [x] `T1.4 document the selected first caller and rejected alternatives in the tracker`
+- [x] `T1.5 define the first semantic engine method name and keyword argument set`
+- [x] `T1.6 identify the existing provider adapter behavior the engine must reuse`
 
 Commits:
 
-- [ ] `docs(ops): select llm request engine first caller`
+- [x] `docs(ops): select llm request engine first caller`
 
 Validation:
 
-- [ ] `docs-only consistency pass` (pending)
+- [x] `docs-only consistency pass` (pass)
 
 ### Slice 2: Engine Namespace, Response Shape, and Provider Invocation
 
@@ -183,13 +183,63 @@ Validation:
 
 ## First Caller Selection Record
 
-- selected_caller: `tbd`
-- rejected_alternatives: `tbd`
-- selected_reason: `tbd`
-- first_semantic_method: `tbd`
-- explicit_inputs_required: `tbd`
-- provider_adapter_path: `tbd`
-- user_facing_failure_policy: `tbd`
+- selected_caller: `Redwright::ProjectSetupPromptRenderer#render_prompt_via_llm`
+- rejected_alternatives: `Redwright::LlmIntentInterpreter#interpret`, `Redwright::TelegramRuntimeHandler#interpret_with_trace`, `QuizLoops::QuestionProvider#generate`, `RuntimeContainers::LlmSuggestionProvider#generate`, `Redwright::AlignmentQuestionEngine#next_turn`
+- selected_reason: `project setup prompt rendering is a productive existing LLM path with explicit available inputs, established trace metadata, focused tests, and a bounded JSON response contract; it matches the questionnaire's suggested initial caller while avoiding the broader runtime-planner blast radius`
+- first_semantic_method: `generate_structured_message`
+- explicit_inputs_required: `model, model_role, provider, action, system_prompt, user_text, output_contract, context_sections, trace_metadata`
+- provider_adapter_path: `existing llm client complete_json(model:, system_prompt:, user_text:) behavior, currently supplied to ProjectSetupPromptRenderer from Redwright::CLI#telegram_project_setup_adapter_from_env`
+- user_facing_failure_policy: `return the existing deterministic project setup fallback prompt when provider invocation, JSON parsing, or message extraction fails; raw provider errors remain diagnostics-only`
+
+## Call-Site Audit
+
+### Selected Caller
+
+`Redwright::ProjectSetupPromptRenderer#render_prompt_via_llm`
+
+- request_mode: `project_setup`
+- work_kind: `prompt_rendering`
+- model_role: `non_coding`
+- current provider call: `@llm_client.complete_json(model:, system_prompt:, user_text:)`
+- current trace calls: `Trace.llm_request` and `Trace.llm_response` inside the renderer
+- expected output: strict JSON object with one `message` key
+- available explicit inputs: setup summary, next prompt intent, setup context, latest user text, trace id, project id, session id, model, provider inferred from model
+- failure behavior: deterministic fallback prompt
+- migration fit: high
+
+This is the first migration target because it is real, bounded, tested, and already carries the request/response trace shape the new engine and recorder need to preserve.
+
+### Rejected Alternatives
+
+`Redwright::LlmIntentInterpreter#interpret`
+
+- request_mode: `telegram_runtime_planning`
+- work_kind: `intent_interpretation`
+- rejection reason: broader runtime planner path with validation retries, skill dispatching, and dynamic context providers; useful later but larger first migration blast radius.
+
+`Redwright::TelegramRuntimeHandler#interpret_with_trace`
+
+- request_mode: `telegram_runtime`
+- work_kind: `planning_trace_coordination`
+- rejection reason: it already coordinates trace around the interpreter and is coupled to Telegram runtime flow; migrating it first would blur engine and business orchestration boundaries.
+
+`QuizLoops::QuestionProvider#generate`
+
+- request_mode: `quiz_loop`
+- work_kind: `question_generation`
+- rejection reason: good future caller, but current provider boundary is a generic injected client with `generate_quiz_question` or `call`; it does not yet exercise the existing provider adapter and trace path as directly as project setup rendering.
+
+`RuntimeContainers::LlmSuggestionProvider#generate`
+
+- request_mode: `runtime_container_generation`
+- work_kind: `structured_generation`
+- rejection reason: fallback-heavy generator path and persistence side effects through `GenerationService`; better after the engine's normalized response shape exists.
+
+`Redwright::AlignmentQuestionEngine#next_turn`
+
+- request_mode: `alignment_loop`
+- work_kind: `question_generation`
+- rejection reason: older lib-side loop without current trace coordination; not the best first point for validating engine plus recorder boundaries.
 
 ## Cross-Cutting Constraints
 
@@ -199,11 +249,13 @@ Validation:
 - [ ] `LLMTraceRecorder remains outside the engine`
 - [ ] `business service or controller fallback coordinates recorder invocation`
 - [ ] `the first implementation migrates only one caller`
-- [ ] `no generic orchestration service is introduced`
-- [ ] `no broad task taxonomy is introduced upfront`
+- [x] `no generic orchestration service is introduced`
+- [x] `no broad task taxonomy is introduced upfront`
 - [ ] `raw provider diagnostics are not user-facing by default`
 - [ ] `obvious sensitive content is filtered or rejected in the selected path`
 
 ## Event Log
 
 - `2026-05-05` state=`planning_complete` note=`created implementation cycle plan and tracker from the expanded LLM request engine context composition spec`
+- `2026-05-05` state=`executing_slice` note=`started Slice 1 call-site audit on branch fix/slice-1-llm-request-callsite-audit`
+- `2026-05-05` state=`next_slice` note=`completed Slice 1 docs-only audit; selected ProjectSetupPromptRenderer as first LLMRequestEngine migration caller`
