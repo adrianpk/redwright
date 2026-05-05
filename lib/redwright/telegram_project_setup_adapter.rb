@@ -20,13 +20,16 @@ module Redwright
       @session_ids_by_chat = {}
       @project_ids_by_chat = {}
       @ticket_ids_by_chat = {}
+      @quiz_contexts_by_chat = {}
     end
 
     def handles_event?(event)
       return true if active_session_id(event.chat_id) && setup_control_command?(event.text)
+      return true if active_quiz_context(event.chat_id) && quiz_control_or_answer?(event.text)
 
       return true if parse_command(event.text)
       return true if parse_ticket_command(event.text)
+      return true if parse_quiz_command(event.text)
       return true if active_session_id(event.chat_id) && !slash?(event.text)
 
       false
@@ -34,11 +37,14 @@ module Redwright
 
     def handle(event, trace_id:)
       return advance_active_session(event: event, trace_id: trace_id) if active_session_id(event.chat_id) && setup_control_command?(event.text)
+      return advance_active_quiz(event: event, trace_id: trace_id) if active_quiz_context(event.chat_id) && quiz_control_or_answer?(event.text)
 
       command = parse_command(event.text)
       return handle_project_command(event: event, command: command, trace_id: trace_id) if command
       ticket_command = parse_ticket_command(event.text)
       return handle_ticket_command(event: event, command: ticket_command, trace_id: trace_id) if ticket_command
+      quiz_command = parse_quiz_command(event.text)
+      return handle_quiz_command(event: event, command: quiz_command, trace_id: trace_id) if quiz_command
       return advance_active_session(event: event, trace_id: trace_id) if active_session_id(event.chat_id) && !slash?(event.text)
 
       Result.new(handled: false)
@@ -62,6 +68,17 @@ module Redwright
         list_projects(event: event, trace_id: trace_id)
       when "where"
         current_project_context(event: event, trace_id: trace_id)
+      else
+        Result.new(handled: false)
+      end
+    end
+
+    def handle_quiz_command(event:, command:, trace_id:)
+      case command[:command]
+      when "open"
+        open_quiz(event: event, use_case_name: command[:use_case_name], trace_id: trace_id)
+      when "list"
+        list_quizzes(event: event, trace_id: trace_id)
       else
         Result.new(handled: false)
       end
@@ -250,6 +267,71 @@ module Redwright
       )
     end
 
+    def open_quiz(event:, use_case_name:, trace_id:)
+      project_id = active_project_id(event.chat_id)
+      return missing_project_context_result(command: "quiz_open", trace_id: trace_id) unless project_id
+
+      response = client.command(
+        name: "OpenQuiz",
+        payload: {"project_id" => project_id, "use_case_name" => use_case_name},
+        actor_identifier: actor_identifier_for(event),
+        request_id: request_id_for(event, "open-quiz")
+      )
+      body = response.body
+      remember_quiz_context(chat_id: event.chat_id, use_case_name: use_case_name, body: body)
+
+      Result.new(
+        handled: true,
+        command: "quiz_open",
+        message: render_quiz(body: body, trace_id: trace_id),
+        api_response: body
+      )
+    end
+
+    def advance_active_quiz(event:, trace_id:)
+      context = active_quiz_context(event.chat_id)
+      response = client.command(
+        name: "AdvanceQuiz",
+        payload: {
+          "project_id" => context.fetch("project_id"),
+          "use_case_name" => context["use_case_name"],
+          "question" => context.fetch("question"),
+          "answer" => event.text.to_s,
+          "tags" => context.fetch("tags", [])
+        },
+        actor_identifier: actor_identifier_for(event),
+        request_id: request_id_for(event, "advance-quiz")
+      )
+      body = response.body
+      remember_quiz_context(chat_id: event.chat_id, use_case_name: context["use_case_name"], body: body)
+
+      Result.new(
+        handled: true,
+        command: "quiz_advance",
+        message: render_quiz(body: body, trace_id: trace_id),
+        api_response: body
+      )
+    end
+
+    def list_quizzes(event:, trace_id:)
+      project_id = active_project_id(event.chat_id)
+      return missing_project_context_result(command: "quiz_list", trace_id: trace_id) unless project_id
+
+      response = client.query(
+        name: "ListQuizzes",
+        payload: {"project_id" => project_id},
+        actor_identifier: actor_identifier_for(event),
+        request_id: request_id_for(event, "list-quizzes")
+      )
+
+      Result.new(
+        handled: true,
+        command: "quiz_list",
+        message: render_quiz_list(body: response.body, trace_id: trace_id),
+        api_response: response.body
+      )
+    end
+
     def render_setup_response(body:, trace_id:, user_text:)
       @prompt_renderer.render(body: body, user_text: user_text, trace_id: trace_id)
     end
@@ -343,6 +425,46 @@ module Redwright
       ].join("\n")
     end
 
+    def render_quiz(body:, trace_id:)
+      data = body["data"] || {}
+      if body.fetch("status", "") == "error"
+        return [
+          "Quiz error: #{summary_from(body)}",
+          *error_lines_from(body),
+          "Trace: #{trace_id}"
+        ].join("\n")
+      end
+
+      if %w[done cancelled].include?(data["status"].to_s)
+        return [
+          data["summary"],
+          "Trace: #{trace_id}"
+        ].join("\n")
+      end
+
+      lines = [
+        data["question"],
+        "Controls: skip, done, cancel"
+      ]
+      tags = Array(data["tags"])
+      lines << "Tags: #{tags.join(', ')}" if tags.any?
+      lines << "Trace: #{trace_id}"
+      lines.join("\n")
+    end
+
+    def render_quiz_list(body:, trace_id:)
+      quizzes = body.dig("data", "quizzes") || []
+      lines = quizzes.first(20).map do |quiz|
+        scope = quiz["use_case_name"].to_s.empty? ? "project" : quiz["use_case_name"]
+        "- #{quiz['id']}: #{scope} (#{quiz['entry_count']} entries)"
+      end
+      [
+        "Quizzes:",
+        lines.empty? ? "No quizzes found." : lines.join("\n"),
+        "Trace: #{trace_id}"
+      ].join("\n")
+    end
+
     def remember_context(chat_id:, body:)
       session_id = body["session_id"] || body.dig("data", "session_id")
       project_id = body["project_id"] || body.dig("data", "project_id")
@@ -361,6 +483,23 @@ module Redwright
       ticket_id = body["ticket_id"] || body.dig("data", "ticket_id")
       @project_ids_by_chat[chat_id] = project_id if project_id
       @ticket_ids_by_chat[chat_id] = ticket_id if ticket_id
+    end
+
+    def remember_quiz_context(chat_id:, use_case_name:, body:)
+      data = body["data"] || {}
+      project_id = data.dig("quiz", "project_id")
+      @project_ids_by_chat[chat_id] = project_id if project_id
+
+      if data["status"].to_s == "collecting" && data["question"].to_s.strip != ""
+        @quiz_contexts_by_chat[chat_id] = {
+          "project_id" => project_id,
+          "use_case_name" => use_case_name,
+          "question" => data["question"],
+          "tags" => data["tags"] || []
+        }
+      else
+        @quiz_contexts_by_chat.delete(chat_id)
+      end
     end
 
     def summary_from(body)
@@ -479,11 +618,23 @@ module Redwright
       nil
     end
 
+    def parse_quiz_command(text)
+      raw = text.to_s.strip
+      return nil unless raw.start_with?("/quiz")
+      return {command: "open", use_case_name: nil} if raw.match?(%r{\A/quiz\s*\z}i)
+      return {command: "list"} if raw.match?(%r{\A/quiz\s+list\s*\z}i)
+
+      for_match = raw.match(%r{\A/quiz\s+for\s+(.+?)\s*\z}i)
+      return {command: "open", use_case_name: for_match[1].strip} if for_match
+
+      nil
+    end
+
     def missing_project_context_result(command:, trace_id:)
       Result.new(
         handled: true,
         command: command,
-        message: "No active Rails project for ticket command.\nTrace: #{trace_id}",
+        message: "No active Rails project for this command.\nTrace: #{trace_id}",
         api_response: nil
       )
     end
@@ -494,6 +645,17 @@ module Redwright
 
     def setup_control_command?(text)
       %w[/skip /done /cancel].include?(text.to_s.strip.downcase)
+    end
+
+    def quiz_control_or_answer?(text)
+      raw = text.to_s.strip
+      return true unless slash?(raw)
+
+      %w[/skip /done /cancel].include?(raw.downcase)
+    end
+
+    def active_quiz_context(chat_id)
+      @quiz_contexts_by_chat[chat_id]
     end
 
     def actor_identifier_for(event)
