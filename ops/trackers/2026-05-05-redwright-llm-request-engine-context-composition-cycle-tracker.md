@@ -4,7 +4,7 @@
 
 - cycle_id: `cycle-2026-05-05-redwright-llm-request-engine-context-composition`
 - status: `in_progress`
-- state: `next_slice`
+- state: `awaiting_review`
 - updated: `2026-05-05`
 - active_slice: `Slice 2`
 - active_task: `none`
@@ -23,11 +23,11 @@
 
 ### Slice 1: LLM Call-Site Audit and First Caller Selection
 
-- status: `completed`
+- status: `pr_merged`
 - branch: `fix/slice-1-llm-request-callsite-audit`
-- PR: `pending`
+- PR: `https://codeberg.org/adrianpk/redwright/pulls/311`
 - merge_target: `dev`
-- last_sync_commit: `pending_pr`
+- last_sync_commit: `ee24fbf`
 
 Tasks:
 
@@ -48,31 +48,31 @@ Validation:
 
 ### Slice 2: Engine Namespace, Response Shape, and Provider Invocation
 
-- status: `planned`
+- status: `completed`
 - branch: `fix/slice-2-llm-request-engine-foundation`
 - PR: `pending`
 - merge_target: `dev`
-- last_sync_commit: `tbd`
+- last_sync_commit: `pending_pr`
 
 Tasks:
 
-- [ ] `T2.1 add the Redwright::LLM namespace in the repository's existing Ruby loading structure`
-- [ ] `T2.2 add the minimal LLMRequestEngine semantic method selected in Slice 1`
-- [ ] `T2.3 add the normalized response object or struct needed by the first caller`
-- [ ] `T2.4 wire provider invocation through existing provider adapter behavior without introducing a parallel provider framework`
-- [ ] `T2.5 normalize successful provider output into rendered text and semantic payload fields required by the caller`
-- [ ] `T2.6 normalize provider errors, timeouts, empty responses, and parse failures for the caller`
-- [ ] `T2.7 add focused tests for successful response and normalized failure paths`
+- [x] `T2.1 add the Redwright::LLM namespace in the repository's existing Ruby loading structure`
+- [x] `T2.2 add the minimal LLMRequestEngine semantic method selected in Slice 1`
+- [x] `T2.3 add the normalized response object or struct needed by the first caller`
+- [x] `T2.4 wire provider invocation through existing provider adapter behavior without introducing a parallel provider framework`
+- [x] `T2.5 normalize successful provider output into rendered text and semantic payload fields required by the caller`
+- [x] `T2.6 normalize provider errors, timeouts, empty responses, and parse failures for the caller`
+- [x] `T2.7 add focused tests for successful response and normalized failure paths`
 
 Commits:
 
-- [ ] `feat(web): add llm request engine foundation`
-- [ ] `test(web): cover llm request engine responses`
+- [x] `5050acf feat(web): add llm request engine foundation`
+- [x] `106c165 test(web): cover llm request engine responses`
 
 Validation:
 
-- [ ] `targeted engine tests` (pending)
-- [ ] `targeted first caller tests` (pending)
+- [x] `ruby -Itest -Ilib test/redwright/llm_request_engine_test.rb` (pass)
+- [x] `ruby -Itest -Ilib test/redwright/project_setup_prompt_renderer_test.rb` (pass)
 
 ### Slice 3: First Caller Migration
 
@@ -243,12 +243,12 @@ This is the first migration target because it is real, bounded, tested, and alre
 
 ## Cross-Cutting Constraints
 
-- [ ] `LLMRequestEngine receives explicit inputs and does not fetch business state`
-- [ ] `LLMRequestEngine invokes existing provider behavior`
-- [ ] `LLMRequestEngine returns normalized RedWright responses`
+- [x] `LLMRequestEngine receives explicit inputs and does not fetch business state`
+- [x] `LLMRequestEngine invokes existing provider behavior`
+- [x] `LLMRequestEngine returns normalized RedWright responses`
 - [ ] `LLMTraceRecorder remains outside the engine`
 - [ ] `business service or controller fallback coordinates recorder invocation`
-- [ ] `the first implementation migrates only one caller`
+- [x] `the first implementation migrates only one caller`
 - [x] `no generic orchestration service is introduced`
 - [x] `no broad task taxonomy is introduced upfront`
 - [ ] `raw provider diagnostics are not user-facing by default`
@@ -259,3 +259,4 @@ This is the first migration target because it is real, bounded, tested, and alre
 - `2026-05-05` state=`planning_complete` note=`created implementation cycle plan and tracker from the expanded LLM request engine context composition spec`
 - `2026-05-05` state=`executing_slice` note=`started Slice 1 call-site audit on branch fix/slice-1-llm-request-callsite-audit`
 - `2026-05-05` state=`next_slice` note=`completed Slice 1 docs-only audit; selected ProjectSetupPromptRenderer as first LLMRequestEngine migration caller`
+- `2026-05-05` state=`awaiting_review` note=`completed Slice 2 foundation; added Redwright::LLM::RequestEngine, normalized response handling, provider invocation, and focused tests`

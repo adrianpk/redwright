@@ -57,7 +57,7 @@ The plan intentionally starts with call-site inspection and a first real migrati
 
 ### Slice 2: Engine Namespace, Response Shape, and Provider Invocation
 
-- status: `planned`
+- status: `completed`
 - branch: `fix/slice-2-llm-request-engine-foundation`
 - pr_title: `feat(slice-2): add llm request engine foundation`
 - objective: `introduce the Redwright::LLM namespace, minimal LLMRequestEngine boundary, normalized response object, and provider invocation path for the selected caller`
