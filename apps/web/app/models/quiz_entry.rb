@@ -24,6 +24,8 @@ class QuizEntry < ApplicationRecord
 
   def tag_with!(*names)
     names.flatten.filter_map do |name|
+      next if Tag.normalize_name(name).blank?
+
       tag = Tag.find_or_create_normalized!(name)
       taggings.find_or_create_by!(tag: tag)
       tag

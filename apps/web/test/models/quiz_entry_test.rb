@@ -62,4 +62,16 @@ class QuizEntryTest < ActiveSupport::TestCase
     assert_not entry.valid?
     assert_includes entry.errors[:answer], "can't be blank"
   end
+
+  test "tags entry with normalized reusable tags" do
+    project = create_project(key: "quiz-entry-tags")
+    quiz = project.find_or_create_main_quiz!
+    entry = quiz.entries.create!(question: "What is important?", answer: "Clear context.")
+
+    tags = entry.tag_with!(" Context Quality ", "context-quality")
+
+    assert_equal ["context-quality"], tags.uniq.map(&:name)
+    assert_equal ["context-quality"], entry.tags.map(&:name)
+    assert_equal project.id, entry.taggings.first.project_id
+  end
 end
