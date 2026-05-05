@@ -2,6 +2,8 @@
 
 require "json"
 
+require_relative "llm/context_section"
+require_relative "llm/redactor"
 require_relative "llm/request_engine"
 require_relative "llm/trace_recorder"
 
@@ -51,6 +53,19 @@ module Redwright
       source.merge(data)
     end
 
+    def output_contract
+      {"required_fields" => ["message"], "rendered_text_field" => "message"}
+    end
+
+    def context_sections_for(payload:, intent:, user_text:)
+      [
+        LLM::ContextSection.new(name: "setup_summary", content: payload["summary"].to_s, authority: "request_context"),
+        LLM::ContextSection.new(name: "next_prompt_intent", content: intent, authority: "request_context"),
+        LLM::ContextSection.new(name: "setup_context", content: payload["setup_context"] || {}, authority: "project_context"),
+        LLM::ContextSection.new(name: "user_text", content: user_text.to_s, authority: "current_user_request")
+      ]
+    end
+
     def render_prompt_via_llm(payload:, intent:, user_text:, trace_id:)
       return fallback_prompt(payload: payload, intent: intent) unless llm_configured?
 
@@ -59,9 +74,12 @@ module Redwright
           setup_summary: payload["summary"].to_s,
           next_prompt_intent: intent,
           setup_context: payload["setup_context"] || {},
-          user_text: user_text.to_s
+          user_text: user_text.to_s,
+          output_contract: output_contract
         }
       )
+      llm_payload = LLM::Redactor.redact_text(llm_payload)
+      context_sections = context_sections_for(payload: payload, intent: intent, user_text: user_text)
       llm_call_id = @trace_recorder.record_request(
         model_role: "non_coding",
         provider: provider_name,
@@ -77,7 +95,7 @@ module Redwright
         source_channel: "project_setup",
         context_summary: payload["summary"].to_s,
         context_bytes: JSON.generate(payload["setup_context"] || {}).bytesize,
-        context_sections: ["setup_summary", "next_prompt_intent", "setup_context", "user_text"]
+        context_sections: context_sections.map(&:to_h)
       )
       started_at = Process.clock_gettime(Process::CLOCK_MONOTONIC)
       response = @request_engine.generate_structured_message(
@@ -87,8 +105,8 @@ module Redwright
         action: "project_setup_prompt_render",
         system_prompt: SYSTEM_PROMPT,
         user_text: llm_payload,
-        output_contract: {"required_fields" => ["message"], "rendered_text_field" => "message"},
-        context_sections: ["setup_summary", "next_prompt_intent", "setup_context", "user_text"],
+        output_contract: output_contract,
+        context_sections: context_sections,
         trace_metadata: {
           trace_id: trace_id,
           project_id: payload["project_id"] || payload.dig("project", "id"),

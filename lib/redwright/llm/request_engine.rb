@@ -2,6 +2,9 @@
 
 require "json"
 
+require_relative "context_section"
+require_relative "redactor"
+
 module Redwright
   module LLM
     class RequestEngine
@@ -43,10 +46,12 @@ module Redwright
       )
         return failure_response("llm_unavailable", "LLM client is not configured", provider: provider, model: model, model_role: model_role, action: action, context_sections: context_sections, trace_metadata: trace_metadata) unless llm_configured?
 
+        safe_system_prompt = Redactor.redact_text(system_prompt)
+        safe_user_text = Redactor.redact_text(user_text)
         completion = @llm_client.complete_json(
           model: model,
-          system_prompt: system_prompt,
-          user_text: user_text
+          system_prompt: safe_system_prompt,
+          user_text: safe_user_text
         )
         normalize_completion(
           completion: completion,
@@ -56,7 +61,8 @@ module Redwright
           model_role: model_role,
           action: action,
           context_sections: context_sections,
-          trace_metadata: trace_metadata
+          trace_metadata: trace_metadata,
+          redacted: safe_system_prompt != system_prompt.to_s || safe_user_text != user_text.to_s
         )
       rescue JSON::ParserError => e
         failure_response("invalid_response", "Provider response was not valid JSON", provider: provider, model: model, model_role: model_role, action: action, context_sections: context_sections, trace_metadata: trace_metadata, error: e)
@@ -70,7 +76,7 @@ module Redwright
         @llm_client&.configured?
       end
 
-      def normalize_completion(completion:, output_contract:, provider:, model:, model_role:, action:, context_sections:, trace_metadata:)
+      def normalize_completion(completion:, output_contract:, provider:, model:, model_role:, action:, context_sections:, trace_metadata:, redacted: false)
         parsed = JSON.parse(completion.content.to_s)
         return invalid_shape_response(provider: provider, model: model, model_role: model_role, action: action, context_sections: context_sections, trace_metadata: trace_metadata) unless parsed.is_a?(Hash)
 
@@ -86,7 +92,7 @@ module Redwright
           usage: nil,
           warnings: [],
           raw_response_ref: completion.content,
-          diagnostics: diagnostics(context_sections: context_sections, trace_metadata: trace_metadata)
+          diagnostics: diagnostics(context_sections: context_sections, trace_metadata: trace_metadata, redacted: redacted)
         )
       rescue JSON::ParserError => e
         failure_response("invalid_response", "Provider response was not valid JSON", provider: provider, model: model, model_role: model_role, action: action, context_sections: context_sections, trace_metadata: trace_metadata, error: e, raw_response_ref: completion.content)
@@ -130,14 +136,35 @@ module Redwright
         }.compact
       end
 
-      def diagnostics(context_sections:, trace_metadata:, error: nil)
+      def diagnostics(context_sections:, trace_metadata:, error: nil, redacted: false)
         data = {
-          context_sections: Array(context_sections).map(&:to_s),
-          trace_metadata: trace_metadata || {}
+          context_sections: context_section_names(context_sections),
+          context_section_authorities: context_section_authorities(context_sections),
+          context_bytes: context_section_bytes(context_sections),
+          trace_metadata: trace_metadata || {},
+          redacted: redacted
         }
         data[:error_class] = error.class.name if error
         data[:error_message] = error.message if error
         data
+      end
+
+      def context_section_names(context_sections)
+        Array(context_sections).map { |section| section.respond_to?(:name) ? section.name.to_s : section.to_s }
+      end
+
+      def context_section_authorities(context_sections)
+        Array(context_sections).each_with_object({}) do |section, authorities|
+          next unless section.respond_to?(:name) && section.respond_to?(:authority)
+
+          authorities[section.name.to_s] = section.authority.to_s
+        end
+      end
+
+      def context_section_bytes(context_sections)
+        Array(context_sections).sum do |section|
+          section.respond_to?(:authority) && section.respond_to?(:bytes) ? section.bytes : section.to_s.bytesize
+        end
       end
     end
   end
