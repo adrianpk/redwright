@@ -12,6 +12,10 @@ Living discussion
 
 `2026-05-05-redwright-llm-request-engine-context-composition-conv-raw.md`
 
+## Related Specification
+
+`../specs/2026-05-05-redwright-llm-request-engine-context-composition-spec.md`
+
 ## Purpose
 
 Curated alignment notes for the future `LLMRequestEngine`, context composition boundary, and `LLMTraceRecorder` design.
@@ -139,4 +143,4 @@ These notes distill the completed 50-question bounded questionnaire and supersed
 
 - This file is intentionally curated and non-final.
 - The raw questionnaire reached its configured 50-question cap and is closed.
-- Future formal specs should use this curated file plus the existing drafts, not the raw capture alone.
+- The initial formal spec was derived from this curated file plus the existing drafts, not from the raw capture alone.

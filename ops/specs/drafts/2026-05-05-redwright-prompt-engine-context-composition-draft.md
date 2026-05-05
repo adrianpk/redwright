@@ -8,6 +8,7 @@
 - scope: prompt/context composition module for RedWright agents
 - conversation: `../conv/2026-05-05-redwright-llm-request-engine-context-composition-conv.md`
 - raw_capture: `../conv/2026-05-05-redwright-llm-request-engine-context-composition-conv-raw.md`
+- promoted_spec: `../specs/2026-05-05-redwright-llm-request-engine-context-composition-spec.md`
 
 This draft is intentionally provisional. Nothing in it is set in stone.
 
