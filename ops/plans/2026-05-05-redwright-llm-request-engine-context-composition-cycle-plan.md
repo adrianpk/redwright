@@ -80,7 +80,7 @@ The plan intentionally starts with call-site inspection and a first real migrati
 
 ### Slice 3: First Caller Migration
 
-- status: `planned`
+- status: `completed`
 - branch: `fix/slice-3-llm-request-first-caller`
 - pr_title: `feat(slice-3): migrate first llm caller to request engine`
 - objective: `replace the selected direct LLM call with LLMRequestEngine while preserving or improving caller behavior and user-facing failure output`

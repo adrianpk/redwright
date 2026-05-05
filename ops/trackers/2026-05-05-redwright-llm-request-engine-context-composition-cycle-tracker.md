@@ -6,7 +6,7 @@
 - status: `in_progress`
 - state: `awaiting_review`
 - updated: `2026-05-05`
-- active_slice: `Slice 2`
+- active_slice: `Slice 3`
 - active_task: `none`
 - source_plan: `ops/plans/2026-05-05-redwright-llm-request-engine-context-composition-cycle-plan.md`
 - source_spec: `ops/specs/specs/2026-05-05-redwright-llm-request-engine-context-composition-spec.md`
@@ -48,11 +48,11 @@ Validation:
 
 ### Slice 2: Engine Namespace, Response Shape, and Provider Invocation
 
-- status: `completed`
+- status: `pr_merged`
 - branch: `fix/slice-2-llm-request-engine-foundation`
-- PR: `pending`
+- PR: `https://codeberg.org/adrianpk/redwright/pulls/312`
 - merge_target: `dev`
-- last_sync_commit: `pending_pr`
+- last_sync_commit: `813c8e1`
 
 Tasks:
 
@@ -76,30 +76,30 @@ Validation:
 
 ### Slice 3: First Caller Migration
 
-- status: `planned`
+- status: `completed`
 - branch: `fix/slice-3-llm-request-first-caller`
 - PR: `pending`
 - merge_target: `dev`
-- last_sync_commit: `tbd`
+- last_sync_commit: `pending_pr`
 
 Tasks:
 
-- [ ] `T3.1 gather the selected caller's existing business inputs before invoking the engine`
-- [ ] `T3.2 pass explicit keyword inputs into the engine instead of allowing the engine to fetch business state`
-- [ ] `T3.3 preserve the caller's expected semantic output behavior`
-- [ ] `T3.4 replace crude provider errors with normalized user-facing failure handling`
-- [ ] `T3.5 keep hidden rationale and raw diagnostics out of rendered user-facing output`
-- [ ] `T3.6 add or update caller-level tests for success, invalid response, and provider failure cases`
+- [x] `T3.1 gather the selected caller's existing business inputs before invoking the engine`
+- [x] `T3.2 pass explicit keyword inputs into the engine instead of allowing the engine to fetch business state`
+- [x] `T3.3 preserve the caller's expected semantic output behavior`
+- [x] `T3.4 replace crude provider errors with normalized user-facing failure handling`
+- [x] `T3.5 keep hidden rationale and raw diagnostics out of rendered user-facing output`
+- [x] `T3.6 add or update caller-level tests for success, invalid response, and provider failure cases`
 
 Commits:
 
-- [ ] `feat(web): migrate first llm caller to request engine`
-- [ ] `test(web): cover migrated llm caller`
+- [x] `bbc1fea feat(web): migrate first llm caller to request engine`
+- [x] `329e89f test(web): cover migrated llm caller`
 
 Validation:
 
-- [ ] `targeted migrated caller tests` (pending)
-- [ ] `targeted provider failure tests` (pending)
+- [x] `ruby -Itest -Ilib test/redwright/project_setup_prompt_renderer_test.rb` (pass)
+- [x] `ruby -Itest -Ilib test/redwright/llm_request_engine_test.rb` (pass)
 
 ### Slice 4: Trace Recorder Boundary
 
@@ -251,7 +251,7 @@ This is the first migration target because it is real, bounded, tested, and alre
 - [x] `the first implementation migrates only one caller`
 - [x] `no generic orchestration service is introduced`
 - [x] `no broad task taxonomy is introduced upfront`
-- [ ] `raw provider diagnostics are not user-facing by default`
+- [x] `raw provider diagnostics are not user-facing by default`
 - [ ] `obvious sensitive content is filtered or rejected in the selected path`
 
 ## Event Log
@@ -260,3 +260,4 @@ This is the first migration target because it is real, bounded, tested, and alre
 - `2026-05-05` state=`executing_slice` note=`started Slice 1 call-site audit on branch fix/slice-1-llm-request-callsite-audit`
 - `2026-05-05` state=`next_slice` note=`completed Slice 1 docs-only audit; selected ProjectSetupPromptRenderer as first LLMRequestEngine migration caller`
 - `2026-05-05` state=`awaiting_review` note=`completed Slice 2 foundation; added Redwright::LLM::RequestEngine, normalized response handling, provider invocation, and focused tests`
+- `2026-05-05` state=`awaiting_review` note=`completed Slice 3 first caller migration; ProjectSetupPromptRenderer now invokes LLMRequestEngine and keeps deterministic fallback behavior`
