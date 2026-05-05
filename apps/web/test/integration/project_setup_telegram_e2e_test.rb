@@ -242,6 +242,55 @@ class ProjectSetupTelegramE2eTest < ActiveSupport::TestCase
     assert_equal "https://example.com/acme/#{slug}.git", project.repo_url
   end
 
+  test "telegram quiz opens project quiz and records answer" do
+    adapter = adapter_for_chat
+    project = create_project(key: "telegram-quiz-project")
+    adapter.handle(event(1, "/project list"), trace_id: "trc-telegram-e2e")
+    adapter.handle(event(2, "/project where"), trace_id: "trc-telegram-e2e")
+    adapter.instance_variable_get(:@project_ids_by_chat)[90_001] = project.id
+
+    opened = adapter.handle(event(3, "/quiz"), trace_id: "trc-telegram-e2e")
+    answered = adapter.handle(event(4, "Preserve concise prompts."), trace_id: "trc-telegram-e2e")
+
+    assert opened.handled?
+    assert answered.handled?
+    assert_equal "quiz_open", opened.command
+    assert_equal "quiz_advance", answered.command
+    assert_match "Controls: skip, done, cancel", opened.message
+    entry = project.quiz_entries.last
+    assert_equal "answered", entry.status
+    assert_equal "Preserve concise prompts.", entry.answer
+  end
+
+  test "telegram quiz for use case creates use case quiz" do
+    adapter = adapter_for_chat
+    project = create_project(key: "telegram-quiz-use-case")
+    adapter.instance_variable_get(:@project_ids_by_chat)[90_001] = project.id
+
+    opened = adapter.handle(event(1, "/quiz for Billing Flow"), trace_id: "trc-telegram-e2e")
+
+    assert opened.handled?
+    assert_equal "quiz_open", opened.command
+    use_case = project.use_cases.find_by!(slug: "billing-flow")
+    assert_equal use_case.quiz.id, opened.api_response.dig("data", "quiz", "id")
+  end
+
+  test "telegram quiz list shows project quizzes" do
+    adapter = adapter_for_chat
+    project = create_project(key: "telegram-quiz-list")
+    project.find_or_create_main_quiz!
+    project.use_cases.create!(name: "Support").find_or_create_quiz!
+    adapter.instance_variable_get(:@project_ids_by_chat)[90_001] = project.id
+
+    listed = adapter.handle(event(1, "/quiz list"), trace_id: "trc-telegram-e2e")
+
+    assert listed.handled?
+    assert_equal "quiz_list", listed.command
+    assert_match "Quizzes:", listed.message
+    assert_match "project", listed.message
+    assert_match "Support", listed.message
+  end
+
   private
 
   def adapter_for_chat
