@@ -1,8 +1,6 @@
 module QuizLoops
   class QuestionContract
     REQUIRED_FIELDS = %w[question tags follow_up_depth completion_recommended].freeze
-    MAX_TAGS = 3
-    MAX_FOLLOW_UP_DEPTH = 3
     SENSITIVE_PATTERNS = [
       /api[-_\s]?key/i,
       /credential/i,
@@ -19,7 +17,7 @@ module QuizLoops
       end
     end
 
-    def initialize(max_tags: MAX_TAGS, max_follow_up_depth: MAX_FOLLOW_UP_DEPTH)
+    def initialize(max_tags: Configuration.current.max_tags, max_follow_up_depth: Configuration.current.max_follow_up_depth)
       @max_tags = max_tags
       @max_follow_up_depth = max_follow_up_depth
     end

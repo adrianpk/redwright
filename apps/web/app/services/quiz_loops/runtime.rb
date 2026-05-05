@@ -19,10 +19,11 @@ module QuizLoops
       end
     end
 
-    def initialize(project:, use_case_name: nil, question_provider: QuestionProvider.new)
+    def initialize(project:, use_case_name: nil, question_provider: QuestionProvider.new, configuration: Configuration.current)
       @project = project
       @use_case_name = use_case_name
       @question_provider = question_provider
+      @configuration = configuration
     end
 
     def open
@@ -48,7 +49,7 @@ module QuizLoops
 
     private
 
-    attr_reader :project, :use_case_name, :question_provider
+    attr_reader :project, :use_case_name, :question_provider, :configuration
 
     def resolve_quiz!
       return project.find_or_create_main_quiz! if use_case_name.to_s.strip.empty?
@@ -74,6 +75,8 @@ module QuizLoops
     end
 
     def next_question_result(quiz, entry: nil)
+      return terminal_result(status: "done", quiz: quiz) if quiz.entries.count >= configuration.max_questions
+
       generated = question_provider.generate(input: input_for(quiz))
       Result.new(
         ok: true,

@@ -1,0 +1,13 @@
+default: &default
+  max_questions: 50
+  max_follow_up_depth: 3
+  max_tags: 3
+
+development:
+  <<: *default
+
+test:
+  <<: *default
+
+production:
+  <<: *default
