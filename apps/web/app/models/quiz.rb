@@ -3,6 +3,7 @@ class Quiz < ApplicationRecord
 
   belongs_to :project
   belongs_to :use_case, optional: true
+  has_many :entries, class_name: "QuizEntry", dependent: :destroy
 
   validates :name, presence: true
   validates :status, inclusion: { in: STATUSES }
