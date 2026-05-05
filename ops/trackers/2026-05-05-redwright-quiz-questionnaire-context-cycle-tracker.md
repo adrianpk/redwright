@@ -135,9 +135,9 @@ Validation:
 
 ### Slice 5: Telegram Quiz Commands
 
-- status: `implemented`
+- status: `pr_merged`
 - branch: `fix/slice-5-telegram-quiz-commands`
-- PR: `pending`
+- PR: `https://codeberg.org/adrianpk/redwright/pulls/307`
 - merge_target: `dev`
 - last_sync_commit: `05fa0d3`
 
@@ -163,29 +163,31 @@ Validation:
 
 ### Slice 6: Web Quiz Surface and Visual Alignment
 
-- status: `planned`
+- status: `implemented`
 - branch: `fix/slice-6-web-quiz-surface`
 - PR: `pending`
 - merge_target: `dev`
-- last_sync_commit: `pending`
+- last_sync_commit: `239b4b3`
 
 Tasks:
 
-- [ ] `T6.1 add project navigation entry or route for Quizzes`
-- [ ] `T6.2 render quiz list for the active project`
-- [ ] `T6.3 render current-question web loop UI`
-- [ ] `T6.4 support answer, skip, done, and cancel controls from web`
-- [ ] `T6.5 avoid showing hidden agent reasoning or prior Q/A lists by default`
-- [ ] `T6.6 harmonize spacing, typography, cards, controls, and page width with existing project surfaces`
-- [ ] `T6.7 add controller/system coverage for web quiz navigation and loop controls`
+- [x] `T6.1 add project navigation entry or route for Quizzes`
+- [x] `T6.2 render quiz list for the active project`
+- [x] `T6.3 render current-question web loop UI`
+- [x] `T6.4 support answer, skip, done, and cancel controls from web`
+- [x] `T6.5 avoid showing hidden agent reasoning or prior Q/A lists by default`
+- [x] `T6.6 harmonize spacing, typography, cards, controls, and page width with existing project surfaces`
+- [x] `T6.7 add controller/system coverage for web quiz navigation and loop controls`
 
 Commits:
 
-- [ ] `pending`
+- [x] `b9808d0 feat(web): add project quiz surface`
+- [x] `e3e669c test(web): cover quiz web flows`
 
 Validation:
 
-- [ ] `pending`
+- [x] `bundle exec bin/rails test test/controllers/project_quizzes_controller_test.rb` (pass)
+- [x] `bundle exec bin/rails test` (pass)
 
 ### Slice 7: Ticket/UseCase Context Preparation
 
@@ -245,6 +247,7 @@ Validation:
 - `2026-05-05 16:05` state=`slice_3_implemented` note=`implemented quiz LLM question contract, prompt intent builder, provider fallback behavior, tag bounding, follow-up depth bounding, and sensitive-information guardrails with green Rails suite`
 - `2026-05-05 16:20` state=`slice_4_implemented` note=`implemented port-agnostic quiz loop runtime with project/use-case quiz resolution, answer and skip persistence, done/cancel terminal results, reopening behavior, and green Rails suite`
 - `2026-05-05 16:40` state=`slice_5_implemented` note=`implemented Telegram /quiz, /quiz for <use_case>, and /quiz list through command/query handlers and the port-agnostic runtime, with concise rendering and green Rails suite`
+- `2026-05-05 17:00` state=`slice_6_implemented` note=`implemented project-scoped web Quiz surface with navigation, list cards, question loop, answer/skip/done/cancel controls, hidden-rationale avoidance, visual alignment, and green Rails suite`
 
 ## Open Risks
 
