@@ -5,6 +5,7 @@ class Project < ApplicationRecord
   has_many :project_setup_sessions, dependent: :restrict_with_error
   has_many :use_cases, dependent: :restrict_with_error
   has_many :quizzes, dependent: :restrict_with_error
+  has_many :quiz_entries, dependent: :restrict_with_error
   has_one :protocol, class_name: "ProjectProtocol", dependent: :destroy
   has_one :runtime_container, class_name: "ProjectRuntimeContainer", dependent: :destroy
 
