@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_05_101100) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_05_102000) do
   create_table "boards", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "name", null: false
@@ -333,13 +333,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_05_101100) do
     t.datetime "started_at"
     t.string "title", null: false
     t.datetime "updated_at", null: false
+    t.integer "use_case_id"
     t.index ["archived_at"], name: "index_tickets_on_archived_at"
     t.index ["board_id", "priority"], name: "index_tickets_on_board_id_and_priority"
+    t.index ["board_id", "use_case_id"], name: "index_tickets_on_board_id_and_use_case_id"
     t.index ["board_id"], name: "index_tickets_on_board_id"
     t.index ["column_id", "created_at"], name: "index_tickets_on_column_id_and_created_at"
     t.index ["column_id"], name: "index_tickets_on_column_id"
     t.index ["runtime_execution_id"], name: "index_tickets_on_runtime_execution_id"
     t.index ["runtime_execution_status", "updated_at"], name: "index_tickets_on_runtime_execution_status_and_updated_at"
+    t.index ["use_case_id"], name: "index_tickets_on_use_case_id"
   end
 
   create_table "use_cases", force: :cascade do |t|
@@ -390,5 +393,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_05_101100) do
   add_foreign_key "ticket_labels", "tickets"
   add_foreign_key "tickets", "boards"
   add_foreign_key "tickets", "columns"
+  add_foreign_key "tickets", "use_cases"
   add_foreign_key "use_cases", "projects"
 end

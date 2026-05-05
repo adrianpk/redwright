@@ -3,20 +3,25 @@ class Ticket < ApplicationRecord
 
   belongs_to :board
   belongs_to :column
+  belongs_to :use_case, optional: true
   has_many :ticket_labels, dependent: :destroy
   has_many :labels, through: :ticket_labels
   has_many :ticket_document_links, dependent: :destroy
   has_many :documents, through: :ticket_document_links
+  has_many :taggings, as: :taggable, dependent: :destroy
+  has_many :tags, through: :taggings
 
   enum :priority, { low: 0, medium: 1, high: 2 }, default: :medium
 
   validates :title, presence: true
   validates :runtime_execution_status, inclusion: { in: RUNTIME_EXECUTION_STATUSES }, allow_blank: true
+  validate :use_case_belongs_to_project
 
   scope :visible_on_board, -> { where(archived_at: nil) }
   scope :ordered_for_board, -> { order(priority: :desc, created_at: :asc) }
   scope :active, -> { visible_on_board.joins(:column).where.not(columns: { key: [ "merged", "done" ] }) }
   scope :for_project, ->(project_id) { joins(:board).where(boards: { project_id: project_id }) }
+  scope :for_use_case, ->(use_case_id) { where(use_case_id: use_case_id) }
 
   delegate :project, :project_id, to: :board
 
@@ -67,6 +72,16 @@ class Ticket < ApplicationRecord
     candidate_project_id.to_i == project_id
   end
 
+  def tag_with!(*names)
+    names.flatten.filter_map do |name|
+      next if Tag.normalize_name(name).blank?
+
+      tag = Tag.find_or_create_normalized!(name)
+      taggings.find_or_create_by!(tag: tag)
+      tag
+    end
+  end
+
   def record_runtime_execution!(result)
     update!(
       runtime_execution_id: result.execution_id,
@@ -91,5 +106,14 @@ class Ticket < ApplicationRecord
       "started_at" => runtime_execution_started_at&.iso8601,
       "error" => runtime_execution_error
     }
+  end
+
+  private
+
+  def use_case_belongs_to_project
+    return unless use_case
+    return if use_case.project_id == project_id
+
+    errors.add(:use_case, "must belong to the same project")
   end
 end

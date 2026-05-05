@@ -314,6 +314,7 @@ module BoardWorkflow
       attrs[:description] = value_from(payload, "description").to_s if key_present?(payload, "description")
       attrs[:priority] = value_from(payload, "priority").to_s if key_present?(payload, "priority")
       attrs[:assignee] = value_from(payload, "assignee").to_s if key_present?(payload, "assignee")
+      attrs[:use_case_id] = value_from(payload, "use_case_id") if key_present?(payload, "use_case_id")
       attrs
     end
 

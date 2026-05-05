@@ -102,7 +102,7 @@ class TicketsController < ApplicationController
   end
 
   def ticket_params
-    params.require(:ticket).permit(:title, :description, :priority, :assignee, :column_id)
+    params.require(:ticket).permit(:title, :description, :priority, :assignee, :column_id, :use_case_id)
   end
 
   def selected_document_ids
