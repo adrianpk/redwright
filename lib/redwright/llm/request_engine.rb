@@ -85,9 +85,11 @@ module Redwright
           provider_metadata: provider_metadata(provider: provider, model: model, model_role: model_role, action: action, finish_reason: completion.finish_reason),
           usage: nil,
           warnings: [],
-          raw_response_ref: nil,
+          raw_response_ref: completion.content,
           diagnostics: diagnostics(context_sections: context_sections, trace_metadata: trace_metadata)
         )
+      rescue JSON::ParserError => e
+        failure_response("invalid_response", "Provider response was not valid JSON", provider: provider, model: model, model_role: model_role, action: action, context_sections: context_sections, trace_metadata: trace_metadata, error: e, raw_response_ref: completion.content)
       end
 
       def invalid_shape_response(provider:, model:, model_role:, action:, context_sections:, trace_metadata:, missing_fields: [])
@@ -95,7 +97,7 @@ module Redwright
         failure_response("invalid_response", message, provider: provider, model: model, model_role: model_role, action: action, context_sections: context_sections, trace_metadata: trace_metadata)
       end
 
-      def failure_response(status, message, provider:, model:, model_role:, action:, context_sections:, trace_metadata:, error: nil)
+      def failure_response(status, message, provider:, model:, model_role:, action:, context_sections:, trace_metadata:, error: nil, raw_response_ref: nil)
         Response.new(
           status: status,
           semantic_payload: {},
@@ -103,7 +105,7 @@ module Redwright
           provider_metadata: provider_metadata(provider: provider, model: model, model_role: model_role, action: action),
           usage: nil,
           warnings: [message],
-          raw_response_ref: nil,
+          raw_response_ref: raw_response_ref || error&.message,
           diagnostics: diagnostics(context_sections: context_sections, trace_metadata: trace_metadata, error: error)
         )
       end

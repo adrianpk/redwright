@@ -2,6 +2,7 @@
 
 require "json"
 
+require_relative "llm/request_engine"
 require_relative "trace"
 
 module Redwright
@@ -21,6 +22,7 @@ module Redwright
       @llm_client = llm_client
       @model = model.to_s
       @debug = debug == true
+      @request_engine = LLM::RequestEngine.new(llm_client: llm_client)
     end
 
     def render(body:, user_text:, trace_id:)
@@ -77,23 +79,34 @@ module Redwright
         context_sections: ["setup_summary", "next_prompt_intent", "setup_context", "user_text"]
       )
       started_at = Process.clock_gettime(Process::CLOCK_MONOTONIC)
-      completion = @llm_client.complete_json(
+      response = @request_engine.generate_structured_message(
         model: @model,
+        model_role: "non_coding",
+        provider: provider_name,
+        action: "project_setup_prompt_render",
         system_prompt: SYSTEM_PROMPT,
-        user_text: llm_payload
+        user_text: llm_payload,
+        output_contract: {"required_fields" => ["message"], "rendered_text_field" => "message"},
+        context_sections: ["setup_summary", "next_prompt_intent", "setup_context", "user_text"],
+        trace_metadata: {
+          trace_id: trace_id,
+          project_id: payload["project_id"] || payload.dig("project", "id"),
+          session_id: payload["session_id"],
+          source_channel: "project_setup"
+        }
       )
       elapsed_ms = ((Process.clock_gettime(Process::CLOCK_MONOTONIC) - started_at) * 1000).to_i
-      parsed = JSON.parse(completion.content)
-      message = parsed["message"].to_s.strip
+      message = response.rendered_text.to_s.strip
       Trace.llm_response(
-        status: "ok",
+        status: response.ok? ? "ok" : "fallback",
         llm_call_id: llm_call_id,
         latency_ms: elapsed_ms,
-        output_bytes: completion.content.to_s.bytesize,
-        finish_reason: completion.finish_reason,
-        decision_source: "llm",
+        output_bytes: response.raw_response_ref.to_s.bytesize,
+        finish_reason: response.provider_metadata[:finish_reason],
+        decision_source: response.ok? ? "llm" : response.status,
         parsed_message: message,
-        raw_output: completion.content,
+        raw_output: response.raw_response_ref,
+        error: response.ok? ? nil : response.warnings.join("; "),
         trace_id: trace_id,
         project_id: payload["project_id"] || payload.dig("project", "id"),
         session_id: payload["session_id"],
@@ -105,6 +118,8 @@ module Redwright
         model_alias: @model,
         payload_bytes: llm_payload.bytesize
       )
+      return fallback_prompt(payload: payload, intent: intent) unless response.ok?
+
       sanitize_message(message.empty? ? fallback_prompt(payload: payload, intent: intent) : message)
     rescue StandardError => e
       elapsed_ms = defined?(started_at) && started_at ? ((Process.clock_gettime(Process::CLOCK_MONOTONIC) - started_at) * 1000).to_i : 0
