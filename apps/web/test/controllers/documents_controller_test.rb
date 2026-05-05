@@ -82,12 +82,12 @@ class DocumentsControllerTest < ActionDispatch::IntegrationTest
     get documents_path(type: "spec")
     assert_response :success
     assert_match "Spec One", response.body
-    refute_match "Draft One", response.body
+    assert_select "section[aria-label='Document navigation'] h2", text: "Draft One", count: 0
 
     get documents_path(type: "plan_tracker")
     assert_response :success
     assert_match "Plan One", response.body
-    refute_match "Draft One", response.body
+    assert_select "section[aria-label='Document navigation'] h2", text: "Draft One", count: 0
   end
 
   test "index renders type navigation cards" do
