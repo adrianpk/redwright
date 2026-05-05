@@ -91,12 +91,9 @@ module QuizLoops
 
     def sensitive_content_errors(attributes)
       values = [attributes.fetch("question")] + attributes.fetch("tags")
-      values.each_with_object([]) do |value, errors|
-        next unless SENSITIVE_PATTERNS.any? { |pattern| value.match?(pattern) }
+      return [] unless values.any? { |value| SENSITIVE_PATTERNS.any? { |pattern| value.match?(pattern) } }
 
-        errors << "question generation must not ask for secrets, credentials, tokens, passwords, private keys, or PII"
-        break
-      end
+      ["question generation must not ask for secrets, credentials, tokens, passwords, private keys, or PII"]
     end
 
     def stringify_hash(value)
