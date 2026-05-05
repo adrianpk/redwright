@@ -1,0 +1,35 @@
+<main class="document-artifacts-index">
+  <section class="documents-top-shell">
+    <div class="board-title-row">
+      <h1>Quizzes</h1>
+      <%= button_to "Project Quiz", project_project_quizzes_path(@project), method: :post, class: "ticket-action" %>
+    </div>
+  </section>
+
+  <section class="artifact-type-nav" aria-label="Quiz navigation">
+    <% @quizzes.each do |quiz| %>
+      <%= link_to project_quiz_path(@project, quiz), class: "artifact-type-card" do %>
+        <h2><%= quiz.use_case&.name || "Project Quiz" %></h2>
+        <% preview_lines = quiz.entries.order(created_at: :desc).limit(6).reverse.map { |entry| "#{entry.status}: #{entry.question}" } %>
+        <% preview_lines = ["No answers yet"] if preview_lines.empty? %>
+        <div class="protocol-card-preview" aria-hidden="true">
+          <% preview_lines.each do |line| %>
+            <span><%= line %></span>
+          <% end %>
+        </div>
+      <% end %>
+    <% end %>
+  </section>
+
+  <section class="document-artifact-panel">
+    <%= form_with url: use_case_project_quizzes_path(@project), method: :post, class: "document-artifact-form" do |form| %>
+      <div class="document-artifact-field">
+        <%= form.label :use_case_name, "Use case" %>
+        <%= form.text_field :use_case_name, placeholder: "Billing flow" %>
+      </div>
+      <div class="document-artifact-actions">
+        <%= form.submit "Open Quiz", class: "ticket-action" %>
+      </div>
+    <% end %>
+  </section>
+</main>
