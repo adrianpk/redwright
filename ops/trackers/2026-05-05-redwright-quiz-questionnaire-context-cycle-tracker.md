@@ -163,9 +163,9 @@ Validation:
 
 ### Slice 6: Web Quiz Surface and Visual Alignment
 
-- status: `implemented`
+- status: `pr_merged`
 - branch: `fix/slice-6-web-quiz-surface`
-- PR: `pending`
+- PR: `https://codeberg.org/adrianpk/redwright/pulls/308`
 - merge_target: `dev`
 - last_sync_commit: `239b4b3`
 
@@ -191,28 +191,30 @@ Validation:
 
 ### Slice 7: Ticket/UseCase Context Preparation
 
-- status: `planned`
+- status: `implemented`
 - branch: `fix/slice-7-quiz-ticket-context-prep`
 - PR: `pending`
 - merge_target: `dev`
-- last_sync_commit: `pending`
+- last_sync_commit: `4d88306`
 
 Tasks:
 
-- [ ] `T7.1 inspect current ticket model and board relationships`
-- [ ] `T7.2 add optional ticket use_case_id if compatible with the current Kanban domain`
-- [ ] `T7.3 add query objects or scopes for project/use-case/tag quiz entry retrieval`
-- [ ] `T7.4 add query objects or scopes for shared tag retrieval across quiz entries and tickets`
-- [ ] `T7.5 keep this slice out of final prompt-manager implementation`
-- [ ] `T7.6 add tests for retrieval-oriented query shapes`
+- [x] `T7.1 inspect current ticket model and board relationships`
+- [x] `T7.2 add optional ticket use_case_id if compatible with the current Kanban domain`
+- [x] `T7.3 add query objects or scopes for project/use-case/tag quiz entry retrieval`
+- [x] `T7.4 add query objects or scopes for shared tag retrieval across quiz entries and tickets`
+- [x] `T7.5 keep this slice out of final prompt-manager implementation`
+- [x] `T7.6 add tests for retrieval-oriented query shapes`
 
 Commits:
 
-- [ ] `pending`
+- [x] `3f7a88d feat(web): associate tickets with use cases`
+- [x] `cab27d6 test(web): cover quiz context retrieval scopes`
 
 Validation:
 
-- [ ] `pending`
+- [x] `bundle exec bin/rails test test/models/ticket_test.rb test/queries/quiz_context/retrieval_query_test.rb` (pass)
+- [x] `bundle exec bin/rails test` (pass)
 
 ### Slice 8: Configuration, Seeding Review, and Cycle Closure
 
@@ -248,6 +250,7 @@ Validation:
 - `2026-05-05 16:20` state=`slice_4_implemented` note=`implemented port-agnostic quiz loop runtime with project/use-case quiz resolution, answer and skip persistence, done/cancel terminal results, reopening behavior, and green Rails suite`
 - `2026-05-05 16:40` state=`slice_5_implemented` note=`implemented Telegram /quiz, /quiz for <use_case>, and /quiz list through command/query handlers and the port-agnostic runtime, with concise rendering and green Rails suite`
 - `2026-05-05 17:00` state=`slice_6_implemented` note=`implemented project-scoped web Quiz surface with navigation, list cards, question loop, answer/skip/done/cancel controls, hidden-rationale avoidance, visual alignment, and green Rails suite`
+- `2026-05-05 17:20` state=`slice_7_implemented` note=`implemented ticket use-case association and retrieval query shapes for project/use-case/tag quiz entries and tickets without introducing prompt-manager behavior, with green Rails suite`
 
 ## Open Risks
 
