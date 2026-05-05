@@ -58,6 +58,77 @@ The first version should be shaped by one real existing caller. The most likely 
 
 The engine surface should be practical, explicit, and easy to adopt. It should not require callers to build a large generic request object when a semantic method with keyword arguments can express the operation more clearly.
 
+The initial deliverable must feel like something a business service can plug into an existing LLM call site with low ceremony:
+
+1. gather existing caller data
+2. pass explicit keyword arguments into the engine
+3. receive a normalized response
+4. record the trace through the recorder
+5. keep the caller's user-facing behavior stable or cleaner
+
+The spec intentionally uses strong boundaries but avoids pretending that every future helper class is already known. The questionnaire explicitly rejected abstraction by habit. The first implementation should therefore favor a narrow working path over a complete architecture skeleton.
+
+## Decision Summary
+
+The completed questionnaire established these concrete decisions:
+
+- `LLMRequestEngine` is the preferred concept name for the request composition and execution boundary.
+- `Redwright::LLM` is the preferred namespace direction.
+- `LLMTraceRecorder` is the preferred recorder name.
+- The engine executes the provider request; it is not only a builder that returns a neutral request object.
+- The recorder remains outside the engine.
+- Coordination belongs to the business service that owns the workflow, with controller fallback only when no service exists yet.
+- The spec should not introduce a generic orchestration service.
+- The engine receives explicit data from outer layers and does not query business state directly.
+- The public API should use semantic methods with keyword arguments rather than one opaque generic request call.
+- Semantic methods should stay business-agnostic and describe LLM operation shapes, not caller-specific workflows.
+- The first real caller should drive the exact method name and argument list.
+- Project setup question generation is a plausible first caller, but it is not representative of all future context pressure.
+- One caller is enough for the first implementation. Scope expands only when another real caller requires it.
+- The normalized response shape should be RedWright-native.
+- Raw provider details belong in diagnostics or trace output, not in user-facing messages by default.
+- Context sections should be named and authority-aware.
+- `output_contract` should be explicit enough for RedWright to act on the response.
+- Redaction and filtering are day-zero requirements.
+- Previous interactions are useful but their format and policy should be validated through real loops.
+- Preflight requests are optional tools for context selection, not mandatory boilerplate.
+
+## Canonical Interaction Flow
+
+The target interaction is:
+
+```text
+business service or controller
+  -> gather project/request/ticket/use-case/workspace/trace inputs
+  -> LLMRequestEngine semantic method
+    -> build named context sections from explicit inputs
+    -> apply authority labels and safety filters
+    -> render provider-ready request
+    -> call existing provider adapter behavior
+    -> normalize response or failure
+  -> business service handles workflow outcome
+  -> LLMTraceRecorder records request/response/context metadata
+  -> business service returns user-facing result or continues workflow
+```
+
+The engine is not the owner of the business outcome. It can say that an LLM call succeeded, failed, timed out, returned invalid structure, or produced a semantic payload. The surrounding business service decides whether that means asking a user, saving a model, blocking a ticket, retrying, falling back, or displaying a message.
+
+## Required Simplicity Constraint
+
+The design must remain easy to call from existing RedWright code.
+
+The first implementation must not require:
+
+- a full task taxonomy before the first caller can use the engine
+- a database-backed request history model
+- a new service layer solely to wrap engine and recorder
+- a generalized prompt framework
+- user-editable context policy
+- a resolver or manager for every sub-responsibility
+- migration of every LLM call site before value is delivered
+
+Simple is not the same as vague. The implementation should have precise contracts where they matter: dependency direction, normalized responses, provider error handling, trace boundary, context section metadata, and user-facing failure behavior.
+
 ## Namespace And Code Boundary
 
 The preferred conceptual namespace is:
@@ -90,6 +161,28 @@ Outer layers are responsible for gathering available business state and passing 
 
 Pure internal collaborators may be used by the engine as long as they do not invert this direction by depending on application services or repositories.
 
+This means the engine may depend on objects such as:
+
+- value objects
+- context section structs
+- response structs
+- redaction helpers
+- prompt rendering helpers
+- token estimation helpers
+- provider adapter interfaces already present in the runtime
+
+It must not depend on:
+
+- Rails controllers
+- Telegram controllers or handlers
+- business workflow services
+- Active Record repositories or query objects that fetch project state
+- ticket state transition services
+- notification services
+- Kanban workflow services
+
+If a future helper needs to retrieve project data, that helper belongs outside the engine boundary unless it is explicitly reclassified as a business service input provider.
+
 ## Engine Responsibility
 
 `LLMRequestEngine` owns:
@@ -111,6 +204,23 @@ Pure internal collaborators may be used by the engine as long as they do not inv
 - creating ticket comments, blocking tickets, or notifying users
 - exposing raw provider errors to user-facing channels by default
 
+The engine may produce enough structured information for the business service to make those decisions, but it must not perform them internally.
+
+## Engine Internal Phases
+
+The first implementation may be a single class if that remains readable. Conceptually, however, the engine performs these phases:
+
+1. `input_normalization`: normalize explicit keyword inputs into an internal call context without fetching new business state.
+2. `context_section_assembly`: convert supplied facts and supplied context fragments into named sections.
+3. `safety_filtering`: redact or reject sensitive material before provider invocation.
+4. `authority_annotation`: label sections with priority and evidence type.
+5. `request_rendering`: render the provider-ready prompt or structured provider payload.
+6. `provider_invocation`: call the existing provider adapter behavior with the selected model role and operation metadata.
+7. `response_normalization`: turn provider success or failure into a RedWright response object.
+8. `diagnostic_packaging`: expose safe metadata and raw references for trace recording.
+
+These phases are descriptive. They do not require separate classes in the first implementation.
+
 ## Trace Recorder Responsibility
 
 `LLMTraceRecorder` owns trace recording after an LLM interaction is complete.
@@ -130,6 +240,15 @@ The recorder is separate from the engine even though both operate on LLM request
 
 `LLMTraceRecorder` should coordinate with the existing rolling LLM trace file behavior rather than redefine its durable file contract.
 
+The recorder may write to or feed existing trace infrastructure, but it should not silently become a context-selection engine. Its first responsibility is observability and diagnostics for the interaction that just happened.
+
+Trace recording must support two different needs without collapsing them:
+
+- durable debugging trace: faithful enough to inspect request/response behavior when enabled
+- future context reuse: compact enough to be considered for `previous_interactions` later
+
+The first implementation may focus on durable diagnostics and keep context-reuse summaries minimal or deferred.
+
 The preferred coordination model is:
 
 ```text
@@ -140,6 +259,8 @@ business service -> LLMTraceRecorder
 If a path has no business service yet, the responsible controller may coordinate both components as a fallback.
 
 The spec must not introduce a generic orchestration service name for this responsibility.
+
+The recorder should be invocable with explicit values. It should not discover the caller's project, ticket, session, or actor on its own.
 
 ## Public API Direction
 
@@ -165,6 +286,19 @@ engine.some_semantic_operation(
 The exact method name and arguments are implementation-guided by the first migrated caller.
 
 The engine should avoid one opaque `call(request:)` as the only public shape if named methods can communicate intent more clearly. Ruby can still use symbols, keyword arguments, and pattern matching as lightweight dispatch mechanisms where that keeps the code simple.
+
+The first semantic method should satisfy the first migrated caller and establish the API style. It should not try to anticipate every future operation.
+
+A good first method has these properties:
+
+- its name describes the LLM operation, not the business caller
+- its required arguments are explicit
+- optional arguments have clear defaults
+- returned data is normalized
+- trace-relevant metadata is available to the caller or recorder
+- invalid input fails early with a RedWright-native status or exception pattern consistent with nearby code
+
+Examples of method names are intentionally not normative in this spec. Naming should be chosen during implementation after inspecting the first call site.
 
 ## Input Contract
 
@@ -196,6 +330,35 @@ Likely inputs include:
 
 Project scope is the normal preferred path, but it is not universal. RedWright may have useful global, pre-project, or provider/framework questions that should not be forced into a project.
 
+Inputs should be grouped by meaning in the implementation, even if passed as keyword arguments:
+
+- identity and scope: project, ticket, use case, tags, session, run, trace
+- request intent: source, raw text, request mode, work kind, model-role intent
+- context sections: already gathered context fragments and metadata
+- output contract: schema or semantic response requirement
+- diagnostics: flags or references needed by trace recording
+
+Required inputs are caller-specific in the first implementation. The spec should not declare `project_id` universally required because pre-project and global requests may exist.
+
+The engine should reject or normalize missing inputs according to operation needs. For example, a project-scoped request should not silently proceed as global if the caller expected project context.
+
+## Output Request Contract
+
+Every LLM request should include an output contract, even if minimal.
+
+The output contract tells the model what RedWright needs semantically, not only how the final human-facing message should read.
+
+The contract may specify:
+
+- expected semantic payload fields
+- allowed status or intent values
+- whether rendered text is required
+- whether hidden rationale must be omitted from user-facing output
+- fallback behavior when the model cannot satisfy the request
+- parseable format expectations
+
+For the first caller, the output contract should be no larger than necessary, but it must be explicit enough that RedWright does not have to infer behavior from arbitrary prose.
+
 ## Request Classification
 
 The first implementation should not rely on a large closed taxonomy.
@@ -208,6 +371,17 @@ RedWright should distinguish at least two conceptual axes when needed:
 The initial implementation may use a small enum-like set of constants and add values only when real callers require them.
 
 The system, not the user, should select the model role. Internal callers may pass explicit model-role intent when the case is obvious, such as coding-oriented ticket implementation or code review.
+
+`request_mode` and `work_kind` are not meant to become a rigid ontology in the first slice. They are practical control signals for policy decisions such as:
+
+- whether ticket context matters
+- whether workspace context matters
+- whether execution failures matter
+- whether previous interactions might help
+- whether the coding or non-coding model role should be preferred
+- whether clarification or conflict handling should be available
+
+Unknown or unsupported combinations should fail clearly or fall back deterministically. They should not produce silent prompt degradation.
 
 ## Context Section Contract
 
@@ -238,6 +412,33 @@ Each included section should carry enough metadata for debugging and authority h
 - estimated size when available
 
 Omission reporting may be useful but is not a central first-version requirement. The rolling trace and recorder path may provide enough request-composition visibility.
+
+Context section metadata should allow later debugging of two questions:
+
+```text
+Why did this information reach the LLM?
+Why was expected information absent from the LLM request?
+```
+
+The first implementation does not need a full allocation report, but it should keep enough internal structure that recorder output or trace diagnostics can expose selected section names and approximate weights.
+
+## Context Composition Policy
+
+Context policy should live in code for the first implementation.
+
+The policy should be conservative and caller-driven:
+
+- include high-authority current request data first
+- include project and protocol context when the request is project-scoped
+- include ticket context only when the caller supplies it or the request mode implies ticket work
+- include workspace and documentation context only when explicitly supplied or clearly needed by the operation
+- include execution context only after validation or command output exists
+- include previous interactions only under bounded conditions
+- include output contract always
+
+The engine should not try to retrieve missing sections. It can only decide how to arrange, label, filter, shrink, omit, or reject the sections it has received.
+
+If a section is empty, the engine may omit it from the rendered provider request while retaining a diagnostic fact that the section was unavailable.
 
 ## Section Semantics
 
@@ -284,6 +485,17 @@ Strong contradictions must be surfaced explicitly. The first spec does not final
 
 Redaction and filtering are day-zero requirements before context is injected into an LLM request. Prompt text alone is not a sufficient safety control.
 
+Minimum first-version safety behavior:
+
+- avoid asking users for secrets, credentials, tokens, passwords, or PII
+- redact obvious secrets before sending context where practical
+- keep hidden model rationale out of user-facing output
+- keep raw provider errors out of user-facing output by default
+- label previous interactions as historical evidence
+- keep current task instructions and repository state above historical summaries
+
+The safety boundary does not need perfect data-loss-prevention behavior in the first implementation. It does need explicit code-level protections where the caller path can reasonably provide them.
+
 ## Previous Interaction Contract
 
 Previous interactions are useful mainly for continuity, refinement, ticket work, and long-running operations.
@@ -295,6 +507,20 @@ The initial scope should be stronger than `agent_id` alone. A practical starting
 Stored previous-interaction material should be pruned or cleaned so transient storage does not accumulate indefinitely.
 
 The exact choice among compact rolling summaries, raw interaction records, and hybrid records should be validated against real RedWright cases.
+
+Previous interaction records, when introduced, should preserve at least:
+
+- operation kind
+- project or global scope
+- ticket/use-case/session/run identifiers when available
+- request summary
+- response summary
+- outcome
+- failure summary when relevant
+- creation time
+- selected context section names
+
+They should not blindly append full prompts and responses forever. The rolling trace file can serve durable debugging when enabled; previous-interaction material should be optimized for possible future prompt reuse.
 
 ## Preflight Contract
 
@@ -313,6 +539,18 @@ Potential preflight uses include:
 When a preflight produces retrieval criteria, deterministic RedWright code must validate and execute the final retrieval. The LLM must not bypass deterministic query builders or execute raw database logic.
 
 The first implementation should not impose a rigid global preflight cap until the useful preflight categories are better understood.
+
+Preflight must not recursively create unbounded preflight chains.
+
+When preflight is added, each preflight category should define:
+
+- why the deterministic caller cannot select enough context directly
+- what inputs it receives
+- what structured output it returns
+- how deterministic code validates that output
+- what happens when the preflight fails
+
+No first implementation task should add preflight unless the selected caller clearly needs it.
 
 ## Response Contract
 
@@ -341,6 +579,85 @@ Failures should be normalized into RedWright statuses, including:
 - safety failure
 - unsupported provider or model configuration
 
+The normalized response should distinguish at least these concepts, even if the exact Ruby shape differs:
+
+- transport/provider status
+- semantic parse status
+- user-facing rendered text
+- machine-facing semantic payload
+- diagnostics safe for logs
+- diagnostics requiring opt-in raw tracing
+
+The caller should not need to understand provider-specific exception classes to decide its business outcome.
+
+## Provider Adapter Contract
+
+The engine should reuse the provider behavior RedWright already has.
+
+The first design recognizes the current operational model:
+
+- RedWright distinguishes coding-oriented and non-coding model roles.
+- A user may configure the same model for both roles.
+- Provider focus includes OpenAI, Kimi, DeepSeek, and OpenRouter.
+- OpenRouter may route to providers not directly supported by RedWright.
+
+The engine should work with that model rather than invent a parallel provider abstraction in the first slice.
+
+Provider adapter inputs should include enough metadata for tracing:
+
+- provider
+- model or model alias
+- resolved model when available
+- model role
+- action or operation name
+- payload size when available
+- trace correlation identifiers when available
+
+## Error Handling Contract
+
+Errors should be handled according to caller visibility:
+
+- raw provider exception details may be stored or referenced for diagnostics when tracing is configured
+- normalized failure status should be returned to the caller
+- user-facing messages should be plain and useful
+- schema or parse failures should not be mistaken for provider success
+- safety/redaction failures should stop or degrade the request according to operation policy
+- trace writer failures must not break LLM execution
+
+The business service remains responsible for deciding whether a normalized failure means retry, fallback, blocked workflow, ticket comment, or user-visible explanation.
+
+## Context Allocation Visibility
+
+A formal context allocation report is not a central first-version requirement.
+
+However, the engine should preserve enough metadata for trace/debug output to explain:
+
+- which section names were included
+- which high-level scopes were represented
+- approximate size or byte counts when available
+- authority labels
+- safety filtering result
+- provider action and model role
+
+This can be emitted through `LLMTraceRecorder` or the rolling trace mechanism. It does not need to become a separate persisted artifact in the first implementation.
+
+## First Caller Selection Guidance
+
+The first caller should be selected for low migration risk and real value.
+
+Project setup question generation is a candidate because it already exists and likely has a bounded LLM interaction shape. It is not a complete stress test for later context-heavy work.
+
+The first caller should be rejected if migrating it would require broad unrelated changes. A better first caller is one that:
+
+- already has an LLM call
+- has clear inputs available at the call site
+- has a parseable or semi-structured expected output
+- has a visible failure path that can benefit from normalization
+- can be tested without migrating every provider path
+- does not require full previous-interaction support
+
+The implementation plan may inspect current call sites before finalizing the first one.
+
 ## First Implementation Scope
 
 The first implementation should:
@@ -355,6 +672,24 @@ The first implementation should:
 8. normalize provider and parse failures for that caller
 9. keep the API narrow and expand only when the next real caller needs more
 
+## Test Strategy
+
+The first implementation should include focused tests for the migrated caller and unit-level tests for pure boundaries introduced by the engine.
+
+Minimum test coverage:
+
+- successful provider response normalization
+- provider error normalization
+- invalid or unparsable semantic response normalization
+- hidden raw diagnostics not appearing in user-facing rendered output
+- explicit input passing from caller into engine
+- trace recorder remaining outside engine invocation
+- first caller behavior preserved or intentionally improved
+
+If redaction logic is introduced, tests must cover at least obvious token, password, credential, and bearer-token examples.
+
+If context section objects are introduced, tests should cover section naming, authority labels, and rendered inclusion order for the first operation.
+
 ## Acceptance Criteria
 
 1. A first `Redwright::LLM` implementation exists under the repository's Ruby loading conventions.
@@ -368,6 +703,10 @@ The first implementation should:
 9. The business service or controller fallback coordinates trace recording after the engine returns.
 10. The first implementation avoids introducing unused managers, handlers, resolvers, or broad taxonomies.
 11. Tests cover the first migrated caller's successful response path and normalized failure path.
+12. The first implementation records enough trace metadata to identify operation name, provider/model role, response status, and selected section names when available.
+13. The migrated path includes an explicit output contract.
+14. The migrated path does not fetch business state from inside `LLMRequestEngine`.
+15. Documentation or tracker notes identify which existing LLM call was migrated first and why.
 
 ## Open Questions
 
