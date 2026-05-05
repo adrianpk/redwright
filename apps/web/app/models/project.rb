@@ -38,4 +38,12 @@ class Project < ApplicationRecord
   def protocol_state
     protocol&.to_state || ProjectProtocol.missing_state_for(self)
   end
+
+  def main_quiz
+    quizzes.project_level.first
+  end
+
+  def find_or_create_main_quiz!
+    quizzes.project_level.first_or_create!(name: "#{name} Quiz")
+  end
 end

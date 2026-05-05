@@ -8,6 +8,10 @@ class UseCase < ApplicationRecord
   validates :name, presence: true
   validates :slug, presence: true, uniqueness: { scope: :project_id }
 
+  def find_or_create_quiz!
+    quiz || project.quizzes.create!(use_case: self, name: "#{name} Quiz")
+  end
+
   private
 
   def normalize_slug
