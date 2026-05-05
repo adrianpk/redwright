@@ -6,7 +6,7 @@
 - status: `in_progress`
 - state: `awaiting_review`
 - updated: `2026-05-05`
-- active_slice: `Slice 3`
+- active_slice: `Slice 4`
 - active_task: `none`
 - source_plan: `ops/plans/2026-05-05-redwright-llm-request-engine-context-composition-cycle-plan.md`
 - source_spec: `ops/specs/specs/2026-05-05-redwright-llm-request-engine-context-composition-spec.md`
@@ -76,11 +76,11 @@ Validation:
 
 ### Slice 3: First Caller Migration
 
-- status: `completed`
+- status: `pr_merged`
 - branch: `fix/slice-3-llm-request-first-caller`
-- PR: `pending`
+- PR: `https://codeberg.org/adrianpk/redwright/pulls/313`
 - merge_target: `dev`
-- last_sync_commit: `pending_pr`
+- last_sync_commit: `ca2b4e3`
 
 Tasks:
 
@@ -103,30 +103,31 @@ Validation:
 
 ### Slice 4: Trace Recorder Boundary
 
-- status: `planned`
+- status: `completed`
 - branch: `fix/slice-4-llm-trace-recorder-boundary`
 - PR: `pending`
 - merge_target: `dev`
-- last_sync_commit: `tbd`
+- last_sync_commit: `pending_pr`
 
 Tasks:
 
-- [ ] `T4.1 add the minimal LLMTraceRecorder boundary under Redwright::LLM or the repository's trace-oriented location`
-- [ ] `T4.2 define the recorder input shape for logical request metadata, selected context section names, provider/model metadata, normalized status, warnings, and raw diagnostic references`
-- [ ] `T4.3 connect recorder output to the existing rolling LLM trace behavior where compatible`
-- [ ] `T4.4 invoke the recorder from the business service that owns the migrated caller, or controller fallback if no service exists`
-- [ ] `T4.5 verify that trace recording remains outside LLMRequestEngine`
-- [ ] `T4.6 add tests for recorder invocation and trace-writer failure isolation`
+- [x] `T4.1 add the minimal LLMTraceRecorder boundary under Redwright::LLM or the repository's trace-oriented location`
+- [x] `T4.2 define the recorder input shape for logical request metadata, selected context section names, provider/model metadata, normalized status, warnings, and raw diagnostic references`
+- [x] `T4.3 connect recorder output to the existing rolling LLM trace behavior where compatible`
+- [x] `T4.4 invoke the recorder from the business service that owns the migrated caller, or controller fallback if no service exists`
+- [x] `T4.5 verify that trace recording remains outside LLMRequestEngine`
+- [x] `T4.6 add tests for recorder invocation and trace-writer failure isolation`
 
 Commits:
 
-- [ ] `feat(web): add llm trace recorder boundary`
-- [ ] `test(web): cover llm trace recorder coordination`
+- [x] `5136f40 feat(web): add llm trace recorder boundary`
+- [x] `e28ebec test(web): cover llm trace recorder coordination`
 
 Validation:
 
-- [ ] `targeted recorder tests` (pending)
-- [ ] `targeted migrated caller trace tests` (pending)
+- [x] `ruby -Itest -Ilib test/redwright/llm_trace_recorder_test.rb` (pass)
+- [x] `ruby -Itest -Ilib test/redwright/project_setup_prompt_renderer_test.rb` (pass)
+- [x] `ruby -Itest -Ilib test/redwright/llm_request_engine_test.rb` (pass)
 
 ### Slice 5: Context Sections, Safety Filtering, and Diagnostics
 
@@ -246,8 +247,8 @@ This is the first migration target because it is real, bounded, tested, and alre
 - [x] `LLMRequestEngine receives explicit inputs and does not fetch business state`
 - [x] `LLMRequestEngine invokes existing provider behavior`
 - [x] `LLMRequestEngine returns normalized RedWright responses`
-- [ ] `LLMTraceRecorder remains outside the engine`
-- [ ] `business service or controller fallback coordinates recorder invocation`
+- [x] `LLMTraceRecorder remains outside the engine`
+- [x] `business service or controller fallback coordinates recorder invocation`
 - [x] `the first implementation migrates only one caller`
 - [x] `no generic orchestration service is introduced`
 - [x] `no broad task taxonomy is introduced upfront`
@@ -261,3 +262,4 @@ This is the first migration target because it is real, bounded, tested, and alre
 - `2026-05-05` state=`next_slice` note=`completed Slice 1 docs-only audit; selected ProjectSetupPromptRenderer as first LLMRequestEngine migration caller`
 - `2026-05-05` state=`awaiting_review` note=`completed Slice 2 foundation; added Redwright::LLM::RequestEngine, normalized response handling, provider invocation, and focused tests`
 - `2026-05-05` state=`awaiting_review` note=`completed Slice 3 first caller migration; ProjectSetupPromptRenderer now invokes LLMRequestEngine and keeps deterministic fallback behavior`
+- `2026-05-05` state=`awaiting_review` note=`completed Slice 4 trace recorder boundary; ProjectSetupPromptRenderer now coordinates LLMTraceRecorder outside LLMRequestEngine`

@@ -102,7 +102,7 @@ The plan intentionally starts with call-site inspection and a first real migrati
 
 ### Slice 4: Trace Recorder Boundary
 
-- status: `planned`
+- status: `completed`
 - branch: `fix/slice-4-llm-trace-recorder-boundary`
 - pr_title: `feat(slice-4): add llm trace recorder boundary`
 - objective: `introduce LLMTraceRecorder outside the engine and coordinate trace recording from the selected caller's business service or controller fallback`
