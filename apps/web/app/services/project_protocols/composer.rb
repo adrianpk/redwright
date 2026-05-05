@@ -89,8 +89,11 @@ module ProjectProtocols
     end
 
     def apply_fallback(documents, missing_tokens)
+      documents = ensure_fallback_stack_documents(documents, missing_tokens)
+
       documents.map do |document|
         next document unless %w[architecture conventions].include?(document.fetch("key"))
+        next document if document.fetch("provenance", {}).fetch("source", nil) == "generated_during_initialization"
 
         fallback_body = [
           document.fetch("body"),
@@ -109,6 +112,42 @@ module ProjectProtocols
           }
         )
       end
+    end
+
+    def ensure_fallback_stack_documents(documents, missing_tokens)
+      existing_keys = documents.map { |document| document.fetch("key") }
+      generated = documents.dup
+
+      %w[architecture conventions].each do |key|
+        next if existing_keys.include?(key)
+
+        generated << {
+          "key" => key,
+          "path" => ".agents/#{key.upcase}.md",
+          "title" => key.tr("_", " ").split.map(&:capitalize).join(" "),
+          "layer" => "stack",
+          "position" => stack_overlay_position(key, {"position" => 999}),
+          "body" => generated_fallback_body(key, missing_tokens),
+          "provenance" => {
+            "source" => "generated_during_initialization",
+            "missing_stack_tokens" => missing_tokens
+          }
+        }
+      end
+
+      generated.sort_by { |document| document.fetch("position", 999) }
+    end
+
+    def generated_fallback_body(key, missing_tokens)
+      title = key.tr("_", " ").split.map(&:capitalize).join(" ")
+      [
+        "# #{title}",
+        "",
+        "## Initialization Notes",
+        "",
+        "This document was generated during initialization because no seeded stack template matched: #{missing_tokens.join(', ')}.",
+        "Treat this content as a minimal starting point and refine it later from Rails."
+      ].join("\n")
     end
 
     def composition_input(tokens, matched_keys)
