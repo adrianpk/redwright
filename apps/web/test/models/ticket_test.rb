@@ -60,4 +60,30 @@ class TicketTest < ActiveSupport::TestCase
     assert ticket.project_context_consistent?(board.project_id)
     assert_not ticket.project_context_consistent?(board.project_id + 1)
   end
+
+  test "use case must belong to ticket project" do
+    board = create_board(project_key: "factory-ticket-use-case")
+    other_project = create_project(key: "factory-ticket-other-project")
+    backlog = board.columns.create!(key: "backlog", title: "Backlog", position: 0)
+    other_use_case = other_project.use_cases.create!(name: "External")
+
+    ticket = board.tickets.new(column: backlog, title: "Invalid use case", use_case: other_use_case)
+
+    assert_not ticket.valid?
+    assert_includes ticket.errors[:use_case], "must belong to the same project"
+  end
+
+  test "tags ticket with denormalized project and use case scope" do
+    board = create_board(project_key: "factory-ticket-tags")
+    backlog = board.columns.create!(key: "backlog", title: "Backlog", position: 0)
+    use_case = board.project.use_cases.create!(name: "Billing")
+    ticket = board.tickets.create!(column: backlog, title: "Tagged ticket", use_case: use_case)
+
+    ticket.tag_with!("Billing Context")
+
+    tagging = ticket.taggings.first
+    assert_equal ["billing-context"], ticket.tags.map(&:name)
+    assert_equal board.project_id, tagging.project_id
+    assert_equal use_case.id, tagging.use_case_id
+  end
 end
