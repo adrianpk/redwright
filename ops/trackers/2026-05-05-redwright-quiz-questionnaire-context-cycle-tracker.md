@@ -19,28 +19,38 @@
 
 ### Slice 1: Quiz Domain Foundation
 
-- status: `planned`
+- status: `implemented`
 - branch: `fix/slice-1-quiz-domain-foundation`
 - PR: `pending`
 - merge_target: `dev`
-- last_sync_commit: `pending`
+- last_sync_commit: `3d33c8f`
 
 Tasks:
 
-- [ ] `T1.1 add UseCase model scoped to Project with normalized project-local slug`
-- [ ] `T1.2 add Quiz model scoped to Project and optional UseCase`
-- [ ] `T1.3 add QuizEntry model storing question and answer together`
-- [ ] `T1.4 include denormalized project_id and use_case_id on QuizEntry`
-- [ ] `T1.5 enforce one main project quiz per project and one main use-case quiz per use case`
-- [ ] `T1.6 add focused model tests for cardinality, slug normalization, associations, and status constants`
+- [x] `T1.1 add UseCase model scoped to Project with normalized project-local slug`
+- [x] `T1.2 add Quiz model scoped to Project and optional UseCase`
+- [x] `T1.3 add QuizEntry model storing question and answer together`
+- [x] `T1.4 include denormalized project_id and use_case_id on QuizEntry`
+- [x] `T1.5 enforce one main project quiz per project and one main use-case quiz per use case`
+- [x] `T1.6 add focused model tests for cardinality, slug normalization, associations, and status constants`
 
 Commits:
 
-- [ ] `pending`
+- [x] `ede9d0a feat(web): add project use cases`
+- [x] `053e4ac feat(web): add project scoped quizzes`
+- [x] `4d9e829 feat(web): add quiz entries`
+- [x] `80329b1 feat(web): denormalize quiz entry scope`
+- [x] `db3be0f feat(web): add quiz cardinality helpers`
+- [x] `ddb6945 test(web): cover quiz domain constraints`
+- [x] `7afa7c6 fix(web): generate fallback protocol stack docs`
+- [x] `db78d69 test(web): scope document filter assertion`
 
 Validation:
 
-- [ ] `pending`
+- [x] `bundle exec bin/rails test test/models/use_case_test.rb test/models/quiz_test.rb test/models/quiz_entry_test.rb test/models/project_test.rb` (pass)
+- [x] `bundle exec bin/rails test test/controllers/documents_controller_test.rb:74` (pass)
+- [x] `bundle exec bin/rails test test/services/project_setup/context_loop_service_test.rb:357 test/services/project_protocols/initialization_service_test.rb` (pass)
+- [x] `bundle exec bin/rails test` (pass)
 
 ### Slice 2: Transversal Tagging Foundation
 
@@ -221,6 +231,7 @@ Validation:
 ## Event Log
 
 - `2026-05-05 00:00` state=`planning_complete` note=`formalized the Quiz questionnaire context spec and initialized an eight-slice implementation cycle covering domain, tagging, LLM question loop, runtime controls, Telegram, web, context retrieval preparation, configuration, and closure`
+- `2026-05-05 10:00` state=`slice_1_implemented` note=`implemented UseCase, Quiz, and QuizEntry domain foundation with denormalized scope fields, cardinality helpers, model coverage, and green Rails suite`
 
 ## Open Risks
 
