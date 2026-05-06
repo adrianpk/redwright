@@ -1,7 +1,7 @@
 ---
 id: TKT-20260506080309
 title: Scope quiz index to current project
-status: in_progress
+status: reviewing
 kind: task
 severity: medium
 priority: normal
@@ -11,13 +11,14 @@ source: chat
 reported_at: 2026-05-06T08:03:09Z
 ready_at: 2026-05-06T08:46:02Z
 started_at: 2026-05-06T13:10:44Z
-reviewed_at:
+reviewed_at: 2026-05-06T13:12:20Z
 closed_at:
 resolution:
 owner:
 branch: fix/ticket-20260506080309-scope-quiz-index
-pr:
-commits: []
+pr: https://codeberg.org/adrianpk/redwright/pulls/325
+commits:
+  - d731c1c
 ---
 
 ## Context
@@ -53,4 +54,4 @@ This makes the view feel less direct and creates an unnecessary extra choice.
 - Verify use-case question groups render as use-case cards.
 
 ## Outcome
-Pending implementation.
+Implementation is ready for review in PR #325.
