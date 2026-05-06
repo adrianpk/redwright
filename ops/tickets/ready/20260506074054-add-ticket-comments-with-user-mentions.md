@@ -30,29 +30,45 @@ This ticket is the canonical implementation ticket for the ticket comments syste
 Related design placeholder:
 `ops/specs/drafts/2026-05-06-redwright-agent-user-notification-comments-draft.md`
 
+Alignment quiz:
+`ops/quiz/2026-05-06-redwright-ticket-comments-system-quiz-raw.md`
+
 ## Problem
 Agents need a durable, ticket-scoped way to communicate with users. Plain chat is not enough because the relevant context belongs to the ticket and may need to be reviewed later.
 
 ## Expected
 - Tickets should support a durable comment thread.
 - Agents and humans should be able to leave comments on tickets.
-- Comments should render in ticket detail/edit surfaces.
+- Comments are conversational only; they are not a system event log.
+- Comments should render in ticket detail/edit surfaces with Markdown support.
 - Comments should preserve author, timestamp, body, and ticket association.
+- Comments should preserve structured author identity where possible, with a cached display label for agents or historical stability.
 - Comments may include `@user` mentions.
+- Comments may include `@agent` mentions.
 - Comments without mentions should also be valid.
 - A mention should be treated as notification intent, not only as display text.
+- Mentions should be persisted as structured records, not only parsed from comment body text.
+- Unresolved mention intent should not block comment creation.
 - Mentioned comments should preserve the ticket context needed for later notification delivery.
+- A command-query entry point such as `AddTicketComment` should exist so comments are not browser-only.
+- The first slice should support creating and listing comments only; editing and deletion are deferred.
+- Comments should render in chronological ascending order by default.
+- Compact ticket modal view should place comments after linked documents.
+- Maximized ticket modal view may place comments closer to the expanded body, but should not significantly reduce the body area.
 
 ## Actual
 - To be verified during triage and implementation.
 
 ## Fix Strategy
 - Define the minimal ticket comment model and persistence boundary.
+- Define structured mention persistence, such as `TicketCommentMention`.
 - Add support for storing comments associated with tickets.
 - Add UI support for reading and adding ticket comments.
 - Add mention parsing or equivalent structured mention capture.
 - Ensure comments can be created by agents and humans.
+- Add an `AddTicketComment` command-query operation following the existing ticket command pattern.
 - Keep notification delivery out of this ticket except for preserving mention intent.
+- Keep autocomplete, inbox, Telegram replies, ticket body mentions, and `#ticket` reference autocomplete out of this ticket.
 
 ## Validation
 - Create a ticket comment without a mention.
@@ -60,6 +76,9 @@ Agents need a durable, ticket-scoped way to communicate with users. Plain chat i
 - Verify both comments persist and render on the ticket.
 - Verify author and timestamp are preserved.
 - Verify mention metadata can be detected for later notification processing.
+- Verify comments can be created through the web UI.
+- Verify comments can be created through the command-query boundary.
+- Verify comments render Markdown.
 
 ## Outcome
 Pending implementation.
