@@ -4,9 +4,9 @@
 
 - cycle_id: `cycle-2026-05-06-redwright-use-case-management-ui`
 - status: `in_progress`
-- state: `slice_8_implemented`
+- state: `slice_8_merged`
 - updated: `2026-05-06`
-- active_slice: `Slice 8`
+- active_slice: `none`
 - active_task: `none`
 - source_plan: `ops/plans/2026-05-06-redwright-use-case-management-ui-cycle-plan.md`
 - source_spec: `ops/specs/specs/2026-05-06-redwright-use-case-management-ui-spec.md`
@@ -217,11 +217,11 @@ Validation:
 
 ### Slice 8: Cycle Validation and Closure
 
-- status: `implemented`
+- status: `pr_merged`
 - branch: `fix/slice-8-use-case-cycle-closure`
 - PR: `https://codeberg.org/adrianpk/redwright/pulls/335`
 - merge_target: `dev`
-- last_sync_commit: `e8f1682`
+- last_sync_commit: `45163f2`
 
 Tasks:
 
@@ -281,3 +281,4 @@ Deferred Work Kept Out Of Scope:
 - `2026-05-06` state=`slice_7_implemented` note=`implemented UseCase detail metrics, edit-modal metric rendering, hidden delete for referenced use cases, backend delete blocking, safe delete with confirmation, controller/model coverage, and full Rails validation`
 - `2026-05-06` state=`slice_7_merged` note=`PR #334 merged into dev and local dev fast-forwarded to d6adcca`
 - `2026-05-06` state=`slice_8_implemented` note=`validated the full Use Case management UI cycle with targeted cross-surface Rails tests, full Rails suite, final checklist, and deferred-work confirmation`
+- `2026-05-06` state=`slice_8_merged` note=`PR #335 branch was already included in dev and local dev fast-forwarded to 45163f2`
