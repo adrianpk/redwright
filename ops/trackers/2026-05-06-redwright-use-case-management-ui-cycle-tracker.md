@@ -50,7 +50,7 @@ Validation:
 
 - status: `implemented`
 - branch: `fix/slice-2-use-case-command-query`
-- PR: `pending`
+- PR: `https://codeberg.org/adrianpk/redwright/pulls/329`
 - merge_target: `dev`
 - last_sync_commit: `pending`
 
