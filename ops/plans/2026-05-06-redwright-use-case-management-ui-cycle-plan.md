@@ -45,7 +45,7 @@
 
 ### Slice 2: Use Case Command-Query Operations
 
-- status: `planned`
+- status: `implemented`
 - branch: `fix/slice-2-use-case-command-query`
 - pr_title: `feat(slice-2): add use case command queries`
 - objective: `add structured command-query operations for agents and messaging surfaces to create, update, delete, list, and retrieve project-scoped use cases`

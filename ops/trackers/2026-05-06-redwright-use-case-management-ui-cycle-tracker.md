@@ -4,9 +4,9 @@
 
 - cycle_id: `cycle-2026-05-06-redwright-use-case-management-ui`
 - status: `in_progress`
-- state: `slice_1_merged`
+- state: `slice_2_implemented`
 - updated: `2026-05-06`
-- active_slice: `none`
+- active_slice: `Slice 2`
 - active_task: `none`
 - source_plan: `ops/plans/2026-05-06-redwright-use-case-management-ui-cycle-plan.md`
 - source_spec: `ops/specs/specs/2026-05-06-redwright-use-case-management-ui-spec.md`
@@ -48,7 +48,7 @@ Validation:
 
 ### Slice 2: Use Case Command-Query Operations
 
-- status: `planned`
+- status: `implemented`
 - branch: `fix/slice-2-use-case-command-query`
 - PR: `pending`
 - merge_target: `dev`
@@ -56,22 +56,24 @@ Validation:
 
 Tasks:
 
-- [ ] `T2.1 add a UseCases command-query handler module following existing service conventions`
-- [ ] `T2.2 register CreateUseCase with required project_id, name, and description`
-- [ ] `T2.3 register UpdateUseCase with mutable name and description only`
-- [ ] `T2.4 register DeleteUseCase with no-cascade safety checks and structured blocked-reference errors`
-- [ ] `T2.5 register ListUseCases scoped to project and ordered newest first`
-- [ ] `T2.6 register GetUseCase by id or project-local slug`
-- [ ] `T2.7 include association metric data only where needed for GetUseCase/detail semantics`
-- [ ] `T2.8 add command-query tests for success, invalid payloads, missing records, uniqueness, and blocked deletion`
+- [x] `T2.1 add a UseCases command-query handler module following existing service conventions`
+- [x] `T2.2 register CreateUseCase with required project_id, name, and description`
+- [x] `T2.3 register UpdateUseCase with mutable name and description only`
+- [x] `T2.4 register DeleteUseCase with no-cascade safety checks and structured blocked-reference errors`
+- [x] `T2.5 register ListUseCases scoped to project and ordered newest first`
+- [x] `T2.6 register GetUseCase by id or project-local slug`
+- [x] `T2.7 include association metric data only where needed for GetUseCase/detail semantics`
+- [x] `T2.8 add command-query tests for success, invalid payloads, missing records, uniqueness, and blocked deletion`
 
 Commits:
 
-- [ ] `pending`
+- [x] `c70f082 feat(web): add use case command queries`
+- [x] `32ef213 test(web): cover use case command queries`
 
 Validation:
 
-- [ ] `pending`
+- [x] `bundle exec bin/rails test test/services/use_cases/command_query_handlers_test.rb test/models/use_case_test.rb test/services/command_query/dispatcher_test.rb` (pass)
+- [x] `bundle exec bin/rails test` (pass)
 
 ### Slice 3: Use Cases Navigation and Index
 
@@ -232,3 +234,4 @@ Validation:
 - `2026-05-06` state=`slice_1_active` note=`started Slice 1 on branch fix/slice-1-use-case-domain-hardening after planning commit on dev`
 - `2026-05-06` state=`slice_1_implemented` note=`implemented UseCase domain hardening with description requirement, document use_case scope, deletion blockers, tests, migration, and full Rails validation`
 - `2026-05-06` state=`slice_1_merged` note=`PR #328 merged into dev and local dev fast-forwarded to a10bbfa`
+- `2026-05-06` state=`slice_2_implemented` note=`implemented UseCase command-query create, update, delete, list, and get operations with structured errors, metrics, tests, and full Rails validation`
