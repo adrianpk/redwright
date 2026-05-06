@@ -119,6 +119,85 @@ class UseCasesControllerTest < ActionDispatch::IntegrationTest
     refute_match "name=\"use_case[slug]\"", response.body
   end
 
+  test "edit renders association metrics" do
+    admin = create_admin_user!
+    sign_in_as(admin)
+    project = create_project(key: "use-cases-metrics")
+    board = create_board(project: project, project_key: "use-cases-metrics")
+    backlog = board.columns.create!(key: "backlog", title: "Backlog", position: 0)
+    use_case = create_use_case(project: project, name: "Billing")
+    board.tickets.create!(column: backlog, title: "Scoped ticket", use_case: use_case)
+    draft = create_document(project: project, use_case: use_case, artifact_type: "draft", title: "Draft One")
+    create_document(project: project, use_case: use_case, artifact_type: "spec", title: "Spec One", body: "spec", source_draft: draft, editable: false)
+    create_document(project: project, use_case: use_case, artifact_type: "plan_tracker", title: "Plan One", body: "plan", editable: false)
+    quiz = use_case.find_or_create_quiz!
+    quiz.entries.create!(question: "What matters?", answer: "Context.")
+
+    get edit_project_use_case_path(project, use_case)
+
+    assert_response :success
+    assert_match "Use case metrics", response.body
+    assert_select ".use-case-detail-metrics dt", text: "Tickets"
+    assert_select ".use-case-detail-metrics dd", text: "1"
+    assert_select ".use-case-detail-metrics dt", text: "Documents"
+    assert_select ".use-case-detail-metrics dd", text: "3"
+    assert_select ".use-case-detail-metrics dt", text: "Drafts"
+    assert_select ".use-case-detail-metrics dt", text: "Specs"
+    assert_select ".use-case-detail-metrics dt", text: "Plans"
+    assert_select ".use-case-detail-metrics dt", text: "Quiz Entries"
+  end
+
+  test "edit hides delete action when references exist" do
+    admin = create_admin_user!
+    sign_in_as(admin)
+    project = create_project(key: "use-cases-delete-hidden")
+    board = create_board(project: project, project_key: "use-cases-delete-hidden")
+    backlog = board.columns.create!(key: "backlog", title: "Backlog", position: 0)
+    use_case = create_use_case(project: project, name: "Billing")
+    board.tickets.create!(column: backlog, title: "Scoped ticket", use_case: use_case)
+
+    get edit_project_use_case_path(project, use_case)
+
+    assert_response :success
+    refute_match "Delete Use Case", response.body
+  end
+
+  test "destroy blocks referenced use case" do
+    admin = create_admin_user!
+    sign_in_as(admin)
+    project = create_project(key: "use-cases-destroy-blocked")
+    board = create_board(project: project, project_key: "use-cases-destroy-blocked")
+    backlog = board.columns.create!(key: "backlog", title: "Backlog", position: 0)
+    use_case = create_use_case(project: project, name: "Billing")
+    board.tickets.create!(column: backlog, title: "Scoped ticket", use_case: use_case)
+
+    assert_no_difference("UseCase.count") do
+      delete project_use_case_path(project, use_case)
+    end
+
+    assert_redirected_to project_use_cases_path(project)
+    assert UseCase.exists?(use_case.id)
+  end
+
+  test "edit renders delete action and destroy removes unreferenced use case" do
+    admin = create_admin_user!
+    sign_in_as(admin)
+    project = create_project(key: "use-cases-destroy-allowed")
+    use_case = create_use_case(project: project, name: "Billing")
+
+    get edit_project_use_case_path(project, use_case)
+
+    assert_response :success
+    assert_match "Delete Use Case", response.body
+
+    assert_difference("UseCase.count", -1) do
+      delete project_use_case_path(project, use_case)
+    end
+
+    assert_redirected_to project_use_cases_path(project)
+    refute UseCase.exists?(use_case.id)
+  end
+
   test "updates use case and keeps slug generated from name" do
     admin = create_admin_user!
     sign_in_as(admin)

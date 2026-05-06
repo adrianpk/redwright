@@ -78,6 +78,29 @@ class UseCaseTest < ActiveSupport::TestCase
     assert_not use_case.destroy
   end
 
+  test "detail metrics include grouped documents plans tickets quiz entries and blockers" do
+    project = create_project(key: "use-case-detail-metrics")
+    board = create_board(project: project, project_key: "use-case-detail-metrics")
+    backlog = board.columns.create!(key: "backlog", title: "Backlog", position: 0)
+    use_case = create_use_case(project: project, name: "Billing")
+    board.tickets.create!(column: backlog, title: "Scoped ticket", use_case: use_case)
+    draft = create_document(project: project, use_case: use_case, artifact_type: "draft", title: "Draft One")
+    create_document(project: project, use_case: use_case, artifact_type: "spec", title: "Spec One", body: "spec", source_draft: draft, editable: false)
+    create_document(project: project, use_case: use_case, artifact_type: "plan_tracker", title: "Plan One", body: "plan", editable: false)
+    quiz = use_case.find_or_create_quiz!
+    quiz.entries.create!(question: "What matters?", answer: "Context.")
+
+    metrics = use_case.detail_metrics
+
+    assert_equal 1, metrics.fetch("tickets")
+    assert_equal 1, metrics.fetch("documents").fetch("draft")
+    assert_equal 1, metrics.fetch("documents").fetch("spec")
+    assert_equal 1, metrics.fetch("documents").fetch("plan_tracker")
+    assert_equal 1, metrics.fetch("plans")
+    assert_equal 1, metrics.fetch("quiz_entries")
+    assert_equal 1, metrics.fetch("blocking_references").fetch("tickets")
+  end
+
   test "allows deletion when no references exist" do
     use_case = create_use_case(name: "Unreferenced")
 
