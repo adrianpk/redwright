@@ -1,7 +1,7 @@
 ---
 id: TKT-20260506073634
 title: Preserve ticket modal rounded corners with scroll
-status: ready
+status: in_progress
 kind: cleanup
 severity: low
 priority: normal
@@ -10,12 +10,12 @@ tags: ticket-modal, web, ux
 source: chat
 reported_at: 2026-05-06T07:36:34Z
 ready_at: 2026-05-06T08:46:02Z
-started_at:
+started_at: 2026-05-06T08:59:23Z
 reviewed_at:
 closed_at:
 resolution:
 owner:
-branch:
+branch: fix/ticket-20260506073634-modal-scroll-corners
 pr:
 commits: []
 ---

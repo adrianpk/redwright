@@ -1155,9 +1155,19 @@ body {
 }
 
 .ticket-editor {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
   max-width: 980px;
   margin: 0 auto;
   padding: 24px 26px;
+}
+
+.ticket-editor > form {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 2px;
 }
 
 .ticket-editor h1 {
@@ -1247,7 +1257,7 @@ body {
 .modal-card {
   width: min(1100px, 96vw);
   max-height: 90vh;
-  overflow: auto;
+  overflow: hidden;
   background: var(--cream);
   border: 1px solid var(--border-soft);
   border-radius: 14px;
