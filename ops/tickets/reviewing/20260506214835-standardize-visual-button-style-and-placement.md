@@ -1,7 +1,7 @@
 ---
 id: TKT-20260506214835
 title: Standardize visual button style and placement
-status: open
+status: reviewing
 kind: task
 severity: medium
 priority: normal
@@ -10,14 +10,15 @@ tags: ui-polish,buttons,visual-consistency
 source: chat
 reported_at: 2026-05-06T21:48:35Z
 ready_at:
-started_at:
-reviewed_at:
+started_at: 2026-05-06T21:55:09Z
+reviewed_at: 2026-05-06T21:57:05Z
 closed_at:
 resolution:
 owner: 
-branch:
+branch: fix/ticket-20260506214835-button-consistency
 pr:
-commits: []
+commits:
+  - 824f57b
 ---
 
 ## Context
@@ -48,4 +49,4 @@ Button placement and labels are inconsistent. Some form actions appear at the bo
 - Manually verify representative forms and modals for action alignment, label consistency, sizing, and palette fit.
 
 ## Outcome
-Pending implementation.
+Implementation is ready for review. Button styling now uses larger shared `.ticket-action` sizing, right-aligned form action rows, harmonized destructive styling, and shorter labels where the surrounding context is clear.
