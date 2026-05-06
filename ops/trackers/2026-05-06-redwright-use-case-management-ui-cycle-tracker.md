@@ -4,9 +4,9 @@
 
 - cycle_id: `cycle-2026-05-06-redwright-use-case-management-ui`
 - status: `in_progress`
-- state: `slice_6_implemented`
+- state: `slice_6_merged`
 - updated: `2026-05-06`
-- active_slice: `Slice 6`
+- active_slice: `none`
 - active_task: `none`
 - source_plan: `ops/plans/2026-05-06-redwright-use-case-management-ui-cycle-plan.md`
 - source_spec: `ops/specs/specs/2026-05-06-redwright-use-case-management-ui-spec.md`
@@ -162,11 +162,11 @@ Validation:
 
 ### Slice 6: Document Optional Use Case Selection
 
-- status: `implemented`
+- status: `pr_merged`
 - branch: `fix/slice-6-document-use-case-selection`
 - PR: `https://codeberg.org/adrianpk/redwright/pulls/333`
 - merge_target: `dev`
-- last_sync_commit: `2ef25cb`
+- last_sync_commit: `1c2c5c7`
 
 Tasks:
 
@@ -252,3 +252,4 @@ Validation:
 - `2026-05-06` state=`slice_5_implemented` note=`implemented optional ticket Use Case selection with project-scoped form options, project-level blank selection, document link independence, command-query payload data, focused tests, and full Rails validation`
 - `2026-05-06` state=`slice_5_merged` note=`PR #332 merged into dev and local dev fast-forwarded to 34f7570`
 - `2026-05-06` state=`slice_6_implemented` note=`implemented optional document Use Case selection for draft create/edit, command-query use_case_id handling, project-level blank selection, cross-project validation coverage, lifecycle editability preservation, and full Rails validation`
+- `2026-05-06` state=`slice_6_merged` note=`PR #333 merged into dev and local dev fast-forwarded to 1c2c5c7`
