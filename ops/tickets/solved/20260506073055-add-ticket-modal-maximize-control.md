@@ -1,7 +1,7 @@
 ---
 id: TKT-20260506073055
 title: Add ticket modal maximize control
-status: reviewing
+status: solved
 kind: task
 severity: low
 priority: normal
@@ -12,8 +12,8 @@ reported_at: 2026-05-06T07:30:55Z
 ready_at: 2026-05-06T08:46:02Z
 started_at: 2026-05-06T09:24:06Z
 reviewed_at: 2026-05-06T09:26:42Z
-closed_at:
-resolution:
+closed_at: 2026-05-06T09:34:42Z
+resolution: fixed
 owner:
 branch: feat/ticket-20260506073055-ticket-modal-maximize
 pr: https://codeberg.org/adrianpk/redwright/pulls/319

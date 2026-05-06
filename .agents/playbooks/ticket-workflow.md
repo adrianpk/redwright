@@ -184,6 +184,25 @@ tags: ticket-model, kanban, redwright-app
 - Set `closed_at` only when status becomes `solved` or `closed`.
 - Set `branch`, `pr`, and `commits` when implementation work exists.
 
+## Branch, Commit, and PR Naming
+
+Use ticket naming that mirrors the slice workflow style while keeping ticket identity visible.
+
+- Branch format: `<type>/ticket-<timestamp>-<short-slug>`.
+- PR title format: `<type>(ticket-<timestamp>): <short outcome>`.
+- Commit format: regular Conventional Commits, scoped to the affected area.
+- PR body format: use the slice delivery sections `Summary`, `Changes`, and `Validation`.
+
+Choose the Conventional Commit type by the nature of the work:
+
+- Use `fix` for corrections to existing behavior, visual defects, UX friction, incomplete behavior, or workflow polish.
+- Use `feat` for a clearly new independent capability.
+- Use `chore` for repository workflow, ticket metadata, scripts, or operational maintenance.
+- Use `docs` for durable documentation only.
+- Use `refactor` for internal restructuring without behavior change.
+
+Most small UI tickets that improve an existing workflow should use `fix`, even when they add a small control or affordance.
+
 ## Workflow Invocation
 
 Canonical workflow ids use `snake_case`, but users do not need to say them literally. Map natural phrases to the canonical workflow.
