@@ -43,6 +43,7 @@ The directory is the operational column. The `status` frontmatter must match the
 
 Use the ticket helper scripts for repeatable operations.
 
+- `scripts/agent/tickets/help.sh` prints a compact human-facing guide for ticket commands and validation rules.
 - `scripts/agent/tickets/new.sh "Title"` creates an `open` ticket with canonical id, filename, frontmatter, and body scaffold.
 - `scripts/agent/tickets/search.sh [query]` lists or searches tickets, with optional filters such as `--status open`, `--tag web`, `--kind bug`, and `--format paths`.
 - `scripts/agent/tickets/check.sh` validates ticket frontmatter, status directories, ids, filenames, enum values, and tag limits.
