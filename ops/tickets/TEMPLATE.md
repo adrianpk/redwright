@@ -2,10 +2,10 @@
 id: TKT-YYYYMMDDHHMMSS
 title: <short concrete title>
 status: open
-kind: follow_up
-severity: low
-priority: normal
-scope: ops
+kind: unclassified
+severity: unclassified
+priority: unclassified
+scope: unclassified
 source: chat
 reported_at: YYYY-MM-DDTHH:MM:SSZ
 ready_at:
@@ -29,6 +29,7 @@ Valid `status` values:
 - `closed`
 
 Valid `kind` values:
+- `unclassified`
 - `bug`
 - `task`
 - `cleanup`
@@ -37,12 +38,14 @@ Valid `kind` values:
 - `decision`
 
 Valid `severity` values:
+- `unclassified`
 - `low`
 - `medium`
 - `high`
 - `critical`
 
 Valid `priority` values:
+- `unclassified`
 - `low`
 - `normal`
 - `high`

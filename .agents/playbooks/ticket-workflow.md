@@ -37,6 +37,7 @@ The directory is the operational column. The `status` frontmatter must match the
 5. Move ticket files between status directories when status changes.
 6. Keep the filename stable after creation unless correcting a timestamp/id mismatch.
 7. If scope expands beyond a bounded ticket, promote it to the formal spec/plan/tracker flow.
+8. Ticket capture must not require classification.
 
 ## Required Properties
 
@@ -81,6 +82,7 @@ Use `solved` when work was done and the issue is resolved. Use `closed` when the
 
 ## Kind Values
 
+- `unclassified`: not classified yet.
 - `bug`: incorrect behavior.
 - `task`: concrete implementation or maintenance work.
 - `cleanup`: simplification, pruning, or hygiene.
@@ -90,6 +92,7 @@ Use `solved` when work was done and the issue is resolved. Use `closed` when the
 
 ## Severity Values
 
+- `unclassified`: impact cannot be inferred yet.
 - `low`: minor inconvenience or cleanup.
 - `medium`: noticeable workflow or correctness issue.
 - `high`: significant functional, safety, or delivery impact.
@@ -97,6 +100,7 @@ Use `solved` when work was done and the issue is resolved. Use `closed` when the
 
 ## Priority Values
 
+- `unclassified`: scheduling importance cannot be inferred yet.
 - `low`: can wait.
 - `normal`: default priority.
 - `high`: should be handled soon.
@@ -130,7 +134,87 @@ Set `resolution` only when `status` is `solved` or `closed`.
 - Set `closed_at` only when status becomes `solved` or `closed`.
 - Set `branch`, `pr`, and `commits` when implementation work exists.
 
-## Reduced Workflow
+## Workflow Invocation
+
+Canonical workflow ids use `snake_case`, but users do not need to say them literally. Map natural phrases to the canonical workflow.
+
+- `capture`: `ticket`, `capture ticket`, `crear ticket`, `registrar ticket`
+- `capture_round`: `tickets`, `capture tickets`, `ronda de tickets`, `crear varios tickets`
+- `triage_manual`: `triage`, `triage manual`, `clasificar tickets`, `revisemos tickets`
+- `triage_auto`: `triage auto`, `auto triage`, `clasificar automático`, `clasificá tickets vos`
+
+## Capture Workflow
+
+Use `capture` for one quick ticket.
+
+1. Accept a raw description as sufficient input.
+2. Do not ask classification questions by default.
+3. Ask only when the description is impossible to understand or appears to contain multiple unrelated tickets.
+4. Create the ticket under `ops/tickets/open/`.
+5. Default uncertain classification fields to `unclassified`.
+
+Default capture frontmatter:
+
+```yaml
+status: open
+kind: unclassified
+severity: unclassified
+priority: unclassified
+scope: unclassified
+source: chat
+```
+
+## Capture Round Workflow
+
+Use `capture_round` when the user wants to dump multiple informal items.
+
+1. Accept a rough list, paragraphs, or short fragments.
+2. Split clearly separate items into separate tickets.
+3. Merge obvious duplicates.
+4. Ask questions only when an item is impossible to preserve as a ticket.
+5. Do not spend user energy on classification during capture.
+6. Create all preserved items under `ops/tickets/open/`.
+7. Report created ticket ids and any deferred candidates.
+
+## Assisted Capture
+
+If the user asks for help clarifying before capture, ask at most 10 questions total for the ticket or round.
+
+- Ask only questions that improve the ticket description, expected outcome, actual behavior, validation, or separability.
+- Do not preserve the questions as quiz artifacts.
+- The questions are scaffolding; the ticket is the artifact.
+
+## Manual Triage Workflow
+
+Use `triage_manual` to classify and refine existing tickets with user input.
+
+1. Select open or unclassified tickets.
+2. Ask the minimum questions needed to classify or clarify.
+3. Let the user decide or confirm `kind`, `scope`, `severity`, and `priority`.
+4. Move tickets from `open/` to `ready/` only when the expected outcome is actionable.
+5. Leave unclear tickets in `open/` with `unclassified` fields.
+
+## Automatic Triage Workflow
+
+Use `triage_auto` when the user explicitly asks the agent to classify tickets by judgment.
+
+1. Classify for execution, not drama.
+2. Do not ask questions unless ambiguity is dangerous.
+3. Do not invent facts.
+4. Prefer conservative classification.
+5. It is acceptable to leave fields as `unclassified`.
+6. Do not move a ticket to `ready/` unless the expected outcome is actionable.
+7. Add a short rationale note only when the classification is not obvious.
+
+Automatic triage criteria:
+
+- `severity` measures impact if unresolved.
+- `priority` measures when to schedule it.
+- Do not raise priority just because something is annoying.
+- Do not raise severity because information is missing.
+- Use `unclassified` when critical context is missing.
+
+## Ticket-Driven Implementation Workflow
 
 1. Capture the ticket in `ops/tickets/open/` with `status: open`.
 2. Refine it to `status: ready` when the expected outcome is clear enough to execute.
