@@ -1,7 +1,7 @@
 ---
 id: TKT-20260506073458
 title: Enable ticket linked document management
-status: in_progress
+status: reviewing
 kind: task
 severity: medium
 priority: normal
@@ -11,13 +11,14 @@ source: chat
 reported_at: 2026-05-06T07:34:58Z
 ready_at: 2026-05-06T08:46:02Z
 started_at: 2026-05-06T10:17:34Z
-reviewed_at:
+reviewed_at: 2026-05-06T10:32:42Z
 closed_at:
 resolution:
 owner:
 branch: fix/ticket-20260506073458-linked-document-management
-pr:
-commits: []
+pr: https://codeberg.org/adrianpk/redwright/pulls/321
+commits:
+  - 637135b
 ---
 
 ## Context
