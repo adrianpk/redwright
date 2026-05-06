@@ -219,9 +219,9 @@ Validation:
 
 - status: `implemented`
 - branch: `fix/slice-8-use-case-cycle-closure`
-- PR: `pending`
+- PR: `https://codeberg.org/adrianpk/redwright/pulls/335`
 - merge_target: `dev`
-- last_sync_commit: `pending`
+- last_sync_commit: `e8f1682`
 
 Tasks:
 
