@@ -22,6 +22,7 @@ commits:
   - 97aeba4
   - c540b94
   - e1ce9a2
+  - b228468
 ---
 
 ## Context
@@ -50,6 +51,8 @@ Button placement and labels are inconsistent. Some form actions appear at the bo
 - Run targeted controller/view tests for touched screens.
 - Run `bundle exec bin/rails test` from `apps/web`.
 - Manually verify representative forms and modals for action alignment, label consistency, sizing, and palette fit.
+- 2026-05-07: `bundle exec bin/rails test test/controllers/project_quizzes_controller_test.rb test/controllers/use_cases_controller_test.rb` from `apps/web` passed with 23 runs, 188 assertions, 0 failures.
+- 2026-05-07: `bundle exec bin/rails test` from `apps/web` passed with 389 runs, 2519 assertions, 0 failures.
 
 ## Outcome
-Implementation is ready for review. Button styling now uses larger shared `.ticket-action` sizing, right-aligned form action rows, harmonized destructive styling, shorter labels where the surrounding context is clear, and consistent auth/password form button styling.
+Implementation is ready for review. Button styling now uses larger shared `.ticket-action` sizing, right-aligned form action rows, harmonized destructive styling, shorter labels where the surrounding context is clear, consistent auth/password form button styling, normalized Use Case Save/Delete button width, and a connected New Quiz use case dropdown action.
