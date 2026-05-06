@@ -136,9 +136,9 @@ Validation:
 
 - status: `implemented`
 - branch: `fix/slice-5-ticket-use-case-selection`
-- PR: `pending`
+- PR: `https://codeberg.org/adrianpk/redwright/pulls/332`
 - merge_target: `dev`
-- last_sync_commit: `pending`
+- last_sync_commit: `eaa0f4b`
 
 Tasks:
 
