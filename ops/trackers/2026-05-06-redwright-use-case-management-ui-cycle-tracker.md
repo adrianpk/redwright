@@ -4,9 +4,9 @@
 
 - cycle_id: `cycle-2026-05-06-redwright-use-case-management-ui`
 - status: `in_progress`
-- state: `slice_4_merged`
+- state: `slice_5_implemented`
 - updated: `2026-05-06`
-- active_slice: `none`
+- active_slice: `Slice 5`
 - active_task: `none`
 - source_plan: `ops/plans/2026-05-06-redwright-use-case-management-ui-cycle-plan.md`
 - source_spec: `ops/specs/specs/2026-05-06-redwright-use-case-management-ui-spec.md`
@@ -134,7 +134,7 @@ Validation:
 
 ### Slice 5: Ticket Optional Use Case Selection
 
-- status: `planned`
+- status: `implemented`
 - branch: `fix/slice-5-ticket-use-case-selection`
 - PR: `pending`
 - merge_target: `dev`
@@ -142,21 +142,23 @@ Validation:
 
 Tasks:
 
-- [ ] `T5.1 inspect existing ticket modal/form parameters and command-query attributes`
-- [ ] `T5.2 add optional use_case_id selector to ticket create/edit surfaces`
-- [ ] `T5.3 scope selector options to the ticket board's project`
-- [ ] `T5.4 allow blank use_case_id for project-level tickets`
-- [ ] `T5.5 preserve document attachments independently from use_case_id`
-- [ ] `T5.6 include use_case_id in ticket command-query create/update payload handling if not already complete`
-- [ ] `T5.7 add tests for blank selection, valid same-project selection, invalid cross-project selection, and document attachment independence`
+- [x] `T5.1 inspect existing ticket modal/form parameters and command-query attributes`
+- [x] `T5.2 add optional use_case_id selector to ticket create/edit surfaces`
+- [x] `T5.3 scope selector options to the ticket board's project`
+- [x] `T5.4 allow blank use_case_id for project-level tickets`
+- [x] `T5.5 preserve document attachments independently from use_case_id`
+- [x] `T5.6 include use_case_id in ticket command-query create/update payload handling if not already complete`
+- [x] `T5.7 add tests for blank selection, valid same-project selection, invalid cross-project selection, and document attachment independence`
 
 Commits:
 
-- [ ] `pending`
+- [x] `f5762b2 feat(web): add ticket use case selector`
+- [x] `bec43a6 test(web): cover ticket use case selection`
 
 Validation:
 
-- [ ] `pending`
+- [x] `bundle exec bin/rails test test/controllers/tickets_controller_test.rb test/models/ticket_test.rb test/services/board_workflow/command_query_handlers_test.rb` (pass)
+- [x] `bundle exec bin/rails test` (pass)
 
 ### Slice 6: Document Optional Use Case Selection
 
@@ -245,3 +247,4 @@ Validation:
 - `2026-05-06` state=`slice_3_merged` note=`PR #330 merged into dev and local dev fast-forwarded to 81a70df`
 - `2026-05-06` state=`slice_4_implemented` note=`implemented Use Case create/edit modal forms with generated slug hidden, validation rendering, route coverage, and full Rails validation`
 - `2026-05-06` state=`slice_4_merged` note=`PR #331 merged into dev and local dev fast-forwarded to 274429b`
+- `2026-05-06` state=`slice_5_implemented` note=`implemented optional ticket Use Case selection with project-scoped form options, project-level blank selection, document link independence, command-query payload data, focused tests, and full Rails validation`

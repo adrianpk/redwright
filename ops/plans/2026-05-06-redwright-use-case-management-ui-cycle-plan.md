@@ -115,18 +115,18 @@
 
 ### Slice 5: Ticket Optional Use Case Selection
 
-- status: `planned`
+- status: `implemented`
 - branch: `fix/slice-5-ticket-use-case-selection`
 - pr_title: `feat(slice-5): add ticket use case selection`
 - objective: `surface optional Use Case metadata in ticket create/edit flows without changing ticket document attachment semantics`
 - tasks:
-- [ ] `T5.1 inspect existing ticket modal/form parameters and command-query attributes`
-- [ ] `T5.2 add optional use_case_id selector to ticket create/edit surfaces`
-- [ ] `T5.3 scope selector options to the ticket board's project`
-- [ ] `T5.4 allow blank use_case_id for project-level tickets`
-- [ ] `T5.5 preserve document attachments independently from use_case_id`
-- [ ] `T5.6 include use_case_id in ticket command-query create/update payload handling if not already complete`
-- [ ] `T5.7 add tests for blank selection, valid same-project selection, invalid cross-project selection, and document attachment independence`
+- [x] `T5.1 inspect existing ticket modal/form parameters and command-query attributes`
+- [x] `T5.2 add optional use_case_id selector to ticket create/edit surfaces`
+- [x] `T5.3 scope selector options to the ticket board's project`
+- [x] `T5.4 allow blank use_case_id for project-level tickets`
+- [x] `T5.5 preserve document attachments independently from use_case_id`
+- [x] `T5.6 include use_case_id in ticket command-query create/update payload handling if not already complete`
+- [x] `T5.7 add tests for blank selection, valid same-project selection, invalid cross-project selection, and document attachment independence`
 - acceptance:
 - `ticket create/edit exposes optional Use Case metadata`
 - `tickets can remain project-level`
