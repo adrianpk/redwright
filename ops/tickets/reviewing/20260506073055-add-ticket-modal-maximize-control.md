@@ -20,6 +20,7 @@ pr: https://codeberg.org/adrianpk/redwright/pulls/319
 commits:
   - b819723
   - 5fa5aa2
+  - 8652f88
 ---
 
 ## Context
