@@ -1,7 +1,7 @@
 ---
 id: TKT-20260506120227
 title: Expose aligned ticket model in web UI
-status: ready
+status: in_progress
 kind: task
 severity: medium
 priority: high
@@ -10,12 +10,12 @@ tags: ticket-model, redwright-app, web-ui
 source: chat
 reported_at: 2026-05-06T12:02:27Z
 ready_at: 2026-05-06T12:02:27Z
-started_at:
+started_at: 2026-05-06T12:50:56Z
 reviewed_at:
 closed_at:
 resolution:
 owner:
-branch:
+branch: fix/ticket-20260506120227-ticket-model-ui
 pr:
 commits: []
 ---

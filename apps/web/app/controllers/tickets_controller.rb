@@ -106,7 +106,29 @@ class TicketsController < ApplicationController
   end
 
   def ticket_params
-    params.require(:ticket).permit(:title, :description, :priority, :assignee, :column_id, :use_case_id)
+    permitted = params.require(:ticket).permit(
+      :title,
+      :description,
+      :priority,
+      :assignee,
+      :column_id,
+      :use_case_id,
+      :kind,
+      :severity,
+      :scope,
+      :source,
+      :resolution,
+      :owner,
+      :branch,
+      :pr,
+      :commits
+    )
+    permitted[:commits] = commits_from(permitted[:commits]) if permitted.key?(:commits)
+    permitted
+  end
+
+  def commits_from(value)
+    value.to_s.lines.map(&:strip).reject(&:blank?)
   end
 
   def selected_document_ids

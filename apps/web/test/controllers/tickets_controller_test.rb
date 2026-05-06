@@ -42,6 +42,42 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
     assert_equal "high", created.priority
   end
 
+  test "create persists aligned workflow metadata from board form" do
+    admin = create_admin_user!
+    sign_in_as(admin)
+    board = create_board(project_key: "factory-create-workflow")
+    backlog = board.columns.create!(key: "backlog", title: "Backlog", position: 0)
+
+    post board_tickets_path(board), params: {
+      ticket: {
+        title: "Create workflow ticket",
+        description: "Need aligned metadata",
+        priority: "high",
+        column_id: backlog.id,
+        kind: "task",
+        severity: "medium",
+        scope: "web",
+        source: "manual_test",
+        owner: "agent-reviewer",
+        branch: "fix/ticket-123",
+        pr: "https://codeberg.org/acme/redwright/pulls/123",
+        commits: "abc123\n\ndef456"
+      }
+    }
+
+    assert_redirected_to board_path(board)
+    created = board.tickets.order(:created_at).last
+    assert_equal "ready", created.workflow_status
+    assert_equal "task", created.kind
+    assert_equal "medium", created.severity
+    assert_equal "web", created.scope
+    assert_equal "manual_test", created.source
+    assert_equal "agent-reviewer", created.owner
+    assert_equal "fix/ticket-123", created.branch
+    assert_equal "https://codeberg.org/acme/redwright/pulls/123", created.pr
+    assert_equal [ "abc123", "def456" ], created.commits
+  end
+
   test "create can link artifacts optionally" do
     admin = create_admin_user!
     sign_in_as(admin)
@@ -263,6 +299,10 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_match('turbo-frame id="modal"', response.body)
     assert_match("modal-size-toggle", response.body)
+    assert_match("ticket-form-layout", response.body)
+    assert_match("ticket-form-sidebar", response.body)
+    assert_match("Workflow Status", response.body)
+    assert_match("Delivery", response.body)
     assert_match("data-ticket-document-picker", response.body)
     assert_match("Draft Candidate (draft)", response.body)
   end

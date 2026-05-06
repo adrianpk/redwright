@@ -10,6 +10,7 @@
   --surface-content-width: 860px;
   --catalog-card-ratio: 16 / 9;
   --catalog-card-min-height: 120px;
+  --scrollbar-content-gap: 18px;
 }
 
 * {
@@ -1212,7 +1213,7 @@ body {
   flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;
-  padding-right: 12px;
+  padding-right: var(--scrollbar-content-gap);
   scrollbar-gutter: stable;
 }
 
@@ -1258,6 +1259,31 @@ body {
 
 .ticket-description-field textarea {
   resize: none;
+}
+
+.ticket-form-layout {
+  display: block;
+}
+
+.ticket-form-main {
+  min-width: 0;
+}
+
+.ticket-form-sidebar {
+  min-width: 0;
+}
+
+.ticket-form-section {
+  margin-top: 12px;
+}
+
+.ticket-form-section-title {
+  margin: 0 0 8px;
+  color: var(--navy-soft);
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 .ticket-description-editor {
@@ -1462,20 +1488,59 @@ body {
 .ticket-editor.is-maximized > form {
   display: flex;
   flex-direction: column;
+  overflow: hidden;
+}
+
+.ticket-editor.is-maximized .ticket-form-layout {
+  display: grid;
+  flex: 1 1 auto;
+  min-height: 0;
+  gap: 18px;
+  grid-template-columns: minmax(0, 4fr) minmax(240px, 1fr);
+}
+
+.ticket-editor.is-maximized .ticket-form-main,
+.ticket-editor.is-maximized .ticket-form-sidebar {
+  min-height: 0;
+}
+
+.ticket-editor.is-maximized .ticket-form-main {
+  display: flex;
+  flex-direction: column;
 }
 
 .ticket-editor.is-maximized .ticket-description-field {
   display: flex;
-  flex: 0 0 auto;
+  flex: 1 1 auto;
+  min-height: 0;
   flex-direction: column;
 }
 
-.ticket-editor.is-maximized .ticket-description-field textarea {
-  min-height: clamp(28rem, 66vh, 52rem);
+.ticket-editor.is-maximized .ticket-description-editor {
+  flex: 1 1 auto;
+  min-height: 0;
 }
 
+.ticket-editor.is-maximized .ticket-description-field textarea,
 .ticket-editor.is-maximized .ticket-description-preview {
-  min-height: clamp(28rem, 66vh, 52rem);
+  min-height: 100%;
+}
+
+.ticket-editor.is-maximized .ticket-form-sidebar {
+  align-self: stretch;
+  border-left: 1px solid var(--border-soft);
+  padding-left: var(--scrollbar-content-gap);
+  padding-right: var(--scrollbar-content-gap);
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+}
+
+.ticket-editor.is-maximized .ticket-form-sidebar .field-row {
+  grid-template-columns: 1fr;
+}
+
+.ticket-editor.is-maximized .form-actions {
+  flex: 0 0 auto;
 }
 
 .modal-header {

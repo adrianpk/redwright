@@ -7,70 +7,140 @@
     </div>
   <% end %>
 
-  <div class="field">
-    <%= f.label :title %>
-    <%= f.text_field :title, required: true %>
-  </div>
-
-  <div class="field ticket-description-field">
-    <%= f.label :description %>
-    <div class="ticket-description-editor <%= "is-editing" if ticket.description.blank? %>" data-markdown-preview-url="<%= markdown_preview_tickets_path %>">
-      <div class="ticket-description-preview" role="button" tabindex="0" aria-label="Edit description">
-        <% if ticket.description.present? %>
-          <%= ticket_markdown(ticket.description) %>
-        <% end %>
+  <div class="ticket-form-layout">
+    <div class="ticket-form-main">
+      <div class="field">
+        <%= f.label :title %>
+        <%= f.text_field :title, required: true %>
       </div>
-      <%= f.text_area :description, rows: 5, data: { markdown_editor: "textarea" } %>
-    </div>
-  </div>
 
-  <div class="field-row">
-    <div class="field">
-      <%= f.label :priority %>
-      <%= f.select :priority, Ticket.priorities.keys.map { |p| [p.humanize, p] } %>
-    </div>
-    <div class="field">
-      <%= f.label :assignee %>
-      <%= f.text_field :assignee %>
-    </div>
-  </div>
-
-  <div class="field">
-    <%= f.label :column_id, "Status" %>
-    <%= f.collection_select :column_id, ticket.board.columns.order(:position), :id, :title %>
-  </div>
-
-  <div class="field">
-    <%= f.label :document_ids, "Linked Documents" %>
-    <% available_documents = (@available_documents || []).select { |document| %w[draft spec].include?(document.artifact_type) } %>
-    <% document_picker_id = "#{dom_id(ticket)}_document_picker" %>
-    <div class="ticket-document-picker" data-ticket-document-picker>
-      <input type="hidden" name="ticket[document_ids][]" value="">
-      <div class="ticket-document-search-row">
-        <input type="search"
-               class="ticket-document-search"
-               list="<%= document_picker_id %>"
-               placeholder="Search drafts and specs"
-               autocomplete="off"
-               data-ticket-document-search>
-        <button type="button" class="ticket-action" data-ticket-document-add>Attach</button>
-      </div>
-      <datalist id="<%= document_picker_id %>">
-        <% available_documents.each do |document| %>
-          <option value="<%= "#{document.title} (#{document.artifact_type})" %>" data-document-id="<%= document.id %>"></option>
-        <% end %>
-      </datalist>
-      <div class="ticket-document-results" data-ticket-document-results></div>
-      <div class="ticket-document-chips" data-ticket-document-chips>
-        <% ticket.documents.each do |document| %>
-          <span class="ticket-document-chip" data-document-id="<%= document.id %>">
-            <input type="hidden" name="ticket[document_ids][]" value="<%= document.id %>">
-            <span><%= "#{document.title} (#{document.artifact_type})" %></span>
-            <button type="button" aria-label="Remove <%= document.title %>" data-ticket-document-remove>&times;</button>
-          </span>
-        <% end %>
+      <div class="field ticket-description-field">
+        <%= f.label :description %>
+        <div class="ticket-description-editor <%= "is-editing" if ticket.description.blank? %>" data-markdown-preview-url="<%= markdown_preview_tickets_path %>">
+          <div class="ticket-description-preview" role="button" tabindex="0" aria-label="Edit description">
+            <% if ticket.description.present? %>
+              <%= ticket_markdown(ticket.description) %>
+            <% end %>
+          </div>
+          <%= f.text_area :description, rows: 5, data: { markdown_editor: "textarea" } %>
+        </div>
       </div>
     </div>
+
+    <aside class="ticket-form-sidebar" aria-label="Ticket metadata">
+      <section class="ticket-form-section">
+        <div class="ticket-form-section-title">Workflow</div>
+        <div class="field-row">
+          <div class="field">
+            <%= f.label :column_id, "Status" %>
+            <%= f.collection_select :column_id, ticket.board.columns.order(:position), :id, :title %>
+          </div>
+          <div class="field">
+            <label>Workflow Status</label>
+            <input type="text" value="<%= ticket.workflow_status.to_s.presence || ticket.workflow_status_for_column.humanize %>" readonly>
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <%= f.label :priority %>
+            <%= f.select :priority, Ticket.priorities.keys.map { |p| [p.humanize, p] } %>
+          </div>
+          <div class="field">
+            <%= f.label :kind %>
+            <%= f.select :kind, Ticket::WORKFLOW_KINDS.map { |value| [value.humanize, value] } %>
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <%= f.label :severity %>
+            <%= f.select :severity, Ticket::WORKFLOW_SEVERITIES.map { |value| [value.humanize, value] } %>
+          </div>
+          <div class="field">
+            <%= f.label :scope %>
+            <%= f.select :scope, Ticket::WORKFLOW_SCOPES.map { |value| [value.humanize, value] } %>
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <%= f.label :source %>
+            <%= f.select :source, Ticket::WORKFLOW_SOURCES.map { |value| [value.humanize, value] } %>
+          </div>
+          <div class="field">
+            <%= f.label :resolution %>
+            <%= f.select :resolution, [["None", ""]] + Ticket::WORKFLOW_RESOLUTIONS.map { |value| [value.humanize, value] } %>
+          </div>
+        </div>
+      </section>
+
+      <section class="ticket-form-section">
+        <div class="ticket-form-section-title">Ownership</div>
+        <div class="field-row">
+          <div class="field">
+            <%= f.label :assignee %>
+            <%= f.text_field :assignee %>
+          </div>
+          <div class="field">
+            <%= f.label :owner %>
+            <%= f.text_field :owner %>
+          </div>
+        </div>
+      </section>
+
+      <section class="ticket-form-section">
+        <div class="ticket-form-section-title">Delivery</div>
+        <div class="field">
+          <%= f.label :branch %>
+          <%= f.text_field :branch %>
+        </div>
+        <div class="field">
+          <%= f.label :pr, "PR" %>
+          <%= f.text_field :pr %>
+        </div>
+        <div class="field">
+          <%= f.label :commits %>
+          <%= f.text_area :commits, value: Array(ticket.commits).join("\n"), rows: 3 %>
+        </div>
+      </section>
+
+      <section class="ticket-form-section">
+        <div class="ticket-form-section-title">Context</div>
+        <div class="field">
+          <%= f.label :document_ids, "Linked Documents" %>
+          <% available_documents = (@available_documents || []).select { |document| %w[draft spec].include?(document.artifact_type) } %>
+          <% document_picker_id = "#{dom_id(ticket)}_document_picker" %>
+          <div class="ticket-document-picker" data-ticket-document-picker>
+            <input type="hidden" name="ticket[document_ids][]" value="">
+            <div class="ticket-document-search-row">
+              <input type="search"
+                     class="ticket-document-search"
+                     list="<%= document_picker_id %>"
+                     placeholder="Search drafts and specs"
+                     autocomplete="off"
+                     data-ticket-document-search>
+              <button type="button" class="ticket-action" data-ticket-document-add>Attach</button>
+            </div>
+            <datalist id="<%= document_picker_id %>">
+              <% available_documents.each do |document| %>
+                <option value="<%= "#{document.title} (#{document.artifact_type})" %>" data-document-id="<%= document.id %>"></option>
+              <% end %>
+            </datalist>
+            <div class="ticket-document-results" data-ticket-document-results></div>
+            <div class="ticket-document-chips" data-ticket-document-chips>
+              <% ticket.documents.each do |document| %>
+                <span class="ticket-document-chip" data-document-id="<%= document.id %>">
+                  <input type="hidden" name="ticket[document_ids][]" value="<%= document.id %>">
+                  <span><%= "#{document.title} (#{document.artifact_type})" %></span>
+                  <button type="button" aria-label="Remove <%= document.title %>" data-ticket-document-remove>&times;</button>
+                </span>
+              <% end %>
+            </div>
+          </div>
+        </div>
+      </section>
+    </aside>
   </div>
 
   <div class="form-actions">
