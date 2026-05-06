@@ -394,6 +394,64 @@ body {
   font-weight: 600;
 }
 
+.use-case-detail-metrics {
+  margin: 0 0 16px;
+}
+
+.use-case-detail-metrics dl {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+}
+
+.use-case-detail-metrics div {
+  min-width: 0;
+  border: 1px solid var(--border-soft);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.62);
+  padding: 8px 10px;
+}
+
+.use-case-detail-metrics dt {
+  color: var(--navy-soft);
+  font-size: .66rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.use-case-detail-metrics dd {
+  margin: 4px 0 0;
+  color: var(--navy);
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.use-case-editor-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.use-case-editor-actions form {
+  margin: 0;
+}
+
+.use-case-primary-action {
+  min-width: 112px;
+}
+
+@media (max-width: 720px) {
+  .use-case-detail-metrics dl {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
 .quiz-new-use-case-form {
   display: inline-flex;
   align-items: center;

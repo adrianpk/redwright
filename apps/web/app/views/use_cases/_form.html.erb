@@ -1,4 +1,7 @@
-<%= form_with model: use_case, url: url do |f| %>
+<% form_html_options = {} %>
+<% form_html_options[:id] = local_assigns[:form_id] if local_assigns[:form_id].present? %>
+
+<%= form_with model: use_case, url: url, html: form_html_options do |f| %>
   <% if use_case.errors.any? %>
     <div class="form-errors">
       <% use_case.errors.each do |error| %>
@@ -18,7 +21,9 @@
     <%= f.text_area :description, rows: 8, required: true %>
   </div>
 
-  <div class="form-actions">
-    <%= f.submit submit_label, class: "ticket-action" %>
-  </div>
+  <% unless local_assigns[:render_actions] == false %>
+    <div class="form-actions">
+      <%= f.submit submit_label, class: "ticket-action" %>
+    </div>
+  <% end %>
 <% end %>
