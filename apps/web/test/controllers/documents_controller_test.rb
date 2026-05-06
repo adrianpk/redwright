@@ -39,6 +39,116 @@ class DocumentsControllerTest < ActionDispatch::IntegrationTest
     assert_equal "Feature Draft Updated", created.reload.title
   end
 
+  test "create can assign optional use case to draft" do
+    admin = create_admin_user!
+    sign_in_as(admin)
+    project = create_project(key: "docs-create-use-case")
+    use_case = create_use_case(project: project, name: "Billing")
+    patch current_project_path, params: { project_id: project.id }
+
+    post documents_path, params: {
+      document: {
+        title: "Billing Draft",
+        body: "Billing draft body",
+        use_case_id: use_case.id
+      }
+    }
+
+    created = Document.order(:created_at).last
+    assert_redirected_to document_path(created)
+    assert_equal use_case.id, created.use_case_id
+  end
+
+  test "create allows blank use case for project-level draft" do
+    admin = create_admin_user!
+    sign_in_as(admin)
+    project = create_project(key: "docs-create-blank-use-case")
+    create_use_case(project: project, name: "Billing")
+    patch current_project_path, params: { project_id: project.id }
+
+    post documents_path, params: {
+      document: {
+        title: "Project Draft",
+        body: "Project draft body",
+        use_case_id: ""
+      }
+    }
+
+    created = Document.order(:created_at).last
+    assert_redirected_to document_path(created)
+    assert_nil created.use_case_id
+  end
+
+  test "update can change and clear draft use case" do
+    admin = create_admin_user!
+    sign_in_as(admin)
+    project = create_project(key: "docs-update-use-case")
+    billing = create_use_case(project: project, name: "Billing")
+    checkout = create_use_case(project: project, name: "Checkout")
+    draft = create_document(project: project, use_case: billing, title: "Scoped Draft")
+
+    patch document_path(draft), params: {
+      document: {
+        title: "Scoped Draft",
+        body: draft.body,
+        use_case_id: checkout.id
+      }
+    }
+
+    assert_redirected_to document_path(draft)
+    assert_equal checkout.id, draft.reload.use_case_id
+
+    patch document_path(draft), params: {
+      document: {
+        title: "Scoped Draft",
+        body: draft.body,
+        use_case_id: ""
+      }
+    }
+
+    assert_redirected_to document_path(draft)
+    assert_nil draft.reload.use_case_id
+  end
+
+  test "rejects cross-project use case assignment for draft" do
+    admin = create_admin_user!
+    sign_in_as(admin)
+    project = create_project(key: "docs-cross-use-case")
+    other_project = create_project(key: "docs-cross-use-case-other")
+    foreign_use_case = create_use_case(project: other_project, name: "Foreign")
+    patch current_project_path, params: { project_id: project.id }
+
+    post documents_path, params: {
+      document: {
+        title: "Invalid Draft",
+        body: "Invalid draft body",
+        use_case_id: foreign_use_case.id
+      }
+    }
+
+    assert_response :unprocessable_entity
+    assert_equal 0, project.documents.count
+    assert_includes response.body, "Use case must belong to the same project"
+  end
+
+  test "new renders project-scoped use case selector" do
+    admin = create_admin_user!
+    sign_in_as(admin)
+    project = create_project(key: "docs-new-use-case")
+    other_project = create_project(key: "docs-new-use-case-other")
+    create_use_case(project: project, name: "Billing")
+    create_use_case(project: other_project, name: "Foreign")
+    patch current_project_path, params: { project_id: project.id }
+
+    get new_document_path
+
+    assert_response :success
+    assert_match "Use Case", response.body
+    assert_match "Project-level", response.body
+    assert_match "Billing", response.body
+    refute_match "Foreign", response.body
+  end
+
   test "index renders top navigation back to board" do
     admin = create_admin_user!
     board = create_board(project_key: "docs-nav")
