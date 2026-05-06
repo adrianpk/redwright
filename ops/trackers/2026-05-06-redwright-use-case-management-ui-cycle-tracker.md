@@ -79,7 +79,7 @@ Validation:
 
 - status: `implemented`
 - branch: `fix/slice-3-use-cases-index`
-- PR: `pending`
+- PR: `https://codeberg.org/adrianpk/redwright/pulls/330`
 - merge_target: `dev`
 - last_sync_commit: `pending`
 
