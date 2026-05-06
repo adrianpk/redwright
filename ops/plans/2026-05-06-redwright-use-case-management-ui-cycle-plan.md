@@ -69,7 +69,7 @@
 
 ### Slice 3: Use Cases Navigation and Index
 
-- status: `planned`
+- status: `implemented`
 - branch: `fix/slice-3-use-cases-index`
 - pr_title: `feat(slice-3): add use cases index`
 - objective: `add the dedicated Use Cases web surface scoped to the selected project with minimalist newest-first table navigation`

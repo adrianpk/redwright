@@ -4,9 +4,9 @@
 
 - cycle_id: `cycle-2026-05-06-redwright-use-case-management-ui`
 - status: `in_progress`
-- state: `slice_2_merged`
+- state: `slice_3_implemented`
 - updated: `2026-05-06`
-- active_slice: `none`
+- active_slice: `Slice 3`
 - active_task: `none`
 - source_plan: `ops/plans/2026-05-06-redwright-use-case-management-ui-cycle-plan.md`
 - source_spec: `ops/specs/specs/2026-05-06-redwright-use-case-management-ui-spec.md`
@@ -77,7 +77,7 @@ Validation:
 
 ### Slice 3: Use Cases Navigation and Index
 
-- status: `planned`
+- status: `implemented`
 - branch: `fix/slice-3-use-cases-index`
 - PR: `pending`
 - merge_target: `dev`
@@ -85,21 +85,23 @@ Validation:
 
 Tasks:
 
-- [ ] `T3.1 add RESTful UseCases routes using readable slug URLs where practical`
-- [ ] `T3.2 add UseCasesController with current-project scoping and first-project fallback consistent with existing navigation`
-- [ ] `T3.3 add Use Cases navbar item between Protocols and Quizzes`
-- [ ] `T3.4 render newest-first Use Cases index table`
-- [ ] `T3.5 include an Edit action per row without delete buttons or per-row association counters`
-- [ ] `T3.6 keep the index free of dynamic search and pagination`
-- [ ] `T3.7 add controller tests for current-project scoping, fallback behavior, ordering, and navigation availability`
+- [x] `T3.1 add RESTful UseCases routes using readable slug URLs where practical`
+- [x] `T3.2 add UseCasesController with current-project scoping and first-project fallback consistent with existing navigation`
+- [x] `T3.3 add Use Cases navbar item between Protocols and Quizzes`
+- [x] `T3.4 render newest-first Use Cases index table`
+- [x] `T3.5 include an Edit action per row without delete buttons or per-row association counters`
+- [x] `T3.6 keep the index free of dynamic search and pagination`
+- [x] `T3.7 add controller tests for current-project scoping, fallback behavior, ordering, and navigation availability`
 
 Commits:
 
-- [ ] `pending`
+- [x] `32f8e74 feat(web): add use cases index`
+- [x] `7ef393a test(web): cover use cases navigation`
 
 Validation:
 
-- [ ] `pending`
+- [x] `bundle exec bin/rails test test/controllers/use_cases_controller_test.rb test/controllers/project_quizzes_controller_test.rb test/controllers/project_protocols_controller_test.rb` (pass)
+- [x] `bundle exec bin/rails test` (pass)
 
 ### Slice 4: Use Case Create and Edit Modal UI
 
@@ -236,3 +238,4 @@ Validation:
 - `2026-05-06` state=`slice_1_merged` note=`PR #328 merged into dev and local dev fast-forwarded to a10bbfa`
 - `2026-05-06` state=`slice_2_implemented` note=`implemented UseCase command-query create, update, delete, list, and get operations with structured errors, metrics, tests, and full Rails validation`
 - `2026-05-06` state=`slice_2_merged` note=`PR #329 merged into dev and local dev fast-forwarded to 93b950a`
+- `2026-05-06` state=`slice_3_implemented` note=`implemented Use Cases navigation and newest-first index with project scoping, no index delete/counters, controller coverage, and full Rails validation`
