@@ -28,6 +28,8 @@ class ProjectQuizzesControllerTest < ActionDispatch::IntegrationTest
     assert_match "Quizzes", response.body
     assert_match "Project Quiz", response.body
     assert_match "artifact-type-card", response.body
+    refute_match "Use case", response.body
+    refute_match "Open Quiz", response.body
   end
 
   test "index is scoped to requested current project" do

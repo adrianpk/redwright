@@ -22,15 +22,4 @@
     <% end %>
   </section>
 
-  <section class="document-artifact-panel">
-    <%= form_with url: use_case_project_quizzes_path(@project), method: :post, class: "document-artifact-form" do |form| %>
-      <div class="document-artifact-field">
-        <%= form.label :use_case_name, "Use case" %>
-        <%= form.text_field :use_case_name, placeholder: "Billing flow" %>
-      </div>
-      <div class="document-artifact-actions">
-        <%= form.submit "Open Quiz", class: "ticket-action" %>
-      </div>
-    <% end %>
-  </section>
 </main>
