@@ -2,11 +2,17 @@
 id: TKT-20260430201353
 title: Isolate workspace context and project paths in dev runtime
 status: solved
+kind: bug
 severity: high
+priority: high
 scope: runtime
+source: manual_test
 reported_at: 2026-04-30T20:13:53Z
+ready_at: 2026-04-30T20:32:00Z
 started_at: 2026-04-30T20:32:00Z
+reviewed_at: 2026-05-01T09:20:50Z
 closed_at: 2026-05-01T09:20:50Z
+resolution: fixed
 owner: adrianpk
 branch: fix/tkt-20260430201353-workspace-context-isolation
 pr: https://codeberg.org/adrianpk/redwright/pulls/188
