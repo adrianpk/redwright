@@ -1,7 +1,7 @@
 ---
 id: TKT-20260506073634
 title: Preserve ticket modal rounded corners with scroll
-status: in_progress
+status: reviewing
 kind: cleanup
 severity: low
 priority: normal
@@ -11,13 +11,15 @@ source: chat
 reported_at: 2026-05-06T07:36:34Z
 ready_at: 2026-05-06T08:46:02Z
 started_at: 2026-05-06T08:59:23Z
-reviewed_at:
+reviewed_at: 2026-05-06T09:17:10Z
 closed_at:
 resolution:
 owner:
 branch: fix/ticket-20260506073634-modal-scroll-corners
-pr:
-commits: []
+pr: https://codeberg.org/adrianpk/redwright/pulls/318
+commits:
+  - 820d265
+  - 600b724
 ---
 
 ## Context
