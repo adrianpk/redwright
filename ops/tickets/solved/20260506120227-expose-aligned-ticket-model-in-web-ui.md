@@ -1,7 +1,7 @@
 ---
 id: TKT-20260506120227
 title: Expose aligned ticket model in web UI
-status: reviewing
+status: solved
 kind: task
 severity: medium
 priority: high
@@ -12,13 +12,14 @@ reported_at: 2026-05-06T12:02:27Z
 ready_at: 2026-05-06T12:02:27Z
 started_at: 2026-05-06T12:50:56Z
 reviewed_at: 2026-05-06T13:03:04Z
-closed_at:
-resolution:
+closed_at: 2026-05-06T13:04:13Z
+resolution: fixed
 owner:
 branch: fix/ticket-20260506120227-ticket-model-ui
 pr: https://codeberg.org/adrianpk/redwright/pulls/324
 commits:
   - e3bf441
+  - 50fb320
 ---
 
 ## Context
@@ -59,4 +60,4 @@ That would preserve the same two-map problem the model alignment is intended to 
 - Verify the regular board view does not gain extra default columns.
 
 ## Outcome
-Implementation is ready for review in PR #324.
+Implemented and merged in PR #324.
