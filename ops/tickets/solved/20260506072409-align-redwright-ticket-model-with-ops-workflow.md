@@ -1,7 +1,7 @@
 ---
 id: TKT-20260506072409
 title: Align RedWright ticket model with ops ticket workflow
-status: reviewing
+status: solved
 kind: task
 severity: medium
 priority: high
@@ -12,13 +12,14 @@ reported_at: 2026-05-06T07:24:09Z
 ready_at: 2026-05-06T08:46:02Z
 started_at: 2026-05-06T12:25:17Z
 reviewed_at: 2026-05-06T12:32:52Z
-closed_at:
-resolution:
+closed_at: 2026-05-06T12:42:46Z
+resolution: fixed
 owner:
 branch: fix/ticket-20260506072409-ticket-model-alignment
 pr: https://codeberg.org/adrianpk/redwright/pulls/323
 commits:
   - 12606d3
+  - c00fedd
 ---
 
 ## Context
@@ -61,4 +62,4 @@ That divergence would create two mental models for the same work-management conc
 - Confirm no unrelated UI column redesign is introduced.
 
 ## Outcome
-Implementation is ready for review in PR #323.
+Implemented and merged in PR #323.
