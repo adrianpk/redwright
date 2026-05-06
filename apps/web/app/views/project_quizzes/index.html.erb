@@ -3,10 +3,18 @@
     <div class="board-title-row">
       <h1>Quizzes</h1>
       <% if @available_use_cases_for_quiz.any? %>
-        <%= form_with url: use_case_project_quizzes_path(@project), method: :post, class: "quiz-new-use-case-form" do |form| %>
-          <%= form.collection_select :use_case_id, @available_use_cases_for_quiz, :id, :name %>
-          <%= form.submit "New Quiz", class: "ticket-action" %>
-        <% end %>
+        <details class="quiz-new-use-case-menu">
+          <summary class="ticket-action quiz-new-use-case-trigger">New Quiz</summary>
+          <div class="quiz-new-use-case-dropdown">
+            <% @available_use_cases_for_quiz.each do |use_case| %>
+              <%= button_to use_case.name,
+                            use_case_project_quizzes_path(@project),
+                            method: :post,
+                            params: { use_case_id: use_case.id },
+                            class: "quiz-new-use-case-option" %>
+            <% end %>
+          </div>
+        </details>
       <% end %>
     </div>
     <p class="board-key">Project: <%= @project.name %></p>

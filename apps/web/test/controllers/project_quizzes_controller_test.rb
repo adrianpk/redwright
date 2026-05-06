@@ -70,8 +70,11 @@ class ProjectQuizzesControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_match "New Quiz", response.body
+    assert_match "quiz-new-use-case-menu", response.body
+    assert_match "quiz-new-use-case-option", response.body
     assert_match "Billing", response.body
-    refute_match "Checkout</option>", response.body
+    assert_select ".quiz-new-use-case-option", text: "Billing"
+    assert_select ".quiz-new-use-case-option", text: "Checkout", count: 0
 
     post use_case_project_quizzes_path(project), params: { use_case_id: untreated.id }
 
