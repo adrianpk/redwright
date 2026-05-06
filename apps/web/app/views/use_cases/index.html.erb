@@ -2,8 +2,11 @@
   <section class="documents-top-shell">
     <div class="board-title-row">
       <h1>Use Cases</h1>
+      <%= link_to "New Use Case", new_project_use_case_path(@project), class: "ticket-action", data: { turbo_frame: "modal" } %>
     </div>
   </section>
+
+  <%= turbo_frame_tag "modal" %>
 
   <section class="use-cases-index-table-shell" aria-label="Use cases">
     <table class="use-cases-index-table">
@@ -21,7 +24,7 @@
             <td><%= use_case.name %></td>
             <td><%= use_case.description %></td>
             <td><%= use_case.slug %></td>
-            <td><%= link_to "Edit", project_use_cases_path(@project, anchor: use_case.slug), class: "ticket-action" %></td>
+            <td><%= link_to "Edit", edit_project_use_case_path(@project, use_case), class: "ticket-action", data: { turbo_frame: "modal" } %></td>
           </tr>
         <% end %>
       </tbody>

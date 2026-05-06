@@ -31,6 +31,10 @@ class UseCase < ApplicationRecord
     blocking_reference_counts.values.any?(&:positive?)
   end
 
+  def to_param
+    slug
+  end
+
   private
 
   def normalize_slug

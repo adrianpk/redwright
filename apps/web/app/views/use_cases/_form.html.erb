@@ -1,0 +1,24 @@
+<%= form_with model: use_case, url: url do |f| %>
+  <% if use_case.errors.any? %>
+    <div class="form-errors">
+      <% use_case.errors.each do |error| %>
+        <% next if error.attribute == :slug %>
+        <p><%= error.full_message %></p>
+      <% end %>
+    </div>
+  <% end %>
+
+  <div class="field">
+    <%= f.label :name %>
+    <%= f.text_field :name, required: true %>
+  </div>
+
+  <div class="field">
+    <%= f.label :description %>
+    <%= f.text_area :description, rows: 8, required: true %>
+  </div>
+
+  <div class="form-actions">
+    <%= f.submit submit_label, class: "ticket-action" %>
+  </div>
+<% end %>
