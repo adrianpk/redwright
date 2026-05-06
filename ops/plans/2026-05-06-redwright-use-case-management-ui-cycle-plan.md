@@ -183,16 +183,16 @@
 
 ### Slice 8: Cycle Validation and Closure
 
-- status: `planned`
+- status: `implemented`
 - branch: `fix/slice-8-use-case-cycle-closure`
 - pr_title: `test(slice-8): validate use case management cycle`
 - objective: `run full relevant validation, close tracker state, and record residual deferred work without expanding implementation scope`
 - tasks:
-- [ ] `T8.1 run targeted model, command-query, controller, and integration tests for all use-case surfaces`
-- [ ] `T8.2 run the full Rails test suite from apps/web`
-- [ ] `T8.3 perform a final spec-to-implementation checklist against the validation section`
-- [ ] `T8.4 update tracker with validation evidence and any residual risks`
-- [ ] `T8.5 keep deferred items deferred unless explicitly approved as new scope`
+- [x] `T8.1 run targeted model, command-query, controller, and integration tests for all use-case surfaces`
+- [x] `T8.2 run the full Rails test suite from apps/web`
+- [x] `T8.3 perform a final spec-to-implementation checklist against the validation section`
+- [x] `T8.4 update tracker with validation evidence and any residual risks`
+- [x] `T8.5 keep deferred items deferred unless explicitly approved as new scope`
 - acceptance:
 - `all relevant targeted tests pass`
 - `full Rails test suite passes or failures are documented with precise blockers`

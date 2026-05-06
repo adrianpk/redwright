@@ -4,9 +4,9 @@
 
 - cycle_id: `cycle-2026-05-06-redwright-use-case-management-ui`
 - status: `in_progress`
-- state: `slice_7_merged`
+- state: `slice_8_implemented`
 - updated: `2026-05-06`
-- active_slice: `none`
+- active_slice: `Slice 8`
 - active_task: `none`
 - source_plan: `ops/plans/2026-05-06-redwright-use-case-management-ui-cycle-plan.md`
 - source_spec: `ops/specs/specs/2026-05-06-redwright-use-case-management-ui-spec.md`
@@ -217,7 +217,7 @@ Validation:
 
 ### Slice 8: Cycle Validation and Closure
 
-- status: `planned`
+- status: `implemented`
 - branch: `fix/slice-8-use-case-cycle-closure`
 - PR: `pending`
 - merge_target: `dev`
@@ -225,19 +225,41 @@ Validation:
 
 Tasks:
 
-- [ ] `T8.1 run targeted model, command-query, controller, and integration tests for all use-case surfaces`
-- [ ] `T8.2 run the full Rails test suite from apps/web`
-- [ ] `T8.3 perform a final spec-to-implementation checklist against the validation section`
-- [ ] `T8.4 update tracker with validation evidence and any residual risks`
-- [ ] `T8.5 keep deferred items deferred unless explicitly approved as new scope`
+- [x] `T8.1 run targeted model, command-query, controller, and integration tests for all use-case surfaces`
+- [x] `T8.2 run the full Rails test suite from apps/web`
+- [x] `T8.3 perform a final spec-to-implementation checklist against the validation section`
+- [x] `T8.4 update tracker with validation evidence and any residual risks`
+- [x] `T8.5 keep deferred items deferred unless explicitly approved as new scope`
 
 Commits:
 
-- [ ] `pending`
+- [x] `e0ed1e8 test(web): validate use case management cycle`
 
 Validation:
 
-- [ ] `pending`
+- [x] `bundle exec bin/rails test test/models/use_case_test.rb test/models/document_test.rb test/models/ticket_test.rb test/models/quiz_test.rb test/models/quiz_entry_test.rb test/models/tagging_test.rb test/controllers/use_cases_controller_test.rb test/controllers/tickets_controller_test.rb test/controllers/documents_controller_test.rb test/controllers/project_quizzes_controller_test.rb test/controllers/project_protocols_controller_test.rb test/services/use_cases/command_query_handlers_test.rb test/services/board_workflow/command_query_handlers_test.rb test/services/document_management/command_query_handlers_test.rb test/services/command_query/dispatcher_test.rb test/queries/quiz_context/retrieval_query_test.rb test/integration/project_setup_telegram_e2e_test.rb` (pass)
+- [x] `bundle exec bin/rails test` (pass)
+
+Final Checklist:
+
+- [x] dedicated current-project scoped Use Cases navigation and index
+- [x] user-managed Use Case name and description with generated slug URLs
+- [x] project-local uniqueness and non-global Use Case scope
+- [x] optional Use Case assignment for tickets and documents
+- [x] project-level tickets and documents remain valid without Use Case scope
+- [x] Use Case detail/edit metrics for tickets, grouped documents, plans, and quiz entries
+- [x] safe non-cascading delete hidden when referenced and blocked on backend
+- [x] command-query create, update, delete, list, and get operations
+- [x] quizzes consume Use Cases without owning inline creation
+
+Deferred Work Kept Out Of Scope:
+
+- [x] archive semantics
+- [x] inline Use Case creation from tickets, documents, or quizzes
+- [x] dynamic search and pagination on Use Cases index
+- [x] many-to-many Use Case join tables
+- [x] document attach/detach inside Use Case detail
+- [x] final LLMRequestEngine context retrieval
 
 ## Activity Log
 
@@ -257,3 +279,4 @@ Validation:
 - `2026-05-06` state=`slice_6_merged` note=`PR #333 merged into dev and local dev fast-forwarded to 1c2c5c7`
 - `2026-05-06` state=`slice_7_implemented` note=`implemented UseCase detail metrics, edit-modal metric rendering, hidden delete for referenced use cases, backend delete blocking, safe delete with confirmation, controller/model coverage, and full Rails validation`
 - `2026-05-06` state=`slice_7_merged` note=`PR #334 merged into dev and local dev fast-forwarded to d6adcca`
+- `2026-05-06` state=`slice_8_implemented` note=`validated the full Use Case management UI cycle with targeted cross-surface Rails tests, full Rails suite, final checklist, and deferred-work confirmation`
