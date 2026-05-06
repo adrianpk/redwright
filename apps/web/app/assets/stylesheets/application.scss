@@ -592,7 +592,8 @@ body {
 }
 
 .artifact-list-card-body .ticket-action {
-  padding: 6px 10px;
+  min-height: 32px;
+  padding: 6px 12px;
 }
 
 .artifact-card-note {
@@ -767,7 +768,7 @@ body {
   margin-top: 10px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   gap: 12px;
   flex-wrap: wrap;
 }
@@ -784,28 +785,28 @@ body {
 }
 
 .document-save-status {
+  margin-right: auto;
   color: var(--muted);
   font-size: 0.8rem;
   font-weight: 500;
 }
 
-.ticket-action-danger {
-  background: #fff;
+.ticket-action-danger,
+.ticket-action.danger {
+  background: #fffdfa;
   color: var(--accent-red-dark);
   border: 1px solid rgba(140, 44, 36, 0.24);
 }
 
-.ticket-action-danger:hover {
+.ticket-action-danger:hover,
+.ticket-action.danger:hover {
+  background: rgba(178, 58, 47, 0.08);
   border-color: var(--accent-red-dark);
   color: var(--accent-red-dark);
 }
 
 .document-artifact-actions .ticket-action {
   margin-left: auto;
-  min-width: 86px;
-  min-height: 34px;
-  font-size: 0.82rem;
-  padding: 7px 14px;
 }
 
 .document-artifact-panel textarea {
@@ -1186,28 +1187,30 @@ body {
 }
 
 .ticket-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 34px;
   border: 1px solid var(--border-soft);
-  background: #fff;
-  color: var(--navy-soft);
-  border-radius: 6px;
-  font-size: 0.7rem;
-  padding: 4px 8px;
+  background: #fffdfa;
+  color: var(--navy);
+  border-radius: 8px;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  line-height: 1.1;
+  padding: 7px 14px;
   cursor: pointer;
+  text-decoration: none;
+  box-shadow: 0 1px 2px rgba(31, 42, 68, 0.06);
+  transition: border-color 120ms ease, color 120ms ease, background-color 120ms ease, box-shadow 120ms ease;
 }
 
 .ticket-action:hover {
   border-color: var(--accent-red);
+  background: #fff;
   color: var(--accent-red);
-}
-
-.ticket-action.danger {
-  border-color: var(--accent-red);
-  color: var(--accent-red);
-}
-
-.ticket-action.danger:hover {
-  background: var(--accent-red-dark);
-  color: #fff;
+  box-shadow: 0 2px 5px rgba(31, 42, 68, 0.1);
 }
 
 .drag-drop-zones {
@@ -1477,8 +1480,10 @@ body {
 
 .form-actions {
   display: flex;
+  justify-content: flex-end;
   gap: 10px;
   margin-top: 16px;
+  flex-wrap: wrap;
 }
 
 .form-errors {
@@ -1906,14 +1911,8 @@ body {
   margin-top: 14px;
 }
 
-.auth-form .form-actions {
-  justify-content: center;
-}
-
 .auth-form .ticket-action {
   min-width: 112px;
-  min-height: 36px;
-  font-size: 0.82rem;
   padding: 8px 16px;
 }
 
