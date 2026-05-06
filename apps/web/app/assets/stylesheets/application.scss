@@ -1266,9 +1266,25 @@ body {
 }
 
 .modal-card.is-maximized {
-  width: calc(100vw - 32px);
+  width: calc(100vw - 48px);
   max-width: none;
-  max-height: calc(100vh - 32px);
+  height: calc(100vh - 48px);
+  max-height: calc(100vh - 48px);
+}
+
+.ticket-editor.is-maximized > form {
+  display: flex;
+  flex-direction: column;
+}
+
+.ticket-editor.is-maximized .ticket-description-field {
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+}
+
+.ticket-editor.is-maximized .ticket-description-field textarea {
+  min-height: clamp(28rem, 66vh, 52rem);
 }
 
 .modal-header {
