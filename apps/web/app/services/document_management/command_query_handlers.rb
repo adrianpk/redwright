@@ -21,7 +21,8 @@ module DocumentManagement
         artifact_type: "draft",
         editable: true,
         title: value_from(payload, "title").to_s.strip,
-        body: value_from(payload, "body").to_s
+        body: value_from(payload, "body").to_s,
+        use_case_id: value_from(payload, "use_case_id")
       )
       return invalid_record_result(document, request_id: request_id, summary: "Document could not be created.") unless document.save
 
@@ -47,7 +48,8 @@ module DocumentManagement
       attrs = {}
       attrs[:title] = value_from(payload, "title").to_s.strip if key_present?(payload, "title")
       attrs[:body] = value_from(payload, "body").to_s if key_present?(payload, "body")
-      return invalid_payload_result(request_id: request_id, message: "title or body is required") if attrs.empty?
+      attrs[:use_case_id] = value_from(payload, "use_case_id") if key_present?(payload, "use_case_id")
+      return invalid_payload_result(request_id: request_id, message: "title, body, or use_case_id is required") if attrs.empty?
       return invalid_record_result(document, request_id: request_id, summary: "Document draft could not be updated.") unless document.update(attrs)
 
       CommandQuery::Result.ok(
@@ -130,7 +132,9 @@ module DocumentManagement
         "title" => document.title,
         "body" => document.body,
         "editable" => document.editable,
-        "source_draft_id" => document.source_draft_id
+        "source_draft_id" => document.source_draft_id,
+        "use_case_id" => document.use_case_id,
+        "use_case_name" => document.use_case&.name
       }
     end
 

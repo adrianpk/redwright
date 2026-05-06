@@ -25,6 +25,7 @@ class DocumentsController < ApplicationController
 
   def new
     @artifact = Document.new(artifact_type: "draft", editable: true, project: default_project)
+    load_document_form_context(@artifact.project_id)
   end
 
   def create
@@ -33,6 +34,7 @@ class DocumentsController < ApplicationController
       persist_current_project!(@artifact.project)
       redirect_to document_path(@artifact), notice: "Draft created."
     else
+      load_document_form_context(@artifact.project_id)
       render :new, status: :unprocessable_entity
     end
   end
@@ -42,6 +44,8 @@ class DocumentsController < ApplicationController
       redirect_to document_path(@artifact), alert: "Only drafts are editable in phase one."
       return
     end
+
+    load_document_form_context(@artifact.project_id)
   end
 
   def update
@@ -53,6 +57,7 @@ class DocumentsController < ApplicationController
     if @artifact.update(draft_params)
       redirect_to document_path(@artifact), notice: "Draft updated."
     else
+      load_document_form_context(@artifact.project_id)
       render :edit, status: :unprocessable_entity
     end
   end
@@ -95,7 +100,11 @@ class DocumentsController < ApplicationController
   end
 
   def draft_params
-    params.require(:document).permit(:title, :body)
+    params.require(:document).permit(:title, :body, :use_case_id)
+  end
+
+  def load_document_form_context(project_id)
+    @available_use_cases = UseCase.where(project_id: project_id).order(:name, :id)
   end
 
   def read_only_document?(document)
