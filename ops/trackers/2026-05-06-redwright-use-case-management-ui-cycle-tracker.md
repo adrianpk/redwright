@@ -3,10 +3,10 @@
 ## Metadata
 
 - cycle_id: `cycle-2026-05-06-redwright-use-case-management-ui`
-- status: `planned`
-- state: `planning_complete`
+- status: `in_progress`
+- state: `slice_1_implemented`
 - updated: `2026-05-06`
-- active_slice: `none`
+- active_slice: `Slice 1`
 - active_task: `none`
 - source_plan: `ops/plans/2026-05-06-redwright-use-case-management-ui-cycle-plan.md`
 - source_spec: `ops/specs/specs/2026-05-06-redwright-use-case-management-ui-spec.md`
@@ -20,7 +20,7 @@
 
 ### Slice 1: Use Case Domain Hardening
 
-- status: `planned`
+- status: `implemented`
 - branch: `fix/slice-1-use-case-domain-hardening`
 - PR: `pending`
 - merge_target: `dev`
@@ -28,21 +28,23 @@
 
 Tasks:
 
-- [ ] `T1.1 inspect existing UseCase, Ticket, Document, Quiz, and QuizEntry persistence for current scope support`
-- [ ] `T1.2 require UseCase description and keep slug generated from name`
-- [ ] `T1.3 enforce project-local uniqueness for both UseCase name and slug`
-- [ ] `T1.4 add direct nullable Document use_case_id scope with project consistency validation`
-- [ ] `T1.5 expose UseCase associations for tickets, documents, quiz, quiz entries, and taggings without cascade deletion`
-- [ ] `T1.6 add UseCase safe deletion helpers that detect blocking references without index-level checks`
-- [ ] `T1.7 add focused model tests for description requirement, uniqueness, document scope, association blocking, and project consistency`
+- [x] `T1.1 inspect existing UseCase, Ticket, Document, Quiz, and QuizEntry persistence for current scope support`
+- [x] `T1.2 require UseCase description and keep slug generated from name`
+- [x] `T1.3 enforce project-local uniqueness for both UseCase name and slug`
+- [x] `T1.4 add direct nullable Document use_case_id scope with project consistency validation`
+- [x] `T1.5 expose UseCase associations for tickets, documents, quiz, quiz entries, and taggings without cascade deletion`
+- [x] `T1.6 add UseCase safe deletion helpers that detect blocking references without index-level checks`
+- [x] `T1.7 add focused model tests for description requirement, uniqueness, document scope, association blocking, and project consistency`
 
 Commits:
 
-- [ ] `pending`
+- [x] `87ea65c feat(web): harden use case domain model`
 
 Validation:
 
-- [ ] `pending`
+- [x] `bundle exec bin/rails test test/models/use_case_test.rb test/models/document_test.rb test/models/ticket_test.rb test/models/quiz_test.rb test/models/quiz_entry_test.rb test/models/tagging_test.rb test/controllers/project_quizzes_controller_test.rb test/queries/quiz_context/retrieval_query_test.rb` (pass)
+- [x] `bundle exec bin/rails test test/integration/project_setup_telegram_e2e_test.rb` (pass)
+- [x] `bundle exec bin/rails test` (pass)
 
 ### Slice 2: Use Case Command-Query Operations
 
@@ -227,3 +229,5 @@ Validation:
 ## Activity Log
 
 - `2026-05-06` state=`planning_complete` note=`created cycle plan and tracker from use case management UI spec, curated quiz, raw quiz, and ready implementation ticket; no slice approved or started`
+- `2026-05-06` state=`slice_1_active` note=`started Slice 1 on branch fix/slice-1-use-case-domain-hardening after planning commit on dev`
+- `2026-05-06` state=`slice_1_implemented` note=`implemented UseCase domain hardening with description requirement, document use_case scope, deletion blockers, tests, migration, and full Rails validation`
