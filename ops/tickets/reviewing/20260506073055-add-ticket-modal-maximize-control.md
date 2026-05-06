@@ -1,7 +1,7 @@
 ---
 id: TKT-20260506073055
 title: Add ticket modal maximize control
-status: in_progress
+status: reviewing
 kind: task
 severity: low
 priority: normal
@@ -11,13 +11,15 @@ source: chat
 reported_at: 2026-05-06T07:30:55Z
 ready_at: 2026-05-06T08:46:02Z
 started_at: 2026-05-06T09:24:06Z
-reviewed_at:
+reviewed_at: 2026-05-06T09:26:42Z
 closed_at:
 resolution:
 owner:
 branch: feat/ticket-20260506073055-ticket-modal-maximize
-pr:
-commits: []
+pr: https://codeberg.org/adrianpk/redwright/pulls/319
+commits:
+  - b819723
+  - 5fa5aa2
 ---
 
 ## Context
