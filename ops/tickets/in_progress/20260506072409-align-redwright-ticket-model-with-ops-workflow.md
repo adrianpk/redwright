@@ -1,7 +1,7 @@
 ---
 id: TKT-20260506072409
 title: Align RedWright ticket model with ops ticket workflow
-status: ready
+status: in_progress
 kind: task
 severity: medium
 priority: high
@@ -10,12 +10,12 @@ tags: ticket-model, redwright-app, kanban
 source: chat
 reported_at: 2026-05-06T07:24:09Z
 ready_at: 2026-05-06T08:46:02Z
-started_at:
+started_at: 2026-05-06T12:25:17Z
 reviewed_at:
 closed_at:
 resolution:
 owner:
-branch:
+branch: fix/ticket-20260506072409-ticket-model-alignment
 pr:
 commits: []
 ---

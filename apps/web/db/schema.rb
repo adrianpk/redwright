@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_05_102000) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_06_122530) do
   create_table "boards", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "name", null: false
@@ -311,16 +311,25 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_05_102000) do
     t.datetime "archived_at"
     t.string "assignee"
     t.integer "board_id", null: false
+    t.string "branch"
+    t.datetime "closed_at"
     t.integer "column_id", null: false
+    t.text "commits"
     t.datetime "created_at", null: false
     t.text "description"
+    t.string "kind"
     t.datetime "merge_started_at"
     t.datetime "merged_at"
+    t.string "owner"
     t.datetime "paused_at"
+    t.string "pr"
     t.integer "priority", default: 1, null: false
     t.string "pull_request_url"
+    t.datetime "ready_at"
+    t.string "resolution"
     t.datetime "review_completed_at"
     t.datetime "review_started_at"
+    t.datetime "reviewed_at"
     t.text "runtime_execution_error"
     t.string "runtime_execution_id"
     t.datetime "runtime_execution_started_at"
@@ -329,20 +338,29 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_05_102000) do
     t.string "runtime_state"
     t.string "runtime_task_id"
     t.string "runtime_workstream_id"
+    t.string "scope"
     t.datetime "sent_to_review_at"
+    t.string "severity"
+    t.string "source"
     t.datetime "started_at"
     t.string "title", null: false
     t.datetime "updated_at", null: false
     t.integer "use_case_id"
+    t.string "workflow_status"
     t.index ["archived_at"], name: "index_tickets_on_archived_at"
     t.index ["board_id", "priority"], name: "index_tickets_on_board_id_and_priority"
     t.index ["board_id", "use_case_id"], name: "index_tickets_on_board_id_and_use_case_id"
+    t.index ["board_id", "workflow_status"], name: "index_tickets_on_board_id_and_workflow_status"
     t.index ["board_id"], name: "index_tickets_on_board_id"
     t.index ["column_id", "created_at"], name: "index_tickets_on_column_id_and_created_at"
     t.index ["column_id"], name: "index_tickets_on_column_id"
+    t.index ["kind"], name: "index_tickets_on_kind"
     t.index ["runtime_execution_id"], name: "index_tickets_on_runtime_execution_id"
     t.index ["runtime_execution_status", "updated_at"], name: "index_tickets_on_runtime_execution_status_and_updated_at"
+    t.index ["scope"], name: "index_tickets_on_scope"
+    t.index ["severity"], name: "index_tickets_on_severity"
     t.index ["use_case_id"], name: "index_tickets_on_use_case_id"
+    t.index ["workflow_status"], name: "index_tickets_on_workflow_status"
   end
 
   create_table "use_cases", force: :cascade do |t|

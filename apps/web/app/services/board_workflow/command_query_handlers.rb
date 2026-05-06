@@ -293,6 +293,20 @@ module BoardWorkflow
         "title" => ticket.title,
         "description" => ticket.description,
         "priority" => ticket.priority,
+        "workflow_status" => ticket.workflow_status,
+        "kind" => ticket.kind,
+        "severity" => ticket.severity,
+        "scope" => ticket.scope,
+        "source" => ticket.source,
+        "resolution" => ticket.resolution,
+        "owner" => ticket.owner,
+        "branch" => ticket.branch,
+        "pr" => ticket.pr,
+        "commits" => ticket.commits,
+        "ready_at" => ticket.ready_at&.iso8601,
+        "started_at" => ticket.started_at&.iso8601,
+        "reviewed_at" => ticket.reviewed_at&.iso8601,
+        "closed_at" => ticket.closed_at&.iso8601,
         "assignee" => ticket.assignee,
         "archived_at" => ticket.archived_at&.iso8601,
         "runtime_execution" => ticket.runtime_execution,
@@ -313,6 +327,15 @@ module BoardWorkflow
       attrs[:title] = value_from(payload, "title").to_s.strip if key_present?(payload, "title")
       attrs[:description] = value_from(payload, "description").to_s if key_present?(payload, "description")
       attrs[:priority] = value_from(payload, "priority").to_s if key_present?(payload, "priority")
+      attrs[:kind] = value_from(payload, "kind").to_s if key_present?(payload, "kind")
+      attrs[:severity] = value_from(payload, "severity").to_s if key_present?(payload, "severity")
+      attrs[:scope] = value_from(payload, "scope").to_s if key_present?(payload, "scope")
+      attrs[:source] = value_from(payload, "source").to_s if key_present?(payload, "source")
+      attrs[:resolution] = value_from(payload, "resolution").to_s if key_present?(payload, "resolution")
+      attrs[:owner] = value_from(payload, "owner").to_s if key_present?(payload, "owner")
+      attrs[:branch] = value_from(payload, "branch").to_s if key_present?(payload, "branch")
+      attrs[:pr] = value_from(payload, "pr").to_s if key_present?(payload, "pr")
+      attrs[:commits] = Array(value_from(payload, "commits")).map(&:to_s) if key_present?(payload, "commits")
       attrs[:assignee] = value_from(payload, "assignee").to_s if key_present?(payload, "assignee")
       attrs[:use_case_id] = value_from(payload, "use_case_id") if key_present?(payload, "use_case_id")
       attrs

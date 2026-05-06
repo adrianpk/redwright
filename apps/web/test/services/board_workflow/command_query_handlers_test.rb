@@ -16,14 +16,31 @@ module BoardWorkflow
         title: "Implement command API",
         description: "Expose board workflow",
         priority: "high",
+        kind: "task",
+        severity: "medium",
+        scope: "web",
+        source: "implementation",
+        owner: "agent-coder",
+        branch: "fix/ticket-123",
+        pr: "https://codeberg.org/acme/redwright/pulls/123",
+        commits: [ "abc123" ],
         assignee: "agent-coder",
-        document_ids: [draft.id, spec.id]
+        document_ids: [ draft.id, spec.id ]
       }, request_id: "req-ticket-create"))
 
       assert created.ok?, created.errors.inspect
       ticket = Ticket.find(created.data.fetch("ticket_id"))
       assert_equal "high", ticket.priority
-      assert_equal [draft.id, spec.id].sort, ticket.document_ids.sort
+      assert_equal "ready", ticket.workflow_status
+      assert_equal "task", ticket.kind
+      assert_equal "medium", ticket.severity
+      assert_equal "web", ticket.scope
+      assert_equal "implementation", ticket.source
+      assert_equal "agent-coder", ticket.owner
+      assert_equal "fix/ticket-123", ticket.branch
+      assert_equal "https://codeberg.org/acme/redwright/pulls/123", ticket.pr
+      assert_equal [ "abc123" ], ticket.commits
+      assert_equal [ draft.id, spec.id ].sort, ticket.document_ids.sort
       assert_equal "reference", ticket.ticket_document_links.find_by(document_id: draft.id).role
       assert_equal "primary_spec", ticket.ticket_document_links.find_by(document_id: spec.id).role
 
@@ -34,6 +51,7 @@ module BoardWorkflow
 
       assert moved.ok?, moved.errors.inspect
       assert_equal review.id, ticket.reload.column_id
+      assert_equal "reviewing", ticket.workflow_status
       assert_not_nil ticket.review_started_at
       assert_equal "ticket_moved", moved.effects.first.fetch("type")
 
@@ -51,8 +69,10 @@ module BoardWorkflow
 
       assert snapshot.ok?, snapshot.errors.inspect
       review_column = snapshot.data.dig("board", "columns").find { |column| column.fetch("key") == "review" }
-      assert_equal [ticket.id], review_column.fetch("tickets").map { |item| item.fetch("id") }
-      assert_equal [draft.id, spec.id].sort, review_column.fetch("tickets").first.fetch("document_links").map { |item| item.fetch("document_id") }.sort
+      assert_equal [ ticket.id ], review_column.fetch("tickets").map { |item| item.fetch("id") }
+      assert_equal "reviewing", review_column.fetch("tickets").first.fetch("workflow_status")
+      assert_equal [ "abc123" ], review_column.fetch("tickets").first.fetch("commits")
+      assert_equal [ draft.id, spec.id ].sort, review_column.fetch("tickets").first.fetch("document_links").map { |item| item.fetch("document_id") }.sort
     end
 
     test "updates and attaches ticket documents while enforcing project consistency" do

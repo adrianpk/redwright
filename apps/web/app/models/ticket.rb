@@ -1,4 +1,24 @@
 class Ticket < ApplicationRecord
+  WORKFLOW_STATUSES = %w[open ready in_progress reviewing blocked solved closed].freeze
+  WORKFLOW_KINDS = %w[unclassified bug task cleanup follow_up research decision].freeze
+  WORKFLOW_SEVERITIES = %w[unclassified low medium high critical].freeze
+  WORKFLOW_SCOPES = %w[unclassified ops web runtime llm project_setup docs infra].freeze
+  WORKFLOW_SOURCES = %w[chat manual_test review trace user_report implementation].freeze
+  WORKFLOW_RESOLUTIONS = %w[fixed wont_do duplicate obsolete moved answered].freeze
+  COLUMN_STATUS_MAP = {
+    "backlog" => "ready",
+    "open" => "open",
+    "ready" => "ready",
+    "in_progress" => "in_progress",
+    "review" => "reviewing",
+    "reviewing" => "reviewing",
+    "approved" => "reviewing",
+    "blocked" => "blocked",
+    "merged" => "solved",
+    "done" => "solved",
+    "solved" => "solved",
+    "closed" => "closed"
+  }.freeze
   RUNTIME_EXECUTION_STATUSES = %w[started failed].freeze
 
   belongs_to :board
@@ -11,10 +31,21 @@ class Ticket < ApplicationRecord
   has_many :taggings, as: :taggable, dependent: :destroy
   has_many :tags, through: :taggings
 
+  serialize :commits, coder: JSON
+
   enum :priority, { low: 0, medium: 1, high: 2 }, default: :medium
 
+  before_validation :assign_workflow_defaults
+
   validates :title, presence: true
+  validates :workflow_status, inclusion: { in: WORKFLOW_STATUSES }, allow_blank: true
+  validates :kind, inclusion: { in: WORKFLOW_KINDS }, allow_blank: true
+  validates :severity, inclusion: { in: WORKFLOW_SEVERITIES }, allow_blank: true
+  validates :scope, inclusion: { in: WORKFLOW_SCOPES }, allow_blank: true
+  validates :source, inclusion: { in: WORKFLOW_SOURCES }, allow_blank: true
+  validates :resolution, inclusion: { in: WORKFLOW_RESOLUTIONS }, allow_blank: true
   validates :runtime_execution_status, inclusion: { in: RUNTIME_EXECUTION_STATUSES }, allow_blank: true
+  validate :resolution_matches_terminal_status
   validate :use_case_belongs_to_project
 
   scope :visible_on_board, -> { where(archived_at: nil) }
@@ -22,12 +53,30 @@ class Ticket < ApplicationRecord
   scope :active, -> { visible_on_board.joins(:column).where.not(columns: { key: [ "merged", "done" ] }) }
   scope :for_project, ->(project_id) { joins(:board).where(boards: { project_id: project_id }) }
   scope :for_use_case, ->(use_case_id) { where(use_case_id: use_case_id) }
+  scope :with_workflow_status, ->(*statuses) { where(workflow_status: statuses.flatten) }
 
   delegate :project, :project_id, to: :board
 
   def transition_to_column!(target_column)
     self.column = target_column
+    self.workflow_status = workflow_status_for_column(target_column)
     now = Time.current
+
+    case workflow_status
+    when "ready"
+      self.ready_at ||= now
+    when "in_progress"
+      self.started_at ||= now
+    when "reviewing"
+      self.sent_to_review_at ||= now if target_column.key == "review"
+      self.review_started_at ||= now
+    when "solved"
+      self.merge_started_at ||= now if %w[merged done].include?(target_column.key)
+      self.merged_at ||= now if %w[merged done].include?(target_column.key)
+      self.closed_at ||= now
+    when "closed"
+      self.closed_at ||= now
+    end
 
     case target_column.key
     when "in_progress"
@@ -43,6 +92,14 @@ class Ticket < ApplicationRecord
     end
 
     save!
+  end
+
+  def workflow_status_for_column(candidate_column = column)
+    self.class.workflow_status_for_column_key(candidate_column&.key)
+  end
+
+  def self.workflow_status_for_column_key(column_key)
+    COLUMN_STATUS_MAP.fetch(column_key.to_s, "open")
   end
 
   def review_elapsed_seconds
@@ -109,6 +166,24 @@ class Ticket < ApplicationRecord
   end
 
   private
+
+  def assign_workflow_defaults
+    self.workflow_status = workflow_status_for_column if column
+    self.kind = "unclassified" if kind.blank?
+    self.severity = "unclassified" if severity.blank?
+    self.scope = "unclassified" if scope.blank?
+    self.source = "chat" if source.blank?
+    self.commits = [] if commits.blank?
+    self.ready_at ||= created_at || Time.current if workflow_status == "ready"
+    self.closed_at ||= Time.current if workflow_status.in?(%w[solved closed]) && closed_at.blank?
+  end
+
+  def resolution_matches_terminal_status
+    return if resolution.blank?
+    return if workflow_status.in?(%w[solved closed])
+
+    errors.add(:resolution, "can only be set for solved or closed tickets")
+  end
 
   def use_case_belongs_to_project
     return unless use_case

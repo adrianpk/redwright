@@ -1,6 +1,21 @@
 require "test_helper"
 
 class TicketTest < ActiveSupport::TestCase
+  test "defaults workflow metadata from the board column without requiring accessory fields" do
+    board = create_board(project_key: "factory-workflow-defaults")
+    backlog = board.columns.create!(key: "backlog", title: "Backlog", position: 0)
+
+    ticket = board.tickets.create!(column: backlog, title: "Minimal ticket")
+
+    assert_equal "ready", ticket.workflow_status
+    assert_equal "unclassified", ticket.kind
+    assert_equal "unclassified", ticket.severity
+    assert_equal "unclassified", ticket.scope
+    assert_equal "chat", ticket.source
+    assert_equal [], ticket.commits
+    assert_not_nil ticket.ready_at
+  end
+
   test "transition_to_column stamps review and merge phase times" do
     board = create_board(project_key: "factory")
     backlog = board.columns.create!(key: "backlog", title: "Backlog", position: 0)
@@ -9,12 +24,60 @@ class TicketTest < ActiveSupport::TestCase
     ticket = board.tickets.create!(column: backlog, title: "Implement parser", priority: :high)
 
     ticket.transition_to_column!(review)
+    assert_equal "reviewing", ticket.workflow_status
     assert_not_nil ticket.sent_to_review_at
     assert_not_nil ticket.review_started_at
 
     ticket.transition_to_column!(merged)
+    assert_equal "solved", ticket.workflow_status
     assert_not_nil ticket.merge_started_at
     assert_not_nil ticket.merged_at
+    assert_not_nil ticket.closed_at
+  end
+
+  test "accepts aligned optional workflow fields and validates enums" do
+    board = create_board(project_key: "factory-workflow-fields")
+    backlog = board.columns.create!(key: "backlog", title: "Backlog", position: 0)
+
+    ticket = board.tickets.create!(
+      column: backlog,
+      title: "Aligned fields",
+      kind: "bug",
+      severity: "high",
+      scope: "web",
+      source: "manual_test",
+      owner: "agent-reviewer",
+      branch: "fix/ticket-1",
+      pr: "https://codeberg.org/acme/repo/pulls/1",
+      commits: [ "abc123" ]
+    )
+
+    assert_equal "ready", ticket.workflow_status
+    assert_equal "bug", ticket.kind
+    assert_equal "high", ticket.severity
+    assert_equal "web", ticket.scope
+    assert_equal "manual_test", ticket.source
+    assert_equal [ "abc123" ], ticket.commits
+
+    invalid = Ticket.new(title: "Invalid status", workflow_status: "unknown")
+    assert_not invalid.valid?
+    assert_includes invalid.errors[:workflow_status], "is not included in the list"
+  end
+
+  test "resolution requires terminal workflow status" do
+    board = create_board(project_key: "factory-workflow-resolution")
+    backlog = board.columns.create!(key: "backlog", title: "Backlog", position: 0)
+    merged = board.columns.create!(key: "merged", title: "Merged", position: 1)
+    ticket = board.tickets.create!(column: backlog, title: "Resolution ticket")
+
+    ticket.resolution = "fixed"
+
+    assert_not ticket.valid?
+    assert_includes ticket.errors[:resolution], "can only be set for solved or closed tickets"
+
+    ticket.column = merged
+    assert ticket.valid?
+    assert_equal "solved", ticket.workflow_status
   end
 
   test "pick_next_for prefers assignee and falls back to highest priority" do
