@@ -6,6 +6,7 @@ class ProjectQuizzesController < ApplicationController
     persist_current_project!(@project)
     ensure_project_quiz
     @quizzes = scoped_quizzes
+    @available_use_cases_for_quiz = available_use_cases_for_quiz
   end
 
   def show
@@ -21,13 +22,13 @@ class ProjectQuizzesController < ApplicationController
   end
 
   def use_case
-    use_case_name = params[:use_case_name].to_s.strip
-    if use_case_name.empty?
-      redirect_to project_quizzes_path(@project), alert: "Use case name is required."
+    use_case = use_case_for_new_quiz
+    unless use_case
+      redirect_to project_quizzes_path(@project), alert: "Use case is required."
       return
     end
 
-    result = QuizLoops::Runtime.new(project: @project, use_case_name: use_case_name).open
+    result = QuizLoops::Runtime.new(project: @project, use_case_name: use_case.name).open
     redirect_to project_quiz_path(
       @project,
       result.quiz,
@@ -86,6 +87,20 @@ class ProjectQuizzesController < ApplicationController
 
   def scoped_quizzes
     @project.quizzes.includes(:use_case, entries: :tags).order(:use_case_id, :id)
+  end
+
+  def available_use_cases_for_quiz
+    @project.use_cases.left_outer_joins(:quiz).where(quizzes: { id: nil }).order(:name, :id)
+  end
+
+  def use_case_for_new_quiz
+    use_case_id = params[:use_case_id].presence
+    return @project.use_cases.find_by(id: use_case_id) if use_case_id
+
+    use_case_name = params[:use_case_name].to_s.strip
+    return nil if use_case_name.empty?
+
+    @project.use_cases.find_or_create_by!(name: use_case_name)
   end
 
   def open_quiz

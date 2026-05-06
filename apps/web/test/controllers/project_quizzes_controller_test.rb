@@ -31,6 +31,7 @@ class ProjectQuizzesControllerTest < ActionDispatch::IntegrationTest
     refute_match "projects/#{project.id}/quizzes/project", response.body
     refute_match "Use case", response.body
     refute_match "Open Quiz", response.body
+    refute_match "New Quiz", response.body
   end
 
   test "index is scoped to requested current project" do
@@ -55,6 +56,31 @@ class ProjectQuizzesControllerTest < ActionDispatch::IntegrationTest
     assert_match "Billing", response.body
     assert_match "Visible use case question?", response.body
     refute_match "Hidden project question?", response.body
+  end
+
+  test "index exposes new quiz action only for use cases without quizzes" do
+    admin = create_admin_user!
+    sign_in_as(admin)
+    project = create_project(key: "quiz-controller-new-use-case")
+    untreated = project.use_cases.create!(name: "Billing")
+    treated = project.use_cases.create!(name: "Checkout")
+    treated.find_or_create_quiz!
+
+    get project_quizzes_path(project)
+
+    assert_response :success
+    assert_match "New Quiz", response.body
+    assert_match "Billing", response.body
+    refute_match "Checkout</option>", response.body
+
+    post use_case_project_quizzes_path(project), params: { use_case_id: untreated.id }
+
+    assert_redirected_to project_quiz_path(project, untreated.reload.quiz, question: assigns_or_query_question, tags: "project-context")
+
+    get project_quizzes_path(project)
+
+    assert_response :success
+    refute_match "New Quiz", response.body
   end
 
   test "opens use case quiz from index" do
