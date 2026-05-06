@@ -22,7 +22,7 @@
 
 - status: `implemented`
 - branch: `fix/slice-1-use-case-domain-hardening`
-- PR: `pending`
+- PR: `https://codeberg.org/adrianpk/redwright/pulls/328`
 - merge_target: `dev`
 - last_sync_commit: `pending`
 
