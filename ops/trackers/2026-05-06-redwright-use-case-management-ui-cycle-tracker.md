@@ -4,9 +4,9 @@
 
 - cycle_id: `cycle-2026-05-06-redwright-use-case-management-ui`
 - status: `in_progress`
-- state: `slice_3_merged`
+- state: `slice_4_implemented`
 - updated: `2026-05-06`
-- active_slice: `none`
+- active_slice: `Slice 4`
 - active_task: `none`
 - source_plan: `ops/plans/2026-05-06-redwright-use-case-management-ui-cycle-plan.md`
 - source_spec: `ops/specs/specs/2026-05-06-redwright-use-case-management-ui-spec.md`
@@ -105,7 +105,7 @@ Validation:
 
 ### Slice 4: Use Case Create and Edit Modal UI
 
-- status: `planned`
+- status: `implemented`
 - branch: `fix/slice-4-use-case-modal-ui`
 - PR: `pending`
 - merge_target: `dev`
@@ -113,21 +113,24 @@ Validation:
 
 Tasks:
 
-- [ ] `T4.1 add create modal launched from the Use Cases screen`
-- [ ] `T4.2 add edit/detail modal launched from each index row`
-- [ ] `T4.3 expose editable name and description only`
-- [ ] `T4.4 keep slug hidden from first-version forms`
-- [ ] `T4.5 render validation errors for missing name, missing description, and duplicate project-local identity`
-- [ ] `T4.6 preserve current project scope during create and update redirects`
-- [ ] `T4.7 add controller/view tests for create, update, invalid form state, and slug URL behavior`
+- [x] `T4.1 add create modal launched from the Use Cases screen`
+- [x] `T4.2 add edit/detail modal launched from each index row`
+- [x] `T4.3 expose editable name and description only`
+- [x] `T4.4 keep slug hidden from first-version forms`
+- [x] `T4.5 render validation errors for missing name, missing description, and duplicate project-local identity`
+- [x] `T4.6 preserve current project scope during create and update redirects`
+- [x] `T4.7 add controller/view tests for create, update, invalid form state, and slug URL behavior`
 
 Commits:
 
-- [ ] `pending`
+- [x] `dc28aa3 feat(web): add use case modal forms`
+- [x] `a66da9d test(web): cover use case form flows`
 
 Validation:
 
-- [ ] `pending`
+- [x] `bundle exec bin/rails test test/controllers/use_cases_controller_test.rb test/models/use_case_test.rb` (pass)
+- [x] `bundle exec bin/rails test test/controllers/use_cases_controller_test.rb test/controllers/project_quizzes_controller_test.rb test/controllers/project_protocols_controller_test.rb` (pass)
+- [x] `bundle exec bin/rails test` (pass)
 
 ### Slice 5: Ticket Optional Use Case Selection
 
@@ -240,3 +243,4 @@ Validation:
 - `2026-05-06` state=`slice_2_merged` note=`PR #329 merged into dev and local dev fast-forwarded to 93b950a`
 - `2026-05-06` state=`slice_3_implemented` note=`implemented Use Cases navigation and newest-first index with project scoping, no index delete/counters, controller coverage, and full Rails validation`
 - `2026-05-06` state=`slice_3_merged` note=`PR #330 merged into dev and local dev fast-forwarded to 81a70df`
+- `2026-05-06` state=`slice_4_implemented` note=`implemented Use Case create/edit modal forms with generated slug hidden, validation rendering, route coverage, and full Rails validation`
