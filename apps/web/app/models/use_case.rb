@@ -34,7 +34,7 @@ class UseCase < ApplicationRecord
   private
 
   def normalize_slug
-    source = slug.presence || name
+    source = will_save_change_to_name? || slug.blank? ? name : slug
     self.slug = source.to_s
                       .downcase
                       .gsub(/[^a-z0-9]+/, "-")
