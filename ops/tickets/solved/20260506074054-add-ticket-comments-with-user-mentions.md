@@ -1,7 +1,7 @@
 ---
 id: TKT-20260506074054
 title: Implement ticket comments system
-status: reviewing
+status: solved
 kind: task
 severity: medium
 priority: high
@@ -12,12 +12,12 @@ reported_at: 2026-05-06T07:40:54Z
 ready_at: 2026-05-06T08:46:02Z
 started_at: 2026-05-06T14:37:57Z
 reviewed_at: 2026-05-06T15:13:51Z
-closed_at:
-resolution:
+closed_at: 2026-05-06T15:29:51Z
+resolution: fixed
 owner:
 branch: fix/ticket-20260506074054-ticket-comments-system
-pr:
-commits: []
+pr: https://codeberg.org/adrianpk/redwright/pulls/326
+commits: [ac4198d]
 ---
 
 ## Context
@@ -81,7 +81,7 @@ Agents need a durable, ticket-scoped way to communicate with users. Plain chat i
 - Verify comments render Markdown.
 
 ## Outcome
-Implemented and ready for review.
+Implemented and merged.
 
 The first comments slice now supports:
 
