@@ -1,0 +1,30 @@
+<main class="document-artifacts-index">
+  <section class="documents-top-shell">
+    <div class="board-title-row">
+      <h1>Use Cases</h1>
+    </div>
+  </section>
+
+  <section class="use-cases-index-table-shell" aria-label="Use cases">
+    <table class="use-cases-index-table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Description</th>
+          <th>Slug</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @use_cases.each do |use_case| %>
+          <tr>
+            <td><%= use_case.name %></td>
+            <td><%= use_case.description %></td>
+            <td><%= use_case.slug %></td>
+            <td><%= link_to "Edit", project_use_cases_path(@project, anchor: use_case.slug), class: "ticket-action" %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </section>
+</main>

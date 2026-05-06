@@ -12,6 +12,7 @@ Rails.application.routes.draw do
   resources :passwords, param: :token
   resources :projects, only: [ :index, :new, :create, :show ]
   resources :projects, only: [] do
+    resources :use_cases, only: [ :index ], param: :slug
     resources :quizzes, controller: "project_quizzes", only: [ :index, :show ] do
       collection do
         post :project

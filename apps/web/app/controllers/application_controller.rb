@@ -3,7 +3,8 @@ class ApplicationController < ActionController::Base
   # Only allow modern browsers supporting webp images, web push, badges, import maps, CSS nesting, and CSS :has.
   allow_browser versions: :modern
   helper_method :current_user, :navigation_project, :current_project, :available_projects,
-                :board_navigation_path, :documents_navigation_path, :quizzes_navigation_path
+                :board_navigation_path, :documents_navigation_path, :use_cases_navigation_path,
+                :quizzes_navigation_path
 
   private
 
@@ -44,6 +45,12 @@ class ApplicationController < ActionController::Base
     return documents_path(**params) unless current_project
 
     documents_path({ project_id: current_project.id }.merge(params))
+  end
+
+  def use_cases_navigation_path
+    return projects_path unless current_project
+
+    project_use_cases_path(current_project)
   end
 
   def quizzes_navigation_path
