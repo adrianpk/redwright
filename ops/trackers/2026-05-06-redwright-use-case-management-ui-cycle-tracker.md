@@ -4,9 +4,9 @@
 
 - cycle_id: `cycle-2026-05-06-redwright-use-case-management-ui`
 - status: `in_progress`
-- state: `slice_6_merged`
+- state: `slice_7_implemented`
 - updated: `2026-05-06`
-- active_slice: `none`
+- active_slice: `Slice 7`
 - active_task: `none`
 - source_plan: `ops/plans/2026-05-06-redwright-use-case-management-ui-cycle-plan.md`
 - source_spec: `ops/specs/specs/2026-05-06-redwright-use-case-management-ui-spec.md`
@@ -189,7 +189,7 @@ Validation:
 
 ### Slice 7: Use Case Detail Metrics and Delete Behavior
 
-- status: `planned`
+- status: `implemented`
 - branch: `fix/slice-7-use-case-metrics-delete`
 - PR: `pending`
 - merge_target: `dev`
@@ -197,21 +197,23 @@ Validation:
 
 Tasks:
 
-- [ ] `T7.1 add UseCase metric calculation for tickets, grouped documents, plans, and quiz entries`
-- [ ] `T7.2 render metrics discreetly at the top of the detail/edit modal`
-- [ ] `T7.3 hide delete action when references are present`
-- [ ] `T7.4 validate deletion again in the controller/backend when attempted`
-- [ ] `T7.5 show a flash error when backend deletion is blocked`
-- [ ] `T7.6 allow deletion with browser confirmation only when safe`
-- [ ] `T7.7 add tests for metric counts, grouped document types, hidden delete, blocked delete, allowed delete, and no cascading deletes`
+- [x] `T7.1 add UseCase metric calculation for tickets, grouped documents, plans, and quiz entries`
+- [x] `T7.2 render metrics discreetly at the top of the detail/edit modal`
+- [x] `T7.3 hide delete action when references are present`
+- [x] `T7.4 validate deletion again in the controller/backend when attempted`
+- [x] `T7.5 show a flash error when backend deletion is blocked`
+- [x] `T7.6 allow deletion with browser confirmation only when safe`
+- [x] `T7.7 add tests for metric counts, grouped document types, hidden delete, blocked delete, allowed delete, and no cascading deletes`
 
 Commits:
 
-- [ ] `pending`
+- [x] `818a759 feat(web): add use case metrics and safe delete`
+- [x] `b507ea5 test(web): cover use case metrics and delete`
 
 Validation:
 
-- [ ] `pending`
+- [x] `bundle exec bin/rails test test/controllers/use_cases_controller_test.rb test/models/use_case_test.rb test/services/use_cases/command_query_handlers_test.rb` (pass)
+- [x] `bundle exec bin/rails test` (pass)
 
 ### Slice 8: Cycle Validation and Closure
 
@@ -253,3 +255,4 @@ Validation:
 - `2026-05-06` state=`slice_5_merged` note=`PR #332 merged into dev and local dev fast-forwarded to 34f7570`
 - `2026-05-06` state=`slice_6_implemented` note=`implemented optional document Use Case selection for draft create/edit, command-query use_case_id handling, project-level blank selection, cross-project validation coverage, lifecycle editability preservation, and full Rails validation`
 - `2026-05-06` state=`slice_6_merged` note=`PR #333 merged into dev and local dev fast-forwarded to 1c2c5c7`
+- `2026-05-06` state=`slice_7_implemented` note=`implemented UseCase detail metrics, edit-modal metric rendering, hidden delete for referenced use cases, backend delete blocking, safe delete with confirmation, controller/model coverage, and full Rails validation`

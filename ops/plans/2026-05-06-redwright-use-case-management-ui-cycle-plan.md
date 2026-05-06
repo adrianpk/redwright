@@ -160,18 +160,18 @@
 
 ### Slice 7: Use Case Detail Metrics and Delete Behavior
 
-- status: `planned`
+- status: `implemented`
 - branch: `fix/slice-7-use-case-metrics-delete`
 - pr_title: `feat(slice-7): add use case metrics and safe delete`
 - objective: `complete the detail/edit surface with discreet association metrics and destructive behavior that is hidden or blocked according to reference state`
 - tasks:
-- [ ] `T7.1 add UseCase metric calculation for tickets, grouped documents, plans, and quiz entries`
-- [ ] `T7.2 render metrics discreetly at the top of the detail/edit modal`
-- [ ] `T7.3 hide delete action when references are present`
-- [ ] `T7.4 validate deletion again in the controller/backend when attempted`
-- [ ] `T7.5 show a flash error when backend deletion is blocked`
-- [ ] `T7.6 allow deletion with browser confirmation only when safe`
-- [ ] `T7.7 add tests for metric counts, grouped document types, hidden delete, blocked delete, allowed delete, and no cascading deletes`
+- [x] `T7.1 add UseCase metric calculation for tickets, grouped documents, plans, and quiz entries`
+- [x] `T7.2 render metrics discreetly at the top of the detail/edit modal`
+- [x] `T7.3 hide delete action when references are present`
+- [x] `T7.4 validate deletion again in the controller/backend when attempted`
+- [x] `T7.5 show a flash error when backend deletion is blocked`
+- [x] `T7.6 allow deletion with browser confirmation only when safe`
+- [x] `T7.7 add tests for metric counts, grouped document types, hidden delete, blocked delete, allowed delete, and no cascading deletes`
 - acceptance:
 - `detail/edit modal shows tickets, document type groups, plans, and quiz-entry metrics`
 - `delete is not shown when references exist`
