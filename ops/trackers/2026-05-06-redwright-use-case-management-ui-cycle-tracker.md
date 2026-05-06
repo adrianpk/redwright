@@ -107,7 +107,7 @@ Validation:
 
 - status: `implemented`
 - branch: `fix/slice-4-use-case-modal-ui`
-- PR: `pending`
+- PR: `https://codeberg.org/adrianpk/redwright/pulls/331`
 - merge_target: `dev`
 - last_sync_commit: `pending`
 
