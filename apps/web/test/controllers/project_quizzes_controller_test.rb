@@ -30,6 +30,30 @@ class ProjectQuizzesControllerTest < ActionDispatch::IntegrationTest
     assert_match "artifact-type-card", response.body
   end
 
+  test "index is scoped to requested current project" do
+    admin = create_admin_user!
+    sign_in_as(admin)
+    project = create_project(name: "Visible Quiz Project", key: "quiz-controller-visible")
+    other_project = create_project(name: "Hidden Quiz Project", key: "quiz-controller-hidden")
+    project_quiz = project.find_or_create_main_quiz!
+    project_quiz.entries.create!(question: "Visible project question?", answer: "Visible answer")
+    use_case = project.use_cases.create!(name: "Billing")
+    use_case_quiz = use_case.find_or_create_quiz!
+    use_case_quiz.entries.create!(question: "Visible use case question?", answer: "Use case answer")
+    other_quiz = other_project.find_or_create_main_quiz!
+    other_quiz.entries.create!(question: "Hidden project question?", answer: "Hidden answer")
+
+    get project_quizzes_path(project)
+
+    assert_response :success
+    assert_match "Project: Visible Quiz Project", response.body
+    assert_match "Project Quiz", response.body
+    assert_match "Visible project question?", response.body
+    assert_match "Billing", response.body
+    assert_match "Visible use case question?", response.body
+    refute_match "Hidden project question?", response.body
+  end
+
   test "opens use case quiz from index" do
     admin = create_admin_user!
     sign_in_as(admin)

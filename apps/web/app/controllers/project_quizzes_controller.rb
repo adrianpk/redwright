@@ -5,7 +5,7 @@ class ProjectQuizzesController < ApplicationController
   def index
     persist_current_project!(@project)
     ensure_project_quiz
-    @quizzes = @project.quizzes.includes(:use_case, :entries).order(:use_case_id, :id)
+    @quizzes = scoped_quizzes
   end
 
   def show
@@ -82,6 +82,10 @@ class ProjectQuizzesController < ApplicationController
 
   def ensure_project_quiz
     @project.find_or_create_main_quiz!
+  end
+
+  def scoped_quizzes
+    @project.quizzes.includes(:use_case, entries: :tags).order(:use_case_id, :id)
   end
 
   def open_quiz

@@ -1,7 +1,7 @@
 ---
 id: TKT-20260506080309
 title: Scope quiz index to current project
-status: ready
+status: in_progress
 kind: task
 severity: medium
 priority: normal
@@ -10,12 +10,12 @@ tags: quiz, project-scope, web
 source: chat
 reported_at: 2026-05-06T08:03:09Z
 ready_at: 2026-05-06T08:46:02Z
-started_at:
+started_at: 2026-05-06T13:10:44Z
 reviewed_at:
 closed_at:
 resolution:
 owner:
-branch:
+branch: fix/ticket-20260506080309-scope-quiz-index
 pr:
 commits: []
 ---

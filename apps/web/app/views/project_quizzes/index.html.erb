@@ -4,6 +4,7 @@
       <h1>Quizzes</h1>
       <%= button_to "Project Quiz", project_project_quizzes_path(@project), method: :post, class: "ticket-action" %>
     </div>
+    <p class="board-key">Project: <%= @project.name %></p>
   </section>
 
   <section class="artifact-type-nav" aria-label="Quiz navigation">
