@@ -1,7 +1,7 @@
 ---
 id: TKT-20260506072742
 title: Support Markdown ticket body editing
-status: reviewing
+status: solved
 kind: task
 severity: medium
 priority: normal
@@ -12,8 +12,8 @@ reported_at: 2026-05-06T07:27:42Z
 ready_at: 2026-05-06T08:46:02Z
 started_at: 2026-05-06T09:37:41Z
 reviewed_at: 2026-05-06T09:40:59Z
-closed_at:
-resolution:
+closed_at: 2026-05-06T10:12:55Z
+resolution: fixed
 owner:
 branch: fix/ticket-20260506072742-markdown-ticket-body
 pr: https://codeberg.org/adrianpk/redwright/pulls/320
