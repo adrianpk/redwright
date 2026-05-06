@@ -34,6 +34,14 @@ class UseCaseTest < ActiveSupport::TestCase
     assert_includes duplicate.errors[:slug], "has already been taken"
   end
 
+  test "regenerates slug when name changes" do
+    use_case = create_use_case(name: "Billing")
+
+    use_case.update!(name: "Invoice Flow")
+
+    assert_equal "invoice-flow", use_case.slug
+  end
+
   test "allows same slug in different projects" do
     project = create_project(key: "use-case-project-a")
     other_project = create_project(key: "use-case-project-b")
