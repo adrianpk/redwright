@@ -31,6 +31,17 @@ class UseCase < ApplicationRecord
     blocking_reference_counts.values.any?(&:positive?)
   end
 
+  def detail_metrics
+    document_counts = documents.group(:artifact_type).count.transform_keys(&:to_s)
+    {
+      "tickets" => tickets.count,
+      "documents" => document_counts,
+      "plans" => document_counts.fetch("plan_tracker", 0),
+      "quiz_entries" => quiz_entries.count,
+      "blocking_references" => blocking_reference_counts
+    }
+  end
+
   def to_param
     slug
   end

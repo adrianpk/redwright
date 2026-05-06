@@ -1,6 +1,6 @@
 class UseCasesController < ApplicationController
   before_action :set_project
-  before_action :set_use_case, only: [ :edit, :update ]
+  before_action :set_use_case, only: [ :edit, :update, :destroy ]
 
   def index
     persist_current_project!(@project)
@@ -22,6 +22,7 @@ class UseCasesController < ApplicationController
   end
 
   def edit
+    load_use_case_detail_context
   end
 
   def update
@@ -29,8 +30,19 @@ class UseCasesController < ApplicationController
       persist_current_project!(@project)
       redirect_to project_use_cases_path(@project), notice: "Use case updated."
     else
+      load_use_case_detail_context
       render :edit, status: :unprocessable_entity
     end
+  end
+
+  def destroy
+    if @use_case.deletion_blocked?
+      redirect_to project_use_cases_path(@project), alert: "Use case cannot be deleted while references exist."
+      return
+    end
+
+    @use_case.destroy!
+    redirect_to project_use_cases_path(@project), notice: "Use case deleted."
   end
 
   private
@@ -40,10 +52,15 @@ class UseCasesController < ApplicationController
   end
 
   def set_use_case
+    @use_case_route_slug = params[:slug]
     @use_case = @project.use_cases.find_by!(slug: params[:slug])
   end
 
   def use_case_params
     params.require(:use_case).permit(:name, :description)
+  end
+
+  def load_use_case_detail_context
+    @use_case_metrics = @use_case.detail_metrics
   end
 end

@@ -169,14 +169,7 @@ module UseCases
     end
 
     def metrics_for(use_case)
-      document_counts = use_case.documents.group(:artifact_type).count.transform_keys(&:to_s)
-      {
-        "tickets" => use_case.tickets.count,
-        "documents" => document_counts,
-        "plans" => document_counts.fetch("plan_tracker", 0),
-        "quiz_entries" => use_case.quiz_entries.count,
-        "blocking_references" => use_case.blocking_reference_counts
-      }
+      use_case.detail_metrics
     end
 
     def find_use_case_for_payload(payload)

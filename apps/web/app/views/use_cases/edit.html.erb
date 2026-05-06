@@ -11,7 +11,46 @@
           </button>
         </div>
       </header>
-      <%= render "form", use_case: @use_case, url: project_use_case_path(@project, params[:slug]), submit_label: "Save changes" %>
+      <% metrics = @use_case_metrics || @use_case.detail_metrics %>
+      <% document_counts = metrics.fetch("documents") %>
+      <section class="use-case-detail-metrics" aria-label="Use case metrics">
+        <dl>
+          <div>
+            <dt>Tickets</dt>
+            <dd><%= metrics.fetch("tickets") %></dd>
+          </div>
+          <div>
+            <dt>Documents</dt>
+            <dd><%= document_counts.values.sum %></dd>
+          </div>
+          <div>
+            <dt>Drafts</dt>
+            <dd><%= document_counts.fetch("draft", 0) %></dd>
+          </div>
+          <div>
+            <dt>Specs</dt>
+            <dd><%= document_counts.fetch("spec", 0) %></dd>
+          </div>
+          <div>
+            <dt>Plans</dt>
+            <dd><%= metrics.fetch("plans") %></dd>
+          </div>
+          <div>
+            <dt>Quiz Entries</dt>
+            <dd><%= metrics.fetch("quiz_entries") %></dd>
+          </div>
+        </dl>
+      </section>
+      <%= render "form", use_case: @use_case, url: project_use_case_path(@project, @use_case_route_slug || params[:slug]), submit_label: "Save changes" %>
+      <% unless @use_case.deletion_blocked? %>
+        <div class="form-actions">
+          <%= button_to "Delete Use Case",
+                        project_use_case_path(@project, @use_case_route_slug || @use_case),
+                        method: :delete,
+                        class: "ticket-action ticket-action-danger",
+                        form: { data: { turbo_confirm: "Delete this use case?" } } %>
+        </div>
+      <% end %>
     </section>
   </div>
 <% end %>
