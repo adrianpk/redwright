@@ -58,6 +58,9 @@ Rails.application.routes.draw do
     end
   end
   resources :tickets, only: [ :edit, :update ] do
+    collection do
+      post :markdown_preview
+    end
     member do
       patch :move
       patch :archive

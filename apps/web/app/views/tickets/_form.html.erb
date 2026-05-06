@@ -14,7 +14,14 @@
 
   <div class="field ticket-description-field">
     <%= f.label :description %>
-    <%= f.text_area :description, rows: 5 %>
+    <div class="ticket-description-editor <%= "is-editing" if ticket.description.blank? %>" data-markdown-preview-url="<%= markdown_preview_tickets_path %>">
+      <div class="ticket-description-preview" role="button" tabindex="0" aria-label="Edit description">
+        <% if ticket.description.present? %>
+          <%= ticket_markdown(ticket.description) %>
+        <% end %>
+      </div>
+      <%= f.text_area :description, rows: 5, data: { markdown_editor: "textarea" } %>
+    </div>
   </div>
 
   <div class="field-row">

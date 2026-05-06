@@ -1260,6 +1260,60 @@ body {
   resize: none;
 }
 
+.ticket-description-editor {
+  display: grid;
+  gap: 0;
+}
+
+.ticket-description-preview {
+  display: block;
+  width: 100%;
+  min-height: 8.75rem;
+  border: 1px solid var(--border-soft);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--navy);
+  font: inherit;
+  text-align: left;
+  padding: 9px 10px;
+  cursor: text;
+}
+
+.ticket-description-preview > :first-child {
+  margin-top: 0;
+}
+
+.ticket-description-preview > :last-child {
+  margin-bottom: 0;
+}
+
+.ticket-description-preview p,
+.ticket-description-preview ul,
+.ticket-description-preview ol,
+.ticket-description-preview blockquote,
+.ticket-description-preview pre {
+  margin: 6px 0 0;
+  color: var(--navy);
+  font-size: 0.9rem;
+}
+
+.ticket-description-preview ul,
+.ticket-description-preview ol {
+  padding-left: 18px;
+}
+
+.ticket-description-editor textarea {
+  display: none;
+}
+
+.ticket-description-editor.is-editing .ticket-description-preview {
+  display: none;
+}
+
+.ticket-description-editor.is-editing textarea {
+  display: block;
+}
+
 .field-row {
   display: grid;
   gap: 10px;
@@ -1333,6 +1387,10 @@ body {
 }
 
 .ticket-editor.is-maximized .ticket-description-field textarea {
+  min-height: clamp(28rem, 66vh, 52rem);
+}
+
+.ticket-editor.is-maximized .ticket-description-preview {
   min-height: clamp(28rem, 66vh, 52rem);
 }
 

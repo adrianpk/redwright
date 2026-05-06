@@ -85,6 +85,10 @@ class TicketsController < ApplicationController
     end
   end
 
+  def markdown_preview
+    render html: helpers.ticket_markdown(params[:text].to_s), layout: false
+  end
+
   private
 
   def set_ticket

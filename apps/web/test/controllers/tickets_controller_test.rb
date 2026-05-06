@@ -278,4 +278,29 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
     assert_match("Edit Ticket", response.body)
     assert_match("modal-size-toggle", response.body)
   end
+
+  test "edit renders markdown preview for ticket description" do
+    admin = create_admin_user!
+    sign_in_as(admin)
+    board = create_board(project_key: "factory-modal-markdown-preview")
+    backlog = board.columns.create!(key: "backlog", title: "Backlog", position: 0)
+    ticket = board.tickets.create!(column: backlog, title: "Modal target", description: "Hola **Adrian**")
+
+    get edit_ticket_path(ticket), headers: { "Turbo-Frame" => "modal" }
+
+    assert_response :success
+    assert_includes response.body, "<strong>Adrian</strong>"
+    assert_includes response.body, "ticket-description-preview"
+  end
+
+  test "markdown preview endpoint renders sanitized html" do
+    admin = create_admin_user!
+    sign_in_as(admin)
+
+    post markdown_preview_tickets_path, params: { text: %(Hola **Adrian**\n\n<script>alert("x")</script>) }, as: :json
+
+    assert_response :success
+    assert_includes response.body, "<strong>Adrian</strong>"
+    assert_no_match(/<script>alert/i, response.body)
+  end
 end

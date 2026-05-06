@@ -6,6 +6,7 @@
       bindBoardDragAndCardOpen(board);
     }
     bindModalLinks();
+    bindTicketMarkdownEditors();
   }
 
   function bindBoardDragAndCardOpen(board) {
@@ -185,6 +186,59 @@
     const doc = new DOMParser().parseFromString(html, "text/html");
     const frame = doc.querySelector("turbo-frame#modal");
     modal.innerHTML = frame ? frame.innerHTML : html;
+    bindTicketMarkdownEditors();
+  }
+
+  function bindTicketMarkdownEditors() {
+    document.querySelectorAll(".ticket-description-editor").forEach((editor) => {
+      if (editor.dataset.markdownBound === "1") return;
+      editor.dataset.markdownBound = "1";
+      const preview = editor.querySelector(".ticket-description-preview");
+      const textarea = editor.querySelector("textarea[data-markdown-editor='textarea']");
+      if (!preview || !textarea) return;
+
+      preview.addEventListener("click", () => {
+        editor.classList.add("is-editing");
+        textarea.focus();
+      });
+      preview.addEventListener("keydown", (event) => {
+        if (event.key !== "Enter" && event.key !== " ") return;
+        event.preventDefault();
+        editor.classList.add("is-editing");
+        textarea.focus();
+      });
+
+      textarea.addEventListener("blur", async () => {
+        await refreshTicketMarkdownPreview(editor, textarea, preview);
+      });
+    });
+  }
+
+  async function refreshTicketMarkdownPreview(editor, textarea, preview) {
+    const url = editor.dataset.markdownPreviewUrl;
+    if (!url) return;
+    const value = textarea.value || "";
+    if (value.trim() === "") {
+      preview.innerHTML = "";
+      return;
+    }
+
+    const tokenMeta = document.querySelector("meta[name='csrf-token']");
+    const headers = {
+      "Content-Type": "application/json",
+      "Accept": "text/html"
+    };
+    if (tokenMeta) headers["X-CSRF-Token"] = tokenMeta.content;
+
+    const response = await fetch(url, {
+      method: "POST",
+      headers: headers,
+      body: JSON.stringify({ text: value }),
+      credentials: "same-origin"
+    });
+    if (!response.ok) return;
+    preview.innerHTML = await response.text();
+    editor.classList.remove("is-editing");
   }
 
   async function sendTurbo(url, method, body) {
