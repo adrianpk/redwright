@@ -33,6 +33,17 @@ module ProjectBoardTestHelper
     Document.create!(defaults.merge(attrs))
   end
 
+  def create_use_case(project: nil, name: "Billing", description: nil, **attrs)
+    use_case_project = project || create_project(name: "Use Case Project", key: "use-case-#{SecureRandom.hex(4)}")
+    UseCase.create!(
+      {
+        project: use_case_project,
+        name: name,
+        description: description || "#{name} description"
+      }.merge(attrs)
+    )
+  end
+
   def create_project_protocol(project:, status: "draft", documents: [])
     protocol = ProjectProtocol.create!(project: project, status: status)
     documents.each_with_index do |attrs, index|

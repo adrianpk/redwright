@@ -14,7 +14,7 @@ class QuizEntryTest < ActiveSupport::TestCase
 
   test "denormalizes project and use case from quiz" do
     project = create_project(key: "quiz-entry-scope")
-    use_case = project.use_cases.create!(name: "Billing")
+    use_case = create_use_case(project: project, name: "Billing")
     quiz = use_case.find_or_create_quiz!
 
     entry = quiz.entries.create!(question: "What is the billing rule?", answer: "Invoices are monthly.")
@@ -35,8 +35,8 @@ class QuizEntryTest < ActiveSupport::TestCase
 
   test "rejects use case scope mismatch" do
     project = create_project(key: "quiz-entry-use-case")
-    use_case = project.use_cases.create!(name: "Billing")
-    other_use_case = project.use_cases.create!(name: "Support")
+    use_case = create_use_case(project: project, name: "Billing")
+    other_use_case = create_use_case(project: project, name: "Support")
     quiz = use_case.find_or_create_quiz!
     entry = quiz.entries.new(use_case: other_use_case, question: "Question", answer: "Answer")
 

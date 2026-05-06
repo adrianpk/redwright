@@ -12,7 +12,7 @@ class QuizTest < ActiveSupport::TestCase
 
   test "allows one quiz per project use case" do
     project = create_project(key: "quiz-use-case-main")
-    use_case = project.use_cases.create!(name: "Checkout")
+    use_case = create_use_case(project: project, name: "Checkout")
     project.quizzes.create!(use_case: use_case, name: "Checkout Quiz")
     duplicate = project.quizzes.new(use_case: use_case, name: "Duplicate Checkout Quiz")
 
@@ -22,7 +22,7 @@ class QuizTest < ActiveSupport::TestCase
 
   test "allows project quiz and use case quiz in the same project" do
     project = create_project(key: "quiz-project-and-use-case")
-    use_case = project.use_cases.create!(name: "Checkout")
+    use_case = create_use_case(project: project, name: "Checkout")
 
     project_quiz = project.quizzes.create!(name: "Project Quiz")
     use_case_quiz = project.quizzes.create!(use_case: use_case, name: "Checkout Quiz")
@@ -34,7 +34,7 @@ class QuizTest < ActiveSupport::TestCase
   test "rejects use case from another project" do
     project = create_project(key: "quiz-project-owner")
     other_project = create_project(key: "quiz-other-owner")
-    other_use_case = other_project.use_cases.create!(name: "External")
+    other_use_case = create_use_case(project: other_project, name: "External")
     quiz = project.quizzes.new(use_case: other_use_case, name: "Invalid Quiz")
 
     assert_not quiz.valid?
@@ -43,7 +43,7 @@ class QuizTest < ActiveSupport::TestCase
 
   test "find_or_create helpers preserve cardinality" do
     project = create_project(key: "quiz-helper-project")
-    use_case = project.use_cases.create!(name: "Support")
+    use_case = create_use_case(project: project, name: "Support")
 
     assert_equal project.find_or_create_main_quiz!, project.find_or_create_main_quiz!
     assert_equal use_case.find_or_create_quiz!, use_case.find_or_create_quiz!

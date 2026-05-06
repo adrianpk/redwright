@@ -279,7 +279,7 @@ class ProjectSetupTelegramE2eTest < ActiveSupport::TestCase
     adapter = adapter_for_chat
     project = create_project(key: "telegram-quiz-list")
     project.find_or_create_main_quiz!
-    project.use_cases.create!(name: "Support").find_or_create_quiz!
+    create_use_case(project: project, name: "Support").find_or_create_quiz!
     adapter.instance_variable_get(:@project_ids_by_chat)[90_001] = project.id
 
     listed = adapter.handle(event(1, "/quiz list"), trace_id: "trc-telegram-e2e")

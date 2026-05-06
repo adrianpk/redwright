@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_06_143800) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_06_195000) do
   create_table "boards", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "name", null: false
@@ -53,9 +53,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_06_143800) do
     t.integer "source_draft_id"
     t.string "title", null: false
     t.datetime "updated_at", null: false
+    t.integer "use_case_id"
     t.index ["artifact_type"], name: "index_documents_on_artifact_type"
+    t.index ["project_id", "use_case_id"], name: "index_documents_on_project_id_and_use_case_id"
     t.index ["project_id"], name: "index_documents_on_project_id"
     t.index ["source_draft_id"], name: "index_documents_on_source_draft_id"
+    t.index ["use_case_id"], name: "index_documents_on_use_case_id"
   end
 
   create_table "labels", force: :cascade do |t|
@@ -394,10 +397,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_06_143800) do
 
   create_table "use_cases", force: :cascade do |t|
     t.datetime "created_at", null: false
+    t.text "description", null: false
     t.string "name", null: false
     t.integer "project_id", null: false
     t.string "slug", null: false
     t.datetime "updated_at", null: false
+    t.index ["project_id", "name"], name: "index_use_cases_on_project_id_and_name", unique: true
     t.index ["project_id", "slug"], name: "index_use_cases_on_project_id_and_slug", unique: true
     t.index ["project_id"], name: "index_use_cases_on_project_id"
   end
@@ -417,6 +422,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_06_143800) do
   add_foreign_key "document_relations", "documents", column: "to_artifact_id"
   add_foreign_key "documents", "documents", column: "source_draft_id"
   add_foreign_key "documents", "projects"
+  add_foreign_key "documents", "use_cases"
   add_foreign_key "labels", "boards"
   add_foreign_key "project_attributes", "projects"
   add_foreign_key "project_protocol_documents", "project_protocols"

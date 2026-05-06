@@ -128,7 +128,7 @@ class TicketTest < ActiveSupport::TestCase
     board = create_board(project_key: "factory-ticket-use-case")
     other_project = create_project(key: "factory-ticket-other-project")
     backlog = board.columns.create!(key: "backlog", title: "Backlog", position: 0)
-    other_use_case = other_project.use_cases.create!(name: "External")
+    other_use_case = create_use_case(project: other_project, name: "External")
 
     ticket = board.tickets.new(column: backlog, title: "Invalid use case", use_case: other_use_case)
 
@@ -139,7 +139,7 @@ class TicketTest < ActiveSupport::TestCase
   test "tags ticket with denormalized project and use case scope" do
     board = create_board(project_key: "factory-ticket-tags")
     backlog = board.columns.create!(key: "backlog", title: "Backlog", position: 0)
-    use_case = board.project.use_cases.create!(name: "Billing")
+    use_case = create_use_case(project: board.project, name: "Billing")
     ticket = board.tickets.create!(column: backlog, title: "Tagged ticket", use_case: use_case)
 
     ticket.tag_with!("Billing Context")

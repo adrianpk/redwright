@@ -100,7 +100,9 @@ class ProjectQuizzesController < ApplicationController
     use_case_name = params[:use_case_name].to_s.strip
     return nil if use_case_name.empty?
 
-    @project.use_cases.find_or_create_by!(name: use_case_name)
+    @project.use_cases.find_or_create_by!(name: use_case_name) do |record|
+      record.description = "Use case created from quiz scope."
+    end
   end
 
   def open_quiz

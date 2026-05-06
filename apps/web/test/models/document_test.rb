@@ -134,6 +134,31 @@ class DocumentTest < ActiveSupport::TestCase
     assert_equal [artifact_a.id], scoped_ids
   end
 
+  test "can optionally belong to a use case in the same project" do
+    project = create_project(key: "doc-use-case")
+    use_case = create_use_case(project: project, name: "Billing")
+    document = create_document(project: project, use_case: use_case, title: "Billing Draft")
+
+    assert_equal use_case.id, document.use_case_id
+    assert_equal [document.id], Document.for_use_case(use_case.id).pluck(:id)
+  end
+
+  test "use case must belong to document project" do
+    project = create_project(key: "doc-use-case-project")
+    other_project = create_project(key: "doc-use-case-other-project")
+    other_use_case = create_use_case(project: other_project, name: "External")
+    document = Document.new(
+      project: project,
+      use_case: other_use_case,
+      artifact_type: "draft",
+      title: "Invalid scoped draft",
+      body: "Draft body"
+    )
+
+    assert_not document.valid?
+    assert_includes document.errors[:use_case], "must belong to the same project"
+  end
+
   test "draft must remain editable" do
     artifact = Document.new(
       project: create_project(key: "doc-draft-editable"),

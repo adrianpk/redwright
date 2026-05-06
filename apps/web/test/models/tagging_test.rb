@@ -3,7 +3,7 @@ require "test_helper"
 class TaggingTest < ActiveSupport::TestCase
   test "assigns project and use case scope from quiz entry" do
     project = create_project(key: "tagging-entry-scope")
-    use_case = project.use_cases.create!(name: "Billing")
+    use_case = create_use_case(project: project, name: "Billing")
     quiz = use_case.find_or_create_quiz!
     entry = quiz.entries.create!(question: "What matters?", answer: "Monthly invoices.")
     tag = Tag.find_or_create_normalized!("Billing")
@@ -42,7 +42,7 @@ class TaggingTest < ActiveSupport::TestCase
 
   test "queries by project use case and normalized tag name" do
     project = create_project(key: "tagging-query")
-    use_case = project.use_cases.create!(name: "Checkout")
+    use_case = create_use_case(project: project, name: "Checkout")
     quiz = use_case.find_or_create_quiz!
     entry = quiz.entries.create!(question: "What is the checkout rule?", answer: "Guest checkout is allowed.")
     other_entry = project.find_or_create_main_quiz!.entries.create!(question: "What is global?", answer: "Keep it simple.")

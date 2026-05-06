@@ -56,6 +56,7 @@ module QuizLoops
 
       use_case = project.use_cases.find_or_create_by!(slug: use_case_slug) do |record|
         record.name = use_case_name.to_s.strip
+        record.description = "Use case created from quiz scope."
       end
       use_case.find_or_create_quiz!
     end

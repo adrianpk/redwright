@@ -6,7 +6,7 @@ module QuizContext
       project = create_project(key: "quiz-context-retrieval")
       board = create_board(project_key: "quiz-context-retrieval-board", project: project)
       column = board.columns.create!(key: "backlog", title: "Backlog", position: 0)
-      use_case = project.use_cases.create!(name: "Billing")
+      use_case = create_use_case(project: project, name: "Billing")
       quiz = use_case.find_or_create_quiz!
       entry = quiz.entries.create!(question: "What matters?", answer: "Monthly invoices.")
       ticket = board.tickets.create!(column: column, title: "Implement billing", use_case: use_case)

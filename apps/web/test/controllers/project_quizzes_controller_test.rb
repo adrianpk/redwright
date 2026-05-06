@@ -41,7 +41,7 @@ class ProjectQuizzesControllerTest < ActionDispatch::IntegrationTest
     other_project = create_project(name: "Hidden Quiz Project", key: "quiz-controller-hidden")
     project_quiz = project.find_or_create_main_quiz!
     project_quiz.entries.create!(question: "Visible project question?", answer: "Visible answer")
-    use_case = project.use_cases.create!(name: "Billing")
+    use_case = create_use_case(project: project, name: "Billing")
     use_case_quiz = use_case.find_or_create_quiz!
     use_case_quiz.entries.create!(question: "Visible use case question?", answer: "Use case answer")
     other_quiz = other_project.find_or_create_main_quiz!
@@ -62,8 +62,8 @@ class ProjectQuizzesControllerTest < ActionDispatch::IntegrationTest
     admin = create_admin_user!
     sign_in_as(admin)
     project = create_project(key: "quiz-controller-new-use-case")
-    untreated = project.use_cases.create!(name: "Billing")
-    treated = project.use_cases.create!(name: "Checkout")
+    untreated = create_use_case(project: project, name: "Billing")
+    treated = create_use_case(project: project, name: "Checkout")
     treated.find_or_create_quiz!
 
     get project_quizzes_path(project)
