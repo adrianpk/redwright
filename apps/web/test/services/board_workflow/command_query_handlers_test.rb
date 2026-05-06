@@ -8,6 +8,7 @@ module BoardWorkflow
       review = board.columns.create!(key: "review", title: "Review", position: 1)
       draft = create_document(project: board.project, artifact_type: "draft", title: "Reference Draft", body: "draft")
       spec = create_document(project: board.project, artifact_type: "spec", title: "Primary Spec", body: "spec", source_draft: draft, editable: false)
+      use_case = create_use_case(project: board.project, name: "Billing")
       dispatcher = CommandQuery::ApplicationDispatcher.build
 
       created = dispatcher.call(command("CreateTicket", {
@@ -25,6 +26,7 @@ module BoardWorkflow
         pr: "https://codeberg.org/acme/redwright/pulls/123",
         commits: [ "abc123" ],
         assignee: "agent-coder",
+        use_case_id: use_case.id,
         document_ids: [ draft.id, spec.id ]
       }, request_id: "req-ticket-create"))
 
@@ -40,6 +42,9 @@ module BoardWorkflow
       assert_equal "fix/ticket-123", ticket.branch
       assert_equal "https://codeberg.org/acme/redwright/pulls/123", ticket.pr
       assert_equal [ "abc123" ], ticket.commits
+      assert_equal use_case.id, ticket.use_case_id
+      assert_equal use_case.id, created.data.fetch("ticket").fetch("use_case_id")
+      assert_equal "Billing", created.data.fetch("ticket").fetch("use_case_name")
       assert_equal [ draft.id, spec.id ].sort, ticket.document_ids.sort
       assert_equal "reference", ticket.ticket_document_links.find_by(document_id: draft.id).role
       assert_equal "primary_spec", ticket.ticket_document_links.find_by(document_id: spec.id).role
@@ -71,6 +76,7 @@ module BoardWorkflow
       review_column = snapshot.data.dig("board", "columns").find { |column| column.fetch("key") == "review" }
       assert_equal [ ticket.id ], review_column.fetch("tickets").map { |item| item.fetch("id") }
       assert_equal "reviewing", review_column.fetch("tickets").first.fetch("workflow_status")
+      assert_equal use_case.id, review_column.fetch("tickets").first.fetch("use_case_id")
       assert_equal [ "abc123" ], review_column.fetch("tickets").first.fetch("commits")
       assert_equal [ draft.id, spec.id ].sort, review_column.fetch("tickets").first.fetch("document_links").map { |item| item.fetch("document_id") }.sort
     end

@@ -104,6 +104,49 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
     assert_equal "primary_spec", created.ticket_document_links.find_by(document_id: spec.id).role
   end
 
+  test "create can assign optional use case without changing document links" do
+    admin = create_admin_user!
+    sign_in_as(admin)
+    board = create_board(project_key: "factory-create-use-case")
+    backlog = board.columns.create!(key: "backlog", title: "Backlog", position: 0)
+    use_case = create_use_case(project: board.project, name: "Billing")
+    draft = create_document(project: board.project, artifact_type: "draft", title: "Billing Draft", body: "draft")
+
+    post board_tickets_path(board), params: {
+      ticket: {
+        title: "Use case ticket",
+        description: "Scoped ticket",
+        column_id: backlog.id,
+        use_case_id: use_case.id,
+        document_ids: [ draft.id ]
+      }
+    }
+
+    assert_redirected_to board_path(board)
+    created = board.tickets.order(:created_at).last
+    assert_equal use_case.id, created.use_case_id
+    assert_equal [draft.id], created.document_ids
+  end
+
+  test "create allows blank use case for project-level tickets" do
+    admin = create_admin_user!
+    sign_in_as(admin)
+    board = create_board(project_key: "factory-create-blank-use-case")
+    backlog = board.columns.create!(key: "backlog", title: "Backlog", position: 0)
+    create_use_case(project: board.project, name: "Billing")
+
+    post board_tickets_path(board), params: {
+      ticket: {
+        title: "Project-level ticket",
+        column_id: backlog.id,
+        use_case_id: ""
+      }
+    }
+
+    assert_redirected_to board_path(board)
+    assert_nil board.tickets.order(:created_at).last.use_case_id
+  end
+
   test "update edits existing ticket" do
     admin = create_admin_user!
     sign_in_as(admin)
@@ -153,6 +196,71 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
     }
     assert_redirected_to board_path(board)
     assert_empty ticket.reload.document_ids
+  end
+
+  test "update can change use case without changing document links" do
+    admin = create_admin_user!
+    sign_in_as(admin)
+    board = create_board(project_key: "factory-update-use-case")
+    backlog = board.columns.create!(key: "backlog", title: "Backlog", position: 0)
+    billing = create_use_case(project: board.project, name: "Billing")
+    checkout = create_use_case(project: board.project, name: "Checkout")
+    draft = create_document(project: board.project, artifact_type: "draft", title: "Linked Draft", body: "draft")
+    ticket = board.tickets.create!(column: backlog, title: "Scoped ticket", use_case: billing)
+    ticket.ticket_document_links.create!(document: draft, role: "reference")
+    assert_equal [draft.id], ticket.reload.document_ids
+
+    patch ticket_path(ticket), params: {
+      ticket: {
+        title: "Scoped ticket",
+        use_case_id: checkout.id
+      }
+    }
+
+    assert_redirected_to board_path(board)
+    ticket.reload
+    assert_equal checkout.id, ticket.use_case_id
+    assert_equal [draft.id], ticket.document_ids
+  end
+
+  test "update can clear use case" do
+    admin = create_admin_user!
+    sign_in_as(admin)
+    board = create_board(project_key: "factory-clear-use-case")
+    backlog = board.columns.create!(key: "backlog", title: "Backlog", position: 0)
+    use_case = create_use_case(project: board.project, name: "Billing")
+    ticket = board.tickets.create!(column: backlog, title: "Scoped ticket", use_case: use_case)
+
+    patch ticket_path(ticket), params: {
+      ticket: {
+        title: "Project-level ticket",
+        use_case_id: ""
+      }
+    }
+
+    assert_redirected_to board_path(board)
+    assert_nil ticket.reload.use_case_id
+  end
+
+  test "rejects cross-project use case assignment" do
+    admin = create_admin_user!
+    sign_in_as(admin)
+    board = create_board(project_key: "factory-cross-use-case")
+    other_project = create_project(key: "factory-cross-use-case-other")
+    foreign_use_case = create_use_case(project: other_project, name: "Foreign")
+    backlog = board.columns.create!(key: "backlog", title: "Backlog", position: 0)
+
+    post board_tickets_path(board), params: {
+      ticket: {
+        title: "Invalid scoped ticket",
+        column_id: backlog.id,
+        use_case_id: foreign_use_case.id
+      }
+    }
+
+    assert_response :unprocessable_entity
+    assert_equal 0, board.tickets.count
+    assert_includes response.body, "Use case must belong to the same project"
   end
 
   test "move updates ticket column and returns turbo stream" do
@@ -293,6 +401,7 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
     board = create_board(project_key: "factory-modal-new")
     board.columns.create!(key: "backlog", title: "Backlog", position: 0)
     create_document(project: board.project, artifact_type: "draft", title: "Draft Candidate", body: "draft")
+    create_use_case(project: board.project, name: "Billing")
 
     get new_board_ticket_path(board), headers: { "Turbo-Frame" => "modal" }
 
@@ -303,6 +412,9 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
     assert_match("ticket-form-sidebar", response.body)
     assert_match("Workflow Status", response.body)
     assert_match("Delivery", response.body)
+    assert_match("Use Case", response.body)
+    assert_match("Billing", response.body)
+    assert_match("Project-level", response.body)
     assert_match("data-ticket-document-picker", response.body)
     assert_match("Draft Candidate (draft)", response.body)
   end
@@ -313,6 +425,8 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
     board = create_board(project_key: "factory-modal-edit")
     backlog = board.columns.create!(key: "backlog", title: "Backlog", position: 0)
     ticket = board.tickets.create!(column: backlog, title: "Modal target")
+    use_case = create_use_case(project: board.project, name: "Billing")
+    ticket.update!(use_case: use_case)
     draft = create_document(project: board.project, artifact_type: "draft", title: "Linked Draft", body: "draft")
     ticket.ticket_document_links.create!(document: draft, role: "reference")
 
@@ -325,6 +439,7 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
     assert_match("ticket-document-chip", response.body)
     assert_match("Linked Draft (draft)", response.body)
     assert_match('data-ticket-document-remove', response.body)
+    assert_match("Billing", response.body)
   end
 
   test "edit renders markdown preview for ticket description" do
