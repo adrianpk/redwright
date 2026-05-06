@@ -2,10 +2,10 @@
 id: TKT-20260506074055
 title: Add notification manager for ticket mentions
 status: open
-kind: unclassified
-severity: unclassified
-priority: unclassified
-scope: unclassified
+kind: task
+severity: medium
+priority: normal
+scope: runtime
 tags: notifications, mentions, telegram
 source: chat
 reported_at: 2026-05-06T07:40:54Z
@@ -52,6 +52,9 @@ Mention intent needs a delivery path. Without a notification manager, ticket com
 - Verify the notification references the ticket and comment.
 - Verify the notification can be represented for a future inbox.
 - Verify Telegram delivery behavior when the user has a known Telegram identity.
+
+## Triage Notes
+Keep this ticket in `open` until the base ticket comments system exists and the identity/delivery boundary is clear enough to implement without inventing notification infrastructure.
 
 ## Outcome
 Pending implementation.

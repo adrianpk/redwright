@@ -1,15 +1,15 @@
 ---
 id: TKT-20260506080310
 title: Add scoped quiz question search
-status: open
-kind: unclassified
-severity: unclassified
-priority: unclassified
-scope: unclassified
+status: ready
+kind: task
+severity: medium
+priority: normal
+scope: web
 tags: quiz, search, turbo-streams
 source: chat
 reported_at: 2026-05-06T08:03:09Z
-ready_at:
+ready_at: 2026-05-06T08:46:02Z
 started_at:
 reviewed_at:
 closed_at:

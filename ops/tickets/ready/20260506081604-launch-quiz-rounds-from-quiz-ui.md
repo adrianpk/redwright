@@ -1,15 +1,15 @@
 ---
 id: TKT-20260506081604
 title: Launch quiz rounds from quiz UI
-status: open
-kind: unclassified
-severity: unclassified
-priority: unclassified
-scope: unclassified
+status: ready
+kind: task
+severity: medium
+priority: normal
+scope: web
 tags: quiz, web, configuration
 source: chat
 reported_at: 2026-05-06T08:16:04Z
-ready_at:
+ready_at: 2026-05-06T08:46:02Z
 started_at:
 reviewed_at:
 closed_at:

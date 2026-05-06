@@ -2,10 +2,10 @@
 id: TKT-20260506081044
 title: Add use case management UI
 status: open
-kind: unclassified
-severity: unclassified
-priority: unclassified
-scope: unclassified
+kind: task
+severity: medium
+priority: normal
+scope: web
 tags: use-cases, web, crud
 source: chat
 reported_at: 2026-05-06T08:10:44Z
@@ -54,6 +54,9 @@ Without a clear management surface, Quizzes may become overloaded with use-case 
 - Create, view, update, and delete or archive a use case through the web UI.
 - Verify Quizzes can use existing use cases without owning their administration.
 - Verify the UI follows existing RedWright CRUD patterns.
+
+## Triage Notes
+Keep this ticket in `open` until the requested short quiz alignment confirms the minimal use-case fields, lifecycle behavior, and navigation placement.
 
 ## Outcome
 Pending design and implementation.

@@ -2,10 +2,10 @@
 id: TKT-20260506074056
 title: Support ticket reply and resolution from messenger
 status: open
-kind: unclassified
-severity: unclassified
-priority: unclassified
-scope: unclassified
+kind: task
+severity: medium
+priority: low
+scope: runtime
 tags: telegram, ticket-comments, reply-flow
 source: chat
 reported_at: 2026-05-06T07:40:54Z
@@ -52,6 +52,9 @@ Ticket mention notifications are less useful if the user must switch contexts to
 - Reply from Telegram and verify the reply appears on the ticket.
 - Trigger a supported resolve action from Telegram and verify the ticket/comment state updates.
 - Verify all actions preserve ticket context and auditability.
+
+## Triage Notes
+Keep this ticket in `open` because it depends on ticket comments, notification events, Telegram identity mapping, and a precise definition of what messenger-side resolution means.
 
 ## Outcome
 Pending implementation.

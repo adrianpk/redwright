@@ -1,15 +1,15 @@
 ---
 id: TKT-20260506074054
 title: Implement ticket comments system
-status: open
-kind: unclassified
-severity: unclassified
-priority: unclassified
-scope: unclassified
+status: ready
+kind: task
+severity: medium
+priority: high
+scope: web
 tags: ticket-comments, mentions, agent-user-loop
 source: chat
 reported_at: 2026-05-06T07:40:54Z
-ready_at:
+ready_at: 2026-05-06T08:46:02Z
 started_at:
 reviewed_at:
 closed_at:
