@@ -6,6 +6,7 @@ kind: unclassified
 severity: unclassified
 priority: unclassified
 scope: unclassified
+tags:
 source: chat
 reported_at: YYYY-MM-DDTHH:MM:SSZ
 ready_at:

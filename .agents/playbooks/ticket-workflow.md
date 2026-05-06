@@ -48,6 +48,7 @@ The directory is the operational column. The `status` frontmatter must match the
 - `severity`: impact if unresolved.
 - `priority`: execution urgency.
 - `scope`: affected area.
+- `tags`: comma-separated labels for grouping, retrieval, or later triage.
 - `source`: where the ticket came from.
 - `reported_at`: UTC timestamp for initial capture.
 - `commits`: list of related commit hashes.
@@ -126,6 +127,24 @@ Set `resolution` only when `status` is `solved` or `closed`.
 - `user_report`: reported as observed behavior.
 - `implementation`: discovered while implementing another change.
 
+## Tags
+
+Use `tags` for lightweight grouping without changing ticket workflow semantics.
+
+- Use a comma-separated list.
+- Prefer lowercase kebab-case tags.
+- One tag is valid.
+- Three tags is the ideal range.
+- Five tags is the maximum.
+- Keep tags descriptive and sparse.
+- Do not block capture when tags are unclear; leave `tags` empty.
+
+Example:
+
+```yaml
+tags: ticket-model, kanban, redwright-app
+```
+
 ## Lifecycle Fields
 
 - Set `ready_at` on `open -> ready`.
@@ -161,6 +180,7 @@ kind: unclassified
 severity: unclassified
 priority: unclassified
 scope: unclassified
+tags:
 source: chat
 ```
 
