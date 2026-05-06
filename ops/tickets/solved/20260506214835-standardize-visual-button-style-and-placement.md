@@ -1,7 +1,7 @@
 ---
 id: TKT-20260506214835
 title: Standardize visual button style and placement
-status: reviewing
+status: solved
 kind: task
 severity: medium
 priority: normal
@@ -12,8 +12,8 @@ reported_at: 2026-05-06T21:48:35Z
 ready_at:
 started_at: 2026-05-06T21:55:09Z
 reviewed_at: 2026-05-06T21:57:05Z
-closed_at:
-resolution:
+closed_at: 2026-05-06T22:16:50Z
+resolution: fixed
 owner: 
 branch: fix/ticket-20260506214835-button-consistency
 pr: https://codeberg.org/adrianpk/redwright/pulls/337
@@ -55,4 +55,4 @@ Button placement and labels are inconsistent. Some form actions appear at the bo
 - 2026-05-07: `bundle exec bin/rails test` from `apps/web` passed with 389 runs, 2519 assertions, 0 failures.
 
 ## Outcome
-Implementation is ready for review. Button styling now uses larger shared `.ticket-action` sizing, right-aligned form action rows, harmonized destructive styling, shorter labels where the surrounding context is clear, consistent auth/password form button styling, normalized Use Case Save/Delete button width, and a connected New Quiz use case dropdown action.
+Implementation was merged in PR #337. Button styling now uses larger shared `.ticket-action` sizing, right-aligned form action rows, harmonized destructive styling, shorter labels where the surrounding context is clear, consistent auth/password form button styling, normalized Use Case Save/Delete button width, and a connected New Quiz use case dropdown action.
