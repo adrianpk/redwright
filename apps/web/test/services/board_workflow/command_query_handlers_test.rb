@@ -111,6 +111,31 @@ module BoardWorkflow
       assert_empty ticket.reload.document_ids
     end
 
+    test "adds ticket comments through command query boundary" do
+      board = create_board(project_key: "board-api-comments-#{SecureRandom.hex(4)}")
+      backlog = board.columns.create!(key: "backlog", title: "Backlog", position: 0)
+      ticket = board.tickets.create!(column: backlog, title: "Comment target")
+      dispatcher = CommandQuery::ApplicationDispatcher.build
+
+      result = dispatcher.call(command("AddTicketComment", {
+        ticket_id: ticket.id,
+        body: "Blocked on @agent-reviewer.",
+        author_type: "agent",
+        author_label: "agent-coder",
+        author_handle: "agent-coder"
+      }, request_id: "req-ticket-comment"))
+
+      assert result.ok?, result.errors.inspect
+      comment = ticket.ticket_comments.last
+      assert_equal "Blocked on @agent-reviewer.", comment.body
+      assert_equal "agent", comment.author_type
+      assert_equal "agent-coder", comment.author_label
+      assert_equal "ticket_comment_added", result.effects.first.fetch("type")
+      assert_equal comment.id, result.data.fetch("comment").fetch("id")
+      assert_equal [ "agent-reviewer" ], result.data.fetch("comment").fetch("mentions").map { |mention| mention.fetch("handle") }
+      assert_equal comment.id, result.data.fetch("ticket").fetch("comments").first.fetch("id")
+    end
+
     test "lists visible project tickets" do
       board = create_board(project_key: "board-api-project-tickets-#{SecureRandom.hex(4)}")
       backlog = board.columns.create!(key: "backlog", title: "Backlog", position: 0)

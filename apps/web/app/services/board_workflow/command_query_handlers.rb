@@ -13,6 +13,7 @@ module BoardWorkflow
       dispatcher.register_command("UpdateTicket", method(:update_ticket))
       dispatcher.register_command("MoveTicket", method(:move_ticket))
       dispatcher.register_command("AttachDocumentToTicket", method(:attach_document_to_ticket))
+      dispatcher.register_command("AddTicketComment", method(:add_ticket_comment))
       dispatcher.register_command("StartTicketExecution", method(:start_ticket_execution))
       dispatcher.register_query("PickNextTicket", method(:pick_next_ticket))
       dispatcher.register_query("GetBoard", method(:get_board))
@@ -139,6 +140,34 @@ module BoardWorkflow
       )
     rescue ActiveRecord::RecordInvalid => e
       invalid_record_result(e.record, request_id: request_id, summary: "Document could not be attached to ticket.")
+    end
+
+    def add_ticket_comment(payload:, context:, request_id:)
+      ticket = find_ticket(value_from(payload, "ticket_id"))
+      return missing_ticket_result(request_id: request_id) unless ticket
+
+      body = value_from(payload, "body").to_s
+      return invalid_payload_result(request_id: request_id, message: "body is required") if body.strip.blank?
+
+      comment = ticket.ticket_comments.create!(ticket_comment_attrs(payload: payload, context: context, body: body))
+
+      CommandQuery::Result.ok(
+        request_id: request_id,
+        data: ticket_result_data(ticket.reload, summary: "Ticket comment added.").merge(
+          "comment" => ticket_comment_data(comment.reload)
+        ),
+        effects: [
+          {
+            "type" => "ticket_comment_added",
+            "ticket_id" => ticket.id,
+            "comment_id" => comment.id,
+            "project_id" => ticket.project_id,
+            "mentions_count" => comment.mentions.count
+          }
+        ]
+      )
+    rescue ActiveRecord::RecordInvalid => e
+      invalid_record_result(e.record, request_id: request_id, summary: "Ticket comment could not be added.")
     end
 
     def start_ticket_execution(payload:, context:, request_id:)
@@ -310,6 +339,7 @@ module BoardWorkflow
         "assignee" => ticket.assignee,
         "archived_at" => ticket.archived_at&.iso8601,
         "runtime_execution" => ticket.runtime_execution,
+        "comments" => ticket.ticket_comments.chronological.includes(:mentions).map { |comment| ticket_comment_data(comment) },
         "document_links" => ticket.ticket_document_links.includes(:document).map do |link|
           {
             "id" => link.id,
@@ -317,6 +347,28 @@ module BoardWorkflow
             "role" => link.role,
             "artifact_type" => link.document.artifact_type,
             "title" => link.document.title
+          }
+        end
+      }
+    end
+
+    def ticket_comment_data(comment)
+      {
+        "id" => comment.id,
+        "ticket_id" => comment.ticket_id,
+        "author_type" => comment.author_type,
+        "author_id" => comment.author_id,
+        "author_label" => comment.author_label,
+        "author_handle" => comment.author_handle,
+        "body" => comment.body,
+        "created_at" => comment.created_at&.iso8601,
+        "mentions" => comment.mentions.map do |mention|
+          {
+            "id" => mention.id,
+            "target_type" => mention.target_type,
+            "target_id" => mention.target_id,
+            "handle" => mention.handle,
+            "display_label" => mention.display_label
           }
         end
       }
@@ -339,6 +391,19 @@ module BoardWorkflow
       attrs[:assignee] = value_from(payload, "assignee").to_s if key_present?(payload, "assignee")
       attrs[:use_case_id] = value_from(payload, "use_case_id") if key_present?(payload, "use_case_id")
       attrs
+    end
+
+    def ticket_comment_attrs(payload:, context:, body:)
+      author_label = value_from(payload, "author_label").presence || actor_identifier_from(context).presence || "Unknown actor"
+      author_type = value_from(payload, "author_type").presence || (value_from(payload, "author_id").present? ? "user" : "agent")
+
+      {
+        body: body,
+        author_type: author_type,
+        author_id: value_from(payload, "author_id"),
+        author_label: author_label,
+        author_handle: value_from(payload, "author_handle").presence || author_label.to_s.split("@").first
+      }
     end
 
     def target_column_for(board:, payload:, default:)

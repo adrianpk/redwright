@@ -62,6 +62,7 @@ Rails.application.routes.draw do
       post :markdown_preview
     end
     member do
+      post :comments, action: :comment
       patch :move
       patch :archive
       delete :destroy

@@ -1,7 +1,7 @@
 ---
 id: TKT-20260506074054
 title: Implement ticket comments system
-status: ready
+status: reviewing
 kind: task
 severity: medium
 priority: high
@@ -10,12 +10,12 @@ tags: ticket-comments, mentions, agent-user-loop
 source: chat
 reported_at: 2026-05-06T07:40:54Z
 ready_at: 2026-05-06T08:46:02Z
-started_at:
-reviewed_at:
+started_at: 2026-05-06T14:37:57Z
+reviewed_at: 2026-05-06T15:13:51Z
 closed_at:
 resolution:
 owner:
-branch:
+branch: fix/ticket-20260506074054-ticket-comments-system
 pr:
 commits: []
 ---
@@ -81,4 +81,23 @@ Agents need a durable, ticket-scoped way to communicate with users. Plain chat i
 - Verify comments render Markdown.
 
 ## Outcome
-Pending implementation.
+Implemented and ready for review.
+
+The first comments slice now supports:
+
+- Persistent ticket comments.
+- Persistent structured comment mentions.
+- Human and agent author metadata.
+- Web UI comment creation and listing.
+- Markdown rendering for comment bodies.
+- Plain `@handle` mention capture.
+- `AddTicketComment` command-query support.
+- Visual fixes for the comment composer textarea resize handle and right-edge alignment.
+
+Deferred follow-up work:
+
+- Textarea autocomplete for `@` mentions and `#` ticket references.
+- Notification delivery.
+- Inbox integration.
+- Telegram reply support.
+- Comment editing and deletion.

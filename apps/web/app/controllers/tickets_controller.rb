@@ -1,5 +1,5 @@
 class TicketsController < ApplicationController
-  before_action :set_ticket, only: [ :edit, :update, :move, :archive, :destroy ]
+  before_action :set_ticket, only: [ :edit, :update, :comment, :move, :archive, :destroy ]
   before_action :set_board, only: [ :new, :create, :pick ]
   before_action :require_admin!, only: [ :archive, :destroy ]
   before_action :require_admin_for_assignment!, only: [ :create, :update ]
@@ -41,6 +41,15 @@ class TicketsController < ApplicationController
     else
       render :edit, status: :unprocessable_entity
     end
+  end
+
+  def comment
+    @ticket.ticket_comments.create!(ticket_comment_attrs)
+    redirect_to edit_ticket_path(@ticket), notice: "Comment added."
+  rescue ActiveRecord::RecordInvalid => e
+    @ticket_comment = e.record
+    @available_documents = Document.for_project(@ticket.project_id).order(updated_at: :desc, created_at: :desc)
+    render :edit, status: :unprocessable_entity, layout: false
   end
 
   def move
@@ -125,6 +134,16 @@ class TicketsController < ApplicationController
     )
     permitted[:commits] = commits_from(permitted[:commits]) if permitted.key?(:commits)
     permitted
+  end
+
+  def ticket_comment_attrs
+    {
+      body: params.require(:ticket_comment).fetch(:body).to_s,
+      author_type: "user",
+      author_id: current_user.id,
+      author_label: current_user.email_address,
+      author_handle: current_user.email_address.to_s.split("@").first
+    }
   end
 
   def commits_from(value)

@@ -1476,6 +1476,130 @@ body {
   color: var(--accent-red);
 }
 
+.ticket-comments-section {
+  flex: 0 0 auto;
+  border-top: 1px solid var(--border-soft);
+  margin-top: 16px;
+  padding-top: 14px;
+}
+
+.ticket-comments-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.ticket-comments-header h2 {
+  margin: 0;
+  color: var(--navy);
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+
+.ticket-comments-header span {
+  color: var(--muted);
+  font-size: 0.76rem;
+}
+
+.ticket-comments-thread {
+  display: grid;
+  gap: 10px;
+  max-height: 220px;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+}
+
+.ticket-comment {
+  border: 1px solid var(--border-soft);
+  border-radius: 10px;
+  background: #fff;
+  padding: 10px;
+}
+
+.ticket-comment header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.ticket-comment strong {
+  color: var(--navy);
+  font-size: 0.8rem;
+}
+
+.ticket-comment time {
+  color: var(--muted);
+  font-size: 0.72rem;
+}
+
+.ticket-comment-body {
+  color: var(--navy);
+  font-size: 0.84rem;
+  line-height: 1.45;
+}
+
+.ticket-comment-body > :first-child {
+  margin-top: 0;
+}
+
+.ticket-comment-body > :last-child {
+  margin-bottom: 0;
+}
+
+.ticket-comment-body p,
+.ticket-comment-body ul,
+.ticket-comment-body ol,
+.ticket-comment-body blockquote,
+.ticket-comment-body pre {
+  margin: 6px 0 0;
+}
+
+.ticket-comment-body ul,
+.ticket-comment-body ol {
+  padding-left: 18px;
+}
+
+.ticket-comment-mentions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.ticket-comment-mention {
+  border: 1px solid var(--border-soft);
+  border-radius: 999px;
+  color: var(--navy-soft);
+  background: #fff;
+  font-size: 0.72rem;
+  padding: 3px 7px;
+}
+
+.ticket-comments-empty {
+  border: 1px dashed var(--border-soft);
+  border-radius: 10px;
+  color: var(--muted);
+  font-size: 0.8rem;
+  margin: 0;
+  padding: 10px;
+  text-align: center;
+}
+
+.ticket-comment-form {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+  padding-right: var(--scrollbar-content-gap);
+}
+
+.ticket-comment-form textarea {
+  resize: none;
+}
+
 .modal-backdrop {
   position: fixed;
   inset: 0;
@@ -1507,6 +1631,15 @@ body {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+}
+
+.ticket-editor.is-maximized .ticket-comments-section {
+  margin-top: 14px;
+  padding-right: var(--scrollbar-content-gap);
+}
+
+.ticket-editor.is-maximized .ticket-comments-thread {
+  max-height: 18vh;
 }
 
 .ticket-editor.is-maximized .ticket-form-layout {

@@ -1,0 +1,49 @@
+<section class="ticket-comments-section" aria-label="Ticket comments">
+  <div class="ticket-comments-header">
+    <h2>Comments</h2>
+    <span><%= pluralize(ticket.ticket_comments.size, "comment") %></span>
+  </div>
+
+  <div class="ticket-comments-thread">
+    <% comments = ticket.ticket_comments.chronological.includes(:mentions) %>
+    <% if comments.any? %>
+      <% comments.each do |comment| %>
+        <article class="ticket-comment">
+          <header>
+            <strong><%= comment.author_label %></strong>
+            <time datetime="<%= comment.created_at.iso8601 %>"><%= l(comment.created_at, format: :short) %></time>
+          </header>
+          <div class="ticket-comment-body">
+            <%= ticket_markdown(comment.body) %>
+          </div>
+          <% if comment.mentions.any? %>
+            <div class="ticket-comment-mentions" aria-label="Mentions">
+              <% comment.mentions.each do |mention| %>
+                <span class="ticket-comment-mention <%= mention.target_type %>">@<%= mention.handle %></span>
+              <% end %>
+            </div>
+          <% end %>
+        </article>
+      <% end %>
+    <% else %>
+      <p class="ticket-comments-empty">No comments yet.</p>
+    <% end %>
+  </div>
+
+  <%= form_with url: comments_ticket_path(ticket), scope: :ticket_comment, class: "ticket-comment-form" do |f| %>
+    <% if defined?(@ticket_comment) && @ticket_comment&.errors&.any? %>
+      <div class="form-errors">
+        <% @ticket_comment.errors.full_messages.each do |message| %>
+          <p><%= message %></p>
+        <% end %>
+      </div>
+    <% end %>
+    <div class="field">
+      <%= f.label :body, "Add Comment" %>
+      <%= f.text_area :body, rows: 4, placeholder: "Leave a Markdown comment. Use @agent or @user for notification intent." %>
+    </div>
+    <div class="form-actions">
+      <%= f.submit "Add comment", class: "ticket-action" %>
+    </div>
+  <% end %>
+</section>

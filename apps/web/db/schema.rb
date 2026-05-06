@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_06_122530) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_06_143800) do
   create_table "boards", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "name", null: false
@@ -286,6 +286,35 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_06_122530) do
     t.index ["name"], name: "index_tags_on_name", unique: true
   end
 
+  create_table "ticket_comment_mentions", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "display_label"
+    t.string "handle", null: false
+    t.integer "target_id"
+    t.string "target_type", null: false
+    t.integer "ticket_comment_id", null: false
+    t.integer "ticket_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["ticket_comment_id", "handle"], name: "idx_ticket_comment_mentions_on_comment_handle"
+    t.index ["ticket_comment_id"], name: "index_ticket_comment_mentions_on_ticket_comment_id"
+    t.index ["ticket_id", "target_type", "target_id"], name: "idx_ticket_comment_mentions_on_ticket_target"
+    t.index ["ticket_id"], name: "index_ticket_comment_mentions_on_ticket_id"
+  end
+
+  create_table "ticket_comments", force: :cascade do |t|
+    t.string "author_handle"
+    t.integer "author_id"
+    t.string "author_label", null: false
+    t.string "author_type", null: false
+    t.text "body", null: false
+    t.datetime "created_at", null: false
+    t.integer "ticket_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["author_type", "author_id"], name: "index_ticket_comments_on_author_type_and_author_id"
+    t.index ["ticket_id", "created_at", "id"], name: "index_ticket_comments_on_ticket_id_and_created_at_and_id"
+    t.index ["ticket_id"], name: "index_ticket_comments_on_ticket_id"
+  end
+
   create_table "ticket_document_links", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.integer "document_id", null: false
@@ -405,6 +434,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_06_122530) do
   add_foreign_key "taggings", "projects"
   add_foreign_key "taggings", "tags"
   add_foreign_key "taggings", "use_cases"
+  add_foreign_key "ticket_comment_mentions", "ticket_comments"
+  add_foreign_key "ticket_comment_mentions", "tickets"
+  add_foreign_key "ticket_comments", "tickets"
   add_foreign_key "ticket_document_links", "documents"
   add_foreign_key "ticket_document_links", "tickets"
   add_foreign_key "ticket_labels", "labels"

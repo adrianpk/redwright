@@ -341,6 +341,48 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "ticket-description-preview"
   end
 
+  test "comment creates ticket comment with markdown and mention metadata" do
+    admin = create_admin_user!
+    sign_in_as(admin)
+    board = create_board(project_key: "factory-comment-create")
+    backlog = board.columns.create!(key: "backlog", title: "Backlog", position: 0)
+    ticket = board.tickets.create!(column: backlog, title: "Comment target")
+
+    post comments_ticket_path(ticket), params: {
+      ticket_comment: {
+        body: "Hello **Adrian**. Ping @agent."
+      }
+    }
+
+    assert_redirected_to edit_ticket_path(ticket)
+    comment = ticket.ticket_comments.last
+    assert_equal "Hello **Adrian**. Ping @agent.", comment.body
+    assert_equal "user", comment.author_type
+    assert_equal admin.id, comment.author_id
+    assert_equal "owner@example.com", comment.author_label
+    assert_equal [ "agent" ], comment.mentions.pluck(:handle)
+  end
+
+  test "edit renders ticket comments as markdown" do
+    admin = create_admin_user!
+    sign_in_as(admin)
+    board = create_board(project_key: "factory-comment-render")
+    backlog = board.columns.create!(key: "backlog", title: "Backlog", position: 0)
+    ticket = board.tickets.create!(column: backlog, title: "Comment target")
+    ticket.ticket_comments.create!(
+      author_type: "agent",
+      author_label: "agent-coder",
+      body: "Please review **this** with @owner."
+    )
+
+    get edit_ticket_path(ticket), headers: { "Turbo-Frame" => "modal" }
+
+    assert_response :success
+    assert_includes response.body, "Comments"
+    assert_includes response.body, "<strong>this</strong>"
+    assert_includes response.body, "@owner"
+  end
+
   test "markdown preview endpoint renders sanitized html" do
     admin = create_admin_user!
     sign_in_as(admin)

@@ -20,6 +20,7 @@
         </div>
       </header>
       <%= render "form", ticket: @ticket, url: ticket_path(@ticket), submit_label: "Save changes" %>
+      <%= render "comments", ticket: @ticket %>
     </section>
   </div>
 <% end %>
