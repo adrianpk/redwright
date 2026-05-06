@@ -1,7 +1,7 @@
 ---
 id: TKT-20260506073458
 title: Enable ticket linked document management
-status: ready
+status: in_progress
 kind: task
 severity: medium
 priority: normal
@@ -10,12 +10,12 @@ tags: linked-documents, ticket-modal, web
 source: chat
 reported_at: 2026-05-06T07:34:58Z
 ready_at: 2026-05-06T08:46:02Z
-started_at:
+started_at: 2026-05-06T10:17:34Z
 reviewed_at:
 closed_at:
 resolution:
 owner:
-branch:
+branch: fix/ticket-20260506073458-linked-document-management
 pr:
 commits: []
 ---

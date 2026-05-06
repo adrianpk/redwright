@@ -256,12 +256,15 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
     sign_in_as(admin)
     board = create_board(project_key: "factory-modal-new")
     board.columns.create!(key: "backlog", title: "Backlog", position: 0)
+    create_document(project: board.project, artifact_type: "draft", title: "Draft Candidate", body: "draft")
 
     get new_board_ticket_path(board), headers: { "Turbo-Frame" => "modal" }
 
     assert_response :success
     assert_match('turbo-frame id="modal"', response.body)
     assert_match("modal-size-toggle", response.body)
+    assert_match("data-ticket-document-picker", response.body)
+    assert_match("Draft Candidate (draft)", response.body)
   end
 
   test "edit returns modal frame payload for turbo frame requests" do
@@ -270,6 +273,8 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
     board = create_board(project_key: "factory-modal-edit")
     backlog = board.columns.create!(key: "backlog", title: "Backlog", position: 0)
     ticket = board.tickets.create!(column: backlog, title: "Modal target")
+    draft = create_document(project: board.project, artifact_type: "draft", title: "Linked Draft", body: "draft")
+    ticket.ticket_document_links.create!(document: draft, role: "reference")
 
     get edit_ticket_path(ticket), headers: { "Turbo-Frame" => "modal" }
 
@@ -277,6 +282,9 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
     assert_match('turbo-frame id="modal"', response.body)
     assert_match("Edit Ticket", response.body)
     assert_match("modal-size-toggle", response.body)
+    assert_match("ticket-document-chip", response.body)
+    assert_match("Linked Draft (draft)", response.body)
+    assert_match('data-ticket-document-remove', response.body)
   end
 
   test "edit renders markdown preview for ticket description" do
