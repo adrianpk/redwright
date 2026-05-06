@@ -52,6 +52,16 @@ Valid `priority` values:
 - `high`
 - `urgent`
 
+Valid `scope` values:
+- `unclassified`
+- `ops`
+- `web`
+- `runtime`
+- `llm`
+- `project_setup`
+- `docs`
+- `infra`
+
 Valid `resolution` values:
 - `fixed`
 - `wont_do`

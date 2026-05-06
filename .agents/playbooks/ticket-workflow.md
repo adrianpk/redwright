@@ -39,6 +39,16 @@ The directory is the operational column. The `status` frontmatter must match the
 7. If scope expands beyond a bounded ticket, promote it to the formal spec/plan/tracker flow.
 8. Ticket capture must not require classification.
 
+## Helper Scripts
+
+Use the ticket helper scripts for repeatable operations.
+
+- `scripts/agent/tickets/new.sh "Title"` creates an `open` ticket with canonical id, filename, frontmatter, and body scaffold.
+- `scripts/agent/tickets/search.sh [query]` lists or searches tickets, with optional filters such as `--status open`, `--tag web`, `--kind bug`, and `--format paths`.
+- `scripts/agent/tickets/check.sh` validates ticket frontmatter, status directories, ids, filenames, enum values, and tag limits.
+
+Run `scripts/agent/tickets/check.sh` before committing ticket workflow changes.
+
 ## Required Properties
 
 - `id`: stable ticket id, `TKT-YYYYMMDDHHMMSS`.
@@ -106,6 +116,17 @@ Use `solved` when work was done and the issue is resolved. Use `closed` when the
 - `normal`: default priority.
 - `high`: should be handled soon.
 - `urgent`: needs immediate attention.
+
+## Scope Values
+
+- `unclassified`: affected area cannot be inferred yet.
+- `ops`: repository workflow, playbooks, tickets, specs, plans, or trackers.
+- `web`: Rails web UI, controllers, views, and browser interactions.
+- `runtime`: daemon, Telegram runtime, execution loop, and runtime state.
+- `llm`: prompts, request engine, providers, traces, and LLM context.
+- `project_setup`: project creation, setup saga, materialization, and setup context.
+- `docs`: durable documentation.
+- `infra`: scripts, CI, environment, dependencies, or local tooling.
 
 ## Resolution Values
 

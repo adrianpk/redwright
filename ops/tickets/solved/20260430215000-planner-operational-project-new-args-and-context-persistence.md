@@ -6,6 +6,7 @@ kind: bug
 severity: medium
 priority: high
 scope: runtime
+tags: project-new, chat-context, runtime
 source: trace
 reported_at: 2026-04-30T21:50:00Z
 ready_at: 2026-05-01T08:44:39Z

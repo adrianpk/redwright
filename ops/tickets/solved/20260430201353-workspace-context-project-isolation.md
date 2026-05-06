@@ -6,6 +6,7 @@ kind: bug
 severity: high
 priority: high
 scope: runtime
+tags: workspace-context, project-isolation, runtime
 source: manual_test
 reported_at: 2026-04-30T20:13:53Z
 ready_at: 2026-04-30T20:32:00Z
