@@ -4,9 +4,9 @@
 
 - cycle_id: `cycle-2026-05-06-redwright-use-case-management-ui`
 - status: `in_progress`
-- state: `slice_7_implemented`
+- state: `slice_7_merged`
 - updated: `2026-05-06`
-- active_slice: `Slice 7`
+- active_slice: `none`
 - active_task: `none`
 - source_plan: `ops/plans/2026-05-06-redwright-use-case-management-ui-cycle-plan.md`
 - source_spec: `ops/specs/specs/2026-05-06-redwright-use-case-management-ui-spec.md`
@@ -189,11 +189,11 @@ Validation:
 
 ### Slice 7: Use Case Detail Metrics and Delete Behavior
 
-- status: `implemented`
+- status: `pr_merged`
 - branch: `fix/slice-7-use-case-metrics-delete`
 - PR: `https://codeberg.org/adrianpk/redwright/pulls/334`
 - merge_target: `dev`
-- last_sync_commit: `e80ebd3`
+- last_sync_commit: `d6adcca`
 
 Tasks:
 
@@ -256,3 +256,4 @@ Validation:
 - `2026-05-06` state=`slice_6_implemented` note=`implemented optional document Use Case selection for draft create/edit, command-query use_case_id handling, project-level blank selection, cross-project validation coverage, lifecycle editability preservation, and full Rails validation`
 - `2026-05-06` state=`slice_6_merged` note=`PR #333 merged into dev and local dev fast-forwarded to 1c2c5c7`
 - `2026-05-06` state=`slice_7_implemented` note=`implemented UseCase detail metrics, edit-modal metric rendering, hidden delete for referenced use cases, backend delete blocking, safe delete with confirmation, controller/model coverage, and full Rails validation`
+- `2026-05-06` state=`slice_7_merged` note=`PR #334 merged into dev and local dev fast-forwarded to d6adcca`
