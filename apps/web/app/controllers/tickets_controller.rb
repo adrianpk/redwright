@@ -6,7 +6,7 @@ class TicketsController < ApplicationController
 
   def new
     @ticket = @board.tickets.new(column: default_column)
-    @available_documents = Document.for_project(@board.project_id).order(updated_at: :desc, created_at: :desc)
+    load_ticket_form_context(@board.project_id)
     render :new, layout: false if turbo_frame_request?
   end
 
@@ -14,31 +14,33 @@ class TicketsController < ApplicationController
     @ticket = @board.tickets.new(ticket_params)
     @ticket.column ||= default_column
     if @ticket.save
-      sync_ticket_document_links(@ticket, selected_document_ids)
+      sync_ticket_document_links(@ticket, selected_document_ids) if document_ids_submitted?
       load_board_context(@board)
       respond_to do |format|
         format.turbo_stream { render "boards/update" }
         format.html { redirect_to board_path(@board), notice: "Ticket created." }
       end
     else
+      load_ticket_form_context(@board.project_id)
       render :new, status: :unprocessable_entity
     end
   end
 
   def edit
-    @available_documents = Document.for_project(@ticket.project_id).order(updated_at: :desc, created_at: :desc)
+    load_ticket_form_context(@ticket.project_id)
     render :edit, layout: false if turbo_frame_request?
   end
 
   def update
     if @ticket.update(ticket_params)
-      sync_ticket_document_links(@ticket, selected_document_ids)
+      sync_ticket_document_links(@ticket, selected_document_ids) if document_ids_submitted?
       load_board_context(@ticket.board)
       respond_to do |format|
         format.turbo_stream { render "boards/update" }
         format.html { redirect_to board_path(@ticket.board), notice: "Ticket updated." }
       end
     else
+      load_ticket_form_context(@ticket.project_id)
       render :edit, status: :unprocessable_entity
     end
   end
@@ -48,7 +50,7 @@ class TicketsController < ApplicationController
     redirect_to edit_ticket_path(@ticket), notice: "Comment added."
   rescue ActiveRecord::RecordInvalid => e
     @ticket_comment = e.record
-    @available_documents = Document.for_project(@ticket.project_id).order(updated_at: :desc, created_at: :desc)
+    load_ticket_form_context(@ticket.project_id)
     render :edit, status: :unprocessable_entity, layout: false
   end
 
@@ -114,6 +116,11 @@ class TicketsController < ApplicationController
     @tickets_by_column = @board.tickets.visible_on_board.ordered_for_board.includes(:labels, :documents).group_by(&:column_id)
   end
 
+  def load_ticket_form_context(project_id)
+    @available_documents = Document.for_project(project_id).order(updated_at: :desc, created_at: :desc)
+    @available_use_cases = UseCase.where(project_id: project_id).order(:name, :id)
+  end
+
   def ticket_params
     permitted = params.require(:ticket).permit(
       :title,
@@ -152,13 +159,15 @@ class TicketsController < ApplicationController
 
   def selected_document_ids
     raw = params.dig(:ticket, :document_ids)
-    return [] unless raw.respond_to?(:to_a)
-
     raw.to_a.map(&:to_i).select(&:positive?).uniq
   end
 
   def sync_ticket_document_links(ticket, document_ids)
     TicketManagement::DocumentLinkSyncService.new(ticket: ticket, document_ids: document_ids).call
+  end
+
+  def document_ids_submitted?
+    params[:ticket].key?(:document_ids)
   end
 
   def default_column

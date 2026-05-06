@@ -337,6 +337,8 @@ module BoardWorkflow
         "reviewed_at" => ticket.reviewed_at&.iso8601,
         "closed_at" => ticket.closed_at&.iso8601,
         "assignee" => ticket.assignee,
+        "use_case_id" => ticket.use_case_id,
+        "use_case_name" => ticket.use_case&.name,
         "archived_at" => ticket.archived_at&.iso8601,
         "runtime_execution" => ticket.runtime_execution,
         "comments" => ticket.ticket_comments.chronological.includes(:mentions).map { |comment| ticket_comment_data(comment) },

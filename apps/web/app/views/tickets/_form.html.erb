@@ -108,6 +108,10 @@
       <section class="ticket-form-section">
         <div class="ticket-form-section-title">Context</div>
         <div class="field">
+          <%= f.label :use_case_id, "Use Case" %>
+          <%= f.collection_select :use_case_id, @available_use_cases || [], :id, :name, { include_blank: "Project-level" } %>
+        </div>
+        <div class="field">
           <%= f.label :document_ids, "Linked Documents" %>
           <% available_documents = (@available_documents || []).select { |document| %w[draft spec].include?(document.artifact_type) } %>
           <% document_picker_id = "#{dom_id(ticket)}_document_picker" %>
