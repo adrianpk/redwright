@@ -42,6 +42,12 @@ class UseCaseTest < ActiveSupport::TestCase
     assert_equal "invoice-flow", use_case.slug
   end
 
+  test "uses slug as route param" do
+    use_case = create_use_case(name: "Billing Flow")
+
+    assert_equal "billing-flow", use_case.to_param
+  end
+
   test "allows same slug in different projects" do
     project = create_project(key: "use-case-project-a")
     other_project = create_project(key: "use-case-project-b")
