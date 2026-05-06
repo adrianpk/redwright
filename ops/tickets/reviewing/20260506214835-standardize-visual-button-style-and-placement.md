@@ -16,9 +16,10 @@ closed_at:
 resolution:
 owner: 
 branch: fix/ticket-20260506214835-button-consistency
-pr:
+pr: https://codeberg.org/adrianpk/redwright/pulls/337
 commits:
   - 824f57b
+  - 97aeba4
 ---
 
 ## Context
