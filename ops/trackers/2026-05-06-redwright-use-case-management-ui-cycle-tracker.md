@@ -262,6 +262,16 @@ Deferred Work Kept Out Of Scope:
 - [x] document attach/detach inside Use Case detail
 - [x] final LLMRequestEngine context retrieval
 
+Post-Slice Tuning:
+
+- tuning_needed: `yes`
+- branch: `fix/use-case-metrics-modal-layout`
+- reason: `manual screenshot review showed the Use Case edit modal metrics and Save/Delete controls rendered as unstyled stacked content`
+- scope: `UX polish for Use Case edit modal metrics and action layout only`
+- validation:
+  - `bundle exec bin/rails test test/controllers/use_cases_controller_test.rb` (pass)
+  - `bundle exec bin/rails test` (pass)
+
 ## Activity Log
 
 - `2026-05-06` state=`planning_complete` note=`created cycle plan and tracker from use case management UI spec, curated quiz, raw quiz, and ready implementation ticket; no slice approved or started`
@@ -282,3 +292,4 @@ Deferred Work Kept Out Of Scope:
 - `2026-05-06` state=`slice_7_merged` note=`PR #334 merged into dev and local dev fast-forwarded to d6adcca`
 - `2026-05-06` state=`slice_8_implemented` note=`validated the full Use Case management UI cycle with targeted cross-surface Rails tests, full Rails suite, final checklist, and deferred-work confirmation`
 - `2026-05-06` state=`slice_8_merged` note=`PR #335 branch was already included in dev and local dev fast-forwarded to 45163f2`
+- `2026-05-06` state=`post_slice_tuning_active` note=`opened tuning branch fix/use-case-metrics-modal-layout after manual screenshot review showed unstyled Use Case edit modal metrics and stacked actions`
