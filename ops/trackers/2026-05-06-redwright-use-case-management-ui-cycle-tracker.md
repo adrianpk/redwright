@@ -234,6 +234,7 @@ Tasks:
 Commits:
 
 - [x] `e0ed1e8 test(web): validate use case management cycle`
+- [x] `61a73ba docs(ops): close use case management cycle`
 
 Validation:
 
