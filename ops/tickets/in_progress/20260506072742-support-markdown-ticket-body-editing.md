@@ -1,7 +1,7 @@
 ---
 id: TKT-20260506072742
 title: Support Markdown ticket body editing
-status: ready
+status: in_progress
 kind: task
 severity: medium
 priority: normal
@@ -10,12 +10,12 @@ tags: ticket-body, markdown, web
 source: chat
 reported_at: 2026-05-06T07:27:42Z
 ready_at: 2026-05-06T08:46:02Z
-started_at:
+started_at: 2026-05-06T09:37:41Z
 reviewed_at:
 closed_at:
 resolution:
 owner:
-branch:
+branch: fix/ticket-20260506072742-markdown-ticket-body
 pr:
 commits: []
 ---

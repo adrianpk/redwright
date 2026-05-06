@@ -4,7 +4,9 @@
     <span class="priority <%= ticket.priority %>"><%= ticket.priority %></span>
   </header>
   <% if ticket.description.present? %>
-    <p><%= ticket.description %></p>
+    <div class="ticket-description-markdown">
+      <%= ticket_markdown(ticket.description) %>
+    </div>
   <% end %>
   <% if ticket.documents.any? %>
     <div class="ticket-artifact-links">

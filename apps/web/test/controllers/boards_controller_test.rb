@@ -57,4 +57,28 @@ class BoardsControllerTest < ActionDispatch::IntegrationTest
     assert_match("column-grip is-hidden", response.body)
     assert_match("data-edit-url=", response.body)
   end
+
+  test "board renders ticket descriptions as sanitized markdown" do
+    user = User.create!(
+      email_address: "owner3@example.test",
+      password: "password-123",
+      password_confirmation: "password-123",
+      roles: [ "admin" ]
+    )
+    board = create_board(project_key: "factory-markdown")
+    backlog = board.columns.create!(key: "backlog", title: "Backlog", position: 0)
+    board.tickets.create!(
+      column: backlog,
+      title: "Markdown ticket",
+      description: %(Use **bold** and `code`.\n\n<script>alert("x")</script>)
+    )
+
+    sign_in_as(user)
+    get board_path(board)
+
+    assert_response :success
+    assert_includes response.body, "<strong>bold</strong>"
+    assert_includes response.body, "<code>code</code>"
+    assert_no_match(/<script>alert/i, response.body)
+  end
 end

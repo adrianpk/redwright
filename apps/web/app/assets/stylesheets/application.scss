@@ -949,6 +949,51 @@ body {
   font-size: 0.8rem;
 }
 
+.ticket-description-markdown {
+  margin-top: 8px;
+  color: var(--navy-soft);
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+
+.ticket-description-markdown > :first-child {
+  margin-top: 0;
+}
+
+.ticket-description-markdown > :last-child {
+  margin-bottom: 0;
+}
+
+.ticket-description-markdown p,
+.ticket-description-markdown ul,
+.ticket-description-markdown ol,
+.ticket-description-markdown blockquote,
+.ticket-description-markdown pre {
+  margin: 6px 0 0;
+}
+
+.ticket-description-markdown ul,
+.ticket-description-markdown ol {
+  padding-left: 18px;
+}
+
+.ticket-description-markdown code {
+  font-family: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+  font-size: 0.76rem;
+}
+
+.ticket-description-markdown pre {
+  overflow-x: auto;
+  border: 1px solid var(--border-soft);
+  border-radius: 6px;
+  background: #f7f7f4;
+  padding: 7px 8px;
+}
+
+.ticket-description-markdown a {
+  color: var(--accent-red);
+}
+
 .priority {
   text-transform: uppercase;
   font-size: 0.66rem;
