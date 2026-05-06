@@ -20,6 +20,8 @@ pr: https://codeberg.org/adrianpk/redwright/pulls/337
 commits:
   - 824f57b
   - 97aeba4
+  - c540b94
+  - e1ce9a2
 ---
 
 ## Context
@@ -50,4 +52,4 @@ Button placement and labels are inconsistent. Some form actions appear at the bo
 - Manually verify representative forms and modals for action alignment, label consistency, sizing, and palette fit.
 
 ## Outcome
-Implementation is ready for review. Button styling now uses larger shared `.ticket-action` sizing, right-aligned form action rows, harmonized destructive styling, and shorter labels where the surrounding context is clear.
+Implementation is ready for review. Button styling now uses larger shared `.ticket-action` sizing, right-aligned form action rows, harmonized destructive styling, shorter labels where the surrounding context is clear, and consistent auth/password form button styling.
