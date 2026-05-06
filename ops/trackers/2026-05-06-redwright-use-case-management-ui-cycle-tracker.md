@@ -191,9 +191,9 @@ Validation:
 
 - status: `implemented`
 - branch: `fix/slice-7-use-case-metrics-delete`
-- PR: `pending`
+- PR: `https://codeberg.org/adrianpk/redwright/pulls/334`
 - merge_target: `dev`
-- last_sync_commit: `pending`
+- last_sync_commit: `e80ebd3`
 
 Tasks:
 
