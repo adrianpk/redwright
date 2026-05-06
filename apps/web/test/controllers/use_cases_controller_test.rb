@@ -159,7 +159,7 @@ class UseCasesControllerTest < ActionDispatch::IntegrationTest
     get edit_project_use_case_path(project, use_case)
 
     assert_response :success
-    refute_match "Delete Use Case", response.body
+    refute_match ">Delete<", response.body
   end
 
   test "destroy blocks referenced use case" do
@@ -188,7 +188,7 @@ class UseCasesControllerTest < ActionDispatch::IntegrationTest
     get edit_project_use_case_path(project, use_case)
 
     assert_response :success
-    assert_match "Delete Use Case", response.body
+    assert_match ">Delete<", response.body
 
     assert_difference("UseCase.count", -1) do
       delete project_use_case_path(project, use_case)

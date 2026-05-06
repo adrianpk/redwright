@@ -49,16 +49,14 @@
                  form_id: form_id,
                  render_actions: false %>
       <div class="use-case-editor-actions">
-        <div>
-          <% unless @use_case.deletion_blocked? %>
-            <%= button_to "Delete Use Case",
-                          project_use_case_path(@project, @use_case_route_slug || @use_case),
-                          method: :delete,
-                          class: "ticket-action ticket-action-danger",
-                          form: { data: { turbo_confirm: "Delete this use case?" } } %>
-          <% end %>
-        </div>
-        <button type="submit" form="<%= form_id %>" class="ticket-action use-case-primary-action">Save changes</button>
+        <% unless @use_case.deletion_blocked? %>
+          <%= button_to "Delete",
+                        project_use_case_path(@project, @use_case_route_slug || @use_case),
+                        method: :delete,
+                        class: "ticket-action ticket-action-danger",
+                        form: { data: { turbo_confirm: "Delete this use case?" } } %>
+        <% end %>
+        <button type="submit" form="<%= form_id %>" class="ticket-action use-case-primary-action">Save</button>
       </div>
     </section>
   </div>
