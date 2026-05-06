@@ -19,6 +19,7 @@ branch: fix/ticket-20260506072742-markdown-ticket-body
 pr: https://codeberg.org/adrianpk/redwright/pulls/320
 commits:
   - 5f5d1e3
+  - aa5d6d8
 ---
 
 ## Context
