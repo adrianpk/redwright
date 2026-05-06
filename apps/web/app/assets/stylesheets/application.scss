@@ -1265,6 +1265,12 @@ body {
   box-shadow: 0 10px 30px rgba(31, 42, 68, 0.2);
 }
 
+.modal-card.is-maximized {
+  width: calc(100vw - 32px);
+  max-width: none;
+  max-height: calc(100vh - 32px);
+}
+
 .modal-header {
   display: flex;
   align-items: center;
@@ -1275,7 +1281,13 @@ body {
   border-bottom: 1px solid var(--border-soft);
 }
 
-.modal-close-icon {
+.modal-header-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.modal-icon-button {
   width: 30px;
   height: 30px;
   border: 1px solid var(--border-soft);
@@ -1288,18 +1300,31 @@ body {
   cursor: pointer;
 }
 
-.modal-close-icon:hover {
+.modal-icon-button:hover {
   border-color: var(--accent-red);
   color: var(--accent-red);
 }
 
-.modal-close-icon svg {
+.modal-icon-button svg {
   width: 15px;
   height: 15px;
   fill: none;
   stroke: currentColor;
   stroke-width: 2;
   stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.modal-icon-restore {
+  display: none;
+}
+
+.modal-card.is-maximized .modal-icon-maximize {
+  display: none;
+}
+
+.modal-card.is-maximized .modal-icon-restore {
+  display: block;
 }
 
 .auth-shell {

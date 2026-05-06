@@ -3,11 +3,21 @@
     <section class="modal-card ticket-editor">
       <header class="modal-header">
         <h1>New Ticket</h1>
-        <button type="button" class="modal-close-icon modal-close" aria-label="Close modal">
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M6 6l12 12M18 6L6 18" />
-          </svg>
-        </button>
+        <div class="modal-header-actions">
+          <button type="button" class="modal-icon-button modal-size-toggle" aria-label="Maximize modal" aria-pressed="false">
+            <svg class="modal-icon-maximize" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M8 3H3v5M3 3l6 6M16 3h5v5M21 3l-6 6M8 21H3v-5M3 21l6-6M16 21h5v-5M21 21l-6-6" />
+            </svg>
+            <svg class="modal-icon-restore" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M8 3v5H3M3 8l6-6M16 3v5h5M21 8l-6-6M8 21v-5H3M3 16l6 6M16 21v-5h5M21 16l-6 6" />
+            </svg>
+          </button>
+          <button type="button" class="modal-icon-button modal-close" aria-label="Close modal">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M6 6l12 12M18 6L6 18" />
+            </svg>
+          </button>
+        </div>
       </header>
       <%= render "form", ticket: @ticket, url: board_tickets_path(@board), submit_label: "Create ticket" %>
     </section>

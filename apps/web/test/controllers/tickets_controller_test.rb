@@ -261,6 +261,7 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_match('turbo-frame id="modal"', response.body)
+    assert_match("modal-size-toggle", response.body)
   end
 
   test "edit returns modal frame payload for turbo frame requests" do
@@ -275,5 +276,6 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_match('turbo-frame id="modal"', response.body)
     assert_match("Edit Ticket", response.body)
+    assert_match("modal-size-toggle", response.body)
   end
 end

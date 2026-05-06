@@ -219,6 +219,16 @@
   document.addEventListener("DOMContentLoaded", setupBoardInteractions);
 
   document.addEventListener("click", (event) => {
+    const sizeToggle = event.target.closest(".modal-size-toggle");
+    if (sizeToggle) {
+      const modalCard = sizeToggle.closest(".modal-card");
+      if (!modalCard) return;
+      const maximized = modalCard.classList.toggle("is-maximized");
+      sizeToggle.setAttribute("aria-pressed", maximized ? "true" : "false");
+      sizeToggle.setAttribute("aria-label", maximized ? "Restore modal size" : "Maximize modal");
+      return;
+    }
+
     if (event.target.closest(".modal-close") || event.target.classList.contains("modal-backdrop")) {
       const modalFrame = document.getElementById("modal");
       if (modalFrame) modalFrame.innerHTML = "";
