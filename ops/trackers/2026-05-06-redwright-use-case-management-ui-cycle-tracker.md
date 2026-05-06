@@ -4,9 +4,9 @@
 
 - cycle_id: `cycle-2026-05-06-redwright-use-case-management-ui`
 - status: `in_progress`
-- state: `slice_1_implemented`
+- state: `slice_1_merged`
 - updated: `2026-05-06`
-- active_slice: `Slice 1`
+- active_slice: `none`
 - active_task: `none`
 - source_plan: `ops/plans/2026-05-06-redwright-use-case-management-ui-cycle-plan.md`
 - source_spec: `ops/specs/specs/2026-05-06-redwright-use-case-management-ui-spec.md`
@@ -20,11 +20,11 @@
 
 ### Slice 1: Use Case Domain Hardening
 
-- status: `implemented`
+- status: `pr_merged`
 - branch: `fix/slice-1-use-case-domain-hardening`
 - PR: `https://codeberg.org/adrianpk/redwright/pulls/328`
 - merge_target: `dev`
-- last_sync_commit: `pending`
+- last_sync_commit: `a10bbfa`
 
 Tasks:
 
@@ -231,3 +231,4 @@ Validation:
 - `2026-05-06` state=`planning_complete` note=`created cycle plan and tracker from use case management UI spec, curated quiz, raw quiz, and ready implementation ticket; no slice approved or started`
 - `2026-05-06` state=`slice_1_active` note=`started Slice 1 on branch fix/slice-1-use-case-domain-hardening after planning commit on dev`
 - `2026-05-06` state=`slice_1_implemented` note=`implemented UseCase domain hardening with description requirement, document use_case scope, deletion blockers, tests, migration, and full Rails validation`
+- `2026-05-06` state=`slice_1_merged` note=`PR #328 merged into dev and local dev fast-forwarded to a10bbfa`

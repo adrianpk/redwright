@@ -20,7 +20,7 @@
 
 ### Slice 1: Use Case Domain Hardening
 
-- status: `implemented`
+- status: `pr_merged`
 - branch: `fix/slice-1-use-case-domain-hardening`
 - pr_title: `feat(slice-1): harden use case domain model`
 - objective: `complete the first-class UseCase domain contract before UI work, including required description, project-local name/slug uniqueness, direct document scope support, and safe deletion predicates`
