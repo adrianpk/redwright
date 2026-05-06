@@ -92,7 +92,7 @@
 
 ### Slice 4: Use Case Create and Edit Modal UI
 
-- status: `implemented`
+- status: `pr_merged`
 - branch: `fix/slice-4-use-case-modal-ui`
 - pr_title: `feat(slice-4): add use case modal forms`
 - objective: `deliver create and edit/detail modal flows for name and description while preserving the existing sober Rails UI style`

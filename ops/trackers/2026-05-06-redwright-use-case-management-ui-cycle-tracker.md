@@ -4,9 +4,9 @@
 
 - cycle_id: `cycle-2026-05-06-redwright-use-case-management-ui`
 - status: `in_progress`
-- state: `slice_4_implemented`
+- state: `slice_4_merged`
 - updated: `2026-05-06`
-- active_slice: `Slice 4`
+- active_slice: `none`
 - active_task: `none`
 - source_plan: `ops/plans/2026-05-06-redwright-use-case-management-ui-cycle-plan.md`
 - source_spec: `ops/specs/specs/2026-05-06-redwright-use-case-management-ui-spec.md`
@@ -105,11 +105,11 @@ Validation:
 
 ### Slice 4: Use Case Create and Edit Modal UI
 
-- status: `implemented`
+- status: `pr_merged`
 - branch: `fix/slice-4-use-case-modal-ui`
 - PR: `https://codeberg.org/adrianpk/redwright/pulls/331`
 - merge_target: `dev`
-- last_sync_commit: `pending`
+- last_sync_commit: `274429b`
 
 Tasks:
 
@@ -244,3 +244,4 @@ Validation:
 - `2026-05-06` state=`slice_3_implemented` note=`implemented Use Cases navigation and newest-first index with project scoping, no index delete/counters, controller coverage, and full Rails validation`
 - `2026-05-06` state=`slice_3_merged` note=`PR #330 merged into dev and local dev fast-forwarded to 81a70df`
 - `2026-05-06` state=`slice_4_implemented` note=`implemented Use Case create/edit modal forms with generated slug hidden, validation rendering, route coverage, and full Rails validation`
+- `2026-05-06` state=`slice_4_merged` note=`PR #331 merged into dev and local dev fast-forwarded to 274429b`
