@@ -138,17 +138,17 @@
 
 ### Slice 6: Document Optional Use Case Selection
 
-- status: `planned`
+- status: `implemented`
 - branch: `fix/slice-6-document-use-case-selection`
 - pr_title: `feat(slice-6): add document use case selection`
 - objective: `surface optional Use Case metadata in document create/edit flows using direct document use_case_id scope`
 - tasks:
-- [ ] `T6.1 add optional use_case_id selector to document create/edit forms`
-- [ ] `T6.2 scope selector options to the document project`
-- [ ] `T6.3 allow blank use_case_id for project-level documents`
-- [ ] `T6.4 include use_case_id in document command-query create/update handling where applicable`
-- [ ] `T6.5 preserve document lifecycle rules for draft, spec, and plan_tracker artifacts`
-- [ ] `T6.6 add tests for blank selection, valid same-project selection, invalid cross-project selection, and draft edit behavior`
+- [x] `T6.1 add optional use_case_id selector to document create/edit forms`
+- [x] `T6.2 scope selector options to the document project`
+- [x] `T6.3 allow blank use_case_id for project-level documents`
+- [x] `T6.4 include use_case_id in document command-query create/update handling where applicable`
+- [x] `T6.5 preserve document lifecycle rules for draft, spec, and plan_tracker artifacts`
+- [x] `T6.6 add tests for blank selection, valid same-project selection, invalid cross-project selection, and draft edit behavior`
 - acceptance:
 - `document create/edit exposes optional Use Case metadata`
 - `documents can remain project-level`

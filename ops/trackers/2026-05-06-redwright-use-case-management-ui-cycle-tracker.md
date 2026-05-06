@@ -4,9 +4,9 @@
 
 - cycle_id: `cycle-2026-05-06-redwright-use-case-management-ui`
 - status: `in_progress`
-- state: `slice_5_merged`
+- state: `slice_6_implemented`
 - updated: `2026-05-06`
-- active_slice: `none`
+- active_slice: `Slice 6`
 - active_task: `none`
 - source_plan: `ops/plans/2026-05-06-redwright-use-case-management-ui-cycle-plan.md`
 - source_spec: `ops/specs/specs/2026-05-06-redwright-use-case-management-ui-spec.md`
@@ -162,7 +162,7 @@ Validation:
 
 ### Slice 6: Document Optional Use Case Selection
 
-- status: `planned`
+- status: `implemented`
 - branch: `fix/slice-6-document-use-case-selection`
 - PR: `pending`
 - merge_target: `dev`
@@ -170,20 +170,22 @@ Validation:
 
 Tasks:
 
-- [ ] `T6.1 add optional use_case_id selector to document create/edit forms`
-- [ ] `T6.2 scope selector options to the document project`
-- [ ] `T6.3 allow blank use_case_id for project-level documents`
-- [ ] `T6.4 include use_case_id in document command-query create/update handling where applicable`
-- [ ] `T6.5 preserve document lifecycle rules for draft, spec, and plan_tracker artifacts`
-- [ ] `T6.6 add tests for blank selection, valid same-project selection, invalid cross-project selection, and draft edit behavior`
+- [x] `T6.1 add optional use_case_id selector to document create/edit forms`
+- [x] `T6.2 scope selector options to the document project`
+- [x] `T6.3 allow blank use_case_id for project-level documents`
+- [x] `T6.4 include use_case_id in document command-query create/update handling where applicable`
+- [x] `T6.5 preserve document lifecycle rules for draft, spec, and plan_tracker artifacts`
+- [x] `T6.6 add tests for blank selection, valid same-project selection, invalid cross-project selection, and draft edit behavior`
 
 Commits:
 
-- [ ] `pending`
+- [x] `ce81358 feat(web): add document use case selector`
+- [x] `a606abb test(web): cover document use case selection`
 
 Validation:
 
-- [ ] `pending`
+- [x] `bundle exec bin/rails test test/controllers/documents_controller_test.rb test/models/document_test.rb test/services/document_management/command_query_handlers_test.rb` (pass)
+- [x] `bundle exec bin/rails test` (pass)
 
 ### Slice 7: Use Case Detail Metrics and Delete Behavior
 
@@ -249,3 +251,4 @@ Validation:
 - `2026-05-06` state=`slice_4_merged` note=`PR #331 merged into dev and local dev fast-forwarded to 274429b`
 - `2026-05-06` state=`slice_5_implemented` note=`implemented optional ticket Use Case selection with project-scoped form options, project-level blank selection, document link independence, command-query payload data, focused tests, and full Rails validation`
 - `2026-05-06` state=`slice_5_merged` note=`PR #332 merged into dev and local dev fast-forwarded to 34f7570`
+- `2026-05-06` state=`slice_6_implemented` note=`implemented optional document Use Case selection for draft create/edit, command-query use_case_id handling, project-level blank selection, cross-project validation coverage, lifecycle editability preservation, and full Rails validation`
