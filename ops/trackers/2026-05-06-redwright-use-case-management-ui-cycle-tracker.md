@@ -164,9 +164,9 @@ Validation:
 
 - status: `implemented`
 - branch: `fix/slice-6-document-use-case-selection`
-- PR: `pending`
+- PR: `https://codeberg.org/adrianpk/redwright/pulls/333`
 - merge_target: `dev`
-- last_sync_commit: `pending`
+- last_sync_commit: `2ef25cb`
 
 Tasks:
 
