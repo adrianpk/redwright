@@ -39,6 +39,15 @@ The directory is the operational column. The `status` frontmatter must match the
 7. If scope expands beyond a bounded ticket, promote it to the formal spec/plan/tracker flow.
 8. Ticket capture must not require classification.
 
+## Delivery Unit
+
+A ticket is expected to be one focused delivery unit.
+
+- Default: one ticket -> one branch -> one PR -> `solved` or `closed`.
+- If a ticket cannot be delivered in one focused branch/PR, split it into related tickets or promote it to the formal spec/plan/tracker workflow.
+- Use slicing for long specs, plans, or coordinated series of tickets, not as the default shape for a single ticket.
+- A ticket series may act as a lightweight roadmap, but each ticket should remain independently reviewable.
+
 ## Helper Scripts
 
 Use the ticket helper scripts for repeatable operations.
