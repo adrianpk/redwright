@@ -1,7 +1,7 @@
 ---
 id: TKT-20260506072742
 title: Support Markdown ticket body editing
-status: in_progress
+status: reviewing
 kind: task
 severity: medium
 priority: normal
@@ -11,13 +11,14 @@ source: chat
 reported_at: 2026-05-06T07:27:42Z
 ready_at: 2026-05-06T08:46:02Z
 started_at: 2026-05-06T09:37:41Z
-reviewed_at:
+reviewed_at: 2026-05-06T09:40:59Z
 closed_at:
 resolution:
 owner:
 branch: fix/ticket-20260506072742-markdown-ticket-body
-pr:
-commits: []
+pr: https://codeberg.org/adrianpk/redwright/pulls/320
+commits:
+  - 5f5d1e3
 ---
 
 ## Context
