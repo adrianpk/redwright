@@ -4,9 +4,9 @@
 
 - cycle_id: `cycle-2026-05-06-redwright-use-case-management-ui`
 - status: `in_progress`
-- state: `slice_2_implemented`
+- state: `slice_2_merged`
 - updated: `2026-05-06`
-- active_slice: `Slice 2`
+- active_slice: `none`
 - active_task: `none`
 - source_plan: `ops/plans/2026-05-06-redwright-use-case-management-ui-cycle-plan.md`
 - source_spec: `ops/specs/specs/2026-05-06-redwright-use-case-management-ui-spec.md`
@@ -48,11 +48,11 @@ Validation:
 
 ### Slice 2: Use Case Command-Query Operations
 
-- status: `implemented`
+- status: `pr_merged`
 - branch: `fix/slice-2-use-case-command-query`
 - PR: `https://codeberg.org/adrianpk/redwright/pulls/329`
 - merge_target: `dev`
-- last_sync_commit: `pending`
+- last_sync_commit: `93b950a`
 
 Tasks:
 
@@ -235,3 +235,4 @@ Validation:
 - `2026-05-06` state=`slice_1_implemented` note=`implemented UseCase domain hardening with description requirement, document use_case scope, deletion blockers, tests, migration, and full Rails validation`
 - `2026-05-06` state=`slice_1_merged` note=`PR #328 merged into dev and local dev fast-forwarded to a10bbfa`
 - `2026-05-06` state=`slice_2_implemented` note=`implemented UseCase command-query create, update, delete, list, and get operations with structured errors, metrics, tests, and full Rails validation`
+- `2026-05-06` state=`slice_2_merged` note=`PR #329 merged into dev and local dev fast-forwarded to 93b950a`
