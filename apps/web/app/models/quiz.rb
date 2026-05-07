@@ -2,6 +2,7 @@ require "json"
 
 class Quiz < ApplicationRecord
   STATUSES = %w[active paused archived].freeze
+  MODES = %w[deep fast].freeze
 
   belongs_to :project
   belongs_to :use_case, optional: true
@@ -9,6 +10,7 @@ class Quiz < ApplicationRecord
 
   validates :name, presence: true
   validates :status, inclusion: { in: STATUSES }
+  validates :mode, inclusion: { in: MODES }
   validates :project_id, uniqueness: { conditions: -> { where(use_case_id: nil) }, if: -> { use_case_id.nil? } }
   validates :use_case_id, uniqueness: { scope: :project_id }, allow_nil: true
   validate :use_case_belongs_to_project
@@ -42,6 +44,14 @@ class Quiz < ApplicationRecord
 
   def current_question?
     current_question.present?
+  end
+
+  def deep_mode?
+    mode == "deep"
+  end
+
+  def fast_mode?
+    mode == "fast"
   end
 
   def store_current_question!(question:, tags:, prompt_intent:, fallback_reason:, errors:)

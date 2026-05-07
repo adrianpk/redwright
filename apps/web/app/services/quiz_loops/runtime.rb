@@ -222,7 +222,8 @@ module QuizLoops
         "quiz" => {
           "id" => quiz.id,
           "use_case_id" => quiz.use_case_id,
-          "entry_count" => quiz.entries.count
+          "entry_count" => quiz.entries.count,
+          "mode" => quiz.mode
         },
         "recent_entries" => quiz.entries.order(created_at: :desc).limit(5).reverse.map do |entry|
           {

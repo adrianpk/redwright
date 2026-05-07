@@ -15,6 +15,18 @@ module QuizLoops
       assert_equal "What should be clarified next?", result.quiz.current_question
       assert_equal ["project-context"], result.quiz.current_tags
       assert_equal "quiz_question", result.quiz.current_prompt_intent.fetch("kind")
+      assert_equal "deep", result.quiz.mode
+    end
+
+    test "passes current quiz mode to question provider input" do
+      project = create_project(key: "quiz-runtime-mode-input")
+      provider = CapturingQuestionProvider.new
+      quiz = project.find_or_create_main_quiz!
+      quiz.update!(mode: "fast")
+
+      Runtime.new(project: project, question_provider: provider).open
+
+      assert_equal "fast", provider.inputs.last.fetch("quiz").fetch("mode")
     end
 
     test "reopens existing current question without regenerating it" do
@@ -229,6 +241,19 @@ module QuizLoops
 
       def generate(input:)
         @calls += 1
+        super
+      end
+    end
+
+    class CapturingQuestionProvider < StaticQuestionProvider
+      attr_reader :inputs
+
+      def initialize
+        @inputs = []
+      end
+
+      def generate(input:)
+        inputs << input
         super
       end
     end
