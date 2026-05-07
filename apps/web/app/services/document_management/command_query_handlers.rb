@@ -1,5 +1,7 @@
 module DocumentManagement
   class CommandQueryHandlers
+    include CommandQuery::PayloadReader
+
     def self.register(dispatcher)
       new.register(dispatcher)
     end
@@ -89,8 +91,12 @@ module DocumentManagement
           }
         ]
       )
-    rescue ActiveRecord::RecordInvalid => e
-      invalid_record_result(e.record, request_id: request_id, summary: "Document draft could not be promoted.")
+    rescue DocumentPromotionService::PromotionError => e
+      CommandQuery::Result.error(
+        request_id: request_id,
+        code: "document_promotion_failed",
+        message: e.message
+      )
     end
 
     def get_documents_by_project(payload:, context:, request_id:)
@@ -203,22 +209,5 @@ module DocumentManagement
       Document.find_by(id: document_id)
     end
 
-    def key_present?(hash, key)
-      source = hash_from(hash)
-      source.key?(key.to_s) || source.key?(key.to_sym)
-    end
-
-    def value_from(hash, *keys)
-      source = hash_from(hash)
-      keys.each do |key|
-        return source[key.to_s] if source.key?(key.to_s)
-        return source[key.to_sym] if source.key?(key.to_sym)
-      end
-      nil
-    end
-
-    def hash_from(value)
-      value.is_a?(Hash) ? value : {}
-    end
   end
 end

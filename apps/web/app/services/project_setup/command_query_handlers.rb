@@ -1,5 +1,7 @@
 module ProjectSetup
   class CommandQueryHandlers
+    include CommandQuery::PayloadReader
+
     ERROR_SETUP_STATUSES = %i[
       invalid_command
       initialization_failed
@@ -455,19 +457,6 @@ module ProjectSetup
       return nil if session_id.blank?
 
       ProjectSetupSession.find_by(id: session_id)
-    end
-
-    def value_from(hash, *keys)
-      source = hash_from(hash)
-      keys.each do |key|
-        return source[key.to_s] if source.key?(key.to_s)
-        return source[key.to_sym] if source.key?(key.to_sym)
-      end
-      nil
-    end
-
-    def hash_from(value)
-      value.is_a?(Hash) ? value : {}
     end
 
     def string_keyed(value)

@@ -1,5 +1,7 @@
 module ProjectProtocols
   class CommandQueryHandlers
+    include CommandQuery::PayloadReader
+
     def self.register(dispatcher)
       new.register(dispatcher)
     end
@@ -76,13 +78,5 @@ module ProjectProtocols
       "Project Protocols composed with generated fallback for missing stack coverage."
     end
 
-    def value_from(hash, *keys)
-      source = hash.is_a?(Hash) ? hash : {}
-      keys.each do |key|
-        return source[key.to_s] if source.key?(key.to_s)
-        return source[key.to_sym] if source.key?(key.to_sym)
-      end
-      nil
-    end
   end
 end

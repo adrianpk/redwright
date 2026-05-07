@@ -40,18 +40,20 @@ module QuizLoops
 
     def list_quizzes(payload:, context:, request_id:)
       project = Project.find(payload.fetch("project_id"))
-      quizzes = project.quizzes.includes(:use_case).order(:use_case_id, :id).map do |quiz|
+      quizzes = project.quizzes.includes(:use_case).order(:use_case_id, :id).to_a
+      entry_counts = QuizEntry.where(quiz_id: quizzes.map(&:id)).group(:quiz_id).count
+      quiz_data = quizzes.map do |quiz|
         {
           "id" => quiz.id,
           "name" => quiz.name,
           "status" => quiz.status,
           "use_case_id" => quiz.use_case_id,
           "use_case_name" => quiz.use_case&.name,
-          "entry_count" => quiz.entries.count
+          "entry_count" => entry_counts.fetch(quiz.id, 0)
         }
       end
 
-      CommandQuery::Result.ok(request_id: request_id, data: {"project_id" => project.id, "quizzes" => quizzes})
+      CommandQuery::Result.ok(request_id: request_id, data: {"project_id" => project.id, "quizzes" => quiz_data})
     rescue ActiveRecord::RecordNotFound => e
       CommandQuery::Result.error(request_id: request_id, code: "quiz_project_not_found", message: e.message)
     end

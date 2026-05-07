@@ -1,5 +1,7 @@
 module RuntimeContainers
   class CommandQueryHandlers
+    include CommandQuery::PayloadReader
+
     def self.register(dispatcher)
       new.register(dispatcher)
     end
@@ -257,17 +259,5 @@ module RuntimeContainers
       Project.find_by(id: project_id)
     end
 
-    def value_from(hash, *keys)
-      source = hash_from(hash)
-      keys.each do |key|
-        return source[key.to_s] if source.key?(key.to_s)
-        return source[key.to_sym] if source.key?(key.to_sym)
-      end
-      nil
-    end
-
-    def hash_from(value)
-      value.is_a?(Hash) ? value : {}
-    end
   end
 end

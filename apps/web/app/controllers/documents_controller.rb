@@ -70,7 +70,7 @@ class DocumentsController < ApplicationController
 
     spec = DocumentPromotionService.new(draft: @artifact).call
     redirect_to document_path(spec), notice: "Draft promoted to spec."
-  rescue StandardError => e
+  rescue DocumentPromotionService::PromotionError => e
     redirect_to document_path(@artifact), alert: "Promotion failed: #{e.message}"
   end
 
