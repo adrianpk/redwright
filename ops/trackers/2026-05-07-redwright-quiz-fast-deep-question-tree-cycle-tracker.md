@@ -4,10 +4,10 @@
 
 - cycle_id: `cycle-2026-05-07-redwright-quiz-fast-deep-question-tree`
 - status: `planned`
-- state: `slice_1_in_progress`
+- state: `slice_1_reviewing`
 - updated: `2026-05-07`
-- active_slice: `Slice 1`
-- active_task: `T1.1`
+- active_slice: `none`
+- active_task: `none`
 - source_plan: `ops/plans/2026-05-07-redwright-quiz-fast-deep-question-tree-cycle-plan.md`
 - source_spec: `ops/specs/specs/2026-05-07-redwright-quiz-fast-deep-question-tree-spec.md`
 
@@ -15,7 +15,7 @@
 
 ### Slice 1: Quiz Processing Feedback
 
-- status: `in_progress`
+- status: `reviewing`
 - branch: `feat/slice-1-quiz-processing-feedback`
 - PR: `none`
 - merge_target: `dev`
@@ -24,20 +24,22 @@
 Tasks:
 
 - [x] `T1.1 audit current web quiz request/response rendering and processing-feedback options`
-- [ ] `T1.2 identify the existing quiz turn surface for feedback without changing navigation`
-- [ ] `T1.3 show a processing state while the next question is being generated`
-- [ ] `T1.4 preserve existing answer, skip, cancel, and done semantics`
-- [ ] `T1.5 cover the partial update behavior with controller/system-level tests where practical`
+- [x] `T1.2 identify the existing quiz turn surface for feedback without changing navigation`
+- [x] `T1.3 show a processing state while the next question is being generated`
+- [x] `T1.4 preserve existing answer, skip, cancel, and done semantics`
+- [x] `T1.5 cover the partial update behavior with controller/system-level tests where practical`
 
 Commits:
 
-- [ ] `docs(ops): record quiz partial update audit`
-- [ ] `feat(web): add quiz processing feedback surface`
-- [ ] `test(web): cover quiz processing feedback`
+- [x] `6676531 docs(ops): record quiz partial update audit`
+- [x] `9376737 feat(web): add quiz processing feedback surface`
+- [x] `6985fe4 test(web): cover quiz processing feedback`
 
 Validation:
 
-- [ ] `bundle exec bin/rails test test/controllers/project_quizzes_controller_test.rb`
+- [x] `bundle exec bin/rails test test/controllers/project_quizzes_controller_test.rb` (pass)
+- [x] `bundle exec bin/rails test` (pass)
+- [x] `scripts/agent/tickets/check.sh` (pass)
 
 ### Slice 2: Mode State and UI Switch
 
