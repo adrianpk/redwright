@@ -34,6 +34,9 @@ Reference artifacts:
 - `ops/specs/specs/2026-05-05-redwright-quiz-questionnaire-context-spec.md`
 - `ops/quiz/2026-05-05-redwright-quiz-me-questionnaire-context-quiz.md`
 - `ops/plans/2026-05-05-redwright-quiz-questionnaire-context-cycle-plan.md`
+- `ops/plans/2026-05-03-redwright-rails-project-setup-conversational-saga-cycle-plan.md`
+- `ops/specs/specs/2026-05-03-redwright-rails-project-setup-conversational-saga-spec.md`
+- `ops/quiz/2026-05-04-redwright-heavy-interaction-sagas-quiz.md`
 - `apps/web/app/services/quiz_loops/runtime.rb`
 - `apps/web/app/controllers/project_quizzes_controller.rb`
 - `apps/web/test/integration/project_setup_telegram_e2e_test.rb`
@@ -44,6 +47,9 @@ Spec contrast:
 - The current concern about `Skip` and `Answer` is supported by the spec: `answer` must save an answer for the current question, and `skip` must persist the entry as skipped or otherwise move past it without an answer.
 - The current concern is also supported by the curated quiz notes: Telegram quiz execution should be a one-question-at-a-time loop, the next question should be LLM-based, and previous questions and answers may influence the next question.
 - The cycle plan reinforces this as a runtime concern: Slice 4 requires a port-agnostic quiz loop service that persists answered and skipped `QuizEntry` records, and Slice 6 requires the web surface to use the same adaptive loop semantics as Telegram.
+- Adaptive progression is not optional. It appears repeatedly across RedWright's interaction design: the quiz playbook allows bounded follow-up branches, the quiz spec expects prior Q/A to influence the next question, and the `/project new` conversational saga uses a compact Ariadne-style trunk loop with deterministic slots plus adaptive refinement.
+- The Ariadne-style idea matters here as a conceptual guardrail: the LLM may enter useful follow-up cycles, but the runtime needs a thread/trunk that lets it return to broader coverage instead of getting lost in local re-questioning.
+- The Telegram `/project new` guided/setup flows use an adjacent pattern with strongly biased questions over a specific slot set. That pattern is not the same product feature, but it shows a recurring RedWright design: LLM wording can vary while the state machine, target slot/question identity, and progression rules remain deterministic.
 - The draft should not treat `Done` as a permanent finalization unless implementation later introduces explicit lifecycle state. The spec says `done` means the user considers the quiz sufficiently answered for now.
 - The draft should not imply first-class questionnaire sessions in this ticket. The spec explicitly excludes session records from the first design.
 - `Cancel` should mean stopping the loop without marking it as sufficiently answered; the same quiz can be opened again later.
@@ -57,6 +63,9 @@ Relevant references:
 - `ops/quiz/2026-05-05-redwright-quiz-me-questionnaire-context-quiz.md`, section `Web Counterpart`: says the web counterpart should reuse the same adaptive loop concept as Telegram.
 - `ops/plans/2026-05-05-redwright-quiz-questionnaire-context-cycle-plan.md`, Slice 4: requires a reusable quiz loop runtime that persists answered and skipped entries and supports answer, skip, done, and cancel independently of Telegram or web ports.
 - `ops/plans/2026-05-05-redwright-quiz-questionnaire-context-cycle-plan.md`, Slice 6: requires web answer, skip, done, and cancel controls using the same adaptive loop semantics as Telegram.
+- `ops/plans/2026-05-03-redwright-rails-project-setup-conversational-saga-cycle-plan.md`, Slice 1: names the `/project new` setup behavior as a compact Ariadne-style trunk loop.
+- `ops/specs/specs/2026-05-03-redwright-rails-project-setup-conversational-saga-spec.md`, section `Quizal Loop Contract`: defines deterministic canonical slot collection followed by adaptive refinement, with LLM-assisted wording that must not ask redundant questions for already filled, skipped, or defaulted slots.
+- `ops/quiz/2026-05-04-redwright-heavy-interaction-sagas-quiz.md`, `Current Convergences`: says bounded interaction segments can be represented through normal state, turns, and prompt intent, and that prompt intent should be structured while adapters render channel-specific UI/copy.
 
 ## Problem
 The current web quiz navigation appears coupled to URL state and does not reliably model deterministic question progression. Current symptoms and risks:
@@ -70,6 +79,8 @@ The current web quiz navigation appears coupled to URL state and does not reliab
 - The next question may not be resolved or received consistently.
 - Web behavior may drift from the Telegram quiz flow even though both should use the same port-agnostic runtime.
 - Web behavior may also drift from the repository quiz playbook's conceptual model: after a user answers or skips exactly one current question, the system should deterministically decide whether to continue, follow up, switch topic, or terminate. The current URL-carried question flow makes that decision boundary hard to trust.
+- Without an Ariadne-style thread/trunk concept, adaptive progression can become a series of locally plausible LLM follow-ups that lose the broader question plan, repeat already-covered points, or fail to return to the next useful question.
+- The current URL-driven web flow does not visibly encode the kind of state needed for biased-but-variable question generation: current question identity, prior entries, follow-up depth, coverage, and the route back to the trunk question sequence.
 - `Done` and `Cancel` semantics need validation against the specification and Telegram behavior.
 
 ## Expected
@@ -81,6 +92,9 @@ The current web quiz navigation appears coupled to URL state and does not reliab
 - `Answer` and `Skip` are both coupled to a backend-resolved current question identity or state, not merely to question text copied through URL params.
 - The next question after `Answer` or `Skip` is resolved by the shared quiz runtime using prior quiz entries as context.
 - The runtime maintains enough state to support the same conceptual invariants as the quiz playbook: one current question, explicit progression after response, bounded exploration, and no loss of current question identity.
+- Adaptive progression supports useful LLM follow-up cycles while preserving an Ariadne-style return path to the broader question plan.
+- Question generation may be strongly biased toward a specific question/slot set when the workflow requires it, as in `/project new`, while still allowing natural wording and useful variations.
+- Follow-up depth, coverage state, and the trunk/current question relationship are explicit enough that `Answer` and `Skip` cannot accidentally advance the wrong question or trap the user in repeated local follow-ups.
 - Question routing can later improve coverage or follow-up logic without depending on browser URL payloads as the source of truth.
 - `Cancel` stops the current loop without marking the quiz as sufficiently answered.
 - `Done` stops the current loop because the user considers the quiz sufficiently answered for now.
@@ -97,6 +111,8 @@ The current web quiz navigation appears coupled to URL state and does not reliab
 ## Fix Strategy
 - Review the web quiz controller, runtime, Telegram adapter behavior, and tests before changing persistence.
 - Use `.agents/playbooks/quiz.md` as a conceptual reference for invariants, not as an application architecture requirement.
+- Use the `/project new` Ariadne-style trunk loop and guided alignment behavior as adjacent conceptual references for deterministic state plus LLM-varied prompts.
+- Review whether the quiz runtime needs explicit current-question metadata such as sequence/trunk position, follow-up depth, coverage/topic, or prompt intent before changing routes.
 - Identify whether the current URL-based question passing can be replaced by a safer server-side or identifier-based progression mechanism without introducing first-class questionnaire sessions.
 - If persistent state is required, keep it aligned with the spec's first-version constraints and avoid broad session architecture unless explicitly promoted to spec/plan work.
 - Ensure `Answer`, `Skip`, `Cancel`, and `Done` have distinct and tested semantics.
