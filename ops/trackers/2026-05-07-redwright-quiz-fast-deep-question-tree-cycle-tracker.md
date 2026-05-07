@@ -4,7 +4,7 @@
 
 - cycle_id: `cycle-2026-05-07-redwright-quiz-fast-deep-question-tree`
 - status: `planned`
-- state: `slice_1_reviewing`
+- state: `slice_2_reviewing`
 - updated: `2026-05-07`
 - active_slice: `none`
 - active_task: `none`
@@ -15,9 +15,9 @@
 
 ### Slice 1: Quiz Processing Feedback
 
-- status: `reviewing`
+- status: `pr_merged`
 - branch: `feat/slice-1-quiz-processing-feedback`
-- PR: `none`
+- PR: `https://codeberg.org/adrianpk/redwright/pulls/347`
 - merge_target: `dev`
 - last_sync_commit: `pending`
 
@@ -43,7 +43,7 @@ Validation:
 
 ### Slice 2: Mode State and UI Switch
 
-- status: `planned`
+- status: `reviewing`
 - branch: `feat/slice-2-quiz-mode-switch`
 - PR: `none`
 - merge_target: `dev`
@@ -51,22 +51,24 @@ Validation:
 
 Tasks:
 
-- [ ] `T2.1 define quiz mode values and default new rounds to deep`
-- [ ] `T2.2 persist current mode at the quiz or runtime-state boundary`
-- [ ] `T2.3 add a low-profile web switch for deep versus fast`
-- [ ] `T2.4 ensure mode changes affect only future question generation`
-- [ ] `T2.5 cover default mode and mode switching with runtime/controller tests`
+- [x] `T2.1 define quiz mode values and default new rounds to deep`
+- [x] `T2.2 persist current mode at the quiz or runtime-state boundary`
+- [x] `T2.3 add a low-profile web switch for deep versus fast`
+- [x] `T2.4 ensure mode changes affect only future question generation`
+- [x] `T2.5 cover default mode and mode switching with runtime/controller tests`
 
 Commits:
 
-- [ ] `feat(web): add quiz mode state`
-- [ ] `feat(web): add quiz mode switch`
-- [ ] `test(web): cover quiz mode switching`
+- [x] `748eeb5 feat(web): add quiz mode state`
+- [x] `ca985a9 feat(web): add quiz mode switch`
+- [x] `test(web): cover quiz mode switching`
 
 Validation:
 
-- [ ] `bundle exec bin/rails test test/services/quiz_loops/runtime_test.rb`
-- [ ] `bundle exec bin/rails test test/controllers/project_quizzes_controller_test.rb`
+- [x] `bundle exec bin/rails test test/services/quiz_loops/runtime_test.rb` (pass)
+- [x] `bundle exec bin/rails db:test:prepare && bundle exec bin/rails test test/controllers/project_quizzes_controller_test.rb` (pass)
+- [x] `bundle exec bin/rails test` (pass)
+- [x] `scripts/agent/tickets/check.sh` (pass)
 
 ### Slice 3: Fast Strategy Contract
 
