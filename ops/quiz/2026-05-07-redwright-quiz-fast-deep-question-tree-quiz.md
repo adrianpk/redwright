@@ -4,6 +4,10 @@
 
 Curated quiz; sufficient clarity reached on 2026-05-07.
 
+## Raw Capture
+
+`2026-05-07-redwright-quiz-fast-deep-question-tree-quiz-raw.md`
+
 ## Related Draft
 
 `../specs/drafts/2026-05-07-redwright-quiz-fast-deep-question-tree-draft.md`

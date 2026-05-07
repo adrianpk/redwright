@@ -11,6 +11,7 @@
 - derived_from:
   - `ops/specs/drafts/2026-05-07-redwright-quiz-fast-deep-question-tree-draft.md`
   - `ops/quiz/2026-05-07-redwright-quiz-fast-deep-question-tree-quiz.md`
+  - `ops/quiz/2026-05-07-redwright-quiz-fast-deep-question-tree-quiz-raw.md`
   - `ops/specs/specs/2026-05-05-redwright-quiz-questionnaire-context-spec.md`
   - `ops/specs/specs/2026-05-05-redwright-llm-request-engine-context-composition-spec.md`
 
