@@ -12,6 +12,23 @@ module QuizLoops
       assert_equal project.main_quiz, result.quiz
       assert_equal "What should be clarified next?", result.question
       assert_equal ["project-context"], result.tags
+      assert_equal "What should be clarified next?", result.quiz.current_question
+      assert_equal ["project-context"], result.quiz.current_tags
+      assert_equal "quiz_question", result.quiz.current_prompt_intent.fetch("kind")
+    end
+
+    test "reopens existing current question without regenerating it" do
+      project = create_project(key: "quiz-runtime-current-state")
+      provider = CountingQuestionProvider.new
+      runtime = Runtime.new(project: project, question_provider: provider)
+
+      first = runtime.open
+      second = runtime.open
+
+      assert_equal 1, provider.calls
+      assert_equal first.question, second.question
+      assert_equal first.tags, second.tags
+      assert_equal first.prompt_intent, second.prompt_intent
     end
 
     test "opens use case quiz and creates use case when missing" do
@@ -116,6 +133,19 @@ module QuizLoops
           fallback_reason: "",
           errors: []
         )
+      end
+    end
+
+    class CountingQuestionProvider < StaticQuestionProvider
+      attr_reader :calls
+
+      def initialize
+        @calls = 0
+      end
+
+      def generate(input:)
+        @calls += 1
+        super
       end
     end
   end

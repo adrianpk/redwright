@@ -78,7 +78,7 @@ class ProjectQuizzesControllerTest < ActionDispatch::IntegrationTest
 
     post use_case_project_quizzes_path(project), params: { use_case_id: untreated.id }
 
-    assert_redirected_to project_quiz_path(project, untreated.reload.quiz, question: assigns_or_query_question, tags: "project-context")
+    assert_redirected_to project_quiz_path(project, untreated.reload.quiz)
 
     get project_quizzes_path(project)
 
@@ -94,19 +94,22 @@ class ProjectQuizzesControllerTest < ActionDispatch::IntegrationTest
     post use_case_project_quizzes_path(project), params: { use_case_name: "Billing Flow" }
 
     use_case = project.use_cases.find_by!(slug: "billing-flow")
-    assert_redirected_to project_quiz_path(project, use_case.quiz, question: assigns_or_query_question, tags: "project-context")
+    assert_redirected_to project_quiz_path(project, use_case.quiz)
+    assert_equal QuizLoops::QuestionProvider::FALLBACK_QUESTION, use_case.quiz.current_question
+    assert_equal ["project-context"], use_case.quiz.current_tags
   end
 
-  test "show renders current question without hidden rationale" do
+  test "show renders backend current question without hidden rationale" do
     admin = create_admin_user!
     sign_in_as(admin)
     project = create_project(key: "quiz-controller-show")
     quiz = project.find_or_create_main_quiz!
 
-    get project_quiz_path(project, quiz, question: "What matters?", tags: "context")
+    get project_quiz_path(project, quiz, question: "Ignored URL question", tags: "ignored")
 
     assert_response :success
-    assert_match "What matters?", response.body
+    assert_match QuizLoops::QuestionProvider::FALLBACK_QUESTION, response.body
+    assert_no_match "Ignored URL question", response.body
     assert_no_match "Controls: answer, skip, done, cancel", response.body
     assert_match "quiz-action-row", response.body
     assert_select "#quiz-answer-form"
@@ -166,9 +169,4 @@ class ProjectQuizzesControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
   end
 
-  private
-
-  def assigns_or_query_question
-    QuizLoops::QuestionProvider::FALLBACK_QUESTION
-  end
 end

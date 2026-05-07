@@ -4,10 +4,10 @@
 
 - cycle_id: `cycle-2026-05-07-redwright-quiz-navigation-flow`
 - status: `in_progress`
-- state: `slice_1_ready`
+- state: `slice_1_reviewing`
 - updated: `2026-05-07`
-- active_slice: `Slice 1`
-- active_task: `T1.3`
+- active_slice: `none`
+- active_task: `none`
 - source_plan: `ops/plans/2026-05-07-redwright-quiz-navigation-flow-cycle-plan.md`
 - source_ticket: `ops/tickets/in_progress/20260507074859-review-quiz-navigation-flow-and-question-routing-semantics.md`
 
@@ -15,30 +15,31 @@
 
 ### Slice 1: Quiz Question State Foundation
 
-- status: `planned`
+- status: `reviewing`
 - branch: `fix/slice-1-quiz-question-state-foundation`
-- PR: `pending`
+- PR: `https://codeberg.org/adrianpk/redwright/pulls/341`
 - merge_target: `dev`
-- last_sync_commit: `pending`
+- last_sync_commit: `2f9596b`
 
 Tasks:
 
 - [x] `T1.1 audit existing quiz and project setup routing/state mechanisms for reuse or configurable generalization`
 - [x] `T1.2 persist current quiz question metadata outside URL query parameters`
 - [x] `T1.3 resolve the current web quiz question from backend state on show/open`
-- [ ] `T1.4 cover current-question state with runtime and controller tests`
+- [x] `T1.4 cover current-question state with runtime and controller tests`
 
 Commits:
 
-- [x] `docs(ops): record quiz routing reuse audit`
-- [x] `feat(web): persist quiz current question state`
-- [ ] `test(web): cover quiz current question state`
+- [x] `875037d docs(ops): record quiz routing reuse audit`
+- [x] `c79fdfc feat(web): persist quiz current question state`
+- [x] `test(web): cover quiz current question state`
 
 Validation:
 
-- [ ] `scripts/agent/tickets/check.sh`
-- [ ] `bundle exec bin/rails test test/services/quiz_loops/runtime_test.rb`
-- [ ] `bundle exec bin/rails test test/controllers/project_quizzes_controller_test.rb`
+- [x] `scripts/agent/tickets/check.sh` (pass)
+- [x] `bundle exec bin/rails test test/services/quiz_loops/runtime_test.rb` (pass)
+- [x] `bundle exec bin/rails test test/controllers/project_quizzes_controller_test.rb` (pass)
+- [x] `bundle exec bin/rails test` (pass)
 
 ### Slice 2: Answer and Skip Progression Semantics
 
