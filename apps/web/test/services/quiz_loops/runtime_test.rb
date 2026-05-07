@@ -41,34 +41,52 @@ module QuizLoops
       assert_equal project.id, result.quiz.project_id
     end
 
-    test "persists answered entry and returns another question" do
+    test "persists answered entry for current question and returns another question" do
       project = create_project(key: "quiz-runtime-answer")
       runtime = Runtime.new(project: project, question_provider: StaticQuestionProvider.new)
+      quiz = project.find_or_create_main_quiz!
+      quiz.store_current_question!(
+        question: "What should agents know?",
+        tags: ["Agent Context"],
+        prompt_intent: { "kind" => "quiz_question" },
+        fallback_reason: "",
+        errors: []
+      )
 
       result = runtime.advance!(
-        question: "What should agents know?",
+        question: "Ignored submitted question?",
         answer: "They should preserve ticket context.",
-        tags: ["Agent Context"]
+        tags: ["Ignored Tag"]
       )
 
       entry = project.quiz_entries.last
       assert_equal "collecting", result.status
       assert_equal entry, result.entry
       assert_equal "answered", entry.status
+      assert_equal "What should agents know?", entry.question
       assert_equal "They should preserve ticket context.", entry.answer
       assert_equal ["agent-context"], entry.tags.map(&:name)
       assert_equal "What should be clarified next?", result.question
     end
 
-    test "persists skipped entry without answer" do
+    test "persists skipped entry for current question without answer" do
       project = create_project(key: "quiz-runtime-skip")
       runtime = Runtime.new(project: project, question_provider: StaticQuestionProvider.new)
+      quiz = project.find_or_create_main_quiz!
+      quiz.store_current_question!(
+        question: "Can this be skipped?",
+        tags: ["optional"],
+        prompt_intent: { "kind" => "quiz_question" },
+        fallback_reason: "",
+        errors: []
+      )
 
-      result = runtime.advance!(question: "Can this be skipped?", answer: "skip", tags: ["optional"])
+      result = runtime.advance!(question: "Ignored skip question?", answer: "skip")
 
       entry = project.quiz_entries.last
       assert_equal "collecting", result.status
       assert_equal "skipped", entry.status
+      assert_equal "Can this be skipped?", entry.question
       assert_equal "", entry.answer
       assert_equal ["optional"], entry.tags.map(&:name)
     end

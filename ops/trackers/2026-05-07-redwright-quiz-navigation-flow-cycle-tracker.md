@@ -4,10 +4,10 @@
 
 - cycle_id: `cycle-2026-05-07-redwright-quiz-navigation-flow`
 - status: `in_progress`
-- state: `slice_2_in_progress`
+- state: `slice_2_reviewing`
 - updated: `2026-05-07`
-- active_slice: `Slice 2`
-- active_task: `T2.3`
+- active_slice: `none`
+- active_task: `none`
 - source_plan: `ops/plans/2026-05-07-redwright-quiz-navigation-flow-cycle-plan.md`
 - source_ticket: `ops/tickets/in_progress/20260507074859-review-quiz-navigation-flow-and-question-routing-semantics.md`
 
@@ -43,9 +43,9 @@ Validation:
 
 ### Slice 2: Answer and Skip Progression Semantics
 
-- status: `in_progress`
+- status: `reviewing`
 - branch: `fix/slice-2-quiz-answer-skip-progression`
-- PR: `pending`
+- PR: `https://codeberg.org/adrianpk/redwright/pulls/342`
 - merge_target: `dev`
 - last_sync_commit: `8c6d9db`
 
@@ -53,20 +53,22 @@ Tasks:
 
 - [x] `T2.1 route web answer submissions through backend current-question state`
 - [x] `T2.2 route web skip submissions through backend current-question state`
-- [ ] `T2.3 ensure answered and skipped entries persist the exact current question`
-- [ ] `T2.4 remove question payload query redirects from answer and skip flows`
-- [ ] `T2.5 cover answer and skip progression with runtime and controller tests`
+- [x] `T2.3 ensure answered and skipped entries persist the exact current question`
+- [x] `T2.4 remove question payload query redirects from answer and skip flows`
+- [x] `T2.5 cover answer and skip progression with runtime and controller tests`
 
 Commits:
 
-- [x] `fix(web): bind quiz answer progression to state`
-- [x] `fix(web): bind quiz skip progression to state`
-- [ ] `test(web): cover quiz answer and skip routing`
+- [x] `ec1cc4d fix(web): bind quiz answer progression to state`
+- [x] `6f9e8f8 fix(web): bind quiz skip progression to state`
+- [x] `test(web): cover quiz answer and skip routing`
 
 Validation:
 
-- [ ] `bundle exec bin/rails test test/services/quiz_loops/runtime_test.rb`
-- [ ] `bundle exec bin/rails test test/controllers/project_quizzes_controller_test.rb`
+- [x] `bundle exec bin/rails test test/services/quiz_loops/runtime_test.rb` (pass)
+- [x] `bundle exec bin/rails test test/controllers/project_quizzes_controller_test.rb` (pass)
+- [x] `bundle exec bin/rails test` (pass)
+- [x] `scripts/agent/tickets/check.sh` (pass)
 
 ### Slice 3: Control Semantics and Port Parity
 

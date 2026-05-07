@@ -88,7 +88,7 @@ module QuizLoops
     end
 
     def current_or_submitted_tags(quiz:, tags:)
-      return quiz.current_tags if tags.nil?
+      return quiz.current_tags if quiz.current_question? || tags.nil?
 
       Array(tags).map(&:to_s).map(&:strip).reject(&:blank?)
     end

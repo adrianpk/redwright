@@ -12,8 +12,6 @@
     </div>
 
     <%= form_with url: answer_project_quiz_path(@project, @quiz), method: :post, class: "document-artifact-form", id: "quiz-answer-form" do |form| %>
-      <%= hidden_field_tag :question, @current_question %>
-      <%= hidden_field_tag :tags, @current_tags.join(",") %>
       <div class="document-artifact-field document-artifact-field-body-only">
         <%= form.text_area :answer, rows: 8, placeholder: "Answer..." %>
       </div>
@@ -21,7 +19,7 @@
 
     <div class="quiz-action-row">
       <div class="quiz-action-group">
-        <%= button_to "Skip", skip_project_quiz_path(@project, @quiz), method: :post, params: { question: @current_question, tags: @current_tags.join(",") }, class: "ticket-action" %>
+        <%= button_to "Skip", skip_project_quiz_path(@project, @quiz), method: :post, class: "ticket-action" %>
         <button type="submit" form="quiz-answer-form" class="ticket-action ticket-action-primary">Answer</button>
       </div>
       <div class="quiz-action-group">

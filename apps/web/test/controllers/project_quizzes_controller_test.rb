@@ -117,40 +117,57 @@ class ProjectQuizzesControllerTest < ActionDispatch::IntegrationTest
     refute_match "rationale", response.body
   end
 
-  test "answer persists entry and redirects with next question" do
+  test "answer persists backend current question and redirects without query payload" do
     admin = create_admin_user!
     sign_in_as(admin)
     project = create_project(key: "quiz-controller-answer")
     quiz = project.find_or_create_main_quiz!
+    quiz.store_current_question!(
+      question: "What should agents know?",
+      tags: ["context"],
+      prompt_intent: { "kind" => "quiz_question" },
+      fallback_reason: "",
+      errors: []
+    )
 
     post answer_project_quiz_path(project, quiz), params: {
-      question: "What should agents know?",
+      question: "Ignored submitted question?",
       answer: "Keep context concise.",
-      tags: "context"
+      tags: "ignored"
     }
 
     entry = project.quiz_entries.last
     assert_equal "answered", entry.status
+    assert_equal "What should agents know?", entry.question
     assert_equal "Keep context concise.", entry.answer
     assert_equal ["context"], entry.tags.map(&:name)
-    assert_redirected_to project_quiz_path(project, quiz, question: QuizLoops::QuestionProvider::FALLBACK_QUESTION, tags: "project-context")
+    assert_redirected_to project_quiz_path(project, quiz)
   end
 
-  test "skip persists skipped entry" do
+  test "skip persists backend current question and redirects without query payload" do
     admin = create_admin_user!
     sign_in_as(admin)
     project = create_project(key: "quiz-controller-skip")
     quiz = project.find_or_create_main_quiz!
+    quiz.store_current_question!(
+      question: "Can this be skipped?",
+      tags: ["optional"],
+      prompt_intent: { "kind" => "quiz_question" },
+      fallback_reason: "",
+      errors: []
+    )
 
     post skip_project_quiz_path(project, quiz), params: {
-      question: "Can this be skipped?",
-      tags: "optional"
+      question: "Ignored skip question?",
+      tags: "ignored"
     }
 
     entry = project.quiz_entries.last
     assert_equal "skipped", entry.status
+    assert_equal "Can this be skipped?", entry.question
     assert_equal "", entry.answer
     assert_equal ["optional"], entry.tags.map(&:name)
+    assert_redirected_to project_quiz_path(project, quiz)
   end
 
   test "done and cancel redirect back to quiz list without permanent closure" do
