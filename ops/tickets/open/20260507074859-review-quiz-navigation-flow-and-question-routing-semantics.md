@@ -39,16 +39,30 @@ Reference artifacts:
 
 Spec contrast:
 - The draft is consistent with the spec in requiring a transport-agnostic quiz loop, one-question-at-a-time progression, and shared web/Telegram semantics.
+- The current concern about `Skip` and `Answer` is supported by the spec: `answer` must save an answer for the current question, and `skip` must persist the entry as skipped or otherwise move past it without an answer.
+- The current concern is also supported by the curated quiz notes: Telegram quiz execution should be a one-question-at-a-time loop, the next question should be LLM-based, and previous questions and answers may influence the next question.
+- The cycle plan reinforces this as a runtime concern: Slice 4 requires a port-agnostic quiz loop service that persists answered and skipped `QuizEntry` records, and Slice 6 requires the web surface to use the same adaptive loop semantics as Telegram.
 - The draft should not treat `Done` as a permanent finalization unless implementation later introduces explicit lifecycle state. The spec says `done` means the user considers the quiz sufficiently answered for now.
 - The draft should not imply first-class questionnaire sessions in this ticket. The spec explicitly excludes session records from the first design.
 - `Cancel` should mean stopping the loop without marking it as sufficiently answered; the same quiz can be opened again later.
 - `Done` and `Cancel` currently need distinct semantics, but those semantics may be represented by navigation/outcome behavior rather than persistent quiz closure in the first version.
+
+Relevant references:
+- `ops/specs/specs/2026-05-05-redwright-quiz-questionnaire-context-spec.md`, section `Telegram Quiz Loop`: defines one-question-at-a-time execution, LLM-generated next question, previous Q/A influence, and control semantics for `answer`, `skip`, `done`, and `cancel`.
+- `ops/specs/specs/2026-05-05-redwright-quiz-questionnaire-context-spec.md`, section `Web Counterpart`: requires the web counterpart to reuse the same adaptive quiz loop concept as Telegram and expose the current question plus answer controls.
+- `ops/quiz/2026-05-05-redwright-quiz-me-questionnaire-context-quiz.md`, section `Telegram Flow`: requires a one-question-at-a-time loop where previous questions and answers may influence the next question.
+- `ops/quiz/2026-05-05-redwright-quiz-me-questionnaire-context-quiz.md`, section `Web Counterpart`: says the web counterpart should reuse the same adaptive loop concept as Telegram.
+- `ops/plans/2026-05-05-redwright-quiz-questionnaire-context-cycle-plan.md`, Slice 4: requires a reusable quiz loop runtime that persists answered and skipped entries and supports answer, skip, done, and cancel independently of Telegram or web ports.
+- `ops/plans/2026-05-05-redwright-quiz-questionnaire-context-cycle-plan.md`, Slice 6: requires web answer, skip, done, and cancel controls using the same adaptive loop semantics as Telegram.
 
 ## Problem
 The current web quiz navigation appears coupled to URL state and does not reliably model deterministic question progression. Current symptoms and risks:
 
 - The current question content is passed through query parameters.
 - `Answer` and `Skip` redirect with a generated next question in the URL.
+- `Answer` and `Skip` appear visually present but may not be sufficiently coupled to the intended question-answering logic described in the quiz spec and cycle plan.
+- `Answer` must represent "save this answer for this exact current question, then route to the next resolved question"; it should not behave as a generic form post whose correctness depends on URL-carried question content.
+- `Skip` must represent "persist or otherwise record this exact current question as skipped, then route to the next resolved question"; it should not simply navigate away or rely on fragile query state.
 - Question transitions may diverge from backend runtime state.
 - The next question may not be resolved or received consistently.
 - Web behavior may drift from the Telegram quiz flow even though both should use the same port-agnostic runtime.
@@ -60,6 +74,8 @@ The current web quiz navigation appears coupled to URL state and does not reliab
 - Question progression is represented through sequential identifiers, internal state resolution, server-side progression logic, or another clean state mechanism.
 - `Answer` submits the current answer and advances to the next question.
 - `Skip` records an intentional bypass of the current question and advances to the next question.
+- `Answer` and `Skip` are both coupled to a backend-resolved current question identity or state, not merely to question text copied through URL params.
+- The next question after `Answer` or `Skip` is resolved by the shared quiz runtime using prior quiz entries as context.
 - `Cancel` stops the current loop without marking the quiz as sufficiently answered.
 - `Done` stops the current loop because the user considers the quiz sufficiently answered for now.
 - Both `Cancel` and `Done` allow the same quiz to be opened again later unless a future spec explicitly changes lifecycle semantics.
