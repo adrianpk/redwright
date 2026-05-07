@@ -4,12 +4,12 @@
 
 - cycle_id: `cycle-2026-05-07-redwright-quiz-navigation-flow`
 - status: `in_progress`
-- state: `slice_4_in_progress`
+- state: `slice_4_reviewing`
 - updated: `2026-05-07`
-- active_slice: `Slice 4`
-- active_task: `T4.4`
+- active_slice: `none`
+- active_task: `none`
 - source_plan: `ops/plans/2026-05-07-redwright-quiz-navigation-flow-cycle-plan.md`
-- source_ticket: `ops/tickets/in_progress/20260507074859-review-quiz-navigation-flow-and-question-routing-semantics.md`
+- source_ticket: `ops/tickets/reviewing/20260507074859-review-quiz-navigation-flow-and-question-routing-semantics.md`
 
 ## Slice Progress
 
@@ -101,9 +101,9 @@ Validation:
 
 ### Slice 4: Adaptive Routing Closure
 
-- status: `in_progress`
+- status: `reviewing`
 - branch: `fix/slice-4-quiz-adaptive-routing-closure`
-- PR: `pending`
+- PR: `https://codeberg.org/adrianpk/redwright/pulls/344`
 - merge_target: `dev`
 - last_sync_commit: `5b49868`
 
@@ -112,22 +112,22 @@ Tasks:
 - [x] `T4.1 make follow-up depth, prompt intent, and trunk/coverage state explicit enough for routing decisions`
 - [x] `T4.2 reuse or configure existing question contract behavior where practical`
 - [x] `T4.3 prevent local follow-up loops from losing broader quiz coverage`
-- [ ] `T4.4 update tracker, ticket metadata, and residual-risk notes`
+- [x] `T4.4 update tracker, ticket metadata, and residual-risk notes`
 - [ ] `T4.5 run targeted and broad validation for the completed cycle`
 
 Commits:
 
 - [x] `fix(web): clarify adaptive quiz routing state`
 - [x] `test(web): cover adaptive quiz routing closure`
-- [ ] `chore(ops): close quiz navigation flow cycle`
+- [x] `chore(ops): close quiz navigation flow cycle`
 
 Validation:
 
 - [x] `bundle exec bin/rails test test/services/quiz_loops/runtime_test.rb` (pass)
 - [x] `bundle exec bin/rails test test/services/quiz_loops/question_contract_test.rb test/services/quiz_loops/question_provider_test.rb` (pass)
-- [ ] `bundle exec bin/rails test test/controllers/project_quizzes_controller_test.rb`
-- [ ] `bundle exec bin/rails test`
-- [ ] `scripts/agent/tickets/check.sh`
+- [x] `bundle exec bin/rails test test/controllers/project_quizzes_controller_test.rb` (pass)
+- [x] `bundle exec bin/rails test` (pass)
+- [x] `scripts/agent/tickets/check.sh` (pass)
 
 ## Cycle Notes
 
@@ -146,8 +146,10 @@ Validation:
 
 ## Residual Risks
 
-- pending
+- The quiz still does not introduce first-class questionnaire session records; this is intentional per the referenced first-version spec.
+- Adaptive routing remains LLM-question based, with runtime guardrails for follow-up depth and trunk return, not a full deterministic coverage engine.
 
 ## Tuning Decision
 
-- tuning needed: `pending`
+- tuning needed: `no`
+- evidence: `targeted runtime, contract, provider, controller, Telegram, and full Rails validation are part of Slice 4 closure`

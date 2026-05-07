@@ -1,7 +1,7 @@
 ---
 id: TKT-20260507074859
 title: Review quiz navigation flow and question routing semantics
-status: in_progress
+status: reviewing
 kind: task
 severity: medium
 priority: normal
@@ -11,12 +11,12 @@ source: chat
 reported_at: 2026-05-07T07:48:59Z
 ready_at:
 started_at: 2026-05-07T07:59:05Z
-reviewed_at:
+reviewed_at: 2026-05-07T09:20:00Z
 closed_at:
 resolution:
 owner: 
 branch: multi-slice; see ops/trackers/2026-05-07-redwright-quiz-navigation-flow-cycle-tracker.md
-pr:
+pr: https://codeberg.org/adrianpk/redwright/pulls/344
 commits: []
 ---
 
@@ -132,7 +132,15 @@ The current web quiz navigation appears coupled to URL state and does not reliab
 - Repository ticket checks after status or metadata changes.
 
 ## Outcome
-Promoted to a four-slice planned delivery cycle:
+Implemented through a four-slice planned delivery cycle and sent to review:
 
 - `ops/plans/2026-05-07-redwright-quiz-navigation-flow-cycle-plan.md`
 - `ops/trackers/2026-05-07-redwright-quiz-navigation-flow-cycle-tracker.md`
+
+Implemented behavior:
+- Web quiz show/open resolves the current question from backend state instead of URL question payloads.
+- Answer and Skip operate on the backend current question and redirect without question/tag query parameters.
+- Done and Cancel stop the active loop without permanent quiz closure and clear the current question state.
+- Telegram quiz advancement no longer transports question/tag payload state.
+- Adaptive routing state is explicit in prompt intent metadata, including phase, follow-up depth, limits, remaining questions, and covered tags.
+- Follow-up loops return to trunk coverage when the configured maximum follow-up depth is exhausted.
