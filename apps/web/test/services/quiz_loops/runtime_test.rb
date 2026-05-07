@@ -29,6 +29,25 @@ module QuizLoops
       assert_equal "fast", provider.inputs.last.fetch("quiz").fetch("mode")
     end
 
+    test "passes current question context to question provider input" do
+      project = create_project(key: "quiz-runtime-current-question-input")
+      provider = CapturingQuestionProvider.new
+      quiz = project.find_or_create_main_quiz!
+      quiz.store_current_question!(
+        question: "What question should not repeat?",
+        tags: ["repeat-guard"],
+        prompt_intent: {"kind" => "quiz_question"},
+        fallback_reason: "",
+        errors: []
+      )
+
+      Runtime.new(project: project, question_provider: provider).advance!(answer: "Skip repetition.")
+
+      current_question = provider.inputs.last.fetch("current_question")
+      assert_equal "What question should not repeat?", current_question.fetch("question")
+      assert_equal ["repeat-guard"], current_question.fetch("tags")
+    end
+
     test "fast mode activates generated question through candidate lifecycle" do
       project = create_project(key: "quiz-runtime-fast-candidate")
       provider = FastQuestionProvider.new
@@ -42,27 +61,42 @@ module QuizLoops
       assert_equal "What fast candidate should be activated?", result.question
       assert_equal "What fast candidate should be activated?", quiz.current_question
       assert_equal "activated", candidate.fetch("status")
-      assert_equal "single-candidate", candidate.fetch("branch_key")
+      assert_equal "batch-0-1", candidate.fetch("branch_key")
+      assert_equal 3, quiz.candidate_questions.count
       assert_equal 0, quiz.entries.count
       assert_equal 0, Tag.where(name: "fast-candidate").count
     end
 
-    test "answered fast question falls back to deep generation input" do
-      project = create_project(key: "quiz-runtime-fast-answer-fallback")
-      provider = CapturingQuestionProvider.new
+    test "fast mode advances through queued batch without another llm call" do
+      project = create_project(key: "quiz-runtime-fast-batch-local")
+      provider = FastQuestionProvider.new
       quiz = project.find_or_create_main_quiz!
       quiz.update!(mode: "fast")
-      quiz.store_current_question!(
-        question: "What fast question was asked?",
-        tags: ["fast-candidate"],
-        prompt_intent: {"kind" => "quiz_question"},
-        fallback_reason: "",
-        errors: []
-      )
+      runtime = Runtime.new(project: project, question_provider: provider)
 
-      Runtime.new(project: project, question_provider: provider).advance!(answer: "This needs interpretation.")
+      first = runtime.open
+      second = runtime.advance!(answer: "skip")
+      third = runtime.advance!(answer: "skip")
 
-      assert_equal "deep", provider.inputs.last.fetch("quiz").fetch("mode")
+      assert_equal 1, provider.calls
+      assert_equal "What fast candidate should be activated?", first.question
+      assert_equal "What second fast candidate should be activated?", second.question
+      assert_equal "What third fast candidate should be activated?", third.question
+      assert_equal ["activated", "activated", "activated"], quiz.reload.candidate_questions.map { |candidate| candidate.fetch("status") }
+    end
+
+    test "answered fast question uses queued batch before another llm call" do
+      project = create_project(key: "quiz-runtime-fast-answer-fallback")
+      provider = FastQuestionProvider.new
+      quiz = project.find_or_create_main_quiz!
+      quiz.update!(mode: "fast")
+      runtime = Runtime.new(project: project, question_provider: provider)
+
+      runtime.open
+      result = runtime.advance!(answer: "This answer should not force immediate LLM.")
+
+      assert_equal 1, provider.calls
+      assert_equal "What second fast candidate should be activated?", result.question
     end
 
     test "skipped fast question keeps deterministic fast progression input" do
@@ -81,6 +115,26 @@ module QuizLoops
       Runtime.new(project: project, question_provider: provider).advance!(answer: "skip")
 
       assert_equal "fast", provider.inputs.last.fetch("quiz").fetch("mode")
+    end
+
+    test "repeated fast question falls back to deep generation" do
+      project = create_project(key: "quiz-runtime-fast-repeat-fallback")
+      provider = RepeatingFastThenDeepProvider.new
+      quiz = project.find_or_create_main_quiz!
+      quiz.update!(mode: "fast")
+      quiz.store_current_question!(
+        question: "What question should not repeat?",
+        tags: ["repeat-guard"],
+        prompt_intent: {"kind" => "quiz_question"},
+        fallback_reason: "",
+        errors: []
+      )
+
+      result = Runtime.new(project: project, question_provider: provider).advance!(answer: "skip")
+
+      assert_equal ["fast", "deep"], provider.modes
+      assert_equal "What deep replacement should be asked?", result.question
+      assert_equal "What deep replacement should be asked?", quiz.reload.current_question
     end
 
     test "reopens existing current question without regenerating it" do
@@ -305,22 +359,43 @@ module QuizLoops
     end
 
     class FastQuestionProvider
+      attr_reader :calls
+
+      def initialize
+        @calls = 0
+      end
+
       def generate(input:)
+        @calls += 1
+        candidates = [
+          ["What fast candidate should be activated?", ["fast-candidate"]],
+          ["What second fast candidate should be activated?", ["fast-candidate"]],
+          ["What third fast candidate should be activated?", ["fast-candidate"]]
+        ].map do |question, tags|
+          {
+            "question" => question,
+            "tags" => tags,
+            "follow_up_depth" => 1,
+            "completion_recommended" => false
+          }
+        end
+
         QuestionProvider::Result.new(
           usable: true,
-          question: "What fast candidate should be activated?",
-          tags: ["fast-candidate"],
+          question: candidates.first.fetch("question"),
+          tags: candidates.first.fetch("tags"),
           follow_up_depth: 1,
           completion_recommended: false,
           prompt_intent: PromptIntentBuilder.question(
-            question: "What fast candidate should be activated?",
-            tags: ["fast-candidate"],
+            question: candidates.first.fetch("question"),
+            tags: candidates.first.fetch("tags"),
             follow_up_depth: 1,
             completion_recommended: false
           ),
           fallback_reason: "",
           errors: [],
-          generation_strategy: QuestionProvider::FAST_STRATEGY
+          generation_strategy: QuestionProvider::FAST_STRATEGY,
+          candidates: candidates
         )
       end
     end
@@ -348,6 +423,37 @@ module QuizLoops
       def generate(input:)
         inputs << input
         super
+      end
+    end
+
+    class RepeatingFastThenDeepProvider
+      attr_reader :modes
+
+      def initialize
+        @modes = []
+      end
+
+      def generate(input:)
+        mode = input.fetch("quiz").fetch("mode")
+        modes << mode
+        question = mode == "fast" ? "What question should not repeat?" : "What deep replacement should be asked?"
+
+        QuestionProvider::Result.new(
+          usable: true,
+          question: question,
+          tags: ["repeat-guard"],
+          follow_up_depth: 1,
+          completion_recommended: false,
+          prompt_intent: PromptIntentBuilder.question(
+            question: question,
+            tags: ["repeat-guard"],
+            follow_up_depth: 1,
+            completion_recommended: false
+          ),
+          fallback_reason: "",
+          errors: [],
+          generation_strategy: mode == "fast" ? QuestionProvider::FAST_STRATEGY : QuestionProvider::DEEP_STRATEGY
+        )
       end
     end
 

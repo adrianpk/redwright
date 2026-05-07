@@ -102,8 +102,17 @@ module QuizLoops
         return terminal_result(status: "done", quiz: quiz)
       end
 
-      generated = routed_question_result(quiz, question_provider.generate(input: input_for(quiz, force_deep: deep_fallback_required?(quiz, entry))))
+      queued = queued_fast_candidate_result(quiz)
+      return result_from_generated(quiz: quiz, entry: entry, generated: queued) if queued
+
+      input = input_for(quiz)
+      generated = routed_question_result(quiz, question_provider.generate(input: input))
+      generated = routed_question_result(quiz, question_provider.generate(input: input_for(quiz, force_deep: true))) if repeated_fast_question?(quiz, generated)
       store_generated_question!(quiz, generated)
+      result_from_generated(quiz: quiz, entry: entry, generated: generated)
+    end
+
+    def result_from_generated(quiz:, entry:, generated:)
       Result.new(
         ok: true,
         status: "collecting",
@@ -130,15 +139,19 @@ module QuizLoops
     end
 
     def store_fast_candidate!(quiz, generated)
-      candidate = quiz.add_candidate!(
-        question: generated.question,
-        tags: generated.tags,
-        prompt_intent: generated.prompt_intent,
-        fallback_reason: generated.fallback_reason,
-        errors: generated.errors,
-        parent_id: fast_candidate_parent_id(quiz),
-        branch_key: "single-candidate"
-      )
+      candidates = candidates_for(generated).each_with_index.map do |candidate_attributes, index|
+        prompt_intent = prompt_intent_for_candidate(candidate_attributes)
+        quiz.candidate_payload(
+          question: candidate_attributes.fetch("question"),
+          tags: candidate_attributes.fetch("tags"),
+          prompt_intent: prompt_intent,
+          fallback_reason: generated.fallback_reason,
+          errors: generated.errors,
+          branch_key: "batch-#{quiz.entries.count}-#{index + 1}"
+        )
+      end
+      quiz.update!(candidate_questions: quiz.candidate_questions + candidates)
+      candidate = next_active_candidate(quiz.reload)
       quiz.activate_candidate!(candidate.fetch("id"))
     end
 
@@ -161,7 +174,8 @@ module QuizLoops
         ),
         fallback_reason: generated.fallback_reason,
         errors: generated.errors,
-        generation_strategy: generation_strategy_for(generated)
+        generation_strategy: generation_strategy_for(generated),
+        candidates: generated.candidates
       )
     end
 
@@ -179,12 +193,61 @@ module QuizLoops
       )
     end
 
-    def deep_fallback_required?(quiz, entry)
-      quiz.fast_mode? && entry&.answered?
+    def queued_fast_candidate_result(quiz)
+      return nil unless quiz.fast_mode?
+
+      candidate = next_active_candidate(quiz)
+      return nil unless candidate
+
+      quiz.activate_candidate!(candidate.fetch("id"))
+      routed_question_result(quiz.reload, result_from_candidate(candidate))
+    end
+
+    def repeated_fast_question?(quiz, generated)
+      generated.generation_strategy == QuestionProvider::FAST_STRATEGY &&
+        quiz.current_question.to_s.strip.casecmp?(generated.question.to_s.strip)
     end
 
     def fast_candidate_parent_id(quiz)
       "quiz-#{quiz.id}-entry-#{quiz.entries.count}"
+    end
+
+    def next_active_candidate(quiz)
+      quiz.candidate_questions.find { |candidate| candidate.fetch("status") == "active" }
+    end
+
+    def candidates_for(generated)
+      Array(generated.candidates.presence || [{
+        "question" => generated.question,
+        "tags" => generated.tags,
+        "follow_up_depth" => generated.follow_up_depth,
+        "completion_recommended" => generated.completion_recommended
+      }])
+    end
+
+    def prompt_intent_for_candidate(candidate)
+      PromptIntentBuilder.question(
+        question: candidate.fetch("question"),
+        tags: candidate.fetch("tags"),
+        follow_up_depth: candidate.fetch("follow_up_depth"),
+        completion_recommended: candidate.fetch("completion_recommended")
+      )
+    end
+
+    def result_from_candidate(candidate)
+      metadata = candidate.fetch("prompt_intent", {}).fetch("metadata", {})
+      QuestionProvider::Result.new(
+        usable: true,
+        question: candidate.fetch("question"),
+        tags: candidate.fetch("tags"),
+        follow_up_depth: metadata.fetch("follow_up_depth", 1),
+        completion_recommended: metadata.fetch("completion_recommended", false),
+        prompt_intent: candidate.fetch("prompt_intent"),
+        fallback_reason: candidate.fetch("fallback_reason", ""),
+        errors: candidate.fetch("errors", []),
+        generation_strategy: QuestionProvider::FAST_STRATEGY,
+        candidates: [candidate]
+      )
     end
 
     def follow_up_exhausted?(quiz, generated)
@@ -263,6 +326,11 @@ module QuizLoops
           "use_case_id" => quiz.use_case_id,
           "entry_count" => quiz.entries.count,
           "mode" => force_deep ? "deep" : quiz.mode
+        },
+        "current_question" => {
+          "question" => quiz.current_question,
+          "tags" => quiz.current_tags,
+          "prompt_intent" => quiz.current_prompt_intent
         },
         "recent_entries" => quiz.entries.order(created_at: :desc).limit(5).reverse.map do |entry|
           {

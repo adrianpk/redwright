@@ -60,7 +60,21 @@ class Quiz < ApplicationRecord
   end
 
   def add_candidate!(question:, tags:, prompt_intent:, fallback_reason: "", errors: [], parent_id: nil, branch_key: nil)
-    candidate = normalize_candidate(
+    candidate = candidate_payload(
+      question: question,
+      tags: tags,
+      prompt_intent: prompt_intent,
+      fallback_reason: fallback_reason,
+      errors: errors,
+      parent_id: parent_id,
+      branch_key: branch_key
+    )
+    update!(candidate_questions: candidate_questions + [candidate])
+    candidate
+  end
+
+  def candidate_payload(question:, tags:, prompt_intent:, fallback_reason: "", errors: [], parent_id: nil, branch_key: nil)
+    normalize_candidate(
       "id" => SecureRandom.uuid,
       "question" => question.to_s.strip,
       "tags" => normalize_tags(tags),
@@ -72,8 +86,6 @@ class Quiz < ApplicationRecord
       "status" => "active",
       "created_at" => Time.current.iso8601
     )
-    update!(candidate_questions: candidate_questions + [candidate])
-    candidate
   end
 
   def activate_candidate!(candidate_id)

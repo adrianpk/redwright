@@ -31,15 +31,17 @@ module QuizLoops
     end
 
     test "routes fast mode through fast request engine contract" do
-      engine = CapturingRequestEngine.new([self.class.valid_response("What fast question should agents answer next?")])
+      engine = CapturingRequestEngine.new([self.class.valid_fast_batch_response])
       provider = QuestionProvider.new(request_engine: engine, model: "test/model", provider: "test")
 
       result = provider.generate(input: {"quiz" => {"mode" => "fast"}})
 
       assert result.usable?
       assert_equal ["quiz_fast_question_generation"], engine.actions
-      assert_equal "What fast question should agents answer next?", result.question
+      assert_equal "What fast question should agents answer first?", result.question
       assert_equal QuestionProvider::FAST_STRATEGY, result.generation_strategy
+      assert_equal 3, result.candidates.size
+      assert_equal "What fast question should agents answer third?", result.candidates.third.fetch("question")
     end
 
     test "falls back to deep generation when fast generation is unavailable" do
@@ -140,6 +142,30 @@ module QuizLoops
             "completion_recommended" => false
           },
           rendered_text: question,
+          provider_metadata: {finish_reason: "stop"},
+          warnings: [],
+          raw_response_ref: "{}"
+        )
+      end
+
+      def valid_fast_batch_response
+        questions = [
+          "What fast question should agents answer first?",
+          "What fast question should agents answer second?",
+          "What fast question should agents answer third?"
+        ].map do |question|
+          {
+            "question" => question,
+            "tags" => ["Agent Workflow"],
+            "follow_up_depth" => 1,
+            "completion_recommended" => false
+          }
+        end
+
+        TestResponse.new(
+          status: "ok",
+          semantic_payload: {"questions" => questions},
+          rendered_text: JSON.generate(questions),
           provider_metadata: {finish_reason: "stop"},
           warnings: [],
           raw_response_ref: "{}"

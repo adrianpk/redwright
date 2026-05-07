@@ -23,7 +23,8 @@ module QuizLoops
     DEEP_ACTION = "quiz_question_generation".freeze
     FAST_ACTION = "quiz_fast_question_generation".freeze
     DEEP_STRATEGY = "deep".freeze
-    FAST_STRATEGY = "single_candidate".freeze
+    FAST_STRATEGY = "batch".freeze
+    FAST_BATCH_SIZE = 3
     MODEL_ROLE = "non_coding".freeze
     SOURCE_CHANNEL = "quiz_loop".freeze
     DEEP_SYSTEM_PROMPT = <<~TEXT
@@ -39,13 +40,15 @@ module QuizLoops
       completion_recommended must be a boolean.
     TEXT
     FAST_SYSTEM_PROMPT = <<~TEXT
-      You generate exactly one next question for a RedWright project quiz fast mode.
+      You generate the next #{FAST_BATCH_SIZE} questions for a RedWright project quiz fast mode.
       Use the provided project, quiz, recent answer, and routing state context.
-      Prefer a low-latency question that can safely advance the quiz without exposing strategy internals.
+      Prefer low-latency questions that can safely advance the quiz without exposing strategy internals.
       Do not mention batch, round, tree, candidate, or strategy choices to the user.
       If the next step needs semantic interpretation that is not explicit in the provided context, return a normal broad question.
       Do not ask for secrets, credentials, tokens, passwords, private keys, or PII.
-      Return strict JSON with exactly these keys: question, tags, follow_up_depth, completion_recommended.
+      Return strict JSON with exactly one key: questions.
+      questions must be an array of #{FAST_BATCH_SIZE} objects.
+      Each object must have exactly these keys: question, tags, follow_up_depth, completion_recommended.
       tags must be a short array of product/context tags.
       follow_up_depth must be an integer.
       completion_recommended must be a boolean.
@@ -61,6 +64,7 @@ module QuizLoops
       :fallback_reason,
       :errors,
       :generation_strategy,
+      :candidates,
       keyword_init: true
     ) do
       def usable?
@@ -112,10 +116,26 @@ module QuizLoops
       response = generate_with_request_engine(input, action: action, system_prompt: system_prompt)
       return fallback_result(reason: "llm_unavailable", errors: response.warnings) unless response.ok?
 
+      return validated_fast_batch_result(response.semantic_payload) if action == FAST_ACTION
+
       validation = contract.validate(response.semantic_payload)
       return usable_result(validation.attributes, generation_strategy: generation_strategy_for(action)) if validation.valid?
 
       fallback_result(reason: "llm_malformed", errors: validation.errors)
+    end
+
+    def validated_fast_batch_result(output)
+      normalized = stringify_hash(output)
+      questions = normalized["questions"]
+      return fallback_result(reason: "llm_malformed", errors: ["questions must be an array"]) unless questions.is_a?(Array)
+
+      validations = questions.first(FAST_BATCH_SIZE).map { |question| contract.validate(question) }
+      errors = validations.flat_map(&:errors)
+      return fallback_result(reason: "llm_malformed", errors: errors) if validations.empty? || errors.any?
+
+      candidates = validations.map(&:attributes)
+      first = candidates.first
+      usable_result(first, generation_strategy: FAST_STRATEGY, candidates: candidates)
     end
 
     def fast_mode?(input)
@@ -123,7 +143,7 @@ module QuizLoops
       quiz["mode"].to_s == "fast"
     end
 
-    def usable_result(attributes, generation_strategy:)
+    def usable_result(attributes, generation_strategy:, candidates: [attributes])
       Result.new(
         usable: true,
         question: attributes.fetch("question"),
@@ -133,7 +153,8 @@ module QuizLoops
         prompt_intent: prompt_intent_for(attributes),
         fallback_reason: "",
         errors: [],
-        generation_strategy: generation_strategy
+        generation_strategy: generation_strategy,
+        candidates: candidates
       )
     end
 
@@ -153,12 +174,21 @@ module QuizLoops
         prompt_intent: prompt_intent_for(attributes),
         fallback_reason: reason,
         errors: errors,
-        generation_strategy: generation_strategy
+        generation_strategy: generation_strategy,
+        candidates: [attributes]
       )
     end
 
     def generation_strategy_for(action)
       action == FAST_ACTION ? FAST_STRATEGY : DEEP_STRATEGY
+    end
+
+    def stringify_hash(value)
+      return {} unless value.is_a?(Hash)
+
+      value.each_with_object({}) do |(key, item), hash|
+        hash[key.to_s] = item
+      end
     end
 
     def prompt_intent_for(attributes)
@@ -172,7 +202,7 @@ module QuizLoops
     end
 
     def generate_with_request_engine(input, action:, system_prompt:)
-      payload = request_payload(input)
+      payload = request_payload(input, action: action)
       user_text = JSON.generate(payload)
       context_sections = context_sections_for(input)
       trace_metadata = trace_metadata_for(input)
@@ -191,7 +221,7 @@ module QuizLoops
         action: action,
         system_prompt: system_prompt,
         user_text: user_text,
-        output_contract: output_contract,
+        output_contract: output_contract_for(action),
         context_sections: context_sections,
         trace_metadata: trace_metadata
       )
@@ -200,20 +230,35 @@ module QuizLoops
       response
     end
 
-    def request_payload(input)
+    def request_payload(input, action:)
       {
         "project" => input["project"] || {},
         "quiz" => input["quiz"] || {},
         "recent_entries" => input["recent_entries"] || [],
         "current_question" => input["current_question"] || {},
-        "output_contract" => output_contract
+        "output_contract" => output_contract_for(action)
       }
     end
 
     def output_contract
+      deep_output_contract
+    end
+
+    def output_contract_for(action)
+      action == FAST_ACTION ? fast_output_contract : deep_output_contract
+    end
+
+    def deep_output_contract
       {
         "required_fields" => QuestionContract::REQUIRED_FIELDS,
         "rendered_text_field" => "question"
+      }
+    end
+
+    def fast_output_contract
+      {
+        "required_fields" => ["questions"],
+        "rendered_text_field" => "questions"
       }
     end
 
