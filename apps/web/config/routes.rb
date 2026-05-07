@@ -19,6 +19,7 @@ Rails.application.routes.draw do
         post :use_case
       end
       member do
+        patch :mode
         post :answer
         post :skip
         post :done

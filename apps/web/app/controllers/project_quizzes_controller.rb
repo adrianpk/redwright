@@ -1,6 +1,6 @@
 class ProjectQuizzesController < ApplicationController
   before_action :set_project
-  before_action :set_quiz, only: [ :show, :answer, :skip, :done, :cancel ]
+  before_action :set_quiz, only: [ :show, :mode, :answer, :skip, :done, :cancel ]
 
   def index
     persist_current_project!(@project)
@@ -42,6 +42,17 @@ class ProjectQuizzesController < ApplicationController
 
     runtime_for(@quiz).advance!(answer: answer)
     redirect_to project_quiz_path(@project, @quiz), notice: "Answer saved."
+  end
+
+  def mode
+    requested_mode = params.require(:mode).to_s
+    unless Quiz::MODES.include?(requested_mode)
+      redirect_to project_quiz_path(@project, @quiz), alert: "Quiz mode is invalid."
+      return
+    end
+
+    @quiz.update!(mode: requested_mode)
+    redirect_to project_quiz_path(@project, @quiz), notice: "Quiz mode updated."
   end
 
   def skip

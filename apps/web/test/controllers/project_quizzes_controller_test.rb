@@ -116,11 +116,46 @@ class ProjectQuizzesControllerTest < ActionDispatch::IntegrationTest
     assert_select "#quiz-answer-form[data-quiz-processing-form]"
     assert_select "#quiz-processing-feedback[hidden]", text: "Generating next question..."
     assert_select ".document-artifact-panel[data-quiz-processing-surface]"
+    assert_select ".quiz-mode-switch"
+    assert_select ".quiz-mode-action.is-active", text: "Deep"
+    assert_select ".quiz-mode-action", text: "Fast"
     assert_select "button[form='quiz-answer-form']", text: "Answer"
     assert_select "form[data-quiz-processing-form] button", text: "Skip"
     assert_select "form[data-quiz-processing-form] button", text: "Cancel", count: 0
     assert_select "form[data-quiz-processing-form] button", text: "Done", count: 0
     refute_match "rationale", response.body
+  end
+
+  test "mode updates quiz mode without changing current question" do
+    admin = create_admin_user!
+    sign_in_as(admin)
+    project = create_project(key: "quiz-controller-mode")
+    quiz = project.find_or_create_main_quiz!
+    quiz.store_current_question!(
+      question: "What should remain active?",
+      tags: ["mode"],
+      prompt_intent: { "kind" => "quiz_question" },
+      fallback_reason: "",
+      errors: []
+    )
+
+    patch mode_project_quiz_path(project, quiz), params: { mode: "fast" }
+
+    assert_redirected_to project_quiz_path(project, quiz)
+    assert_equal "fast", quiz.reload.mode
+    assert_equal "What should remain active?", quiz.current_question
+  end
+
+  test "mode rejects invalid quiz mode" do
+    admin = create_admin_user!
+    sign_in_as(admin)
+    project = create_project(key: "quiz-controller-invalid-mode")
+    quiz = project.find_or_create_main_quiz!
+
+    patch mode_project_quiz_path(project, quiz), params: { mode: "turbo" }
+
+    assert_redirected_to project_quiz_path(project, quiz)
+    assert_equal "deep", quiz.reload.mode
   end
 
   test "answer persists backend current question and redirects without query payload" do
