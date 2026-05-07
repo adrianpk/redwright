@@ -130,7 +130,7 @@ Validation:
 
 - status: `implemented`
 - branch: `feat/slice-5-quiz-first-fast-strategy`
-- PR: `none`
+- PR: `https://codeberg.org/adrianpk/redwright/pulls/351`
 - merge_target: `dev`
 - last_sync_commit: `pending`
 
