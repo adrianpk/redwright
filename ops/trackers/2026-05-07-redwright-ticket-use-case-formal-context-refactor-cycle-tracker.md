@@ -3,8 +3,8 @@
 ## Metadata
 
 - cycle_id: `cycle-2026-05-07-redwright-ticket-use-case-formal-context-refactor`
-- status: `in_progress`
-- state: `slice_4_implemented`
+- status: `implemented`
+- state: `cycle_validated`
 - updated: `2026-05-07`
 - active_slice: `none`
 - active_task: `none`
@@ -103,7 +103,7 @@ Validation:
 
 - status: `implemented`
 - branch: `fix/slice-4-formal-artifact-use-case-scope`
-- PR: `tbd`
+- PR: `https://codeberg.org/adrianpk/redwright/pulls/354`
 - merge_target: `dev`
 - last_sync_commit: `tbd`
 
@@ -127,7 +127,7 @@ Validation:
 
 ### Slice 5: Cycle Validation and Closure
 
-- status: `pending`
+- status: `implemented`
 - branch: `fix/slice-5-ticket-context-refactor-closure`
 - PR: `tbd`
 - merge_target: `dev`
@@ -135,20 +135,20 @@ Validation:
 
 Tasks:
 
-- [ ] `T5.1 run targeted model, controller, command-query, and runtime bridge tests touched by the refactor`
-- [ ] `T5.2 run full Rails test suite from apps/web`
-- [ ] `T5.3 run repository ticket workflow checks`
-- [ ] `T5.4 update tracker with validation evidence, residual risks, and deferred work`
-- [ ] `T5.5 keep evidence/assets and inherited context retrieval deferred unless explicitly approved as new scope`
+- [x] `T5.1 run targeted model, controller, command-query, and runtime bridge tests touched by the refactor`
+- [x] `T5.2 run full Rails test suite from apps/web`
+- [x] `T5.3 run repository ticket workflow checks`
+- [x] `T5.4 update tracker with validation evidence, residual risks, and deferred work`
+- [x] `T5.5 keep evidence/assets and inherited context retrieval deferred unless explicitly approved as new scope`
 
 Commits:
 
-- [ ] `pending`
+- [x] `chore(slice-5): validate ticket context refactor cycle`
 
 Validation:
 
-- [ ] `bundle exec bin/rails test`
-- [ ] `scripts/agent/tickets/check.sh`
+- [x] `bundle exec bin/rails test`
+- [x] `scripts/agent/tickets/check.sh`
 
 ## Event Log
 
@@ -161,9 +161,12 @@ Validation:
 - `2026-05-07` validation=`passed` note=`slice 4 focused Rails tests: 61 runs, 319 assertions, 0 failures`
 - `2026-05-07` validation=`passed` note=`full Rails tests: 414 runs, 2637 assertions, 0 failures`
 - `2026-05-07` validation=`passed` note=`scripts/agent/tickets/check.sh`
+- `2026-05-07` state=`cycle_validated` note=`ran final touched-surface validation and full suite after slices 1-4 merged`
+- `2026-05-07` validation=`passed` note=`cycle closure targeted Rails tests: 152 runs, 1143 assertions, 0 failures`
+- `2026-05-07` validation=`passed` note=`cycle closure full Rails tests: 414 runs, 2637 assertions, 0 failures`
+- `2026-05-07` validation=`passed` note=`scripts/agent/tickets/check.sh`
 
 ## Residual Risks
 
-- Slices 1-3 were implemented together because removing the table required removing direct UI, command-query, runtime bridge, and setup-service callers in the same deployable change.
-- The future evidence/assets model is intentionally deferred, so ticket-specific supporting material will not have a replacement upload path in this cycle.
+- The future evidence/assets model remains intentionally deferred, so ticket-specific supporting material does not have a replacement upload path in this cycle.
 - Final LLM context retrieval remains deferred and must be handled by a later context-service or LLMRequestEngine cycle.
