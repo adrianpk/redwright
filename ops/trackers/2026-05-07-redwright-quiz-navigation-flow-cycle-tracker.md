@@ -4,10 +4,10 @@
 
 - cycle_id: `cycle-2026-05-07-redwright-quiz-navigation-flow`
 - status: `in_progress`
-- state: `slice_3_reviewing`
+- state: `slice_4_in_progress`
 - updated: `2026-05-07`
-- active_slice: `none`
-- active_task: `none`
+- active_slice: `Slice 4`
+- active_task: `T4.4`
 - source_plan: `ops/plans/2026-05-07-redwright-quiz-navigation-flow-cycle-plan.md`
 - source_ticket: `ops/tickets/in_progress/20260507074859-review-quiz-navigation-flow-and-question-routing-semantics.md`
 
@@ -72,7 +72,7 @@ Validation:
 
 ### Slice 3: Control Semantics and Port Parity
 
-- status: `reviewing`
+- status: `pr_merged`
 - branch: `fix/slice-3-quiz-control-port-parity`
 - PR: `https://codeberg.org/adrianpk/redwright/pulls/343`
 - merge_target: `dev`
@@ -101,23 +101,23 @@ Validation:
 
 ### Slice 4: Adaptive Routing Closure
 
-- status: `pending`
+- status: `in_progress`
 - branch: `fix/slice-4-quiz-adaptive-routing-closure`
 - PR: `pending`
 - merge_target: `dev`
-- last_sync_commit: `pending`
+- last_sync_commit: `5b49868`
 
 Tasks:
 
-- [ ] `T4.1 make follow-up depth, prompt intent, and trunk/coverage state explicit enough for routing decisions`
-- [ ] `T4.2 reuse or configure existing question contract behavior where practical`
-- [ ] `T4.3 prevent local follow-up loops from losing broader quiz coverage`
+- [x] `T4.1 make follow-up depth, prompt intent, and trunk/coverage state explicit enough for routing decisions`
+- [x] `T4.2 reuse or configure existing question contract behavior where practical`
+- [x] `T4.3 prevent local follow-up loops from losing broader quiz coverage`
 - [ ] `T4.4 update tracker, ticket metadata, and residual-risk notes`
 - [ ] `T4.5 run targeted and broad validation for the completed cycle`
 
 Commits:
 
-- [ ] `fix(web): clarify adaptive quiz routing state`
+- [x] `fix(web): clarify adaptive quiz routing state`
 - [ ] `test(web): cover adaptive quiz routing closure`
 - [ ] `chore(ops): close quiz navigation flow cycle`
 

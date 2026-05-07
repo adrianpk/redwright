@@ -83,7 +83,8 @@ module QuizLoops
         question: attributes.fetch("question"),
         tags: attributes.fetch("tags"),
         follow_up_depth: attributes.fetch("follow_up_depth"),
-        completion_recommended: attributes.fetch("completion_recommended")
+        completion_recommended: attributes.fetch("completion_recommended"),
+        routing_state: attributes.fetch("routing_state", {})
       )
     end
   end

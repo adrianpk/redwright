@@ -1,6 +1,7 @@
 module QuizLoops
   class Runtime
     CONTROLS = %w[skip done cancel].freeze
+    TRUNK_RETURN_QUESTION = "What broader project context should this quiz cover next?".freeze
 
     Result = Struct.new(
       :ok,
@@ -99,7 +100,7 @@ module QuizLoops
         return terminal_result(status: "done", quiz: quiz)
       end
 
-      generated = question_provider.generate(input: input_for(quiz))
+      generated = routed_question_result(quiz, question_provider.generate(input: input_for(quiz)))
       quiz.store_current_question!(
         question: generated.question,
         tags: generated.tags,
@@ -118,6 +119,63 @@ module QuizLoops
         fallback_reason: generated.fallback_reason,
         errors: generated.errors
       )
+    end
+
+    def routed_question_result(quiz, generated)
+      generated = trunk_return_result if follow_up_exhausted?(quiz, generated)
+      routing_state = routing_state_for(quiz, generated)
+
+      QuestionProvider::Result.new(
+        usable: generated.usable?,
+        question: generated.question,
+        tags: generated.tags,
+        follow_up_depth: generated.follow_up_depth,
+        completion_recommended: generated.completion_recommended,
+        prompt_intent: PromptIntentBuilder.question(
+          question: generated.question,
+          tags: generated.tags,
+          follow_up_depth: generated.follow_up_depth,
+          completion_recommended: generated.completion_recommended,
+          routing_state: routing_state
+        ),
+        fallback_reason: generated.fallback_reason,
+        errors: generated.errors
+      )
+    end
+
+    def trunk_return_result
+      QuestionProvider::Result.new(
+        usable: false,
+        question: TRUNK_RETURN_QUESTION,
+        tags: QuestionProvider::FALLBACK_TAGS,
+        follow_up_depth: 1,
+        completion_recommended: false,
+        prompt_intent: {},
+        fallback_reason: "follow_up_depth_exhausted",
+        errors: ["follow-up depth reached; returning to trunk coverage"]
+      )
+    end
+
+    def follow_up_exhausted?(quiz, generated)
+      previous_depth = quiz.current_prompt_intent.dig("metadata", "follow_up_depth").to_i
+      previous_depth >= configuration.max_follow_up_depth && generated.follow_up_depth.to_i > 1
+    end
+
+    def routing_state_for(quiz, generated)
+      entry_count = quiz.entries.count
+      {
+        "phase" => generated.follow_up_depth.to_i > 1 ? "follow_up" : "trunk",
+        "entry_count" => entry_count,
+        "remaining_questions" => [configuration.max_questions - entry_count, 0].max,
+        "follow_up_depth" => generated.follow_up_depth,
+        "max_follow_up_depth" => configuration.max_follow_up_depth,
+        "trunk_return_recommended" => generated.follow_up_depth.to_i >= configuration.max_follow_up_depth,
+        "covered_tags" => covered_tags_for(quiz)
+      }
+    end
+
+    def covered_tags_for(quiz)
+      quiz.entries.includes(:tags).flat_map { |entry| entry.tags.map(&:name) }.uniq.sort
     end
 
     def current_question_result(quiz)
