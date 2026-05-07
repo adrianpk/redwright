@@ -4,7 +4,7 @@
 
 - cycle_id: `cycle-2026-05-07-redwright-quiz-fast-deep-question-tree`
 - status: `planned`
-- state: `slice_2_reviewing`
+- state: `slice_2_merged`
 - updated: `2026-05-07`
 - active_slice: `none`
 - active_task: `none`
@@ -43,11 +43,11 @@ Validation:
 
 ### Slice 2: Mode State and UI Switch
 
-- status: `reviewing`
+- status: `pr_merged`
 - branch: `feat/slice-2-quiz-mode-switch`
 - PR: `https://codeberg.org/adrianpk/redwright/pulls/348`
 - merge_target: `dev`
-- last_sync_commit: `pending`
+- last_sync_commit: `7eb847d`
 
 Tasks:
 
