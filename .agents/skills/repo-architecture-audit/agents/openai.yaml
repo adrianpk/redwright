@@ -1,0 +1,4 @@
+interface:
+  display_name: "Repo Architecture Quality"
+  short_description: "Audit and improve Ruby/Rails architecture quality."
+  default_prompt: "Audit or improve architecture and code quality from a repository ticket."
