@@ -27,6 +27,7 @@ module QuizLoops
       assert result.usable?
       assert_equal ["quiz_question_generation"], engine.actions
       assert_equal "What deep question should agents clarify next?", result.question
+      assert_equal QuestionProvider::DEEP_STRATEGY, result.generation_strategy
     end
 
     test "routes fast mode through fast request engine contract" do
@@ -38,6 +39,7 @@ module QuizLoops
       assert result.usable?
       assert_equal ["quiz_fast_question_generation"], engine.actions
       assert_equal "What fast question should agents answer next?", result.question
+      assert_equal QuestionProvider::FAST_STRATEGY, result.generation_strategy
     end
 
     test "falls back to deep generation when fast generation is unavailable" do
@@ -53,6 +55,7 @@ module QuizLoops
       assert_equal ["quiz_fast_question_generation", "quiz_question_generation"], engine.actions
       assert_equal "What deep fallback question should agents answer next?", result.question
       assert_equal "", result.fallback_reason
+      assert_equal QuestionProvider::DEEP_STRATEGY, result.generation_strategy
     end
 
     test "falls back to deep generation when fast generation is invalid" do
@@ -120,9 +123,15 @@ module QuizLoops
       attr_reader :responses
     end
 
+    TestResponse = Struct.new(:status, :semantic_payload, :rendered_text, :provider_metadata, :warnings, :raw_response_ref, keyword_init: true) do
+      def ok?
+        status == "ok"
+      end
+    end
+
     class << self
       def valid_response(question)
-        Redwright::LLM::RequestEngine::Response.new(
+        TestResponse.new(
           status: "ok",
           semantic_payload: {
             "question" => question,
@@ -138,7 +147,7 @@ module QuizLoops
       end
 
       def malformed_response
-        Redwright::LLM::RequestEngine::Response.new(
+        TestResponse.new(
           status: "ok",
           semantic_payload: {
             "question" => "Which password should agents use?",
@@ -154,7 +163,7 @@ module QuizLoops
       end
 
       def unavailable_response(message)
-        Redwright::LLM::RequestEngine::Response.new(
+        TestResponse.new(
           status: "error",
           semantic_payload: {},
           rendered_text: "",

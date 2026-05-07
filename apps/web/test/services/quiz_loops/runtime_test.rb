@@ -29,6 +29,60 @@ module QuizLoops
       assert_equal "fast", provider.inputs.last.fetch("quiz").fetch("mode")
     end
 
+    test "fast mode activates generated question through candidate lifecycle" do
+      project = create_project(key: "quiz-runtime-fast-candidate")
+      provider = FastQuestionProvider.new
+      quiz = project.find_or_create_main_quiz!
+      quiz.update!(mode: "fast")
+
+      result = Runtime.new(project: project, question_provider: provider).open
+
+      candidate = quiz.reload.candidate_questions.first
+      assert_equal "collecting", result.status
+      assert_equal "What fast candidate should be activated?", result.question
+      assert_equal "What fast candidate should be activated?", quiz.current_question
+      assert_equal "activated", candidate.fetch("status")
+      assert_equal "single-candidate", candidate.fetch("branch_key")
+      assert_equal 0, quiz.entries.count
+      assert_equal 0, Tag.where(name: "fast-candidate").count
+    end
+
+    test "answered fast question falls back to deep generation input" do
+      project = create_project(key: "quiz-runtime-fast-answer-fallback")
+      provider = CapturingQuestionProvider.new
+      quiz = project.find_or_create_main_quiz!
+      quiz.update!(mode: "fast")
+      quiz.store_current_question!(
+        question: "What fast question was asked?",
+        tags: ["fast-candidate"],
+        prompt_intent: {"kind" => "quiz_question"},
+        fallback_reason: "",
+        errors: []
+      )
+
+      Runtime.new(project: project, question_provider: provider).advance!(answer: "This needs interpretation.")
+
+      assert_equal "deep", provider.inputs.last.fetch("quiz").fetch("mode")
+    end
+
+    test "skipped fast question keeps deterministic fast progression input" do
+      project = create_project(key: "quiz-runtime-fast-skip-progression")
+      provider = CapturingQuestionProvider.new
+      quiz = project.find_or_create_main_quiz!
+      quiz.update!(mode: "fast")
+      quiz.store_current_question!(
+        question: "Can this fast question be skipped?",
+        tags: ["fast-candidate"],
+        prompt_intent: {"kind" => "quiz_question"},
+        fallback_reason: "",
+        errors: []
+      )
+
+      Runtime.new(project: project, question_provider: provider).advance!(answer: "skip")
+
+      assert_equal "fast", provider.inputs.last.fetch("quiz").fetch("mode")
+    end
+
     test "reopens existing current question without regenerating it" do
       project = create_project(key: "quiz-runtime-current-state")
       provider = CountingQuestionProvider.new
@@ -242,6 +296,27 @@ module QuizLoops
           ),
           fallback_reason: "",
           errors: []
+        )
+      end
+    end
+
+    class FastQuestionProvider
+      def generate(input:)
+        QuestionProvider::Result.new(
+          usable: true,
+          question: "What fast candidate should be activated?",
+          tags: ["fast-candidate"],
+          follow_up_depth: 1,
+          completion_recommended: false,
+          prompt_intent: PromptIntentBuilder.question(
+            question: "What fast candidate should be activated?",
+            tags: ["fast-candidate"],
+            follow_up_depth: 1,
+            completion_recommended: false
+          ),
+          fallback_reason: "",
+          errors: [],
+          generation_strategy: QuestionProvider::FAST_STRATEGY
         )
       end
     end
