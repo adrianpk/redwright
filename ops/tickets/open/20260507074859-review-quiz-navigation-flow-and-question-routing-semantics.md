@@ -81,6 +81,7 @@ The current web quiz navigation appears coupled to URL state and does not reliab
 - Web behavior may also drift from the repository quiz playbook's conceptual model: after a user answers or skips exactly one current question, the system should deterministically decide whether to continue, follow up, switch topic, or terminate. The current URL-carried question flow makes that decision boundary hard to trust.
 - Without an Ariadne-style thread/trunk concept, adaptive progression can become a series of locally plausible LLM follow-ups that lose the broader question plan, repeat already-covered points, or fail to return to the next useful question.
 - The current URL-driven web flow does not visibly encode the kind of state needed for biased-but-variable question generation: current question identity, prior entries, follow-up depth, coverage, and the route back to the trunk question sequence.
+- This logic may already exist partially in another RedWright flow, especially `ProjectSetupSession`, guided alignment, saga state, prompt intent, or quiz runtime code. Reimplementing a parallel version without checking reuse would add avoidable drift.
 - `Done` and `Cancel` semantics need validation against the specification and Telegram behavior.
 
 ## Expected
@@ -112,6 +113,9 @@ The current web quiz navigation appears coupled to URL state and does not reliab
 - Review the web quiz controller, runtime, Telegram adapter behavior, and tests before changing persistence.
 - Use `.agents/playbooks/quiz.md` as a conceptual reference for invariants, not as an application architecture requirement.
 - Use the `/project new` Ariadne-style trunk loop and guided alignment behavior as adjacent conceptual references for deterministic state plus LLM-varied prompts.
+- Before introducing new state or services, verify whether equivalent logic already exists in `QuizLoops::Runtime`, `QuizLoops::QuestionContract`, `ProjectSetup::GuidedAlignmentService`, `ProjectSetup::PromptIntentBuilder`, `ProjectSetup::SagaState`, or related setup/session models.
+- If an equivalent or adjacent mechanism exists, evaluate whether it can be generalized through configuration per use case/workflow rather than duplicated. Candidate configurable dimensions include question set, trunk sequence, follow-up depth, coverage policy, control semantics, prompt intent, and persistence target.
+- Preserve domain-specific behavior where needed; do not force a generic abstraction if reuse would obscure quiz-specific or project-setup-specific semantics.
 - Review whether the quiz runtime needs explicit current-question metadata such as sequence/trunk position, follow-up depth, coverage/topic, or prompt intent before changing routes.
 - Identify whether the current URL-based question passing can be replaced by a safer server-side or identifier-based progression mechanism without introducing first-class questionnaire sessions.
 - If persistent state is required, keep it aligned with the spec's first-version constraints and avoid broad session architecture unless explicitly promoted to spec/plan work.
