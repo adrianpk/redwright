@@ -113,7 +113,13 @@ class ProjectQuizzesControllerTest < ActionDispatch::IntegrationTest
     assert_no_match "Controls: answer, skip, done, cancel", response.body
     assert_match "quiz-action-row", response.body
     assert_select "#quiz-answer-form"
+    assert_select "#quiz-answer-form[data-quiz-processing-form]"
+    assert_select "#quiz-processing-feedback[hidden]", text: "Generating next question..."
+    assert_select ".document-artifact-panel[data-quiz-processing-surface]"
     assert_select "button[form='quiz-answer-form']", text: "Answer"
+    assert_select "form[data-quiz-processing-form] button", text: "Skip"
+    assert_select "form[data-quiz-processing-form] button", text: "Cancel", count: 0
+    assert_select "form[data-quiz-processing-form] button", text: "Done", count: 0
     refute_match "rationale", response.body
   end
 
