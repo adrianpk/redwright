@@ -74,7 +74,7 @@ Validation:
 
 - status: `implemented`
 - branch: `feat/slice-3-quiz-fast-strategy-contract`
-- PR: `none`
+- PR: `https://codeberg.org/adrianpk/redwright/pulls/349`
 - merge_target: `dev`
 - last_sync_commit: `pending`
 
