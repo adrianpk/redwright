@@ -1,0 +1,4 @@
+interface:
+  display_name: "Repo Changelog"
+  short_description: "Curate repository changelogs"
+  default_prompt: "Use $repo-changelog to update CHANGELOG.md from recent Git history and ops artifacts."
