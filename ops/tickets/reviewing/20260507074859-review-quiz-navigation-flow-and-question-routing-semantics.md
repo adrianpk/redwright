@@ -14,7 +14,7 @@ started_at: 2026-05-07T07:59:05Z
 reviewed_at: 2026-05-07T09:20:00Z
 closed_at:
 resolution:
-owner: 
+owner:
 branch: multi-slice; see ops/trackers/2026-05-07-redwright-quiz-navigation-flow-cycle-tracker.md
 pr: https://codeberg.org/adrianpk/redwright/pulls/344
 commits: []
