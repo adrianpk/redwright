@@ -9,10 +9,7 @@
         var feedback = targetId ? document.getElementById(targetId) : null;
         var surface = form.closest("[data-quiz-processing-surface]");
 
-        if (feedback) {
-          feedback.textContent = form.dataset.quizProcessingMessage || "Working...";
-          feedback.hidden = false;
-        }
+        if (feedback) feedback.hidden = false;
 
         if (surface) surface.classList.add("is-processing");
       });

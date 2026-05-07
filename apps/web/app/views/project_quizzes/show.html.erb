@@ -17,15 +17,18 @@
   </header>
 
   <section class="document-artifact-panel quiz-turn-surface" data-quiz-processing-surface>
-    <div id="quiz-processing-feedback"
-         class="quiz-processing-feedback"
-         role="status"
-         aria-live="polite"
-         hidden>
-      Generating next question...
-    </div>
-
     <div class="quiz-question-block">
+      <div id="quiz-processing-feedback"
+           class="quiz-processing-feedback"
+           role="status"
+           aria-live="polite"
+           hidden>
+        <span class="quiz-processing-dots" aria-hidden="true">
+          <span></span>
+          <span></span>
+          <span></span>
+        </span>
+      </div>
       <p><%= @current_question %></p>
     </div>
 
