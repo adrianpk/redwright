@@ -45,7 +45,7 @@ Validation:
 
 - status: `reviewing`
 - branch: `feat/slice-2-quiz-mode-switch`
-- PR: `none`
+- PR: `https://codeberg.org/adrianpk/redwright/pulls/348`
 - merge_target: `dev`
 - last_sync_commit: `pending`
 
