@@ -4,7 +4,7 @@
 
 - cycle_id: `cycle-2026-05-07-redwright-quiz-fast-deep-question-tree`
 - status: `planned`
-- state: `slice_4_implemented`
+- state: `slice_4_merged`
 - updated: `2026-05-07`
 - active_slice: `none`
 - active_task: `none`
@@ -100,11 +100,11 @@ Validation:
 
 ### Slice 4: Candidate Storage and Cleanup
 
-- status: `implemented`
+- status: `pr_merged`
 - branch: `feat/slice-4-quiz-candidate-cleanup`
 - PR: `https://codeberg.org/adrianpk/redwright/pulls/350`
 - merge_target: `dev`
-- last_sync_commit: `pending`
+- last_sync_commit: `f060aba`
 
 Tasks:
 
