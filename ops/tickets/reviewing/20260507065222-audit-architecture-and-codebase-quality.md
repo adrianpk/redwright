@@ -1,7 +1,7 @@
 ---
 id: TKT-20260507065222
 title: Audit architecture and codebase quality
-status: in_progress
+status: reviewing
 kind: task
 severity: medium
 priority: normal
@@ -11,13 +11,15 @@ source: chat
 reported_at: 2026-05-07T06:52:22Z
 ready_at: 2026-05-07T06:56:00Z
 started_at: 2026-05-07T06:56:00Z
-reviewed_at:
+reviewed_at: 2026-05-07T07:02:41Z
 closed_at:
 resolution:
 owner: 
 branch: refactor/ticket-20260507065222-architecture-quality-audit
-pr:
-commits: []
+pr: https://codeberg.org/adrianpk/redwright/pulls/339
+commits:
+  - 8c9a4f7
+  - a63acf7
 ---
 
 ## Context
@@ -82,6 +84,9 @@ The codebase may contain architectural drift, naming inconsistencies, unclear bo
 - Existing behavior remains covered by the relevant test suite, with new or updated tests where refactors touch observable behavior.
 - Follow-up work is captured as separate tickets or planning artifacts only when too large or risky for this ticket.
 - Repository ticket checks pass after status or metadata changes.
+- 2026-05-07: Ruby syntax checks passed for changed service files.
+- 2026-05-07: Targeted Rails tests passed with 64 runs, 564 assertions, 0 failures.
+- 2026-05-07: Full Rails suite passed with 392 runs, 2530 assertions, 0 failures.
 
 ## Outcome
-Pending implementation.
+Implementation is ready for review in PR #339. The audit artifact was added at `ops/artifacts/2026-05-07-architecture-codebase-quality-audit.md`, and bounded refactors were implemented for mention capture, command/query payload readers, document promotion transaction/error handling, and quiz entry counting.
