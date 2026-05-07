@@ -31,6 +31,19 @@ class QuizTest < ActiveSupport::TestCase
     assert_equal use_case_quiz, use_case.quiz
   end
 
+  test "scopes project-level and use-case quizzes separately" do
+    project = create_project(key: "quiz-scope-separation")
+    billing = create_use_case(project: project, name: "Billing")
+    checkout = create_use_case(project: project, name: "Checkout")
+    project_quiz = project.quizzes.create!(name: "Project Quiz")
+    billing_quiz = project.quizzes.create!(use_case: billing, name: "Billing Quiz")
+    checkout_quiz = project.quizzes.create!(use_case: checkout, name: "Checkout Quiz")
+
+    assert_equal [project_quiz.id], project.quizzes.project_level.pluck(:id)
+    assert_equal [billing_quiz.id], project.quizzes.for_use_case(billing.id).pluck(:id)
+    assert_equal [checkout_quiz.id], project.quizzes.for_use_case(checkout.id).pluck(:id)
+  end
+
   test "rejects use case from another project" do
     project = create_project(key: "quiz-project-owner")
     other_project = create_project(key: "quiz-other-owner")

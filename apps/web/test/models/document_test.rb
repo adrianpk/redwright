@@ -126,6 +126,21 @@ class DocumentTest < ActiveSupport::TestCase
     assert_equal [document.id], Document.for_use_case(use_case.id).pluck(:id)
   end
 
+  test "formal artifacts preserve project-level and use-case-level scopes" do
+    project = create_project(key: "doc-formal-scope")
+    billing = create_use_case(project: project, name: "Billing")
+    checkout = create_use_case(project: project, name: "Checkout")
+    project_draft = create_document(project: project, title: "Project Draft")
+    billing_draft = create_document(project: project, use_case: billing, title: "Billing Draft")
+    checkout_draft = create_document(project: project, use_case: checkout, title: "Checkout Draft")
+    billing_spec = create_document(project: project, use_case: billing, artifact_type: "spec", title: "Billing Spec", body: "Spec", source_draft: billing_draft, editable: false)
+    billing_plan = create_document(project: project, use_case: billing, artifact_type: "plan_tracker", title: "Billing Plan", body: "Plan", editable: false)
+
+    assert_nil project_draft.use_case_id
+    assert_equal [billing_draft.id, billing_spec.id, billing_plan.id].sort, Document.for_use_case(billing.id).pluck(:id).sort
+    assert_equal [checkout_draft.id], Document.for_use_case(checkout.id).pluck(:id)
+  end
+
   test "use case must belong to document project" do
     project = create_project(key: "doc-use-case-project")
     other_project = create_project(key: "doc-use-case-other-project")

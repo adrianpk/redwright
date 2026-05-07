@@ -13,6 +13,16 @@ class DocumentPromotionServiceTest < ActiveSupport::TestCase
     assert_equal "derives_from", relation.relation_type
   end
 
+  test "promoted spec preserves draft use case scope" do
+    project = create_project(key: "promotion-use-case-scope")
+    use_case = create_use_case(project: project, name: "Billing")
+    draft = create_document(project: project, use_case: use_case, artifact_type: "draft", title: "Billing Draft", body: "Draft body")
+
+    spec = DocumentPromotionService.new(draft: draft).call
+
+    assert_equal use_case.id, spec.use_case_id
+  end
+
   test "raises explicit promotion error for non-drafts" do
     plan = create_document(artifact_type: "plan_tracker", title: "Plan", body: "Plan body", editable: false)
 

@@ -4,7 +4,7 @@
 
 - cycle_id: `cycle-2026-05-07-redwright-ticket-use-case-formal-context-refactor`
 - status: `in_progress`
-- state: `slices_1_3_implemented`
+- state: `slice_4_implemented`
 - updated: `2026-05-07`
 - active_slice: `none`
 - active_task: `none`
@@ -101,7 +101,7 @@ Validation:
 
 ### Slice 4: Formal Artifact Scope Verification
 
-- status: `pending`
+- status: `implemented`
 - branch: `fix/slice-4-formal-artifact-use-case-scope`
 - PR: `tbd`
 - merge_target: `dev`
@@ -109,21 +109,21 @@ Validation:
 
 Tasks:
 
-- [ ] `T4.1 audit Document, Quiz, QuizEntry, and plan_tracker behavior for project-level versus use-case-level ownership`
-- [ ] `T4.2 ensure formal artifacts created with use_case_id stay scoped to that use case`
-- [ ] `T4.3 ensure formal artifacts created without use_case_id remain project-level`
-- [ ] `T4.4 add missing tests for document and quiz scope behavior where gaps exist`
-- [ ] `T4.5 update spec notes if the current model constrains any artifact type differently than expected`
+- [x] `T4.1 audit Document, Quiz, QuizEntry, and plan_tracker behavior for project-level versus use-case-level ownership`
+- [x] `T4.2 ensure formal artifacts created with use_case_id stay scoped to that use case`
+- [x] `T4.3 ensure formal artifacts created without use_case_id remain project-level`
+- [x] `T4.4 add missing tests for document and quiz scope behavior where gaps exist`
+- [x] `T4.5 update spec notes if the current model constrains any artifact type differently than expected`
 
 Commits:
 
-- [ ] `pending`
+- [x] `fix(web): preserve formal artifact use case scope`
 
 Validation:
 
-- [ ] `bundle exec bin/rails test test/models/document_test.rb test/models/quiz_test.rb test/models/quiz_entry_test.rb test/controllers/documents_controller_test.rb test/controllers/project_quizzes_controller_test.rb`
-- [ ] `bundle exec bin/rails test`
-- [ ] `scripts/agent/tickets/check.sh`
+- [x] `bundle exec bin/rails test test/models/document_test.rb test/models/quiz_test.rb test/models/quiz_entry_test.rb test/controllers/documents_controller_test.rb test/controllers/project_quizzes_controller_test.rb test/services/document_promotion_service_test.rb`
+- [x] `bundle exec bin/rails test`
+- [x] `scripts/agent/tickets/check.sh`
 
 ### Slice 5: Cycle Validation and Closure
 
@@ -156,6 +156,10 @@ Validation:
 - `2026-05-07` state=`slices_1_3_implemented` note=`removed direct ticket formal document attachment domain, UI picker, command-query attachment paths, runtime bridge document lines, and setup ticket direct document links in one dependency-bound implementation slice`
 - `2026-05-07` validation=`passed` note=`focused Rails tests: 105 runs, 864 assertions, 0 failures`
 - `2026-05-07` validation=`passed` note=`full Rails tests: 410 runs, 2628 assertions, 0 failures`
+- `2026-05-07` validation=`passed` note=`scripts/agent/tickets/check.sh`
+- `2026-05-07` state=`slice_4_implemented` note=`audited formal artifact and quiz scope behavior, fixed draft promotion to preserve use_case_id, and added project-level/use-case-level scope coverage`
+- `2026-05-07` validation=`passed` note=`slice 4 focused Rails tests: 61 runs, 319 assertions, 0 failures`
+- `2026-05-07` validation=`passed` note=`full Rails tests: 414 runs, 2637 assertions, 0 failures`
 - `2026-05-07` validation=`passed` note=`scripts/agent/tickets/check.sh`
 
 ## Residual Risks

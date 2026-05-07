@@ -14,6 +14,7 @@ class DocumentPromotionService
         title: @draft.title,
         body: @draft.body,
         project: @draft.project,
+        use_case: @draft.use_case,
         source_draft: @draft,
         editable: false
       )

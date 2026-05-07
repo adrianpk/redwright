@@ -23,6 +23,16 @@ class QuizEntryTest < ActiveSupport::TestCase
     assert_equal use_case.id, entry.use_case_id
   end
 
+  test "project-level quiz entries remain project-level" do
+    project = create_project(key: "quiz-entry-project-level")
+    quiz = project.find_or_create_main_quiz!
+
+    entry = quiz.entries.create!(question: "What applies across the project?", answer: "General constraints.")
+
+    assert_equal project.id, entry.project_id
+    assert_nil entry.use_case_id
+  end
+
   test "rejects project scope mismatch" do
     project = create_project(key: "quiz-entry-project")
     other_project = create_project(key: "quiz-entry-other-project")
