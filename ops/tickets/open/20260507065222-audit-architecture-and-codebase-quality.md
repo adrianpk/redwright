@@ -23,7 +23,7 @@ commits: []
 ## Context
 The Ruby and Ruby on Rails codebase has evolved through multiple feature slices, runtime flows, web UI additions, ticket workflow alignment, and operational scripts. A dedicated architecture and code quality audit is needed to identify maintainability risks, consistency gaps, and refactoring opportunities before they become harder to address.
 
-This ticket captures the audit request as a reference artifact. It should not directly implement broad refactors. The expected output is an actionable audit report that can feed smaller follow-up tickets, specs, or targeted refactoring plans.
+This ticket captures the audit request as a reference artifact and implementation task. The expected output is not only an audit report: the work must also make concrete architecture and code quality improvements where the audit identifies high-value, bounded changes. Follow-up tickets, specs, or targeted refactoring plans should be created only for larger changes that cannot be completed safely in this ticket.
 
 ## Problem
 The codebase may contain architectural drift, naming inconsistencies, unclear boundaries, overgrown Rails objects, hidden callback behavior, inefficient ActiveRecord usage, weak error-handling conventions, test architecture friction, or speculative abstractions. These issues can reduce readability, maintainability, delivery speed, and long-term evolution of the system.
@@ -35,6 +35,8 @@ The codebase may contain architectural drift, naming inconsistencies, unclear bo
 - Identify architectural risks and maintainability bottlenecks.
 - Suggest conventions and standards for future development.
 - Prioritize actionable improvements by impact and implementation complexity.
+- Implement concrete refactors and cleanup changes that improve architecture, readability, consistency, or maintainability within a safe bounded scope.
+- Preserve behavior while improving structure, with tests updated or added where behavior boundaries are touched.
 
 ## Audit Scope
 - Naming consistency across classes, modules, methods, variables, scopes, services, queries, and domain terminology.
@@ -62,20 +64,23 @@ The codebase may contain architectural drift, naming inconsistencies, unclear bo
 ## Actual
 - No current consolidated architecture and code quality audit artifact exists for the full Ruby/Rails codebase.
 - Architectural and maintainability risks are currently discovered opportunistically during feature work or review.
+- Known or discovered issues are not yet being converted into a focused improvement pass that actually changes the code.
 
 ## Fix Strategy
 - Inspect the repository structure and identify the relevant Ruby, Rails, test, configuration, and operational code areas.
 - Review representative and high-risk code paths before broad low-signal style concerns.
 - Produce a written audit report with findings grouped by severity and category.
 - For each finding, include concrete file references, risk description, recommendation, and suggested follow-up shape.
-- Avoid implementing refactors inside the audit ticket unless explicitly approved later.
-- Split large remediation items into focused tickets, specs, or planned slices after the audit is reviewed.
+- Implement the highest-impact bounded refactors discovered during the audit, prioritizing changes that improve naming, responsibility boundaries, dependency direction, Rails object size, query clarity, error handling, or test maintainability without broad behavior risk.
+- Split only large, risky, or multi-cycle remediation items into focused follow-up tickets, specs, or planned slices after the initial improvement pass.
 
 ## Validation
 - Audit report exists in the repository location selected during triage.
 - Findings include severity, category, file references, and concrete recommendations.
 - Recommendations are prioritized by impact and implementation complexity.
-- Follow-up work is captured as separate tickets or planning artifacts when appropriate.
+- Concrete code changes are implemented for the selected high-value architecture and code quality improvements.
+- Existing behavior remains covered by the relevant test suite, with new or updated tests where refactors touch observable behavior.
+- Follow-up work is captured as separate tickets or planning artifacts only when too large or risky for this ticket.
 - Repository ticket checks pass after status or metadata changes.
 
 ## Outcome
