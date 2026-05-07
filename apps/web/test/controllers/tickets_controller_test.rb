@@ -422,6 +422,7 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_includes response.body, "Comments"
+    assert_includes response.body, "data-ticket-comments"
     assert_includes response.body, "<strong>this</strong>"
     assert_includes response.body, "@owner"
   end

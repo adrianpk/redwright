@@ -41,6 +41,11 @@
           </div>
         </div>
 
+        <div class="field">
+          <%= f.label :use_case_id, "Use Case" %>
+          <%= f.collection_select :use_case_id, @available_use_cases || [], :id, :name, { include_blank: "Project-level" } %>
+        </div>
+
         <div class="field-row">
           <div class="field">
             <%= f.label :priority %>
@@ -105,13 +110,6 @@
         </div>
       </section>
 
-      <section class="ticket-form-section">
-        <div class="ticket-form-section-title">Context</div>
-        <div class="field">
-          <%= f.label :use_case_id, "Use Case" %>
-          <%= f.collection_select :use_case_id, @available_use_cases || [], :id, :name, { include_blank: "Project-level" } %>
-        </div>
-      </section>
     </aside>
   </div>
 

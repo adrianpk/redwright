@@ -1711,6 +1711,12 @@ body {
   justify-content: space-between;
   gap: 10px;
   margin-bottom: 10px;
+  list-style: none;
+  cursor: pointer;
+}
+
+.ticket-comments-header::-webkit-details-marker {
+  display: none;
 }
 
 .ticket-comments-header h2 {
@@ -1858,6 +1864,14 @@ body {
 .ticket-editor.is-maximized .ticket-comments-section {
   margin-top: 14px;
   padding-right: var(--scrollbar-content-gap);
+}
+
+.ticket-editor.is-maximized .ticket-comments-section:not([open]) {
+  padding-top: 10px;
+}
+
+.ticket-editor.is-maximized .ticket-comments-section:not([open]) .ticket-comments-header {
+  margin-bottom: 0;
 }
 
 .ticket-editor.is-maximized .ticket-comments-thread {

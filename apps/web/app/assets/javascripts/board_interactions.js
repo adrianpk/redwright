@@ -278,6 +278,9 @@
       const modalCard = sizeToggle.closest(".modal-card");
       if (!modalCard) return;
       const maximized = modalCard.classList.toggle("is-maximized");
+      modalCard.querySelectorAll("[data-ticket-comments]").forEach((comments) => {
+        comments.open = !maximized;
+      });
       sizeToggle.setAttribute("aria-pressed", maximized ? "true" : "false");
       sizeToggle.setAttribute("aria-label", maximized ? "Restore modal size" : "Maximize modal");
       return;

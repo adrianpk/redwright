@@ -1,8 +1,8 @@
-<section class="ticket-comments-section" aria-label="Ticket comments">
-  <div class="ticket-comments-header">
+<details class="ticket-comments-section" aria-label="Ticket comments" data-ticket-comments open>
+  <summary class="ticket-comments-header">
     <h2>Comments</h2>
     <span><%= pluralize(ticket.ticket_comments.size, "comment") %></span>
-  </div>
+  </summary>
 
   <div class="ticket-comments-thread">
     <% comments = ticket.ticket_comments.chronological.includes(:mentions) %>
@@ -46,4 +46,4 @@
       <%= f.submit "Add comment", class: "ticket-action" %>
     </div>
   <% end %>
-</section>
+</details>
