@@ -4,7 +4,7 @@
 
 - cycle_id: `cycle-2026-05-07-redwright-quiz-fast-deep-question-tree`
 - status: `planned`
-- state: `slice_5_implemented`
+- state: `slice_5_merged`
 - updated: `2026-05-07`
 - active_slice: `none`
 - active_task: `none`
@@ -128,11 +128,11 @@ Validation:
 
 ### Slice 5: First Fast Strategy Implementation
 
-- status: `implemented`
+- status: `pr_merged`
 - branch: `feat/slice-5-quiz-first-fast-strategy`
 - PR: `https://codeberg.org/adrianpk/redwright/pulls/351`
 - merge_target: `dev`
-- last_sync_commit: `pending`
+- last_sync_commit: `c20a947`
 
 Tasks:
 
