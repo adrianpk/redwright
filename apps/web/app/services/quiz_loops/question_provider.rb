@@ -20,15 +20,28 @@ module QuizLoops
   class QuestionProvider
     FALLBACK_QUESTION = "What should this project preserve or clarify next?".freeze
     FALLBACK_TAGS = %w[project-context].freeze
-    ACTION = "quiz_question_generation".freeze
+    DEEP_ACTION = "quiz_question_generation".freeze
+    FAST_ACTION = "quiz_fast_question_generation".freeze
     MODEL_ROLE = "non_coding".freeze
     SOURCE_CHANNEL = "quiz_loop".freeze
-    SYSTEM_PROMPT = <<~TEXT
+    DEEP_SYSTEM_PROMPT = <<~TEXT
       You generate exactly one next question for a RedWright project quiz.
       Use the provided project, quiz, recent answer, and routing state context.
       Ask one concise question that helps capture useful project or use-case knowledge.
       Prefer useful progression over repeating prior questions.
       If follow-up depth is high, return to broader coverage.
+      Do not ask for secrets, credentials, tokens, passwords, private keys, or PII.
+      Return strict JSON with exactly these keys: question, tags, follow_up_depth, completion_recommended.
+      tags must be a short array of product/context tags.
+      follow_up_depth must be an integer.
+      completion_recommended must be a boolean.
+    TEXT
+    FAST_SYSTEM_PROMPT = <<~TEXT
+      You generate exactly one next question for a RedWright project quiz fast mode.
+      Use the provided project, quiz, recent answer, and routing state context.
+      Prefer a low-latency question that can safely advance the quiz without exposing strategy internals.
+      Do not mention batch, round, tree, candidate, or strategy choices to the user.
+      If the next step needs semantic interpretation that is not explicit in the provided context, return a normal broad question.
       Do not ask for secrets, credentials, tokens, passwords, private keys, or PII.
       Return strict JSON with exactly these keys: question, tags, follow_up_depth, completion_recommended.
       tags must be a short array of product/context tags.
@@ -63,13 +76,9 @@ module QuizLoops
     def generate(input:)
       return fallback_result(reason: "llm_unavailable", errors: ["LLM request engine is not configured"]) unless request_engine
 
-      response = generate_with_request_engine(input)
-      return fallback_result(reason: "llm_unavailable", errors: response.warnings) unless response.ok?
+      return fast_or_deep_result(input) if fast_mode?(input)
 
-      validation = contract.validate(response.semantic_payload)
-      return usable_result(validation.attributes) if validation.valid?
-
-      fallback_result(reason: "llm_malformed", errors: validation.errors)
+      deep_result(input)
     rescue StandardError => e
       fallback_result(reason: "llm_unavailable", errors: [e.message])
     end
@@ -77,6 +86,39 @@ module QuizLoops
     private
 
     attr_reader :request_engine, :contract, :model, :provider, :trace_recorder
+
+    def fast_or_deep_result(input)
+      fast = fast_result(input)
+      return fast if fast&.usable?
+
+      deep_result(input)
+    end
+
+    def fast_result(input)
+      validated_result(input: input, action: FAST_ACTION, system_prompt: FAST_SYSTEM_PROMPT)
+    rescue StandardError
+      nil
+    end
+
+    def deep_result(input)
+      validated_result(input: input, action: DEEP_ACTION, system_prompt: DEEP_SYSTEM_PROMPT) ||
+        fallback_result(reason: "llm_unavailable", errors: ["LLM request engine did not return a usable response"])
+    end
+
+    def validated_result(input:, action:, system_prompt:)
+      response = generate_with_request_engine(input, action: action, system_prompt: system_prompt)
+      return fallback_result(reason: "llm_unavailable", errors: response.warnings) unless response.ok?
+
+      validation = contract.validate(response.semantic_payload)
+      return usable_result(validation.attributes) if validation.valid?
+
+      fallback_result(reason: "llm_malformed", errors: validation.errors)
+    end
+
+    def fast_mode?(input)
+      quiz = input["quiz"].is_a?(Hash) ? input["quiz"] : {}
+      quiz["mode"].to_s == "fast"
+    end
 
     def usable_result(attributes)
       Result.new(
@@ -120,26 +162,32 @@ module QuizLoops
       )
     end
 
-    def generate_with_request_engine(input)
+    def generate_with_request_engine(input, action:, system_prompt:)
       payload = request_payload(input)
       user_text = JSON.generate(payload)
       context_sections = context_sections_for(input)
       trace_metadata = trace_metadata_for(input)
-      llm_call_id = record_request(user_text: user_text, context_sections: context_sections, trace_metadata: trace_metadata)
+      llm_call_id = record_request(
+        user_text: user_text,
+        context_sections: context_sections,
+        trace_metadata: trace_metadata,
+        action: action,
+        system_prompt: system_prompt
+      )
       started_at = Process.clock_gettime(Process::CLOCK_MONOTONIC)
       response = request_engine.generate_structured_message(
         model: model,
         model_role: MODEL_ROLE,
         provider: provider,
-        action: ACTION,
-        system_prompt: SYSTEM_PROMPT,
+        action: action,
+        system_prompt: system_prompt,
         user_text: user_text,
         output_contract: output_contract,
         context_sections: context_sections,
         trace_metadata: trace_metadata
       )
       elapsed_ms = ((Process.clock_gettime(Process::CLOCK_MONOTONIC) - started_at) * 1000).to_i
-      record_response(response: response, llm_call_id: llm_call_id, elapsed_ms: elapsed_ms, trace_metadata: trace_metadata)
+      record_response(response: response, llm_call_id: llm_call_id, elapsed_ms: elapsed_ms, trace_metadata: trace_metadata, action: action)
       response
     end
 
@@ -188,7 +236,7 @@ module QuizLoops
       "quiz-#{SecureRandom.hex(4)}"
     end
 
-    def record_request(user_text:, context_sections:, trace_metadata:)
+    def record_request(user_text:, context_sections:, trace_metadata:, action:, system_prompt:)
       return nil unless trace_recorder
 
       safe_user_text = if defined?(Redwright::LLM::Redactor)
@@ -201,9 +249,9 @@ module QuizLoops
         provider: provider,
         model: model,
         model_alias: model,
-        action: ACTION,
+        action: action,
         payload_bytes: safe_user_text.bytesize,
-        system_prompt: SYSTEM_PROMPT,
+        system_prompt: system_prompt,
         user_text: safe_user_text,
         trace_id: trace_metadata.fetch(:trace_id),
         project_id: trace_metadata[:project_id],
@@ -215,7 +263,7 @@ module QuizLoops
       )
     end
 
-    def record_response(response:, llm_call_id:, elapsed_ms:, trace_metadata:)
+    def record_response(response:, llm_call_id:, elapsed_ms:, trace_metadata:, action:)
       return nil unless trace_recorder
 
       trace_recorder.record_response(
@@ -232,7 +280,7 @@ module QuizLoops
         project_id: trace_metadata[:project_id],
         session_id: trace_metadata[:session_id],
         source_channel: SOURCE_CHANNEL,
-        action: ACTION,
+        action: action,
         model_role: MODEL_ROLE,
         provider: provider,
         model: model,
