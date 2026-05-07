@@ -7,7 +7,7 @@
 - state: `slice_1_ready`
 - updated: `2026-05-07`
 - active_slice: `Slice 1`
-- active_task: `T1.1`
+- active_task: `T1.2`
 - source_plan: `ops/plans/2026-05-07-redwright-quiz-navigation-flow-cycle-plan.md`
 - source_ticket: `ops/tickets/in_progress/20260507074859-review-quiz-navigation-flow-and-question-routing-semantics.md`
 
@@ -23,14 +23,14 @@
 
 Tasks:
 
-- [ ] `T1.1 audit existing quiz and project setup routing/state mechanisms for reuse or configurable generalization`
+- [x] `T1.1 audit existing quiz and project setup routing/state mechanisms for reuse or configurable generalization`
 - [ ] `T1.2 persist current quiz question metadata outside URL query parameters`
 - [ ] `T1.3 resolve the current web quiz question from backend state on show/open`
 - [ ] `T1.4 cover current-question state with runtime and controller tests`
 
 Commits:
 
-- [ ] `docs(ops): record quiz routing reuse audit`
+- [x] `docs(ops): record quiz routing reuse audit`
 - [ ] `feat(web): persist quiz current question state`
 - [ ] `test(web): cover quiz current question state`
 
@@ -129,6 +129,15 @@ Validation:
 - Work is split into four PRs so each slice can be reviewed and merged independently.
 - Slice execution stops after each PR until the previous slice is merged into `dev`.
 - Reuse checks are part of Slice 1 and Slice 4 to avoid duplicating existing quiz or project setup routing mechanisms.
+
+## Slice 1 Reuse Audit
+
+- `QuizLoops::Runtime` already owns quiz resolution, entry persistence, control detection, and next-question generation. It is the correct place to own current-question state for web and Telegram ports.
+- `QuizLoops::QuestionContract` already carries `follow_up_depth` and `completion_recommended`, so Slice 1 should persist generated prompt metadata rather than inventing a second contract.
+- `ProjectSetup::GuidedAlignmentService` shows the adjacent Ariadne-style pattern: deterministic question sequence, stored answers, pending question state, and prompt intent metadata. That pattern is reusable as a design reference, but its fixed `ProjectSetupSession` lifecycle should not be generalized into quiz sessions in this ticket.
+- `ProjectSetup::PromptIntentBuilder` provides structured prompt intent metadata. Quiz prompt intent should continue to use `QuizLoops::PromptIntentBuilder` and store the generated intent with the current question.
+- `ProjectSetupSession` already demonstrates JSON-backed backend state through `metadata_json`. For quizzes, storing current question metadata on `Quiz` is the smallest compatible state mechanism because the original quiz spec excludes first-class questionnaire sessions.
+- No existing service fully models reusable current-question routing for arbitrary workflows. The reusable boundary for this slice is the runtime contract, not a new generic state machine.
 
 ## Residual Risks
 
