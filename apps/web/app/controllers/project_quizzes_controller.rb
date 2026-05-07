@@ -45,12 +45,8 @@ class ProjectQuizzesController < ApplicationController
   end
 
   def skip
-    result = runtime_for(@quiz).advance!(
-      question: params.require(:question),
-      answer: "skip",
-      tags: tag_params
-    )
-    redirect_to project_quiz_path(@project, @quiz, question: result.question, tags: result.tags.join(",")), notice: "Question skipped."
+    runtime_for(@quiz).advance!(answer: "skip")
+    redirect_to project_quiz_path(@project, @quiz), notice: "Question skipped."
   end
 
   def done

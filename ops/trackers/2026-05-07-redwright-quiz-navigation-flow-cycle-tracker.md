@@ -7,7 +7,7 @@
 - state: `slice_2_in_progress`
 - updated: `2026-05-07`
 - active_slice: `Slice 2`
-- active_task: `T2.2`
+- active_task: `T2.3`
 - source_plan: `ops/plans/2026-05-07-redwright-quiz-navigation-flow-cycle-plan.md`
 - source_ticket: `ops/tickets/in_progress/20260507074859-review-quiz-navigation-flow-and-question-routing-semantics.md`
 
@@ -52,7 +52,7 @@ Validation:
 Tasks:
 
 - [x] `T2.1 route web answer submissions through backend current-question state`
-- [ ] `T2.2 route web skip submissions through backend current-question state`
+- [x] `T2.2 route web skip submissions through backend current-question state`
 - [ ] `T2.3 ensure answered and skipped entries persist the exact current question`
 - [ ] `T2.4 remove question payload query redirects from answer and skip flows`
 - [ ] `T2.5 cover answer and skip progression with runtime and controller tests`
@@ -60,7 +60,7 @@ Tasks:
 Commits:
 
 - [x] `fix(web): bind quiz answer progression to state`
-- [ ] `fix(web): bind quiz skip progression to state`
+- [x] `fix(web): bind quiz skip progression to state`
 - [ ] `test(web): cover quiz answer and skip routing`
 
 Validation:
