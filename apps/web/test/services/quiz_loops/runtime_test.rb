@@ -212,6 +212,20 @@ module QuizLoops
       assert_nil result.question
     end
 
+    test "cleans stale unused candidates before generating the next question" do
+      project = create_project(key: "quiz-runtime-candidate-cleanup")
+      quiz = project.find_or_create_main_quiz!
+      stale = quiz.add_candidate!(question: "Stale?", tags: ["Stale"], prompt_intent: {})
+      active = quiz.add_candidate!(question: "Active?", tags: ["Active"], prompt_intent: {})
+      stale_record = stale.merge("created_at" => 2.days.ago.iso8601)
+      quiz.update!(candidate_questions: [stale_record, active])
+
+      Runtime.new(project: project, question_provider: StaticQuestionProvider.new).open
+
+      retained_questions = quiz.reload.candidate_questions.map { |candidate| candidate.fetch("question") }
+      assert_equal ["Active?"], retained_questions
+    end
+
     class StaticQuestionProvider
       def generate(input:)
         QuestionProvider::Result.new(

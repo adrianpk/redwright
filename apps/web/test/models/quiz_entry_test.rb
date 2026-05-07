@@ -74,4 +74,43 @@ class QuizEntryTest < ActiveSupport::TestCase
     assert_equal ["context-quality"], entry.tags.map(&:name)
     assert_equal project.id, entry.taggings.first.project_id
   end
+
+  test "candidate questions do not create entries or tags until activated and answered" do
+    project = create_project(key: "quiz-entry-candidate-lifecycle")
+    quiz = project.find_or_create_main_quiz!
+
+    candidate = quiz.add_candidate!(
+      question: "Which fast path is useful?",
+      tags: ["Fast Path"],
+      prompt_intent: {"kind" => "quiz_question"},
+      parent_id: "root",
+      branch_key: "a"
+    )
+
+    assert_equal 0, quiz.entries.count
+    assert_equal 0, Tag.where(name: "fast-path").count
+
+    activated = quiz.activate_candidate!(candidate.fetch("id"))
+    entry = quiz.entries.create!(question: quiz.current_question, answer: "Use it when explicit context is enough.")
+    entry.tag_with!(quiz.current_tags)
+
+    assert_equal candidate.fetch("id"), activated.fetch("id")
+    assert_equal "Which fast path is useful?", entry.question
+    assert_equal ["fast-path"], entry.tags.map(&:name)
+  end
+
+  test "activating a candidate prunes active siblings without tagging them" do
+    project = create_project(key: "quiz-entry-candidate-pruning")
+    quiz = project.find_or_create_main_quiz!
+    selected = quiz.add_candidate!(question: "Selected?", tags: ["Selected"], prompt_intent: {}, parent_id: "root", branch_key: "a")
+    discarded = quiz.add_candidate!(question: "Discarded?", tags: ["Discarded"], prompt_intent: {}, parent_id: "root", branch_key: "b")
+
+    quiz.activate_candidate!(selected.fetch("id"))
+
+    candidates = quiz.reload.candidate_questions.index_by { |candidate| candidate.fetch("id") }
+    assert_equal "activated", candidates.fetch(selected.fetch("id")).fetch("status")
+    assert_equal "discarded", candidates.fetch(discarded.fetch("id")).fetch("status")
+    assert_equal "sibling_pruned", candidates.fetch(discarded.fetch("id")).fetch("discard_reason")
+    assert_equal 0, Tag.where(name: "discarded").count
+  end
 end
