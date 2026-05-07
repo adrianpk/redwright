@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_07_164000) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_07_170000) do
   create_table "boards", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "name", null: false
@@ -327,17 +327,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_07_164000) do
     t.index ["ticket_id"], name: "index_ticket_comments_on_ticket_id"
   end
 
-  create_table "ticket_document_links", force: :cascade do |t|
-    t.datetime "created_at", null: false
-    t.integer "document_id", null: false
-    t.string "role", default: "reference", null: false
-    t.integer "ticket_id", null: false
-    t.datetime "updated_at", null: false
-    t.index ["document_id"], name: "index_ticket_document_links_on_document_id"
-    t.index ["ticket_id", "document_id"], name: "idx_ticket_document_links_unique_ticket_artifact", unique: true
-    t.index ["ticket_id"], name: "index_ticket_document_links_on_ticket_id"
-  end
-
   create_table "ticket_labels", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.integer "label_id", null: false
@@ -452,8 +441,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_07_164000) do
   add_foreign_key "ticket_comment_mentions", "ticket_comments"
   add_foreign_key "ticket_comment_mentions", "tickets"
   add_foreign_key "ticket_comments", "tickets"
-  add_foreign_key "ticket_document_links", "documents"
-  add_foreign_key "ticket_document_links", "tickets"
   add_foreign_key "ticket_labels", "labels"
   add_foreign_key "ticket_labels", "tickets"
   add_foreign_key "tickets", "boards"

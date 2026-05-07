@@ -681,10 +681,6 @@ module ProjectSetup
       ticket.priority = :high
       ticket.assignee ||= STARTER_TICKET_ASSIGNEE
       ticket.save!
-
-      link = ticket.ticket_document_links.find_or_initialize_by(document: document)
-      link.role = "reference"
-      link.save!
       ticket
     end
 
@@ -708,10 +704,6 @@ module ProjectSetup
       ticket.priority = runtime_container.readiness == "blocked" ? :high : :medium
       ticket.assignee ||= STARTER_TICKET_ASSIGNEE
       ticket.save!
-
-      link = ticket.ticket_document_links.find_or_initialize_by(document: document)
-      link.role = "reference"
-      link.save!
       ticket
     end
 

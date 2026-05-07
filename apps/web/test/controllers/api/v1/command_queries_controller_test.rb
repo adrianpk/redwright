@@ -690,11 +690,10 @@ class Api::V1::CommandQueriesControllerTest < ActionDispatch::IntegrationTest
     assert_equal "document_promoted", body.fetch("effects").first.fetch("type")
   end
 
-  test "creates moves attaches and snapshots tickets through command api" do
+  test "creates moves and snapshots tickets through command api" do
     board = create_board(project_key: "api-board-#{SecureRandom.hex(4)}")
     backlog = board.columns.create!(key: "backlog", title: "Backlog", position: 0)
     review = board.columns.create!(key: "review", title: "Review", position: 1)
-    draft = create_document(project: board.project, title: "API Ticket Draft")
 
     post "/api/v1/commands",
       params: {
@@ -712,21 +711,6 @@ class Api::V1::CommandQueriesControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     ticket_id = json_body.fetch("data").fetch("ticket_id")
-
-    post "/api/v1/commands",
-      params: {
-        name: "AttachDocumentToTicket",
-        payload: {
-          ticket_id: ticket_id,
-          document_id: draft.id
-        },
-        request_id: "req-api-ticket-attach"
-      },
-      headers: actor_headers,
-      as: :json
-
-    assert_response :success
-    assert_equal "document_attached_to_ticket", json_body.fetch("effects").first.fetch("type")
 
     post "/api/v1/commands",
       params: {
@@ -758,7 +742,7 @@ class Api::V1::CommandQueriesControllerTest < ActionDispatch::IntegrationTest
     body = json_body
     review_column = body.fetch("data").fetch("board").fetch("columns").find { |column| column.fetch("key") == "review" }
     assert_equal [ticket_id], review_column.fetch("tickets").map { |ticket| ticket.fetch("id") }
-    assert_equal [draft.id], review_column.fetch("tickets").first.fetch("document_links").map { |link| link.fetch("document_id") }
+    assert_not review_column.fetch("tickets").first.key?("document_links")
   end
 
   test "starts ticket execution through command api and records runtime correlation" do

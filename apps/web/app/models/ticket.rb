@@ -26,8 +26,6 @@ class Ticket < ApplicationRecord
   belongs_to :use_case, optional: true
   has_many :ticket_labels, dependent: :destroy
   has_many :labels, through: :ticket_labels
-  has_many :ticket_document_links, dependent: :destroy
-  has_many :documents, through: :ticket_document_links
   has_many :ticket_comments, dependent: :destroy
   has_many :taggings, as: :taggable, dependent: :destroy
   has_many :tags, through: :taggings

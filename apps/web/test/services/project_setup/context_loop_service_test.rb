@@ -284,7 +284,6 @@ module ProjectSetup
       assert_equal "Prepare initial implementation plan", ticket.title
       assert_equal "backlog", ticket.column.key
       assert_equal "agent-coder", ticket.assignee
-      assert_equal ["Project Setup Summary"], ticket.documents.pluck(:title)
       assert_match "Materialization outcome: materialized_planned", ticket.description
       readiness_ticket = Ticket.find(result.data.fetch("runtime_containers_readiness_ticket_id"))
       assert_equal project.id, readiness_ticket.project_id
@@ -622,8 +621,7 @@ module ProjectSetup
         documents: project.documents.count,
         boards: project.boards.count,
         columns: project.boards.sum { |board| board.columns.count },
-        tickets: project.tickets_scope.count,
-        links: TicketDocumentLink.joins(:ticket).where(tickets: {board_id: project.boards.select(:id)}).count
+        tickets: project.tickets_scope.count
       }
     end
 

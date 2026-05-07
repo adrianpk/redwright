@@ -14,7 +14,6 @@ module BoardWorkflow
       dispatcher.register_command("CreateTicket", method(:create_ticket))
       dispatcher.register_command("UpdateTicket", method(:update_ticket))
       dispatcher.register_command("MoveTicket", method(:move_ticket))
-      dispatcher.register_command("AttachDocumentToTicket", method(:attach_document_to_ticket))
       dispatcher.register_command("AddTicketComment", method(:add_ticket_comment))
       dispatcher.register_command("StartTicketExecution", method(:start_ticket_execution))
       dispatcher.register_query("PickNextTicket", method(:pick_next_ticket))
@@ -31,10 +30,7 @@ module BoardWorkflow
       return missing_column_result(request_id: request_id) unless column
 
       ticket = nil
-      Ticket.transaction do
-        ticket = board.tickets.create!(ticket_attrs(payload).merge(column: column))
-        sync_documents_if_present(ticket: ticket, payload: payload)
-      end
+      ticket = board.tickets.create!(ticket_attrs(payload).merge(column: column))
 
       CommandQuery::Result.ok(
         request_id: request_id,
@@ -59,14 +55,9 @@ module BoardWorkflow
       return missing_ticket_result(request_id: request_id) unless ticket
 
       attrs = ticket_attrs(payload).compact
-      if attrs.empty? && !key_present?(payload, "document_ids")
-        return invalid_payload_result(request_id: request_id, message: "ticket fields or document_ids are required")
-      end
+      return invalid_payload_result(request_id: request_id, message: "ticket fields are required") if attrs.empty?
 
-      Ticket.transaction do
-        ticket.update!(attrs) if attrs.any?
-        sync_documents_if_present(ticket: ticket, payload: payload)
-      end
+      ticket.update!(attrs)
 
       CommandQuery::Result.ok(
         request_id: request_id,
@@ -111,37 +102,6 @@ module BoardWorkflow
       )
     rescue ActiveRecord::RecordInvalid => e
       invalid_record_result(e.record, request_id: request_id, summary: "Ticket could not be moved.")
-    end
-
-    def attach_document_to_ticket(payload:, context:, request_id:)
-      ticket = find_ticket(value_from(payload, "ticket_id"))
-      return missing_ticket_result(request_id: request_id) unless ticket
-      document = find_document(value_from(payload, "document_id"))
-      return missing_document_result(request_id: request_id) unless document
-
-      role = value_from(payload, "role").presence || TicketManagement::DocumentLinkSyncService.role_for(document)
-      link = ticket.ticket_document_links.find_or_initialize_by(document: document)
-      link.role = role
-      link.save!
-
-      CommandQuery::Result.ok(
-        request_id: request_id,
-        data: ticket_result_data(ticket.reload, summary: "Document attached to ticket.").merge(
-          "document_id" => document.id,
-          "ticket_document_link_id" => link.id
-        ),
-        effects: [
-          {
-            "type" => "document_attached_to_ticket",
-            "ticket_id" => ticket.id,
-            "document_id" => document.id,
-            "role" => link.role,
-            "project_id" => ticket.project_id
-          }
-        ]
-      )
-    rescue ActiveRecord::RecordInvalid => e
-      invalid_record_result(e.record, request_id: request_id, summary: "Document could not be attached to ticket.")
     end
 
     def add_ticket_comment(payload:, context:, request_id:)
@@ -261,7 +221,7 @@ module BoardWorkflow
       project = find_project(value_from(payload, "project_id"))
       return missing_project_result(request_id: request_id) unless project
 
-      tickets = Ticket.for_project(project.id).visible_on_board.ordered_for_board.includes(:board, :column, :documents)
+      tickets = Ticket.for_project(project.id).visible_on_board.ordered_for_board.includes(:board, :column)
       CommandQuery::Result.ok(
         request_id: request_id,
         data: {
@@ -343,16 +303,7 @@ module BoardWorkflow
         "use_case_name" => ticket.use_case&.name,
         "archived_at" => ticket.archived_at&.iso8601,
         "runtime_execution" => ticket.runtime_execution,
-        "comments" => ticket.ticket_comments.chronological.includes(:mentions).map { |comment| ticket_comment_data(comment) },
-        "document_links" => ticket.ticket_document_links.includes(:document).map do |link|
-          {
-            "id" => link.id,
-            "document_id" => link.document_id,
-            "role" => link.role,
-            "artifact_type" => link.document.artifact_type,
-            "title" => link.document.title
-          }
-        end
+        "comments" => ticket.ticket_comments.chronological.includes(:mentions).map { |comment| ticket_comment_data(comment) }
       }
     end
 
@@ -418,15 +369,6 @@ module BoardWorkflow
       return board.columns.find_by(key: column_key) if column_key.present?
 
       default ? board.columns.order(:position).first : nil
-    end
-
-    def sync_documents_if_present(ticket:, payload:)
-      return unless key_present?(payload, "document_ids")
-
-      TicketManagement::DocumentLinkSyncService.new(
-        ticket: ticket,
-        document_ids: value_from(payload, "document_ids")
-      ).call
     end
 
     def invalid_record_result(record, request_id:, summary:)

@@ -3,8 +3,8 @@
 ## Metadata
 
 - cycle_id: `cycle-2026-05-07-redwright-ticket-use-case-formal-context-refactor`
-- status: `planned`
-- state: `planning`
+- status: `in_progress`
+- state: `slices_1_3_implemented`
 - updated: `2026-05-07`
 - active_slice: `none`
 - active_task: `none`
@@ -20,84 +20,84 @@
 
 ### Slice 1: Formal Attachment Domain Removal
 
-- status: `pending`
+- status: `implemented`
 - branch: `fix/slice-1-ticket-formal-attachment-domain-removal`
-- PR: `tbd`
+- PR: `https://codeberg.org/adrianpk/redwright/pulls/353`
 - merge_target: `dev`
 - last_sync_commit: `tbd`
 
 Tasks:
 
-- [ ] `T1.1 inspect TicketDocumentLink, TicketManagement::DocumentLinkSyncService, Ticket, Document, and schema references`
-- [ ] `T1.2 remove TicketDocumentLink model behavior and direct ticket/document has_many-through associations`
-- [ ] `T1.3 add migration to remove ticket_document_links when no longer referenced`
-- [ ] `T1.4 remove or update model tests that only validate direct ticket formal document links`
-- [ ] `T1.5 keep Ticket use_case_id and Document use_case_id validations intact`
-- [ ] `T1.6 run focused model tests for Ticket, Document, UseCase, and removed link behavior`
+- [x] `T1.1 inspect TicketDocumentLink, TicketManagement::DocumentLinkSyncService, Ticket, Document, and schema references`
+- [x] `T1.2 remove TicketDocumentLink model behavior and direct ticket/document has_many-through associations`
+- [x] `T1.3 add migration to remove ticket_document_links when no longer referenced`
+- [x] `T1.4 remove or update model tests that only validate direct ticket formal document links`
+- [x] `T1.5 keep Ticket use_case_id and Document use_case_id validations intact`
+- [x] `T1.6 run focused model tests for Ticket, Document, UseCase, and removed link behavior`
 
 Commits:
 
-- [ ] `pending`
+- [x] `fix(web): remove ticket formal document attachments`
 
 Validation:
 
-- [ ] `bundle exec bin/rails test test/models/ticket_test.rb test/models/document_test.rb test/models/use_case_test.rb`
-- [ ] `bundle exec bin/rails test`
-- [ ] `scripts/agent/tickets/check.sh`
+- [x] `bundle exec bin/rails test test/models/ticket_test.rb test/models/document_test.rb test/models/use_case_test.rb`
+- [x] `bundle exec bin/rails test`
+- [x] `scripts/agent/tickets/check.sh`
 
 ### Slice 2: Ticket Form Context UI Refactor
 
-- status: `pending`
-- branch: `fix/slice-2-ticket-use-case-context-ui`
-- PR: `tbd`
+- status: `implemented`
+- branch: `fix/slice-1-ticket-formal-attachment-domain-removal`
+- PR: `https://codeberg.org/adrianpk/redwright/pulls/353`
 - merge_target: `dev`
 - last_sync_commit: `tbd`
 
 Tasks:
 
-- [ ] `T2.1 move the ticket Use Case field higher in the ticket editor context hierarchy`
-- [ ] `T2.2 preserve blank Project-level selection semantics`
-- [ ] `T2.3 remove the Linked Documents picker markup from the ticket form`
-- [ ] `T2.4 remove unused ticket document picker JavaScript bindings and CSS when no other caller uses them`
-- [ ] `T2.5 remove document_ids handling from TicketsController params and form sync paths`
-- [ ] `T2.6 add controller/view tests for use-case selection and absence of linked document UI`
+- [x] `T2.1 move the ticket Use Case field higher in the ticket editor context hierarchy`
+- [x] `T2.2 preserve blank Project-level selection semantics`
+- [x] `T2.3 remove the Linked Documents picker markup from the ticket form`
+- [x] `T2.4 remove unused ticket document picker JavaScript bindings and CSS when no other caller uses them`
+- [x] `T2.5 remove document_ids handling from TicketsController params and form sync paths`
+- [x] `T2.6 add controller/view tests for use-case selection and absence of linked document UI`
 
 Commits:
 
-- [ ] `pending`
+- [x] `fix(web): remove ticket formal document attachments`
 
 Validation:
 
-- [ ] `bundle exec bin/rails test test/controllers/tickets_controller_test.rb`
-- [ ] `bundle exec bin/rails test`
-- [ ] `scripts/agent/tickets/check.sh`
+- [x] `bundle exec bin/rails test test/controllers/tickets_controller_test.rb`
+- [x] `bundle exec bin/rails test`
+- [x] `scripts/agent/tickets/check.sh`
 
 ### Slice 3: Command-Query and Runtime Bridge Cleanup
 
-- status: `pending`
-- branch: `fix/slice-3-ticket-document-command-cleanup`
-- PR: `tbd`
+- status: `implemented`
+- branch: `fix/slice-1-ticket-formal-attachment-domain-removal`
+- PR: `https://codeberg.org/adrianpk/redwright/pulls/353`
 - merge_target: `dev`
 - last_sync_commit: `tbd`
 
 Tasks:
 
-- [ ] `T3.1 remove document_ids sync handling from ticket create/update command-query paths`
-- [ ] `T3.2 remove or deprecate AttachDocumentToTicket command registration`
-- [ ] `T3.3 update command-query result payloads so tickets no longer include direct document_links`
-- [ ] `T3.4 remove runtime bridge direct ticket document lines`
-- [ ] `T3.5 update API and service tests that expect document attachment effects`
-- [ ] `T3.6 document that inherited use-case/project context retrieval remains deferred`
+- [x] `T3.1 remove document_ids sync handling from ticket create/update command-query paths`
+- [x] `T3.2 remove or deprecate AttachDocumentToTicket command registration`
+- [x] `T3.3 update command-query result payloads so tickets no longer include direct document_links`
+- [x] `T3.4 remove runtime bridge direct ticket document lines`
+- [x] `T3.5 update API and service tests that expect document attachment effects`
+- [x] `T3.6 document that inherited use-case/project context retrieval remains deferred`
 
 Commits:
 
-- [ ] `pending`
+- [x] `fix(web): remove ticket formal document attachments`
 
 Validation:
 
-- [ ] `bundle exec bin/rails test test/services/board_workflow/command_query_handlers_test.rb test/controllers/api/v1/command_queries_controller_test.rb test/services/runtime_bridge/ticket_execution_bridge_test.rb`
-- [ ] `bundle exec bin/rails test`
-- [ ] `scripts/agent/tickets/check.sh`
+- [x] `bundle exec bin/rails test test/services/board_workflow/command_query_handlers_test.rb test/controllers/api/v1/command_queries_controller_test.rb test/services/runtime_bridge/ticket_execution_bridge_test.rb`
+- [x] `bundle exec bin/rails test`
+- [x] `scripts/agent/tickets/check.sh`
 
 ### Slice 4: Formal Artifact Scope Verification
 
@@ -153,9 +153,13 @@ Validation:
 ## Event Log
 
 - `2026-05-07` state=`planning` note=`created formal spec, sliced implementation plan, and tracker from exploratory draft plus questionnaire alignment`
+- `2026-05-07` state=`slices_1_3_implemented` note=`removed direct ticket formal document attachment domain, UI picker, command-query attachment paths, runtime bridge document lines, and setup ticket direct document links in one dependency-bound implementation slice`
+- `2026-05-07` validation=`passed` note=`focused Rails tests: 105 runs, 864 assertions, 0 failures`
+- `2026-05-07` validation=`passed` note=`full Rails tests: 410 runs, 2628 assertions, 0 failures`
+- `2026-05-07` validation=`passed` note=`scripts/agent/tickets/check.sh`
 
 ## Residual Risks
 
-- Removing direct ticket formal document links touches web UI, command-query, and runtime bridge call sites.
+- Slices 1-3 were implemented together because removing the table required removing direct UI, command-query, runtime bridge, and setup-service callers in the same deployable change.
 - The future evidence/assets model is intentionally deferred, so ticket-specific supporting material will not have a replacement upload path in this cycle.
 - Final LLM context retrieval remains deferred and must be handled by a later context-service or LLMRequestEngine cycle.

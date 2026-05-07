@@ -71,7 +71,6 @@ class ProjectSetupConversationalE2eTest < ActionDispatch::IntegrationTest
     ticket = Ticket.find(completed.dig("data", "starter_ticket_id"))
     assert_equal "Prepare initial implementation plan", ticket.title
     assert_equal "backlog", ticket.column.key
-    assert_equal ["Project Setup Summary"], ticket.documents.pluck(:title)
   end
 
   test "go cli setup initializes runtime containers and gates ticket execution until ready" do

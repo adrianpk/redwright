@@ -14,7 +14,6 @@ class TicketsController < ApplicationController
     @ticket = @board.tickets.new(ticket_params)
     @ticket.column ||= default_column
     if @ticket.save
-      sync_ticket_document_links(@ticket, selected_document_ids) if document_ids_submitted?
       load_board_context(@board)
       respond_to do |format|
         format.turbo_stream { render "boards/update" }
@@ -33,7 +32,6 @@ class TicketsController < ApplicationController
 
   def update
     if @ticket.update(ticket_params)
-      sync_ticket_document_links(@ticket, selected_document_ids) if document_ids_submitted?
       load_board_context(@ticket.board)
       respond_to do |format|
         format.turbo_stream { render "boards/update" }
@@ -113,11 +111,10 @@ class TicketsController < ApplicationController
   def load_board_context(board)
     @board = board
     @columns = @board.columns.order(:position)
-    @tickets_by_column = @board.tickets.visible_on_board.ordered_for_board.includes(:labels, :documents).group_by(&:column_id)
+    @tickets_by_column = @board.tickets.visible_on_board.ordered_for_board.includes(:labels).group_by(&:column_id)
   end
 
   def load_ticket_form_context(project_id)
-    @available_documents = Document.for_project(project_id).order(updated_at: :desc, created_at: :desc)
     @available_use_cases = UseCase.where(project_id: project_id).order(:name, :id)
   end
 
@@ -155,19 +152,6 @@ class TicketsController < ApplicationController
 
   def commits_from(value)
     value.to_s.lines.map(&:strip).reject(&:blank?)
-  end
-
-  def selected_document_ids
-    raw = params.dig(:ticket, :document_ids)
-    raw.to_a.map(&:to_i).select(&:positive?).uniq
-  end
-
-  def sync_ticket_document_links(ticket, document_ids)
-    TicketManagement::DocumentLinkSyncService.new(ticket: ticket, document_ids: document_ids).call
-  end
-
-  def document_ids_submitted?
-    params[:ticket].key?(:document_ids)
   end
 
   def default_column

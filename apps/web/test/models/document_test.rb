@@ -60,23 +60,6 @@ class DocumentTest < ActiveSupport::TestCase
     assert_includes relation.errors[:to_artifact], "must be different from from_artifact"
   end
 
-  test "ticket can optionally link artifacts" do
-    board = create_board(project_key: "factory-artifacts")
-    backlog = board.columns.create!(key: "backlog", title: "Backlog", position: 0)
-    ticket = board.tickets.create!(column: backlog, title: "Implement feature")
-    draft = create_document(
-      project: board.project,
-      artifact_type: "draft",
-      title: "Feature Draft",
-      body: "Draft details"
-    )
-
-    link = TicketDocumentLink.create!(ticket: ticket, document: draft, role: "reference")
-    assert_equal 1, ticket.reload.documents.count
-    assert_equal draft.id, ticket.documents.first.id
-    assert_equal "reference", link.role
-  end
-
   test "related_artifacts returns outgoing and incoming relation edges" do
     draft = create_document(
       artifact_type: "draft",

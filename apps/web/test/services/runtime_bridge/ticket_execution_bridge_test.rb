@@ -21,7 +21,7 @@ module RuntimeBridge
     end
 
     test "builds runtime send request from rails ticket context" do
-      ticket = ticket_with_document
+      ticket = ticket_for_runtime
       runtime_container = create_ready_runtime_container(ticket.project)
       client = FakeRuntimeClient.new(
         payload: {
@@ -64,11 +64,10 @@ module RuntimeBridge
       assert_includes payload.fetch("message"), "Start Rails ticket ##{ticket.id}: #{ticket.title}"
       assert_includes payload.fetch("message"), "Runtime context: Ruby 3.4 / Rails / ephemeral_docker"
       assert_includes payload.fetch("message"), "Runtime Containers: ##{runtime_container.id} ready / passed"
-      assert_includes payload.fetch("message"), "reference: Bridge Draft"
     end
 
     test "does not call runtime when runtime containers are missing" do
-      ticket = ticket_with_document
+      ticket = ticket_for_runtime
       client = FakeRuntimeClient.new(payload: {"status" => "ok"})
 
       result = TicketExecutionBridge.new(client: client).start(
@@ -87,22 +86,19 @@ module RuntimeBridge
 
     private
 
-    def ticket_with_document
+    def ticket_for_runtime
       board = create_board(project_key: "runtime-bridge-#{SecureRandom.hex(4)}")
       board.project.project_attributes.create!(key: "setup_context.language_runtime", value: "Ruby 3.4", weight: 5, source: "project_setup")
       board.project.project_attributes.create!(key: "setup_context.framework", value: "Rails", weight: 5, source: "project_setup")
       board.project.project_attributes.create!(key: "setup_context.libraries", value: "SQLite", weight: 4, source: "project_setup")
       backlog = board.columns.create!(key: "backlog", title: "Backlog", position: 0)
-      draft = create_document(project: board.project, title: "Bridge Draft")
-      ticket = board.tickets.create!(
+      board.tickets.create!(
         column: backlog,
         title: "Bridge runtime ticket",
         description: "Run this from Rails.",
         priority: :high,
         assignee: "agent-coder"
       )
-      ticket.ticket_document_links.create!(document: draft, role: "reference")
-      ticket
     end
 
     def create_ready_runtime_container(project)

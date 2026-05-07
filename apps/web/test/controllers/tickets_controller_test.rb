@@ -78,54 +78,25 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
     assert_equal [ "abc123", "def456" ], created.commits
   end
 
-  test "create can link artifacts optionally" do
-    admin = create_admin_user!
-    sign_in_as(admin)
-    board = create_board(project_key: "factory-create-links")
-    backlog = board.columns.create!(key: "backlog", title: "Backlog", position: 0)
-    draft = create_document(project: board.project, artifact_type: "draft", title: "Draft Link", body: "draft")
-    spec = create_document(project: board.project, artifact_type: "spec", title: "Spec Link", body: "spec", source_draft: draft, editable: false)
-
-    post board_tickets_path(board), params: {
-      ticket: {
-        title: "Create endpoint with links",
-        description: "Need a new endpoint",
-        priority: "high",
-        assignee: "agent-1",
-        column_id: backlog.id,
-        document_ids: [ draft.id, spec.id ]
-      }
-    }
-
-    assert_redirected_to board_path(board)
-    created = board.tickets.order(:created_at).last
-    assert_equal [draft.id, spec.id].sort, created.document_ids.sort
-    assert_equal "reference", created.ticket_document_links.find_by(document_id: draft.id).role
-    assert_equal "primary_spec", created.ticket_document_links.find_by(document_id: spec.id).role
-  end
-
-  test "create can assign optional use case without changing document links" do
+  test "create can assign optional use case" do
     admin = create_admin_user!
     sign_in_as(admin)
     board = create_board(project_key: "factory-create-use-case")
     backlog = board.columns.create!(key: "backlog", title: "Backlog", position: 0)
     use_case = create_use_case(project: board.project, name: "Billing")
-    draft = create_document(project: board.project, artifact_type: "draft", title: "Billing Draft", body: "draft")
 
     post board_tickets_path(board), params: {
       ticket: {
         title: "Use case ticket",
         description: "Scoped ticket",
         column_id: backlog.id,
-        use_case_id: use_case.id,
-        document_ids: [ draft.id ]
+        use_case_id: use_case.id
       }
     }
 
     assert_redirected_to board_path(board)
     created = board.tickets.order(:created_at).last
     assert_equal use_case.id, created.use_case_id
-    assert_equal [draft.id], created.document_ids
   end
 
   test "create allows blank use case for project-level tickets" do
@@ -163,52 +134,14 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
     assert_equal "low", ticket.priority
   end
 
-  test "update can replace linked artifacts and allow empty list" do
-    admin = create_admin_user!
-    sign_in_as(admin)
-    board = create_board(project_key: "factory-update-links")
-    backlog = board.columns.create!(key: "backlog", title: "Backlog", position: 0)
-    draft = create_document(project: board.project, artifact_type: "draft", title: "Draft A", body: "draft")
-    spec = create_document(project: board.project, artifact_type: "spec", title: "Spec A", body: "spec", source_draft: draft, editable: false)
-    plan = create_document(project: board.project, artifact_type: "plan_tracker", title: "Plan A", body: "plan", editable: false)
-    ticket = board.tickets.create!(column: backlog, title: "Old title")
-    ticket.ticket_document_links.create!(document: draft, role: "reference")
-
-    patch ticket_path(ticket), params: {
-      ticket: {
-        title: "New title",
-        priority: "low",
-        document_ids: [ spec.id, plan.id ]
-      }
-    }
-
-    assert_redirected_to board_path(board)
-    assert_equal [spec.id, plan.id].sort, ticket.reload.document_ids.sort
-    assert_equal backlog.id, ticket.column_id
-    assert_equal "primary_spec", ticket.ticket_document_links.find_by(document_id: spec.id).role
-    assert_equal "plan_tracker", ticket.ticket_document_links.find_by(document_id: plan.id).role
-
-    patch ticket_path(ticket), params: {
-      ticket: {
-        title: "No links",
-        document_ids: [""]
-      }
-    }
-    assert_redirected_to board_path(board)
-    assert_empty ticket.reload.document_ids
-  end
-
-  test "update can change use case without changing document links" do
+  test "update can change use case" do
     admin = create_admin_user!
     sign_in_as(admin)
     board = create_board(project_key: "factory-update-use-case")
     backlog = board.columns.create!(key: "backlog", title: "Backlog", position: 0)
     billing = create_use_case(project: board.project, name: "Billing")
     checkout = create_use_case(project: board.project, name: "Checkout")
-    draft = create_document(project: board.project, artifact_type: "draft", title: "Linked Draft", body: "draft")
     ticket = board.tickets.create!(column: backlog, title: "Scoped ticket", use_case: billing)
-    ticket.ticket_document_links.create!(document: draft, role: "reference")
-    assert_equal [draft.id], ticket.reload.document_ids
 
     patch ticket_path(ticket), params: {
       ticket: {
@@ -220,7 +153,6 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to board_path(board)
     ticket.reload
     assert_equal checkout.id, ticket.use_case_id
-    assert_equal [draft.id], ticket.document_ids
   end
 
   test "update can clear use case" do
@@ -400,7 +332,6 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
     sign_in_as(admin)
     board = create_board(project_key: "factory-modal-new")
     board.columns.create!(key: "backlog", title: "Backlog", position: 0)
-    create_document(project: board.project, artifact_type: "draft", title: "Draft Candidate", body: "draft")
     create_use_case(project: board.project, name: "Billing")
 
     get new_board_ticket_path(board), headers: { "Turbo-Frame" => "modal" }
@@ -415,8 +346,8 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
     assert_match("Use Case", response.body)
     assert_match("Billing", response.body)
     assert_match("Project-level", response.body)
-    assert_match("data-ticket-document-picker", response.body)
-    assert_match("Draft Candidate (draft)", response.body)
+    assert_no_match("Linked Documents", response.body)
+    assert_no_match("data-ticket-document-picker", response.body)
   end
 
   test "edit returns modal frame payload for turbo frame requests" do
@@ -427,8 +358,6 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
     ticket = board.tickets.create!(column: backlog, title: "Modal target")
     use_case = create_use_case(project: board.project, name: "Billing")
     ticket.update!(use_case: use_case)
-    draft = create_document(project: board.project, artifact_type: "draft", title: "Linked Draft", body: "draft")
-    ticket.ticket_document_links.create!(document: draft, role: "reference")
 
     get edit_ticket_path(ticket), headers: { "Turbo-Frame" => "modal" }
 
@@ -436,10 +365,9 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
     assert_match('turbo-frame id="modal"', response.body)
     assert_match("Edit Ticket", response.body)
     assert_match("modal-size-toggle", response.body)
-    assert_match("ticket-document-chip", response.body)
-    assert_match("Linked Draft (draft)", response.body)
-    assert_match('data-ticket-document-remove', response.body)
     assert_match("Billing", response.body)
+    assert_no_match("ticket-document-chip", response.body)
+    assert_no_match('data-ticket-document-remove', response.body)
   end
 
   test "edit renders markdown preview for ticket description" do

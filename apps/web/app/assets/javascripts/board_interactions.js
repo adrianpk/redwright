@@ -7,7 +7,6 @@
     }
     bindModalLinks();
     bindTicketMarkdownEditors();
-    bindTicketDocumentPickers();
   }
 
   function bindBoardDragAndCardOpen(board) {
@@ -188,114 +187,6 @@
     const frame = doc.querySelector("turbo-frame#modal");
     modal.innerHTML = frame ? frame.innerHTML : html;
     bindTicketMarkdownEditors();
-    bindTicketDocumentPickers();
-  }
-
-  function bindTicketDocumentPickers() {
-    document.querySelectorAll("[data-ticket-document-picker]").forEach((picker) => {
-      if (picker.dataset.documentPickerBound === "1") return;
-      picker.dataset.documentPickerBound = "1";
-      const input = picker.querySelector("[data-ticket-document-search]");
-      const addButton = picker.querySelector("[data-ticket-document-add]");
-      const results = picker.querySelector("[data-ticket-document-results]");
-      const chips = picker.querySelector("[data-ticket-document-chips]");
-      if (!input || !addButton || !results || !chips) return;
-
-      addButton.addEventListener("click", () => {
-        addTicketDocumentChip(picker, input, chips);
-      });
-      input.addEventListener("input", () => {
-        renderTicketDocumentResults(picker, input, results);
-      });
-      input.addEventListener("focus", () => {
-        renderTicketDocumentResults(picker, input, results);
-      });
-      input.addEventListener("keydown", (event) => {
-        if (event.key !== "Enter") return;
-        event.preventDefault();
-        addTicketDocumentChip(picker, input, chips);
-      });
-      results.addEventListener("click", (event) => {
-        const option = event.target.closest("[data-ticket-document-result]");
-        if (!option) return;
-        input.value = option.dataset.ticketDocumentValue || "";
-        addTicketDocumentChip(picker, input, chips);
-        results.innerHTML = "";
-      });
-      chips.addEventListener("click", (event) => {
-        const remove = event.target.closest("[data-ticket-document-remove]");
-        if (!remove) return;
-        const chip = remove.closest(".ticket-document-chip");
-        if (chip) chip.remove();
-      });
-    });
-  }
-
-  function renderTicketDocumentResults(picker, input, results) {
-    const query = input.value.trim().toLowerCase();
-    if (query.length < 1) {
-      results.innerHTML = "";
-      return;
-    }
-    const attachedIds = new Set(Array.from(picker.querySelectorAll(".ticket-document-chip")).map((chip) => {
-      return chip.dataset.documentId;
-    }));
-    const matches = Array.from(picker.querySelectorAll("datalist option"))
-      .filter((option) => option.value.toLowerCase().includes(query))
-      .filter((option) => !attachedIds.has(option.dataset.documentId))
-      .slice(0, 6);
-
-    if (matches.length === 0) {
-      results.innerHTML = "<div class=\"ticket-document-result-empty\">No matching documents</div>";
-      return;
-    }
-
-    results.innerHTML = matches.map((option) => {
-      return [
-        "<button type=\"button\" class=\"ticket-document-result\" data-ticket-document-result data-ticket-document-value=\"",
-        escapeHtml(option.value),
-        "\">",
-        escapeHtml(option.value),
-        "</button>"
-      ].join("");
-    }).join("");
-  }
-
-  function addTicketDocumentChip(picker, input, chips) {
-    const option = Array.from(picker.querySelectorAll("datalist option")).find((candidate) => {
-      return candidate.value === input.value;
-    });
-    if (!option || !option.dataset.documentId) return;
-    const documentId = option.dataset.documentId;
-    if (chips.querySelector("[data-document-id='" + CSS.escape(documentId) + "']")) {
-      input.value = "";
-      return;
-    }
-
-    const chip = document.createElement("span");
-    chip.className = "ticket-document-chip";
-    chip.dataset.documentId = documentId;
-    chip.innerHTML = [
-      "<input type=\"hidden\" name=\"ticket[document_ids][]\" value=\"" + escapeHtml(documentId) + "\">",
-      "<span>" + escapeHtml(option.value) + "</span>",
-      "<button type=\"button\" aria-label=\"Remove " + escapeHtml(option.value) + "\" data-ticket-document-remove>&times;</button>"
-    ].join("");
-    chips.appendChild(chip);
-    input.value = "";
-    const results = picker.querySelector("[data-ticket-document-results]");
-    if (results) results.innerHTML = "";
-  }
-
-  function escapeHtml(value) {
-    return String(value).replace(/[&<>"']/g, (char) => {
-      return {
-        "&": "&amp;",
-        "<": "&lt;",
-        ">": "&gt;",
-        "\"": "&quot;",
-        "'": "&#39;"
-      }[char];
-    });
   }
 
   function bindTicketMarkdownEditors() {

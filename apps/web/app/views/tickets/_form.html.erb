@@ -111,38 +111,6 @@
           <%= f.label :use_case_id, "Use Case" %>
           <%= f.collection_select :use_case_id, @available_use_cases || [], :id, :name, { include_blank: "Project-level" } %>
         </div>
-        <div class="field">
-          <%= f.label :document_ids, "Linked Documents" %>
-          <% available_documents = (@available_documents || []).select { |document| %w[draft spec].include?(document.artifact_type) } %>
-          <% document_picker_id = "#{dom_id(ticket)}_document_picker" %>
-          <div class="ticket-document-picker" data-ticket-document-picker>
-            <input type="hidden" name="ticket[document_ids][]" value="">
-            <div class="ticket-document-search-row">
-              <input type="search"
-                     class="ticket-document-search"
-                     list="<%= document_picker_id %>"
-                     placeholder="Search drafts and specs"
-                     autocomplete="off"
-                     data-ticket-document-search>
-              <button type="button" class="ticket-action" data-ticket-document-add>Attach</button>
-            </div>
-            <datalist id="<%= document_picker_id %>">
-              <% available_documents.each do |document| %>
-                <option value="<%= "#{document.title} (#{document.artifact_type})" %>" data-document-id="<%= document.id %>"></option>
-              <% end %>
-            </datalist>
-            <div class="ticket-document-results" data-ticket-document-results></div>
-            <div class="ticket-document-chips" data-ticket-document-chips>
-              <% ticket.documents.each do |document| %>
-                <span class="ticket-document-chip" data-document-id="<%= document.id %>">
-                  <input type="hidden" name="ticket[document_ids][]" value="<%= document.id %>">
-                  <span><%= "#{document.title} (#{document.artifact_type})" %></span>
-                  <button type="button" aria-label="Remove <%= document.title %>" data-ticket-document-remove>&times;</button>
-                </span>
-              <% end %>
-            </div>
-          </div>
-        </div>
       </section>
     </aside>
   </div>

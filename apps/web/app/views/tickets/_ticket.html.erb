@@ -8,15 +8,6 @@
       <%= ticket_markdown(ticket.description) %>
     </div>
   <% end %>
-  <% if ticket.documents.any? %>
-    <div class="ticket-artifact-links">
-      <% ticket.documents.each do |artifact| %>
-        <div>
-          <%= link_to "#{artifact.title} (#{artifact.artifact_type})", document_path(artifact) %>
-        </div>
-      <% end %>
-    </div>
-  <% end %>
   <div class="ticket-times">
     <span>Total: <%= seconds_to_readable(ticket.total_elapsed_seconds) %></span>
     <span>Review: <%= seconds_to_readable(ticket.review_elapsed_seconds) %></span>

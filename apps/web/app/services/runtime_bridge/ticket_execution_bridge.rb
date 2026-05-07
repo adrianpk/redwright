@@ -192,10 +192,6 @@ module RuntimeBridge
       end
       lines << "Assignee: #{ticket.assignee}" if ticket.assignee.present?
       lines << "Description:\n#{ticket.description}" if ticket.description.present?
-      document_lines = ticket.ticket_document_links.includes(:document).map do |link|
-        "- #{link.role}: #{link.document.title} (#{link.document.artifact_type}, document_id=#{link.document_id})"
-      end
-      lines << "Documents:\n#{document_lines.join("\n")}" if document_lines.any?
       lines.join("\n")
     end
 
