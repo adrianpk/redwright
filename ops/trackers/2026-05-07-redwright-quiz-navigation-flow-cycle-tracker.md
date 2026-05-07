@@ -110,7 +110,7 @@ Validation:
 Tasks:
 
 - [x] `T4.1 make follow-up depth, prompt intent, and trunk/coverage state explicit enough for routing decisions`
-- [x] `T4.2 reuse or configure existing question contract behavior where practical`
+- [x] `T4.2 reuse existing LLMRequestEngine and question contract behavior`
 - [x] `T4.3 prevent local follow-up loops from losing broader quiz coverage`
 - [x] `T4.4 update tracker, ticket metadata, and residual-risk notes`
 - [ ] `T4.5 run targeted and broad validation for the completed cycle`
@@ -143,11 +143,12 @@ Validation:
 - `ProjectSetup::PromptIntentBuilder` provides structured prompt intent metadata. Quiz prompt intent should continue to use `QuizLoops::PromptIntentBuilder` and store the generated intent with the current question.
 - `ProjectSetupSession` already demonstrates JSON-backed backend state through `metadata_json`. For quizzes, storing current question metadata on `Quiz` is the smallest compatible state mechanism because the original quiz spec excludes first-class questionnaire sessions.
 - No existing service fully models reusable current-question routing for arbitrary workflows. The reusable boundary for this slice is the runtime contract, not a new generic state machine.
+- Slice 4 corrected the quiz LLM boundary to use the already implemented `Redwright::LLM::RequestEngine`, `Redwright::LLM::ContextSection`, and `Redwright::LLM::TraceRecorder` path instead of a quiz-specific raw client protocol.
 
 ## Residual Risks
 
 - The quiz still does not introduce first-class questionnaire session records; this is intentional per the referenced first-version spec.
-- Adaptive routing remains LLM-question based, with runtime guardrails for follow-up depth and trunk return, not a full deterministic coverage engine.
+- Adaptive routing remains LLM-question based through `LLMRequestEngine`, with runtime guardrails for follow-up depth and trunk return, not a full deterministic coverage engine.
 
 ## Tuning Decision
 

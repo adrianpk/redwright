@@ -1,7 +1,40 @@
+require "json"
+require "pathname"
+require "securerandom"
+
+begin
+  repo_lib = Rails.root.join("../..", "lib").expand_path.to_s
+  $LOAD_PATH.unshift(repo_lib) unless $LOAD_PATH.include?(repo_lib)
+  require "redwright/app_config"
+  require "redwright/llm/context_section"
+  require "redwright/llm/redactor"
+  require "redwright/llm/request_engine"
+  require "redwright/llm/trace_recorder"
+  require "redwright/llm_client_registry"
+  require "redwright/model_resolver"
+rescue LoadError
+  # The provider keeps deterministic fallback behavior when the shared LLM stack is unavailable.
+end
+
 module QuizLoops
   class QuestionProvider
     FALLBACK_QUESTION = "What should this project preserve or clarify next?".freeze
     FALLBACK_TAGS = %w[project-context].freeze
+    ACTION = "quiz_question_generation".freeze
+    MODEL_ROLE = "non_coding".freeze
+    SOURCE_CHANNEL = "quiz_loop".freeze
+    SYSTEM_PROMPT = <<~TEXT
+      You generate exactly one next question for a RedWright project quiz.
+      Use the provided project, quiz, recent answer, and routing state context.
+      Ask one concise question that helps capture useful project or use-case knowledge.
+      Prefer useful progression over repeating prior questions.
+      If follow-up depth is high, return to broader coverage.
+      Do not ask for secrets, credentials, tokens, passwords, private keys, or PII.
+      Return strict JSON with exactly these keys: question, tags, follow_up_depth, completion_recommended.
+      tags must be a short array of product/context tags.
+      follow_up_depth must be an integer.
+      completion_recommended must be a boolean.
+    TEXT
 
     Result = Struct.new(
       :usable,
@@ -19,15 +52,21 @@ module QuizLoops
       end
     end
 
-    def initialize(client: nil, contract: QuestionContract.new)
-      @client = client
+    def initialize(request_engine: default_request_engine, contract: QuestionContract.new, model: default_model, provider: default_provider, trace_recorder: default_trace_recorder)
+      @request_engine = request_engine
       @contract = contract
+      @model = model.to_s
+      @provider = provider.to_s
+      @trace_recorder = trace_recorder
     end
 
     def generate(input:)
-      return fallback_result(reason: "llm_unavailable", errors: ["LLM question client is not configured"]) unless client
+      return fallback_result(reason: "llm_unavailable", errors: ["LLM request engine is not configured"]) unless request_engine
 
-      validation = contract.validate(raw_output_for(input))
+      response = generate_with_request_engine(input)
+      return fallback_result(reason: "llm_unavailable", errors: response.warnings) unless response.ok?
+
+      validation = contract.validate(response.semantic_payload)
       return usable_result(validation.attributes) if validation.valid?
 
       fallback_result(reason: "llm_malformed", errors: validation.errors)
@@ -37,14 +76,7 @@ module QuizLoops
 
     private
 
-    attr_reader :client, :contract
-
-    def raw_output_for(input)
-      return client.generate_quiz_question(input: input) if client.respond_to?(:generate_quiz_question)
-      return client.call(input: input) if client.respond_to?(:call)
-
-      raise ArgumentError, "LLM question client does not implement generate_quiz_question or call"
-    end
+    attr_reader :request_engine, :contract, :model, :provider, :trace_recorder
 
     def usable_result(attributes)
       Result.new(
@@ -86,6 +118,210 @@ module QuizLoops
         completion_recommended: attributes.fetch("completion_recommended"),
         routing_state: attributes.fetch("routing_state", {})
       )
+    end
+
+    def generate_with_request_engine(input)
+      payload = request_payload(input)
+      user_text = JSON.generate(payload)
+      context_sections = context_sections_for(input)
+      trace_metadata = trace_metadata_for(input)
+      llm_call_id = record_request(user_text: user_text, context_sections: context_sections, trace_metadata: trace_metadata)
+      started_at = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+      response = request_engine.generate_structured_message(
+        model: model,
+        model_role: MODEL_ROLE,
+        provider: provider,
+        action: ACTION,
+        system_prompt: SYSTEM_PROMPT,
+        user_text: user_text,
+        output_contract: output_contract,
+        context_sections: context_sections,
+        trace_metadata: trace_metadata
+      )
+      elapsed_ms = ((Process.clock_gettime(Process::CLOCK_MONOTONIC) - started_at) * 1000).to_i
+      record_response(response: response, llm_call_id: llm_call_id, elapsed_ms: elapsed_ms, trace_metadata: trace_metadata)
+      response
+    end
+
+    def request_payload(input)
+      {
+        "project" => input["project"] || {},
+        "quiz" => input["quiz"] || {},
+        "recent_entries" => input["recent_entries"] || [],
+        "current_question" => input["current_question"] || {},
+        "output_contract" => output_contract
+      }
+    end
+
+    def output_contract
+      {
+        "required_fields" => QuestionContract::REQUIRED_FIELDS,
+        "rendered_text_field" => "question"
+      }
+    end
+
+    def context_sections_for(input)
+      return [] unless defined?(Redwright::LLM::ContextSection)
+
+      [
+        Redwright::LLM::ContextSection.new(name: "project", content: input["project"] || {}, authority: "project_context"),
+        Redwright::LLM::ContextSection.new(name: "quiz", content: input["quiz"] || {}, authority: "request_context"),
+        Redwright::LLM::ContextSection.new(name: "recent_entries", content: input["recent_entries"] || [], authority: "quiz_context"),
+        Redwright::LLM::ContextSection.new(name: "current_question", content: input["current_question"] || {}, authority: "request_context")
+      ]
+    end
+
+    def trace_metadata_for(input)
+      project = input["project"].is_a?(Hash) ? input["project"] : {}
+      quiz = input["quiz"].is_a?(Hash) ? input["quiz"] : {}
+      {
+        trace_id: trace_id,
+        project_id: project["id"],
+        session_id: quiz["id"],
+        source_channel: SOURCE_CHANNEL
+      }
+    end
+
+    def trace_id
+      return Redwright::Trace.current_trace_id if defined?(Redwright::Trace) && Redwright::Trace.current_trace_id
+
+      "quiz-#{SecureRandom.hex(4)}"
+    end
+
+    def record_request(user_text:, context_sections:, trace_metadata:)
+      return nil unless trace_recorder
+
+      safe_user_text = if defined?(Redwright::LLM::Redactor)
+                         Redwright::LLM::Redactor.redact_text(user_text)
+                       else
+                         user_text
+                       end
+      trace_recorder.record_request(
+        model_role: MODEL_ROLE,
+        provider: provider,
+        model: model,
+        model_alias: model,
+        action: ACTION,
+        payload_bytes: safe_user_text.bytesize,
+        system_prompt: SYSTEM_PROMPT,
+        user_text: safe_user_text,
+        trace_id: trace_metadata.fetch(:trace_id),
+        project_id: trace_metadata[:project_id],
+        session_id: trace_metadata[:session_id],
+        source_channel: SOURCE_CHANNEL,
+        context_summary: "Quiz next-question generation.",
+        context_bytes: safe_user_text.bytesize,
+        context_sections: context_sections.map(&:to_h)
+      )
+    end
+
+    def record_response(response:, llm_call_id:, elapsed_ms:, trace_metadata:)
+      return nil unless trace_recorder
+
+      trace_recorder.record_response(
+        status: response.ok? ? "ok" : "fallback",
+        llm_call_id: llm_call_id,
+        latency_ms: elapsed_ms,
+        output_bytes: response.raw_response_ref.to_s.bytesize,
+        finish_reason: response.provider_metadata[:finish_reason],
+        raw_output: response.raw_response_ref,
+        parsed_fields: response.semantic_payload,
+        decision_source: response.ok? ? "llm" : response.status,
+        error: response.ok? ? nil : response.warnings.join("; "),
+        trace_id: trace_metadata.fetch(:trace_id),
+        project_id: trace_metadata[:project_id],
+        session_id: trace_metadata[:session_id],
+        source_channel: SOURCE_CHANNEL,
+        action: ACTION,
+        model_role: MODEL_ROLE,
+        provider: provider,
+        model: model,
+        model_alias: model
+      )
+    end
+
+    def default_request_engine
+      self.class.default_request_engine
+    end
+
+    def default_model
+      self.class.default_model
+    end
+
+    def default_provider
+      self.class.default_provider
+    end
+
+    def default_trace_recorder
+      return Redwright::LLM::TraceRecorder.new if defined?(Redwright::LLM::TraceRecorder)
+
+      nil
+    end
+
+    class << self
+      def default_request_engine
+        default_context.fetch(:request_engine)
+      end
+
+      def default_model
+        default_context.fetch(:model)
+      end
+
+      def default_provider
+        default_context.fetch(:provider)
+      end
+
+      private
+
+      def default_context
+        @default_context ||= build_default_context
+      end
+
+      def build_default_context
+        return unavailable_context if Rails.env.test?
+        return unavailable_context unless defined?(Redwright::AppConfigLoader)
+
+        repo_root = Rails.root.join("../..").expand_path.to_s
+        config = Redwright::AppConfigLoader.new(mode: :dev, pwd: repo_root).load(ingress: "none")
+        Redwright::Trace.configure(tracing: tracing_for(config, repo_root: repo_root)) if defined?(Redwright::Trace)
+        resolved_model = Redwright::ModelResolver.new(config.models).resolve(MODEL_ROLE)
+        llm_client = Redwright::LlmClientRegistry.new.client_for(resolved_model.provider)
+        {
+          request_engine: Redwright::LLM::RequestEngine.new(llm_client: llm_client),
+          model: resolved_model.name,
+          provider: resolved_model.provider
+        }
+      rescue StandardError
+        unavailable_context
+      end
+
+      def tracing_for(config, repo_root:)
+        llm_file = config.tracing.llm_file
+        return config.tracing unless llm_file && defined?(Redwright::TracingConfig) && defined?(Redwright::LlmFileTraceConfig)
+
+        path = llm_file.path.to_s
+        normalized_path = Pathname.new(path).absolute? ? path : File.expand_path(path, repo_root)
+        Redwright::TracingConfig.new(
+          llm_file: Redwright::LlmFileTraceConfig.new(
+            enabled: llm_file.enabled,
+            path: normalized_path,
+            max_bytes: llm_file.max_bytes,
+            keep_files: llm_file.keep_files,
+            include_payloads: llm_file.include_payloads,
+            include_system_prompt: llm_file.include_system_prompt,
+            include_user_text: llm_file.include_user_text,
+            include_raw_output: llm_file.include_raw_output
+          )
+        )
+      end
+
+      def unavailable_context
+        {
+          request_engine: nil,
+          model: ENV.fetch("REDWRIGHT_QUIZ_MODEL", "none"),
+          provider: ENV.fetch("REDWRIGHT_QUIZ_PROVIDER", "none")
+        }
+      end
     end
   end
 end

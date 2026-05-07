@@ -144,3 +144,4 @@ Implemented behavior:
 - Telegram quiz advancement no longer transports question/tag payload state.
 - Adaptive routing state is explicit in prompt intent metadata, including phase, follow-up depth, limits, remaining questions, and covered tags.
 - Follow-up loops return to trunk coverage when the configured maximum follow-up depth is exhausted.
+- Quiz next-question generation now uses the existing centralized `Redwright::LLM::RequestEngine` path and records LLM traces through `Redwright::LLM::TraceRecorder`.

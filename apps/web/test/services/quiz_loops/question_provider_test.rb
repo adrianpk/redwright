@@ -3,7 +3,7 @@ require "test_helper"
 module QuizLoops
   class QuestionProviderTest < ActiveSupport::TestCase
     test "returns usable prompt intent from valid llm output" do
-      provider = QuestionProvider.new(client: ValidClient.new)
+      provider = QuestionProvider.new(request_engine: ValidRequestEngine.new, model: "test/model", provider: "test")
 
       result = provider.generate(input: {"project" => "RedWright"})
 
@@ -29,7 +29,7 @@ module QuizLoops
     end
 
     test "returns deterministic fallback for malformed llm output" do
-      provider = QuestionProvider.new(client: MalformedClient.new)
+      provider = QuestionProvider.new(request_engine: MalformedRequestEngine.new, model: "test/model", provider: "test")
 
       result = provider.generate(input: {})
 
@@ -39,25 +39,39 @@ module QuizLoops
       assert_equal QuestionProvider::FALLBACK_QUESTION, result.question
     end
 
-    class ValidClient
-      def generate_quiz_question(input:)
-        {
+    class ValidRequestEngine
+      def generate_structured_message(**)
+        Redwright::LLM::RequestEngine::Response.new(
+          status: "ok",
+          semantic_payload: {
           "question" => "What workflow should agents clarify next?",
           "tags" => ["Agent Workflow"],
           "follow_up_depth" => 1,
           "completion_recommended" => false
-        }
+          },
+          rendered_text: "What workflow should agents clarify next?",
+          provider_metadata: {finish_reason: "stop"},
+          warnings: [],
+          raw_response_ref: "{}"
+        )
       end
     end
 
-    class MalformedClient
-      def call(input:)
-        {
+    class MalformedRequestEngine
+      def generate_structured_message(**)
+        Redwright::LLM::RequestEngine::Response.new(
+          status: "ok",
+          semantic_payload: {
           "question" => "Which password should agents use?",
           "tags" => ["credentials"],
           "follow_up_depth" => 1,
           "completion_recommended" => false
-        }
+          },
+          rendered_text: "Which password should agents use?",
+          provider_metadata: {finish_reason: "stop"},
+          warnings: [],
+          raw_response_ref: "{}"
+        )
       end
     end
   end
