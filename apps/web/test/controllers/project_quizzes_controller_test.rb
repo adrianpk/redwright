@@ -175,12 +175,29 @@ class ProjectQuizzesControllerTest < ActionDispatch::IntegrationTest
     sign_in_as(admin)
     project = create_project(key: "quiz-controller-terminal")
     quiz = project.find_or_create_main_quiz!
+    quiz.store_current_question!(
+      question: "Done?",
+      tags: ["completion"],
+      prompt_intent: { "kind" => "quiz_question" },
+      fallback_reason: "",
+      errors: []
+    )
 
-    post done_project_quiz_path(project, quiz), params: { question: "Done?" }
+    post done_project_quiz_path(project, quiz), params: { question: "Ignored done question?", tags: "ignored" }
     assert_redirected_to project_quizzes_path(project)
+    assert_nil quiz.reload.current_question
 
-    post cancel_project_quiz_path(project, quiz), params: { question: "Cancel?" }
+    quiz.store_current_question!(
+      question: "Cancel?",
+      tags: ["cancellation"],
+      prompt_intent: { "kind" => "quiz_question" },
+      fallback_reason: "",
+      errors: []
+    )
+
+    post cancel_project_quiz_path(project, quiz), params: { question: "Ignored cancel question?", tags: "ignored" }
     assert_redirected_to project_quizzes_path(project)
+    assert_nil quiz.reload.current_question
 
     get project_quiz_path(project, quiz)
     assert_response :success

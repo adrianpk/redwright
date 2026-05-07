@@ -94,8 +94,18 @@ module QuizLoops
     test "done does not persist an entry and quiz can reopen" do
       project = create_project(key: "quiz-runtime-done")
       runtime = Runtime.new(project: project, question_provider: StaticQuestionProvider.new)
+      quiz = project.find_or_create_main_quiz!
+      quiz.store_current_question!(
+        question: "Done?",
+        tags: ["completion"],
+        prompt_intent: { "kind" => "quiz_question" },
+        fallback_reason: "",
+        errors: []
+      )
 
-      result = runtime.advance!(question: "Done?", answer: "done")
+      result = runtime.advance!(question: "Ignored done question?", answer: "done")
+      assert_nil quiz.reload.current_question
+
       reopened = runtime.open
 
       assert_equal "done", result.status
@@ -108,8 +118,18 @@ module QuizLoops
     test "cancel does not persist an entry and quiz can reopen" do
       project = create_project(key: "quiz-runtime-cancel")
       runtime = Runtime.new(project: project, question_provider: StaticQuestionProvider.new)
+      quiz = project.find_or_create_main_quiz!
+      quiz.store_current_question!(
+        question: "Cancel?",
+        tags: ["cancellation"],
+        prompt_intent: { "kind" => "quiz_question" },
+        fallback_reason: "",
+        errors: []
+      )
 
-      result = runtime.advance!(question: "Cancel?", answer: "cancel")
+      result = runtime.advance!(question: "Ignored cancel question?", answer: "cancel")
+      assert_nil quiz.reload.current_question
+
       reopened = runtime.open
 
       assert_equal "cancelled", result.status

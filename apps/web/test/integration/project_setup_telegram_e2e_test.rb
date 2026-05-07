@@ -262,6 +262,33 @@ class ProjectSetupTelegramE2eTest < ActiveSupport::TestCase
     assert_equal "Preserve concise prompts.", entry.answer
   end
 
+  test "telegram quiz done and cancel stop active quiz without question payload" do
+    adapter = adapter_for_chat
+    done_project = create_project(key: "telegram-quiz-done")
+    adapter.instance_variable_get(:@project_ids_by_chat)[90_001] = done_project.id
+
+    opened = adapter.handle(event(1, "/quiz"), trace_id: "trc-telegram-e2e")
+    done = adapter.handle(event(2, "/done"), trace_id: "trc-telegram-e2e")
+
+    assert opened.handled?
+    assert done.handled?
+    assert_equal "quiz_advance", done.command
+    assert_match "Quiz stopped as done.", done.message
+    assert_nil done_project.main_quiz.reload.current_question
+
+    cancel_project = create_project(key: "telegram-quiz-cancel")
+    adapter.instance_variable_get(:@project_ids_by_chat)[90_001] = cancel_project.id
+
+    reopened = adapter.handle(event(3, "/quiz"), trace_id: "trc-telegram-e2e")
+    cancelled = adapter.handle(event(4, "/cancel"), trace_id: "trc-telegram-e2e")
+
+    assert reopened.handled?
+    assert cancelled.handled?
+    assert_equal "quiz_advance", cancelled.command
+    assert_match "Quiz cancelled.", cancelled.message
+    assert_nil cancel_project.main_quiz.reload.current_question
+  end
+
   test "telegram quiz for use case creates use case quiz" do
     adapter = adapter_for_chat
     project = create_project(key: "telegram-quiz-use-case")

@@ -4,9 +4,9 @@
 
 - cycle_id: `cycle-2026-05-07-redwright-quiz-navigation-flow`
 - status: `in_progress`
-- state: `slice_3_in_progress`
+- state: `slice_3_reviewing`
 - updated: `2026-05-07`
-- active_slice: `Slice 3`
+- active_slice: `none`
 - active_task: `none`
 - source_plan: `ops/plans/2026-05-07-redwright-quiz-navigation-flow-cycle-plan.md`
 - source_ticket: `ops/tickets/in_progress/20260507074859-review-quiz-navigation-flow-and-question-routing-semantics.md`
@@ -72,9 +72,9 @@ Validation:
 
 ### Slice 3: Control Semantics and Port Parity
 
-- status: `in_progress`
+- status: `reviewing`
 - branch: `fix/slice-3-quiz-control-port-parity`
-- PR: `pending`
+- PR: `https://codeberg.org/adrianpk/redwright/pulls/343`
 - merge_target: `dev`
 - last_sync_commit: `c0588d8`
 
@@ -88,14 +88,16 @@ Tasks:
 
 Commits:
 
-- [x] `fix(web): align quiz done and cancel semantics`
+- [x] `c6429b9 fix(web): align quiz done and cancel semantics`
 - [x] `test(web): cover quiz control port parity`
 
 Validation:
 
-- [ ] `bundle exec bin/rails test test/services/quiz_loops/runtime_test.rb`
-- [ ] `bundle exec bin/rails test test/controllers/project_quizzes_controller_test.rb`
-- [ ] `bundle exec bin/rails test test/integration/project_setup_telegram_e2e_test.rb`
+- [x] `bundle exec bin/rails test test/services/quiz_loops/runtime_test.rb` (pass)
+- [x] `bundle exec bin/rails test test/controllers/project_quizzes_controller_test.rb` (pass)
+- [x] `bundle exec bin/rails test test/integration/project_setup_telegram_e2e_test.rb` (pass)
+- [x] `bundle exec bin/rails test` (pass)
+- [x] `scripts/agent/tickets/check.sh` (pass)
 
 ### Slice 4: Adaptive Routing Closure
 
