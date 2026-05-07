@@ -102,7 +102,7 @@ Validation:
 
 - status: `implemented`
 - branch: `feat/slice-4-quiz-candidate-cleanup`
-- PR: `none`
+- PR: `https://codeberg.org/adrianpk/redwright/pulls/350`
 - merge_target: `dev`
 - last_sync_commit: `pending`
 
