@@ -161,7 +161,7 @@ module QuizLoops
         ),
         fallback_reason: generated.fallback_reason,
         errors: generated.errors,
-        generation_strategy: generated.generation_strategy
+        generation_strategy: generation_strategy_for(generated)
       )
     end
 
@@ -201,12 +201,20 @@ module QuizLoops
         "follow_up_depth" => generated.follow_up_depth,
         "max_follow_up_depth" => configuration.max_follow_up_depth,
         "trunk_return_recommended" => generated.follow_up_depth.to_i >= configuration.max_follow_up_depth,
-        "covered_tags" => covered_tags_for(quiz)
+        "covered_tags" => covered_tags_for(quiz),
+        "mode" => quiz.mode,
+        "generation_strategy" => generation_strategy_for(generated),
+        "fallback_reason" => generated.fallback_reason,
+        "candidate_count" => quiz.candidate_questions.count
       }
     end
 
     def covered_tags_for(quiz)
       quiz.entries.includes(:tags).flat_map { |entry| entry.tags.map(&:name) }.uniq.sort
+    end
+
+    def generation_strategy_for(generated)
+      generated.generation_strategy.presence || QuestionProvider::DEEP_STRATEGY
     end
 
     def current_question_result(quiz)

@@ -111,6 +111,10 @@ module QuizLoops
       assert_equal 3, routing_state.fetch("max_follow_up_depth")
       assert_equal false, routing_state.fetch("trunk_return_recommended")
       assert_equal [], routing_state.fetch("covered_tags")
+      assert_equal "deep", routing_state.fetch("mode")
+      assert_equal QuestionProvider::DEEP_STRATEGY, routing_state.fetch("generation_strategy")
+      assert_equal "", routing_state.fetch("fallback_reason")
+      assert_equal 0, routing_state.fetch("candidate_count")
     end
 
     test "returns to trunk when follow up depth is exhausted" do
