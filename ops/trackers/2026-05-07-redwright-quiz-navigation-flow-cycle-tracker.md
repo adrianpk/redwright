@@ -118,13 +118,13 @@ Tasks:
 Commits:
 
 - [x] `fix(web): clarify adaptive quiz routing state`
-- [ ] `test(web): cover adaptive quiz routing closure`
+- [x] `test(web): cover adaptive quiz routing closure`
 - [ ] `chore(ops): close quiz navigation flow cycle`
 
 Validation:
 
-- [ ] `bundle exec bin/rails test test/services/quiz_loops/runtime_test.rb`
-- [ ] `bundle exec bin/rails test test/services/quiz_loops/question_contract_test.rb test/services/quiz_loops/question_provider_test.rb`
+- [x] `bundle exec bin/rails test test/services/quiz_loops/runtime_test.rb` (pass)
+- [x] `bundle exec bin/rails test test/services/quiz_loops/question_contract_test.rb test/services/quiz_loops/question_provider_test.rb` (pass)
 - [ ] `bundle exec bin/rails test test/controllers/project_quizzes_controller_test.rb`
 - [ ] `bundle exec bin/rails test`
 - [ ] `scripts/agent/tickets/check.sh`

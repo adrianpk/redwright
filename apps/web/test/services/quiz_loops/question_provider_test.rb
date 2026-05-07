@@ -14,6 +14,7 @@ module QuizLoops
       assert_equal %w[answer skip done cancel], result.prompt_intent.fetch("controls")
       assert_equal "What workflow should agents clarify next?", result.prompt_intent.dig("metadata", "question_text")
       assert_equal false, result.prompt_intent.dig("metadata", "completion_recommended")
+      assert_equal({}, result.prompt_intent.dig("metadata", "routing_state"))
       assert_empty result.errors
     end
 

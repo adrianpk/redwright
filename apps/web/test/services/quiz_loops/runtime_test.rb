@@ -31,6 +31,52 @@ module QuizLoops
       assert_equal first.prompt_intent, second.prompt_intent
     end
 
+    test "stores explicit routing state on generated current question" do
+      project = create_project(key: "quiz-runtime-routing-state")
+      runtime = Runtime.new(project: project, question_provider: StaticQuestionProvider.new)
+
+      result = runtime.open
+      routing_state = result.prompt_intent.dig("metadata", "routing_state")
+
+      assert_equal "trunk", routing_state.fetch("phase")
+      assert_equal 0, routing_state.fetch("entry_count")
+      assert_equal 50, routing_state.fetch("remaining_questions")
+      assert_equal 1, routing_state.fetch("follow_up_depth")
+      assert_equal 3, routing_state.fetch("max_follow_up_depth")
+      assert_equal false, routing_state.fetch("trunk_return_recommended")
+      assert_equal [], routing_state.fetch("covered_tags")
+    end
+
+    test "returns to trunk when follow up depth is exhausted" do
+      project = create_project(key: "quiz-runtime-trunk-return")
+      quiz = project.find_or_create_main_quiz!
+      quiz.store_current_question!(
+        question: "What detail should we inspect?",
+        tags: ["local-detail"],
+        prompt_intent: PromptIntentBuilder.question(
+          question: "What detail should we inspect?",
+          tags: ["local-detail"],
+          follow_up_depth: 3,
+          completion_recommended: false
+        ),
+        fallback_reason: "",
+        errors: []
+      )
+      runtime = Runtime.new(
+        project: project,
+        question_provider: DeepFollowUpProvider.new,
+        configuration: Configuration.new("max_follow_up_depth" => 3)
+      )
+
+      result = runtime.advance!(answer: "Keep asking locally.")
+
+      assert_not result.prompt_intent.dig("metadata", "routing_state").fetch("trunk_return_recommended")
+      assert_equal "follow_up_depth_exhausted", result.fallback_reason
+      assert_equal Runtime::TRUNK_RETURN_QUESTION, result.question
+      assert_equal 1, result.prompt_intent.dig("metadata", "follow_up_depth")
+      assert_equal "trunk", result.prompt_intent.dig("metadata", "routing_state").fetch("phase")
+    end
+
     test "opens use case quiz and creates use case when missing" do
       project = create_project(key: "quiz-runtime-use-case")
 
@@ -184,6 +230,26 @@ module QuizLoops
       def generate(input:)
         @calls += 1
         super
+      end
+    end
+
+    class DeepFollowUpProvider
+      def generate(input:)
+        QuestionProvider::Result.new(
+          usable: true,
+          question: "Which local detail should we keep drilling into?",
+          tags: ["local-detail"],
+          follow_up_depth: 3,
+          completion_recommended: false,
+          prompt_intent: PromptIntentBuilder.question(
+            question: "Which local detail should we keep drilling into?",
+            tags: ["local-detail"],
+            follow_up_depth: 3,
+            completion_recommended: false
+          ),
+          fallback_reason: "",
+          errors: []
+        )
       end
     end
   end
