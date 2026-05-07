@@ -102,14 +102,8 @@ module QuizLoops
         return terminal_result(status: "done", quiz: quiz)
       end
 
-      generated = routed_question_result(quiz, question_provider.generate(input: input_for(quiz)))
-      quiz.store_current_question!(
-        question: generated.question,
-        tags: generated.tags,
-        prompt_intent: generated.prompt_intent,
-        fallback_reason: generated.fallback_reason,
-        errors: generated.errors
-      )
+      generated = routed_question_result(quiz, question_provider.generate(input: input_for(quiz, force_deep: deep_fallback_required?(quiz, entry))))
+      store_generated_question!(quiz, generated)
       Result.new(
         ok: true,
         status: "collecting",
@@ -121,6 +115,31 @@ module QuizLoops
         fallback_reason: generated.fallback_reason,
         errors: generated.errors
       )
+    end
+
+    def store_generated_question!(quiz, generated)
+      return store_fast_candidate!(quiz, generated) if generated.generation_strategy == QuestionProvider::FAST_STRATEGY
+
+      quiz.store_current_question!(
+        question: generated.question,
+        tags: generated.tags,
+        prompt_intent: generated.prompt_intent,
+        fallback_reason: generated.fallback_reason,
+        errors: generated.errors
+      )
+    end
+
+    def store_fast_candidate!(quiz, generated)
+      candidate = quiz.add_candidate!(
+        question: generated.question,
+        tags: generated.tags,
+        prompt_intent: generated.prompt_intent,
+        fallback_reason: generated.fallback_reason,
+        errors: generated.errors,
+        parent_id: fast_candidate_parent_id(quiz),
+        branch_key: "single-candidate"
+      )
+      quiz.activate_candidate!(candidate.fetch("id"))
     end
 
     def routed_question_result(quiz, generated)
@@ -141,7 +160,8 @@ module QuizLoops
           routing_state: routing_state
         ),
         fallback_reason: generated.fallback_reason,
-        errors: generated.errors
+        errors: generated.errors,
+        generation_strategy: generated.generation_strategy
       )
     end
 
@@ -154,8 +174,17 @@ module QuizLoops
         completion_recommended: false,
         prompt_intent: {},
         fallback_reason: "follow_up_depth_exhausted",
-        errors: ["follow-up depth reached; returning to trunk coverage"]
+        errors: ["follow-up depth reached; returning to trunk coverage"],
+        generation_strategy: QuestionProvider::DEEP_STRATEGY
       )
+    end
+
+    def deep_fallback_required?(quiz, entry)
+      quiz.fast_mode? && entry&.answered?
+    end
+
+    def fast_candidate_parent_id(quiz)
+      "quiz-#{quiz.id}-entry-#{quiz.entries.count}"
     end
 
     def follow_up_exhausted?(quiz, generated)
@@ -213,7 +242,7 @@ module QuizLoops
       )
     end
 
-    def input_for(quiz)
+    def input_for(quiz, force_deep: false)
       {
         "project" => {
           "id" => project.id,
@@ -225,7 +254,7 @@ module QuizLoops
           "id" => quiz.id,
           "use_case_id" => quiz.use_case_id,
           "entry_count" => quiz.entries.count,
-          "mode" => quiz.mode
+          "mode" => force_deep ? "deep" : quiz.mode
         },
         "recent_entries" => quiz.entries.order(created_at: :desc).limit(5).reverse.map do |entry|
           {

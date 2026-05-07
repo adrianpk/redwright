@@ -22,6 +22,8 @@ module QuizLoops
     FALLBACK_TAGS = %w[project-context].freeze
     DEEP_ACTION = "quiz_question_generation".freeze
     FAST_ACTION = "quiz_fast_question_generation".freeze
+    DEEP_STRATEGY = "deep".freeze
+    FAST_STRATEGY = "single_candidate".freeze
     MODEL_ROLE = "non_coding".freeze
     SOURCE_CHANNEL = "quiz_loop".freeze
     DEEP_SYSTEM_PROMPT = <<~TEXT
@@ -58,6 +60,7 @@ module QuizLoops
       :prompt_intent,
       :fallback_reason,
       :errors,
+      :generation_strategy,
       keyword_init: true
     ) do
       def usable?
@@ -110,7 +113,7 @@ module QuizLoops
       return fallback_result(reason: "llm_unavailable", errors: response.warnings) unless response.ok?
 
       validation = contract.validate(response.semantic_payload)
-      return usable_result(validation.attributes) if validation.valid?
+      return usable_result(validation.attributes, generation_strategy: generation_strategy_for(action)) if validation.valid?
 
       fallback_result(reason: "llm_malformed", errors: validation.errors)
     end
@@ -120,7 +123,7 @@ module QuizLoops
       quiz["mode"].to_s == "fast"
     end
 
-    def usable_result(attributes)
+    def usable_result(attributes, generation_strategy:)
       Result.new(
         usable: true,
         question: attributes.fetch("question"),
@@ -129,11 +132,12 @@ module QuizLoops
         completion_recommended: attributes.fetch("completion_recommended"),
         prompt_intent: prompt_intent_for(attributes),
         fallback_reason: "",
-        errors: []
+        errors: [],
+        generation_strategy: generation_strategy
       )
     end
 
-    def fallback_result(reason:, errors:)
+    def fallback_result(reason:, errors:, generation_strategy: DEEP_STRATEGY)
       attributes = {
         "question" => FALLBACK_QUESTION,
         "tags" => FALLBACK_TAGS,
@@ -148,8 +152,13 @@ module QuizLoops
         completion_recommended: attributes.fetch("completion_recommended"),
         prompt_intent: prompt_intent_for(attributes),
         fallback_reason: reason,
-        errors: errors
+        errors: errors,
+        generation_strategy: generation_strategy
       )
+    end
+
+    def generation_strategy_for(action)
+      action == FAST_ACTION ? FAST_STRATEGY : DEEP_STRATEGY
     end
 
     def prompt_intent_for(attributes)
