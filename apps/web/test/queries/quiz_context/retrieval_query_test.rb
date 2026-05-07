@@ -48,5 +48,33 @@ module QuizContext
 
       assert_equal [entry], result.quiz_entries.to_a
     end
+
+    test "does not retrieve candidate mode or strategy metadata as context ranking material" do
+      project = create_project(key: "quiz-context-candidate-metadata")
+      quiz = project.find_or_create_main_quiz!
+      quiz.update!(mode: "fast")
+      quiz.add_candidate!(
+        question: "Candidate?",
+        tags: ["candidate-only"],
+        prompt_intent: {
+          "kind" => "quiz_question",
+          "metadata" => {
+            "routing_state" => {
+              "mode" => "fast",
+              "generation_strategy" => "single_candidate"
+            }
+          }
+        }
+      )
+      entry = quiz.entries.create!(question: "Activated?", answer: "Answered.")
+      entry.tag_with!("activated-only")
+
+      candidate_result = RetrievalQuery.new(project: project, tags: ["candidate-only"]).call
+      activated_result = RetrievalQuery.new(project: project, tags: ["activated-only"]).call
+
+      assert_empty candidate_result.quiz_entries
+      assert_empty candidate_result.taggings
+      assert_equal [entry], activated_result.quiz_entries.to_a
+    end
   end
 end
