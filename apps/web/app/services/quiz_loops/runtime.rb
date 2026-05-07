@@ -33,19 +33,22 @@ module QuizLoops
       next_question_result(quiz)
     end
 
-    def advance!(question:, answer:, tags: [])
+    def advance!(question: nil, answer:, tags: nil)
       quiz = resolve_quiz!
       control = control_from(answer)
-      return skipped_result(quiz: quiz, question: question, tags: tags) if control == "skip"
+      question_for_entry = current_or_submitted_question(quiz: quiz, question: question)
+      tags_for_entry = current_or_submitted_tags(quiz: quiz, tags: tags)
+
+      return skipped_result(quiz: quiz, question: question_for_entry, tags: tags_for_entry) if control == "skip"
       return terminal_result(status: "done", quiz: quiz) if control == "done"
       return terminal_result(status: "cancelled", quiz: quiz) if control == "cancel"
 
       entry = quiz.entries.create!(
-        question: question,
+        question: question_for_entry,
         answer: answer.to_s.strip,
         status: "answered"
       )
-      entry.tag_with!(tags)
+      entry.tag_with!(tags_for_entry)
       next_question_result(quiz, entry: entry)
     end
 
@@ -75,6 +78,19 @@ module QuizLoops
       )
       entry.tag_with!(tags)
       next_question_result(quiz, entry: entry)
+    end
+
+    def current_or_submitted_question(quiz:, question:)
+      current = quiz.current_question.to_s.strip
+      return current unless current.empty?
+
+      question.to_s.strip
+    end
+
+    def current_or_submitted_tags(quiz:, tags:)
+      return quiz.current_tags if tags.nil?
+
+      Array(tags).map(&:to_s).map(&:strip).reject(&:blank?)
     end
 
     def next_question_result(quiz, entry: nil)

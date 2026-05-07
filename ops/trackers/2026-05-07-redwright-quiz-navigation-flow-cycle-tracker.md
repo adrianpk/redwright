@@ -4,10 +4,10 @@
 
 - cycle_id: `cycle-2026-05-07-redwright-quiz-navigation-flow`
 - status: `in_progress`
-- state: `slice_1_reviewing`
+- state: `slice_2_in_progress`
 - updated: `2026-05-07`
-- active_slice: `none`
-- active_task: `none`
+- active_slice: `Slice 2`
+- active_task: `T2.2`
 - source_plan: `ops/plans/2026-05-07-redwright-quiz-navigation-flow-cycle-plan.md`
 - source_ticket: `ops/tickets/in_progress/20260507074859-review-quiz-navigation-flow-and-question-routing-semantics.md`
 
@@ -15,7 +15,7 @@
 
 ### Slice 1: Quiz Question State Foundation
 
-- status: `reviewing`
+- status: `pr_merged`
 - branch: `fix/slice-1-quiz-question-state-foundation`
 - PR: `https://codeberg.org/adrianpk/redwright/pulls/341`
 - merge_target: `dev`
@@ -43,15 +43,15 @@ Validation:
 
 ### Slice 2: Answer and Skip Progression Semantics
 
-- status: `pending`
+- status: `in_progress`
 - branch: `fix/slice-2-quiz-answer-skip-progression`
 - PR: `pending`
 - merge_target: `dev`
-- last_sync_commit: `pending`
+- last_sync_commit: `8c6d9db`
 
 Tasks:
 
-- [ ] `T2.1 route web answer submissions through backend current-question state`
+- [x] `T2.1 route web answer submissions through backend current-question state`
 - [ ] `T2.2 route web skip submissions through backend current-question state`
 - [ ] `T2.3 ensure answered and skipped entries persist the exact current question`
 - [ ] `T2.4 remove question payload query redirects from answer and skip flows`
@@ -59,7 +59,7 @@ Tasks:
 
 Commits:
 
-- [ ] `fix(web): bind quiz answer progression to state`
+- [x] `fix(web): bind quiz answer progression to state`
 - [ ] `fix(web): bind quiz skip progression to state`
 - [ ] `test(web): cover quiz answer and skip routing`
 

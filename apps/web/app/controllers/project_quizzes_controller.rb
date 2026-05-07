@@ -36,16 +36,12 @@ class ProjectQuizzesController < ApplicationController
   def answer
     answer = params.require(:answer).to_s.strip
     if answer.empty?
-      redirect_to project_quiz_path(@project, @quiz, question: params.require(:question), tags: tag_params.join(",")), alert: "Answer is required."
+      redirect_to project_quiz_path(@project, @quiz), alert: "Answer is required."
       return
     end
 
-    result = runtime_for(@quiz).advance!(
-      question: params.require(:question),
-      answer: answer,
-      tags: tag_params
-    )
-    redirect_to project_quiz_path(@project, @quiz, question: result.question, tags: result.tags.join(",")), notice: "Answer saved."
+    runtime_for(@quiz).advance!(answer: answer)
+    redirect_to project_quiz_path(@project, @quiz), notice: "Answer saved."
   end
 
   def skip
