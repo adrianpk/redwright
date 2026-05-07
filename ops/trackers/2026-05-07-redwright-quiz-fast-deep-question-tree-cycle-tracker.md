@@ -4,7 +4,7 @@
 
 - cycle_id: `cycle-2026-05-07-redwright-quiz-fast-deep-question-tree`
 - status: `planned`
-- state: `slice_3_merged`
+- state: `slice_4_implemented`
 - updated: `2026-05-07`
 - active_slice: `none`
 - active_task: `none`
@@ -100,7 +100,7 @@ Validation:
 
 ### Slice 4: Candidate Storage and Cleanup
 
-- status: `planned`
+- status: `implemented`
 - branch: `feat/slice-4-quiz-candidate-cleanup`
 - PR: `none`
 - merge_target: `dev`
@@ -108,21 +108,23 @@ Validation:
 
 Tasks:
 
-- [ ] `T4.1 decide from implementation context whether candidates need a table or serialized runtime metadata`
-- [ ] `T4.2 keep QuizEntry creation limited to activated answered/skipped questions`
-- [ ] `T4.3 prevent final retrieval tags on discarded candidates`
-- [ ] `T4.4 prune sibling candidates after tree branch selection when tree strategy is used`
-- [ ] `T4.5 add opportunistic cleanup for stale unused candidates`
+- [x] `T4.1 decide from implementation context whether candidates need a table or serialized runtime metadata`
+- [x] `T4.2 keep QuizEntry creation limited to activated answered/skipped questions`
+- [x] `T4.3 prevent final retrieval tags on discarded candidates`
+- [x] `T4.4 prune sibling candidates after tree branch selection when tree strategy is used`
+- [x] `T4.5 add opportunistic cleanup for stale unused candidates`
 
 Commits:
 
-- [ ] `feat(web): add quiz candidate lifecycle`
-- [ ] `test(web): cover quiz candidate cleanup`
+- [x] `b0b4407 feat(web): add quiz candidate lifecycle`
+- [x] `435e4b2 test(web): cover quiz candidate cleanup`
 
 Validation:
 
-- [ ] `bundle exec bin/rails test test/services/quiz_loops/runtime_test.rb`
-- [ ] `bundle exec bin/rails test test/models/quiz_entry_test.rb`
+- [x] `bundle exec bin/rails test test/services/quiz_loops/runtime_test.rb` (pass)
+- [x] `bundle exec bin/rails test test/models/quiz_entry_test.rb` (pass)
+- [x] `bundle exec bin/rails test` (pass)
+- [x] `scripts/agent/tickets/check.sh` (pass)
 
 ### Slice 5: First Fast Strategy Implementation
 
