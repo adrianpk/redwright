@@ -1,21 +1,21 @@
 ---
 id: TKT-20260507065222
 title: Audit architecture and codebase quality
-status: open
-kind: unclassified
-severity: unclassified
-priority: unclassified
-scope: unclassified
+status: in_progress
+kind: task
+severity: medium
+priority: normal
+scope: web
 tags: architecture,code-quality,audit,maintainability,ruby
 source: chat
 reported_at: 2026-05-07T06:52:22Z
-ready_at:
-started_at:
+ready_at: 2026-05-07T06:56:00Z
+started_at: 2026-05-07T06:56:00Z
 reviewed_at:
 closed_at:
 resolution:
 owner: 
-branch:
+branch: refactor/ticket-20260507065222-architecture-quality-audit
 pr:
 commits: []
 ---
