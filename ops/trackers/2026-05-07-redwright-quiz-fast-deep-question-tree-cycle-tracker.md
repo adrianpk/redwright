@@ -4,7 +4,7 @@
 
 - cycle_id: `cycle-2026-05-07-redwright-quiz-fast-deep-question-tree`
 - status: `planned`
-- state: `slice_5_merged`
+- state: `slice_6_implemented`
 - updated: `2026-05-07`
 - active_slice: `none`
 - active_task: `none`
@@ -157,7 +157,7 @@ Validation:
 
 ### Slice 6: Tagging, Observability, and Cycle Closure
 
-- status: `planned`
+- status: `implemented`
 - branch: `feat/slice-6-quiz-fast-deep-closure`
 - PR: `none`
 - merge_target: `dev`
@@ -165,24 +165,30 @@ Validation:
 
 Tasks:
 
-- [ ] `T6.1 ensure final tags are applied only after activation and answer interpretation`
-- [ ] `T6.2 keep mode/strategy metadata out of context-ranking behavior`
-- [ ] `T6.3 add cheap observability for mode, strategy, fallback, and candidate cleanup when useful`
-- [ ] `T6.4 update tracker, spec notes, and residual-risk documentation`
-- [ ] `T6.5 run targeted web, runtime, LLM provider, and full Rails validation`
+- [x] `T6.1 ensure final tags are applied only after activation and answer interpretation`
+- [x] `T6.2 keep mode/strategy metadata out of context-ranking behavior`
+- [x] `T6.3 add cheap observability for mode, strategy, fallback, and candidate cleanup when useful`
+- [x] `T6.4 update tracker, spec notes, and residual-risk documentation`
+- [x] `T6.5 run targeted web, runtime, LLM provider, and full Rails validation`
+- [x] `T6.6 tuning: replace insufficient single-candidate fast path with 3-question batch progression`
+- [x] `T6.7 tuning: simplify processing feedback to animated dots only`
 
 Commits:
 
-- [ ] `fix(web): align quiz fast tagging semantics`
-- [ ] `feat(llm): trace quiz fast and deep decisions`
+- [x] `5ed4f84 fix(web): align quiz fast tagging semantics`
+- [x] `2096da0 feat(llm): trace quiz fast and deep decisions`
+- [x] `b1f2772 feat(llm): tune quiz fast batch progression`
+- [x] `59f2a2f fix(web): tune quiz processing feedback`
 - [ ] `chore(ops): close quiz fast deep question tree cycle`
 
 Validation:
 
-- [ ] `bundle exec bin/rails test test/services/quiz_loops/runtime_test.rb`
-- [ ] `bundle exec bin/rails test test/services/quiz_loops/question_provider_test.rb`
-- [ ] `bundle exec bin/rails test test/controllers/project_quizzes_controller_test.rb`
-- [ ] `bundle exec bin/rails test`
+- [x] `bundle exec bin/rails test test/services/quiz_loops/runtime_test.rb` (pass)
+- [x] `bundle exec bin/rails test test/services/quiz_loops/question_provider_test.rb` (pass)
+- [x] `bundle exec bin/rails test test/controllers/project_quizzes_controller_test.rb` (pass)
+- [x] `bundle exec bin/rails test test/queries/quiz_context/retrieval_query_test.rb` (pass)
+- [x] `bundle exec bin/rails test` (pass)
+- [x] `scripts/agent/tickets/check.sh` (pass)
 
 ## Cycle Notes
 
@@ -200,11 +206,11 @@ Validation:
 
 ## Residual Risks
 
-- The first fast strategy may improve only some quiz paths.
-- Candidate persistence may be unnecessary if serialized runtime metadata is enough.
+- The first fast strategy is intentionally bounded to linear batches of three questions.
+- Richer fast routing still needs a future deterministic node model before tree routing can do more than linear batch progression.
 - The first processing-feedback mechanism may need adjustment after manual browser review.
 
 ## Tuning Decision
 
-- tuning needed: `unknown`
-- evidence: `cycle not started`
+- tuning needed: `yes`
+- evidence: `manual review found single-candidate fast did not satisfy requested low-latency behavior; tuning replaces it with 3-question batch progression before closure`

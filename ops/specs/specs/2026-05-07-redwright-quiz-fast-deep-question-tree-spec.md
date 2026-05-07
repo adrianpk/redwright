@@ -3,7 +3,7 @@
 ## Metadata
 
 - id: `spec-2026-05-07-redwright-quiz-fast-deep-question-tree`
-- status: `draft`
+- status: `implemented`
 - owner: `adrianpk`
 - created: `2026-05-07`
 - updated: `2026-05-07`
@@ -243,10 +243,23 @@ Fast mode may introduce additional structured output contracts, but it must not 
 - Candidate cleanup prevents stale unused records from accumulating.
 - `LLMRequestEngine` remains the only LLM request boundary.
 
+## Implementation Notes
+
+- The first fast strategy is `batch`.
+- Fast batch generation requests three upcoming questions in one LLM call.
+- Fast generation uses `LLMRequestEngine` through the internal `quiz_fast_question_generation` action.
+- Usable fast generations are stored as serialized quiz candidate metadata.
+- The first fast candidate is activated immediately.
+- Subsequent fast candidates are activated locally without another LLM call until the batch is exhausted.
+- Repeated fast questions fall back to deep generation instead of being re-shown.
+- Candidate metadata, quiz mode, and generation strategy stay out of context retrieval ranking.
+- Runtime prompt intent routing state stores mode, generation strategy, fallback reason, and candidate count as observability metadata.
+- Candidate cleanup is opportunistic during the next quiz operation.
+
 ## Open Implementation Decisions
 
-- Which fast strategy should be implemented first: batch, full round, tree, or a minimal hybrid?
-- Should generated candidates use a table or serialized runtime metadata in the first slice that needs them?
-- What is the smallest interaction surface that delivers useful processing feedback?
-- What candidate cleanup rule is simplest in the actual Rails model?
-- Which mode/strategy metadata is worth storing for observability without complicating retrieval?
+- resolved: First fast strategy is `batch` with three generated candidates.
+- resolved: Generated candidates use serialized quiz runtime metadata.
+- resolved: Initial processing feedback uses the current answer/skip interaction surface.
+- resolved: Candidate cleanup is local and opportunistic.
+- resolved: Observability metadata is limited to mode, generation strategy, fallback reason, and candidate count in prompt-intent routing state.
