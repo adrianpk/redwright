@@ -4,7 +4,7 @@
 
 - cycle_id: `cycle-2026-05-07-redwright-quiz-fast-deep-question-tree`
 - status: `planned`
-- state: `slice_4_merged`
+- state: `slice_5_implemented`
 - updated: `2026-05-07`
 - active_slice: `none`
 - active_task: `none`
@@ -128,7 +128,7 @@ Validation:
 
 ### Slice 5: First Fast Strategy Implementation
 
-- status: `planned`
+- status: `implemented`
 - branch: `feat/slice-5-quiz-first-fast-strategy`
 - PR: `none`
 - merge_target: `dev`
@@ -136,22 +136,24 @@ Validation:
 
 Tasks:
 
-- [ ] `T5.1 choose the first strategy from batch, round, tree, or minimal hybrid based on implementation simplicity`
-- [ ] `T5.2 generate fast candidates through LLMRequestEngine`
-- [ ] `T5.3 enforce deterministic node routing and deep fallback for ambiguous/free-text paths`
-- [ ] `T5.4 enforce tree ceiling of 1 -> 3 -> 9 when tree strategy is used`
-- [ ] `T5.5 cover fast progression, fallback, and no-local-semantic-matcher behavior`
+- [x] `T5.1 choose the first strategy from batch, round, tree, or minimal hybrid based on implementation simplicity`
+- [x] `T5.2 generate fast candidates through LLMRequestEngine`
+- [x] `T5.3 enforce deterministic node routing and deep fallback for ambiguous/free-text paths`
+- [x] `T5.4 enforce tree ceiling of 1 -> 3 -> 9 when tree strategy is used`
+- [x] `T5.5 cover fast progression, fallback, and no-local-semantic-matcher behavior`
 
 Commits:
 
-- [ ] `feat(llm): implement quiz fast generation strategy`
-- [ ] `test(web): cover quiz fast progression`
+- [x] `fb8fc37 feat(llm): implement quiz fast generation strategy`
+- [x] `4af65bf test(web): cover quiz fast progression`
 
 Validation:
 
-- [ ] `bundle exec bin/rails test test/services/quiz_loops/question_provider_test.rb`
-- [ ] `bundle exec bin/rails test test/services/quiz_loops/runtime_test.rb`
-- [ ] `bundle exec bin/rails test test/controllers/project_quizzes_controller_test.rb`
+- [x] `bundle exec bin/rails test test/services/quiz_loops/question_provider_test.rb` (pass)
+- [x] `bundle exec bin/rails test test/services/quiz_loops/runtime_test.rb` (pass)
+- [x] `bundle exec bin/rails test test/controllers/project_quizzes_controller_test.rb` (pass)
+- [x] `bundle exec bin/rails test` (pass)
+- [x] `scripts/agent/tickets/check.sh` (pass)
 
 ### Slice 6: Tagging, Observability, and Cycle Closure
 
