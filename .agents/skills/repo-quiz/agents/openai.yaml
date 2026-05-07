@@ -1,0 +1,4 @@
+interface:
+  display_name: "Repo Quiz"
+  short_description: "Conduct bounded repository questionnaire sessions."
+  default_prompt: "Run a bounded quiz for a repository design topic and capture curated notes."
