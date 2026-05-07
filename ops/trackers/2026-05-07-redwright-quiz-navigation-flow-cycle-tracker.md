@@ -4,9 +4,9 @@
 
 - cycle_id: `cycle-2026-05-07-redwright-quiz-navigation-flow`
 - status: `in_progress`
-- state: `slice_2_reviewing`
+- state: `slice_3_in_progress`
 - updated: `2026-05-07`
-- active_slice: `none`
+- active_slice: `Slice 3`
 - active_task: `none`
 - source_plan: `ops/plans/2026-05-07-redwright-quiz-navigation-flow-cycle-plan.md`
 - source_ticket: `ops/tickets/in_progress/20260507074859-review-quiz-navigation-flow-and-question-routing-semantics.md`
@@ -43,7 +43,7 @@ Validation:
 
 ### Slice 2: Answer and Skip Progression Semantics
 
-- status: `reviewing`
+- status: `pr_merged`
 - branch: `fix/slice-2-quiz-answer-skip-progression`
 - PR: `https://codeberg.org/adrianpk/redwright/pulls/342`
 - merge_target: `dev`
@@ -72,24 +72,24 @@ Validation:
 
 ### Slice 3: Control Semantics and Port Parity
 
-- status: `pending`
+- status: `in_progress`
 - branch: `fix/slice-3-quiz-control-port-parity`
 - PR: `pending`
 - merge_target: `dev`
-- last_sync_commit: `pending`
+- last_sync_commit: `c0588d8`
 
 Tasks:
 
-- [ ] `T3.1 verify Done and Cancel semantics against the quiz spec and Telegram behavior`
-- [ ] `T3.2 align web Done behavior with sufficiently-answered-for-now semantics`
-- [ ] `T3.3 align web Cancel behavior with stop-without-sufficient-answer semantics`
-- [ ] `T3.4 keep quiz reopening behavior after Done and Cancel`
-- [ ] `T3.5 cover control semantics through targeted web and Telegram tests`
+- [x] `T3.1 verify Done and Cancel semantics against the quiz spec and Telegram behavior`
+- [x] `T3.2 align web Done behavior with sufficiently-answered-for-now semantics`
+- [x] `T3.3 align web Cancel behavior with stop-without-sufficient-answer semantics`
+- [x] `T3.4 keep quiz reopening behavior after Done and Cancel`
+- [x] `T3.5 cover control semantics through targeted web and Telegram tests`
 
 Commits:
 
-- [ ] `fix(web): align quiz done and cancel semantics`
-- [ ] `test(web): cover quiz control port parity`
+- [x] `fix(web): align quiz done and cancel semantics`
+- [x] `test(web): cover quiz control port parity`
 
 Validation:
 

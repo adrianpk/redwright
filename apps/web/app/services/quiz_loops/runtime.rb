@@ -40,8 +40,8 @@ module QuizLoops
       tags_for_entry = current_or_submitted_tags(quiz: quiz, tags: tags)
 
       return skipped_result(quiz: quiz, question: question_for_entry, tags: tags_for_entry) if control == "skip"
-      return terminal_result(status: "done", quiz: quiz) if control == "done"
-      return terminal_result(status: "cancelled", quiz: quiz) if control == "cancel"
+      return stop_result(status: "done", quiz: quiz) if control == "done"
+      return stop_result(status: "cancelled", quiz: quiz) if control == "cancel"
 
       entry = quiz.entries.create!(
         question: question_for_entry,
@@ -134,6 +134,11 @@ module QuizLoops
       )
     end
 
+    def stop_result(status:, quiz:)
+      quiz.clear_current_question! if quiz.current_question?
+      terminal_result(status: status, quiz: quiz)
+    end
+
     def terminal_result(status:, quiz:)
       Result.new(
         ok: true,
@@ -173,7 +178,7 @@ module QuizLoops
     end
 
     def control_from(answer)
-      normalized = answer.to_s.strip.downcase
+      normalized = answer.to_s.strip.downcase.delete_prefix("/")
       CONTROLS.include?(normalized) ? normalized : nil
     end
   end

@@ -26,7 +26,7 @@ module QuizLoops
       project = Project.find(payload.fetch("project_id"))
       runtime = Runtime.new(project: project, use_case_name: payload["use_case_name"])
       result = runtime.advance!(
-        question: payload.fetch("question"),
+        question: payload["question"],
         answer: payload.fetch("answer"),
         tags: payload.fetch("tags", [])
       )

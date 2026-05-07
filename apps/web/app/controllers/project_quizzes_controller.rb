@@ -50,12 +50,12 @@ class ProjectQuizzesController < ApplicationController
   end
 
   def done
-    runtime_for(@quiz).advance!(question: params.require(:question), answer: "done", tags: tag_params)
+    runtime_for(@quiz).advance!(answer: "done")
     redirect_to project_quizzes_path(@project), notice: "Quiz stopped as done."
   end
 
   def cancel
-    runtime_for(@quiz).advance!(question: params.require(:question), answer: "cancel", tags: tag_params)
+    runtime_for(@quiz).advance!(answer: "cancel")
     redirect_to project_quizzes_path(@project), notice: "Quiz cancelled."
   end
 
@@ -101,7 +101,4 @@ class ProjectQuizzesController < ApplicationController
     QuizLoops::Runtime.new(project: @project, use_case_name: quiz.use_case&.name)
   end
 
-  def tag_params
-    params[:tags].to_s.split(",").map(&:strip).reject(&:blank?)
-  end
 end

@@ -295,9 +295,7 @@ module Redwright
         payload: {
           "project_id" => context.fetch("project_id"),
           "use_case_name" => context["use_case_name"],
-          "question" => context.fetch("question"),
-          "answer" => event.text.to_s,
-          "tags" => context.fetch("tags", [])
+          "answer" => event.text.to_s
         },
         actor_identifier: actor_identifier_for(event),
         request_id: request_id_for(event, "advance-quiz")
@@ -493,9 +491,7 @@ module Redwright
       if data["status"].to_s == "collecting" && data["question"].to_s.strip != ""
         @quiz_contexts_by_chat[chat_id] = {
           "project_id" => project_id,
-          "use_case_name" => use_case_name,
-          "question" => data["question"],
-          "tags" => data["tags"] || []
+          "use_case_name" => use_case_name
         }
       else
         @quiz_contexts_by_chat.delete(chat_id)

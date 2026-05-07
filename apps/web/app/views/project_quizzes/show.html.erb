@@ -23,8 +23,8 @@
         <button type="submit" form="quiz-answer-form" class="ticket-action ticket-action-primary">Answer</button>
       </div>
       <div class="quiz-action-group">
-        <%= button_to "Cancel", cancel_project_quiz_path(@project, @quiz), method: :post, params: { question: @current_question, tags: @current_tags.join(",") }, class: "ticket-action ticket-action-danger" %>
-        <%= button_to "Done", done_project_quiz_path(@project, @quiz), method: :post, params: { question: @current_question, tags: @current_tags.join(",") }, class: "ticket-action" %>
+        <%= button_to "Cancel", cancel_project_quiz_path(@project, @quiz), method: :post, class: "ticket-action ticket-action-danger" %>
+        <%= button_to "Done", done_project_quiz_path(@project, @quiz), method: :post, class: "ticket-action" %>
       </div>
     </div>
   </section>
