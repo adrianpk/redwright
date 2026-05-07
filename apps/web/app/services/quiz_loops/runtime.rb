@@ -95,6 +95,8 @@ module QuizLoops
     end
 
     def next_question_result(quiz, entry: nil)
+      quiz.cleanup_stale_candidates!
+
       if quiz.entries.count >= configuration.max_questions
         quiz.clear_current_question! if quiz.current_question?
         return terminal_result(status: "done", quiz: quiz)
