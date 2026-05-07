@@ -38,7 +38,7 @@ The user clarified that the fast/deep split is not only a technical routing conc
 
 The primary problem is perceived waiting. The current flow can feel slow in the web app, while a similar Telegram interaction can feel lighter because the typing indicator communicates that generation is in progress. Processing feedback should contribute to both `deep` and `fast`; it is not an alternative to fast generation.
 
-The current web flow behaves like traditional request/response navigation. To show meaningful processing feedback and avoid full-page churn, the quiz question/answer area may need to become a partial-update region, for example through Turbo Streams.
+The current web flow behaves like traditional request/response navigation. To show meaningful processing feedback and avoid full-page churn, the quiz question/answer area may need a partial-update mechanism. The exact frontend technique should be chosen from the existing Rails app shape during implementation.
 
 ## Working Notes
 
@@ -235,7 +235,7 @@ The current web flow behaves like traditional request/response navigation. To sh
 - desired behavior:
   - Evaluate making the quiz question/answer area a partial-update surface.
   - Prefer updating only the changing region when moving between questions.
-  - Consider Turbo Streams or an equivalent Rails-native mechanism for processing feedback and question replacement.
+  - Consider the least invasive Rails-compatible mechanism for processing feedback and question replacement.
 
 ### 5) Request Engine Boundary
 
@@ -252,7 +252,7 @@ The current web flow behaves like traditional request/response navigation. To sh
 - Should `fast` be opt-in per quiz, per use case, or selected automatically by the runtime?
 - How should RedWright choose the concrete fast strategy internally?
 - What web affordance should communicate that the next question is being generated?
-- Should the quiz question/answer area become a Turbo Stream-updated region?
+- Should the quiz question/answer area become a partially updated region?
 - How should the UI expose a fast/deep switch during the quiz?
 - What state should be invalidated when switching modes?
 - How should generated-question mode and answer mode be represented in persisted metadata?

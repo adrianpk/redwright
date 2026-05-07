@@ -4,35 +4,36 @@
 
 - cycle_id: `cycle-2026-05-07-redwright-quiz-fast-deep-question-tree`
 - status: `planned`
-- state: `not_started`
+- state: `slice_1_in_progress`
 - updated: `2026-05-07`
-- active_slice: `none`
-- active_task: `none`
+- active_slice: `Slice 1`
+- active_task: `T1.1`
 - source_plan: `ops/plans/2026-05-07-redwright-quiz-fast-deep-question-tree-cycle-plan.md`
 - source_spec: `ops/specs/specs/2026-05-07-redwright-quiz-fast-deep-question-tree-spec.md`
 
 ## Slice Progress
 
-### Slice 1: Quiz Partial Update and Processing Feedback
+### Slice 1: Quiz Processing Feedback
 
-- status: `planned`
-- branch: `feat/slice-1-quiz-partial-processing-feedback`
+- status: `in_progress`
+- branch: `feat/slice-1-quiz-processing-feedback`
 - PR: `none`
 - merge_target: `dev`
 - last_sync_commit: `pending`
 
 Tasks:
 
-- [ ] `T1.1 audit current web quiz request/response rendering and Turbo availability`
-- [ ] `T1.2 isolate the question/answer region into a reusable partial or frame-compatible surface`
+- [x] `T1.1 audit current web quiz request/response rendering and processing-feedback options`
+- [ ] `T1.2 identify the existing quiz turn surface for feedback without changing navigation`
 - [ ] `T1.3 show a processing state while the next question is being generated`
 - [ ] `T1.4 preserve existing answer, skip, cancel, and done semantics`
 - [ ] `T1.5 cover the partial update behavior with controller/system-level tests where practical`
 
 Commits:
 
+- [ ] `docs(ops): record quiz partial update audit`
 - [ ] `feat(web): add quiz processing feedback surface`
-- [ ] `test(web): cover quiz partial question updates`
+- [ ] `test(web): cover quiz processing feedback`
 
 Validation:
 
@@ -179,11 +180,19 @@ Validation:
 - Slice execution must stop after each PR until the previous slice is merged into `dev`.
 - The implementation should keep `deep` as the default and should not expose concrete fast strategies to users.
 
+## Slice 1 Audit
+
+- The current quiz show page uses full-page request/response navigation for answer, skip, cancel, and done.
+- The user-visible issue is perceived waiting, not a requirement for a specific frontend mechanism.
+- The smallest behavior surface to evaluate is the existing quiz answer/skip interaction, because that is where the user waits for the next generated question.
+- Any partial-update or processing-feedback mechanism must preserve answer, skip, cancel, and done semantics.
+- The first implementation should prefer immediate submit feedback over changing navigation or introducing a partial-update mechanism.
+
 ## Residual Risks
 
 - The first fast strategy may improve only some quiz paths.
 - Candidate persistence may be unnecessary if serialized runtime metadata is enough.
-- Turbo Streams may require adjustment if the existing quiz controller shape does not fit partial updates cleanly.
+- The first processing-feedback mechanism may need adjustment after manual browser review.
 
 ## Tuning Decision
 

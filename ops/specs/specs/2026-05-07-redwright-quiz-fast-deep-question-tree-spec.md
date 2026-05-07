@@ -30,7 +30,7 @@ RedWright needs a quiz progression model that keeps deep extraction quality by d
 - allow mode switching during an active quiz round
 - keep the visible quiz interaction mostly unchanged across modes
 - make processing feedback apply to both modes
-- evaluate partial web updates for the question/answer region, likely through Turbo Streams
+- evaluate partial web updates or processing feedback for the question/answer region without preselecting a frontend technique
 - treat `fast` as a family of internal strategies, not a user-selected implementation detail
 - support fast strategies such as one-shot round generation, batch generation, and speculative question trees
 - avoid a broad local semantic matcher
@@ -113,7 +113,7 @@ Processing feedback is part of both modes.
 
 The web UI should communicate that the next question is being generated.
 
-The current full-page request/response flow limits useful in-progress feedback. The quiz question/answer area should be evaluated as a partial-update region. Turbo Streams or an equivalent Rails-native mechanism is the preferred first candidate.
+The current full-page request/response flow limits useful in-progress feedback. The quiz question/answer area should be evaluated as a candidate partial-update region, but the implementation should choose the least invasive mechanism from the current Rails app shape rather than preselecting one frontend technique.
 
 The UI should update only the region that changes when possible.
 
@@ -247,6 +247,6 @@ Fast mode may introduce additional structured output contracts, but it must not 
 
 - Which fast strategy should be implemented first: batch, full round, tree, or a minimal hybrid?
 - Should generated candidates use a table or serialized runtime metadata in the first slice that needs them?
-- What is the smallest Turbo Streams surface that delivers useful processing feedback?
+- What is the smallest interaction surface that delivers useful processing feedback?
 - What candidate cleanup rule is simplest in the actual Rails model?
 - Which mode/strategy metadata is worth storing for observability without complicating retrieval?

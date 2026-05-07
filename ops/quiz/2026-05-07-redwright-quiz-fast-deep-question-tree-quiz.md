@@ -111,7 +111,7 @@ Curated quiz notes supporting `2026-05-07-redwright-quiz-fast-deep-question-tree
 - Processing feedback is not an alternative to fast mode; it is a cross-cutting UX improvement.
 - This does not need a formal measurement committee. The current user perception is sufficient evidence that the flow can feel slow.
 - The current web quiz cycle is traditional request/response navigation.
-- To show an animation or processing state effectively, the question/answer area probably needs partial replacement, for example with Turbo Streams.
+- To show an animation or processing state effectively, the question/answer area may need a partial replacement mechanism, but the exact frontend technique should be chosen during implementation.
 - The UI should refresh only the area that actually changes instead of relying on full-page navigation for every question transition.
 - Mode is not a one-time user-selected setup choice.
 - Mode choice depends on the user's current tolerance for latency versus quality, similar to choosing between cheaper/faster and slower/better LLM models.
@@ -202,7 +202,7 @@ Curated quiz notes supporting `2026-05-07-redwright-quiz-fast-deep-question-tree
 - `keep`: evaluate UX processing feedback as part of the solution space.
 - `keep`: processing feedback applies to both deep and fast modes.
 - `keep`: user perception is enough justification for latency UX work.
-- `keep`: consider Turbo Streams or equivalent partial updates for the quiz question/answer region.
+- `keep`: consider a partial-update or processing-feedback mechanism for the quiz question/answer region without preselecting the frontend technique.
 - `discard`: do not ask the user to choose between fast strategies such as batch and tree.
 - `keep`: speculative trees, when used, should have variable shape with a hard default maximum of `1 -> 3 -> 9`.
 - `keep`: LLM-generated questions should remain pragmatic and avoid unnecessary follow-up pressure.
@@ -224,7 +224,7 @@ Curated quiz notes supporting `2026-05-07-redwright-quiz-fast-deep-question-tree
 - What mode-selection policy should be used first?
 - How should RedWright choose the concrete fast strategy internally?
 - What web affordance should communicate that the next question is being generated?
-- Should the quiz question/answer area become a Turbo Stream-updated region?
+- Should the quiz question/answer area become a partially updated region?
 - What state needs to be invalidated when switching from fast to deep or deep to fast?
 - How should generated-question mode and answer mode be represented in persisted metadata?
 - Should generated-but-not-activated questions be persisted as first-class records or stored as quiz runtime metadata?

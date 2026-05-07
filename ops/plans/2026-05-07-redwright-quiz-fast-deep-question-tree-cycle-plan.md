@@ -19,25 +19,25 @@
 
 ## Slice List
 
-### Slice 1: Quiz Partial Update and Processing Feedback
+### Slice 1: Quiz Processing Feedback
 
 - status: `planned`
-- branch: `feat/slice-1-quiz-partial-processing-feedback`
-- pr_title: `feat(slice-1): add quiz processing feedback surface`
-- objective: `make the current deep flow feel responsive by updating the quiz question/answer region partially and showing generation feedback`
+- branch: `feat/slice-1-quiz-processing-feedback`
+- pr_title: `feat(slice-1): add quiz processing feedback`
+- objective: `make the current deep flow feel responsive by showing immediate generation feedback while preserving the existing request/response navigation`
 - tasks:
-- [ ] `T1.1 audit current web quiz request/response rendering and Turbo availability`
-- [ ] `T1.2 isolate the question/answer region into a reusable partial or frame-compatible surface`
+- [ ] `T1.1 audit current web quiz request/response rendering and processing-feedback options`
+- [ ] `T1.2 identify the existing quiz turn surface for feedback without changing navigation`
 - [ ] `T1.3 show a processing state while the next question is being generated`
 - [ ] `T1.4 preserve existing answer, skip, cancel, and done semantics`
 - [ ] `T1.5 cover the partial update behavior with controller/system-level tests where practical`
 - acceptance:
-- `the quiz question/answer region can update without full-page churn where practical`
+- `answer and skip show immediate processing feedback before the response returns`
 - `generation feedback is visible during next-question processing`
 - `the default deep flow remains behaviorally unchanged`
 - planned_commits:
 - `feat(web): add quiz processing feedback surface`
-- `test(web): cover quiz partial question updates`
+- `test(web): cover quiz processing feedback`
 
 ### Slice 2: Mode State and UI Switch
 
@@ -147,7 +147,7 @@
 - Fast is available through a low-profile switch.
 - Users do not choose concrete fast strategies.
 - Processing feedback applies to both modes.
-- The question/answer region supports partial update behavior where practical.
+- Answer and skip expose processing feedback while preserving request/response behavior.
 - Fast mode uses an internal strategy through `LLMRequestEngine`.
 - No broad local semantic matcher is introduced.
 - Generated candidates do not pollute final `QuizEntry` context material.
