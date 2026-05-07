@@ -7,7 +7,7 @@
 - state: `slice_1_ready`
 - updated: `2026-05-07`
 - active_slice: `Slice 1`
-- active_task: `T1.2`
+- active_task: `T1.3`
 - source_plan: `ops/plans/2026-05-07-redwright-quiz-navigation-flow-cycle-plan.md`
 - source_ticket: `ops/tickets/in_progress/20260507074859-review-quiz-navigation-flow-and-question-routing-semantics.md`
 
@@ -24,14 +24,14 @@
 Tasks:
 
 - [x] `T1.1 audit existing quiz and project setup routing/state mechanisms for reuse or configurable generalization`
-- [ ] `T1.2 persist current quiz question metadata outside URL query parameters`
-- [ ] `T1.3 resolve the current web quiz question from backend state on show/open`
+- [x] `T1.2 persist current quiz question metadata outside URL query parameters`
+- [x] `T1.3 resolve the current web quiz question from backend state on show/open`
 - [ ] `T1.4 cover current-question state with runtime and controller tests`
 
 Commits:
 
 - [x] `docs(ops): record quiz routing reuse audit`
-- [ ] `feat(web): persist quiz current question state`
+- [x] `feat(web): persist quiz current question state`
 - [ ] `test(web): cover quiz current question state`
 
 Validation:

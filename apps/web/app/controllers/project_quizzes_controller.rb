@@ -11,8 +11,9 @@ class ProjectQuizzesController < ApplicationController
 
   def show
     persist_current_project!(@project)
-    @current_question = params[:question].presence || open_quiz.question
-    @current_tags = params[:tags].to_s.split(",").map(&:strip).reject(&:blank?)
+    current = open_quiz
+    @current_question = current.question
+    @current_tags = current.tags
     @recent_entries = @quiz.entries.includes(:tags).order(created_at: :desc).limit(6)
   end
 
@@ -29,12 +30,7 @@ class ProjectQuizzesController < ApplicationController
     end
 
     result = QuizLoops::Runtime.new(project: @project, use_case_name: use_case.name).open
-    redirect_to project_quiz_path(
-      @project,
-      result.quiz,
-      question: result.question,
-      tags: result.tags.join(",")
-    )
+    redirect_to project_quiz_path(@project, result.quiz)
   end
 
   def answer

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_06_195000) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_07_080500) do
   create_table "boards", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "name", null: false
@@ -243,6 +243,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_06_195000) do
 
   create_table "quizzes", force: :cascade do |t|
     t.datetime "created_at", null: false
+    t.string "current_fallback_reason", default: "", null: false
+    t.text "current_prompt_intent_json", default: "{}", null: false
+    t.text "current_question"
+    t.text "current_question_errors_json", default: "[]", null: false
+    t.datetime "current_question_started_at"
+    t.text "current_tags_json", default: "[]", null: false
     t.string "name", null: false
     t.integer "project_id", null: false
     t.string "status", default: "active", null: false

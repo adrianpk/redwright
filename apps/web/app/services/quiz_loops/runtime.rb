@@ -28,6 +28,8 @@ module QuizLoops
 
     def open
       quiz = resolve_quiz!
+      return current_question_result(quiz) if quiz.current_question?
+
       next_question_result(quiz)
     end
 
@@ -76,9 +78,19 @@ module QuizLoops
     end
 
     def next_question_result(quiz, entry: nil)
-      return terminal_result(status: "done", quiz: quiz) if quiz.entries.count >= configuration.max_questions
+      if quiz.entries.count >= configuration.max_questions
+        quiz.clear_current_question! if quiz.current_question?
+        return terminal_result(status: "done", quiz: quiz)
+      end
 
       generated = question_provider.generate(input: input_for(quiz))
+      quiz.store_current_question!(
+        question: generated.question,
+        tags: generated.tags,
+        prompt_intent: generated.prompt_intent,
+        fallback_reason: generated.fallback_reason,
+        errors: generated.errors
+      )
       Result.new(
         ok: true,
         status: "collecting",
@@ -89,6 +101,20 @@ module QuizLoops
         prompt_intent: generated.prompt_intent,
         fallback_reason: generated.fallback_reason,
         errors: generated.errors
+      )
+    end
+
+    def current_question_result(quiz)
+      Result.new(
+        ok: true,
+        status: "collecting",
+        quiz: quiz,
+        entry: nil,
+        question: quiz.current_question,
+        tags: quiz.current_tags,
+        prompt_intent: quiz.current_prompt_intent,
+        fallback_reason: quiz.current_fallback_reason,
+        errors: quiz.current_question_errors
       )
     end
 
