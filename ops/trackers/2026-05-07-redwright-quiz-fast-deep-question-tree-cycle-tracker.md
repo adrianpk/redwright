@@ -159,7 +159,7 @@ Validation:
 
 - status: `implemented`
 - branch: `feat/slice-6-quiz-fast-deep-closure`
-- PR: `none`
+- PR: `https://codeberg.org/adrianpk/redwright/pulls/352`
 - merge_target: `dev`
 - last_sync_commit: `pending`
 
@@ -170,7 +170,7 @@ Tasks:
 - [x] `T6.3 add cheap observability for mode, strategy, fallback, and candidate cleanup when useful`
 - [x] `T6.4 update tracker, spec notes, and residual-risk documentation`
 - [x] `T6.5 run targeted web, runtime, LLM provider, and full Rails validation`
-- [x] `T6.6 tuning: replace insufficient single-candidate fast path with 3-question batch progression`
+- [x] `T6.6 tuning: replace insufficient single-candidate fast path with 10-question batch progression`
 - [x] `T6.7 tuning: simplify processing feedback to animated dots only`
 
 Commits:
@@ -206,11 +206,11 @@ Validation:
 
 ## Residual Risks
 
-- The first fast strategy is intentionally bounded to linear batches of three questions.
+- The first fast strategy is intentionally bounded to linear batches of ten questions.
 - Richer fast routing still needs a future deterministic node model before tree routing can do more than linear batch progression.
 - The first processing-feedback mechanism may need adjustment after manual browser review.
 
 ## Tuning Decision
 
 - tuning needed: `yes`
-- evidence: `manual review found single-candidate fast did not satisfy requested low-latency behavior; tuning replaces it with 3-question batch progression before closure`
+- evidence: `manual review found short fast batches did not satisfy requested low-latency behavior; tuning replaces them with 10-question batch progression before closure`

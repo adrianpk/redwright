@@ -3,16 +3,18 @@
     <p class="document-artifact-breadcrumb">
       <%= link_to "Quizzes", project_quizzes_path(@project) %>
     </p>
-    <h1><%= @quiz.use_case&.name || "Project Quiz" %></h1>
-    <div class="quiz-mode-switch" aria-label="Quiz mode">
-      <% Quiz::MODES.each do |mode| %>
-        <%= button_to mode.capitalize,
-                      mode_project_quiz_path(@project, @quiz),
-                      method: :patch,
-                      params: { mode: mode },
-                      class: "quiz-mode-action#{' is-active' if @quiz.mode == mode}",
-                      disabled: @quiz.mode == mode %>
-      <% end %>
+    <div class="quiz-header-row">
+      <h1><%= @quiz.use_case&.name || "Project Quiz" %></h1>
+      <div class="quiz-mode-switch" aria-label="Quiz mode">
+        <% Quiz::MODES.each do |mode| %>
+          <%= button_to mode.capitalize,
+                        mode_project_quiz_path(@project, @quiz),
+                        method: :patch,
+                        params: { mode: mode },
+                        class: "quiz-mode-action#{' is-active' if @quiz.mode == mode}",
+                        disabled: @quiz.mode == mode %>
+        <% end %>
+      </div>
     </div>
   </header>
 
@@ -28,6 +30,9 @@
           <span></span>
           <span></span>
         </span>
+        <% if @show_fast_refill_hint %>
+          <span class="quiz-processing-hint">Preparing fast loop.</span>
+        <% end %>
       </div>
       <p><%= @current_question %></p>
     </div>

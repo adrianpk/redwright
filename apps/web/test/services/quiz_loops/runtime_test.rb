@@ -62,7 +62,7 @@ module QuizLoops
       assert_equal "What fast candidate should be activated?", quiz.current_question
       assert_equal "activated", candidate.fetch("status")
       assert_equal "batch-0-1", candidate.fetch("branch_key")
-      assert_equal 3, quiz.candidate_questions.count
+      assert_equal QuestionProvider::FAST_BATCH_SIZE, quiz.candidate_questions.count
       assert_equal 0, quiz.entries.count
       assert_equal 0, Tag.where(name: "fast-candidate").count
     end
@@ -74,15 +74,14 @@ module QuizLoops
       quiz.update!(mode: "fast")
       runtime = Runtime.new(project: project, question_provider: provider)
 
-      first = runtime.open
-      second = runtime.advance!(answer: "skip")
-      third = runtime.advance!(answer: "skip")
+      results = [runtime.open]
+      (QuestionProvider::FAST_BATCH_SIZE - 1).times do
+        results << runtime.advance!(answer: "skip")
+      end
 
       assert_equal 1, provider.calls
-      assert_equal "What fast candidate should be activated?", first.question
-      assert_equal "What second fast candidate should be activated?", second.question
-      assert_equal "What third fast candidate should be activated?", third.question
-      assert_equal ["activated", "activated", "activated"], quiz.reload.candidate_questions.map { |candidate| candidate.fetch("status") }
+      assert_equal FastQuestionProvider::QUESTIONS, results.map(&:question)
+      assert_equal Array.new(QuestionProvider::FAST_BATCH_SIZE, "activated"), quiz.reload.candidate_questions.map { |candidate| candidate.fetch("status") }
     end
 
     test "answered fast question uses queued batch before another llm call" do
@@ -359,6 +358,19 @@ module QuizLoops
     end
 
     class FastQuestionProvider
+      QUESTIONS = [
+        "What fast candidate should be activated?",
+        "What second fast candidate should be activated?",
+        "What third fast candidate should be activated?",
+        "What fourth fast candidate should be activated?",
+        "What fifth fast candidate should be activated?",
+        "What sixth fast candidate should be activated?",
+        "What seventh fast candidate should be activated?",
+        "What eighth fast candidate should be activated?",
+        "What ninth fast candidate should be activated?",
+        "What tenth fast candidate should be activated?"
+      ].freeze
+
       attr_reader :calls
 
       def initialize
@@ -367,14 +379,10 @@ module QuizLoops
 
       def generate(input:)
         @calls += 1
-        candidates = [
-          ["What fast candidate should be activated?", ["fast-candidate"]],
-          ["What second fast candidate should be activated?", ["fast-candidate"]],
-          ["What third fast candidate should be activated?", ["fast-candidate"]]
-        ].map do |question, tags|
+        candidates = QUESTIONS.map do |question|
           {
             "question" => question,
-            "tags" => tags,
+            "tags" => ["fast-candidate"],
             "follow_up_depth" => 1,
             "completion_recommended" => false
           }

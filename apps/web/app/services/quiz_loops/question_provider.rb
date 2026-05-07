@@ -24,7 +24,7 @@ module QuizLoops
     FAST_ACTION = "quiz_fast_question_generation".freeze
     DEEP_STRATEGY = "deep".freeze
     FAST_STRATEGY = "batch".freeze
-    FAST_BATCH_SIZE = 3
+    FAST_BATCH_SIZE = 10
     MODEL_ROLE = "non_coding".freeze
     SOURCE_CHANNEL = "quiz_loop".freeze
     DEEP_SYSTEM_PROMPT = <<~TEXT

@@ -15,6 +15,7 @@ class ProjectQuizzesController < ApplicationController
     @current_question = current.question
     @current_tags = current.tags
     @recent_entries = @quiz.entries.includes(:tags).order(created_at: :desc).limit(6)
+    @show_fast_refill_hint = @quiz.fast_mode? && @quiz.candidate_questions.none? { |candidate| candidate.fetch("status") == "active" }
   end
 
   def project

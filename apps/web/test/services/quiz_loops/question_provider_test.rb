@@ -40,8 +40,8 @@ module QuizLoops
       assert_equal ["quiz_fast_question_generation"], engine.actions
       assert_equal "What fast question should agents answer first?", result.question
       assert_equal QuestionProvider::FAST_STRATEGY, result.generation_strategy
-      assert_equal 3, result.candidates.size
-      assert_equal "What fast question should agents answer third?", result.candidates.third.fetch("question")
+      assert_equal QuestionProvider::FAST_BATCH_SIZE, result.candidates.size
+      assert_equal "What fast question should agents answer tenth?", result.candidates.last.fetch("question")
     end
 
     test "falls back to deep generation when fast generation is unavailable" do
@@ -149,13 +149,9 @@ module QuizLoops
       end
 
       def valid_fast_batch_response
-        questions = [
-          "What fast question should agents answer first?",
-          "What fast question should agents answer second?",
-          "What fast question should agents answer third?"
-        ].map do |question|
+        questions = %w[first second third fourth fifth sixth seventh eighth ninth tenth].map do |position|
           {
-            "question" => question,
+            "question" => "What fast question should agents answer #{position}?",
             "tags" => ["Agent Workflow"],
             "follow_up_depth" => 1,
             "completion_recommended" => false

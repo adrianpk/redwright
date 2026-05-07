@@ -246,7 +246,7 @@ Fast mode may introduce additional structured output contracts, but it must not 
 ## Implementation Notes
 
 - The first fast strategy is `batch`.
-- Fast batch generation requests three upcoming questions in one LLM call.
+- Fast batch generation requests ten upcoming questions in one LLM call.
 - Fast generation uses `LLMRequestEngine` through the internal `quiz_fast_question_generation` action.
 - Usable fast generations are stored as serialized quiz candidate metadata.
 - The first fast candidate is activated immediately.
@@ -258,7 +258,7 @@ Fast mode may introduce additional structured output contracts, but it must not 
 
 ## Open Implementation Decisions
 
-- resolved: First fast strategy is `batch` with three generated candidates.
+- resolved: First fast strategy is `batch` with ten generated candidates.
 - resolved: Generated candidates use serialized quiz runtime metadata.
 - resolved: Initial processing feedback uses the current answer/skip interaction surface.
 - resolved: Candidate cleanup is local and opportunistic.

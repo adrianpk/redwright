@@ -115,7 +115,10 @@ class ProjectQuizzesControllerTest < ActionDispatch::IntegrationTest
     assert_select "#quiz-answer-form"
     assert_select "#quiz-answer-form[data-quiz-processing-form]"
     assert_select "#quiz-processing-feedback[hidden] .quiz-processing-dots span", count: 3
+    assert_select "#quiz-processing-feedback .quiz-processing-hint", count: 0
     assert_select ".document-artifact-panel[data-quiz-processing-surface]"
+    assert_select ".quiz-header-row h1", text: "Project Quiz"
+    assert_select ".quiz-header-row .quiz-mode-switch"
     assert_select ".quiz-mode-switch"
     assert_select ".quiz-mode-action.is-active", text: "Deep"
     assert_select ".quiz-mode-action", text: "Fast"
@@ -124,6 +127,38 @@ class ProjectQuizzesControllerTest < ActionDispatch::IntegrationTest
     assert_select "form[data-quiz-processing-form] button", text: "Cancel", count: 0
     assert_select "form[data-quiz-processing-form] button", text: "Done", count: 0
     refute_match "rationale", response.body
+  end
+
+  test "show renders fast refill hint when fast queue is empty" do
+    admin = create_admin_user!
+    sign_in_as(admin)
+    project = create_project(key: "quiz-controller-fast-refill-hint")
+    quiz = project.find_or_create_main_quiz!
+    quiz.update!(mode: "fast")
+
+    get project_quiz_path(project, quiz)
+
+    assert_response :success
+    assert_select "#quiz-processing-feedback[hidden] .quiz-processing-dots span", count: 3
+    assert_select "#quiz-processing-feedback .quiz-processing-hint", text: "Preparing fast loop."
+  end
+
+  test "show omits fast refill hint when fast queue has active candidates" do
+    admin = create_admin_user!
+    sign_in_as(admin)
+    project = create_project(key: "quiz-controller-fast-refill-hint-queued")
+    quiz = project.find_or_create_main_quiz!
+    quiz.update!(mode: "fast")
+    quiz.add_candidate!(
+      question: "What queued fast question should be next?",
+      tags: ["fast"],
+      prompt_intent: { "kind" => "quiz_question" }
+    )
+
+    get project_quiz_path(project, quiz)
+
+    assert_response :success
+    assert_select "#quiz-processing-feedback .quiz-processing-hint", count: 0
   end
 
   test "mode updates quiz mode without changing current question" do

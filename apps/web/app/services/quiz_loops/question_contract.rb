@@ -81,8 +81,8 @@ module QuizLoops
       errors = []
       errors << "question can't be blank" if attributes.fetch("question").blank?
       errors << "tags must include at least one normalized tag" if attributes.fetch("tags").empty?
-      unless (1..max_follow_up_depth).cover?(attributes.fetch("follow_up_depth"))
-        errors << "follow_up_depth must be between 1 and #{max_follow_up_depth}"
+      unless (0..max_follow_up_depth).cover?(attributes.fetch("follow_up_depth"))
+        errors << "follow_up_depth must be between 0 and #{max_follow_up_depth}"
       end
       errors
     end

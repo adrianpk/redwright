@@ -29,6 +29,18 @@ module QuizLoops
       assert_equal %w[one two three], result.attributes.fetch("tags")
     end
 
+    test "accepts root follow up depth" do
+      result = QuestionContract.new(max_follow_up_depth: 3).validate(
+        "question" => "What should start this use case quiz?",
+        "tags" => ["context"],
+        "follow_up_depth" => 0,
+        "completion_recommended" => false
+      )
+
+      assert result.valid?
+      assert_equal 0, result.attributes.fetch("follow_up_depth")
+    end
+
     test "rejects hidden rationale and unexpected fields" do
       result = QuestionContract.new.validate(
         "question" => "What should be clarified?",
@@ -51,7 +63,7 @@ module QuizLoops
       )
 
       assert_not result.valid?
-      assert_includes result.errors, "follow_up_depth must be between 1 and 3"
+      assert_includes result.errors, "follow_up_depth must be between 0 and 3"
     end
 
     test "rejects questions that ask for sensitive information" do
