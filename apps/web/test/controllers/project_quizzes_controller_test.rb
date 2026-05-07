@@ -107,7 +107,10 @@ class ProjectQuizzesControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_match "What matters?", response.body
-    assert_match "Controls: answer, skip, done, cancel", response.body
+    assert_no_match "Controls: answer, skip, done, cancel", response.body
+    assert_match "quiz-action-row", response.body
+    assert_select "#quiz-answer-form"
+    assert_select "button[form='quiz-answer-form']", text: "Answer"
     refute_match "rationale", response.body
   end
 

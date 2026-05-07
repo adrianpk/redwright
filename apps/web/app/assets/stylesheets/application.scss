@@ -843,6 +843,18 @@ body {
   color: var(--accent-red-dark);
 }
 
+.ticket-action-primary {
+  background: var(--navy);
+  border-color: var(--navy);
+  color: #fff;
+}
+
+.ticket-action-primary:hover {
+  background: var(--navy-soft);
+  border-color: var(--navy-soft);
+  color: #fff;
+}
+
 .document-artifact-actions .ticket-action {
   margin-left: auto;
 }
@@ -866,15 +878,22 @@ body {
   line-height: 1.45;
 }
 
-.quiz-control-actions {
+.quiz-action-row {
   margin-top: 12px;
   display: flex;
   justify-content: flex-end;
-  gap: 8px;
+  align-items: center;
+  gap: 18px;
   flex-wrap: wrap;
 }
 
-.quiz-control-actions form {
+.quiz-action-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.quiz-action-group form {
   margin: 0;
 }
 

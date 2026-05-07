@@ -11,22 +11,23 @@
       <p><%= @current_question %></p>
     </div>
 
-    <%= form_with url: answer_project_quiz_path(@project, @quiz), method: :post, class: "document-artifact-form" do |form| %>
+    <%= form_with url: answer_project_quiz_path(@project, @quiz), method: :post, class: "document-artifact-form", id: "quiz-answer-form" do |form| %>
       <%= hidden_field_tag :question, @current_question %>
       <%= hidden_field_tag :tags, @current_tags.join(",") %>
       <div class="document-artifact-field document-artifact-field-body-only">
         <%= form.text_area :answer, rows: 8, placeholder: "Answer..." %>
       </div>
-      <div class="document-artifact-actions">
-        <span class="document-save-status">Controls: answer, skip, done, cancel</span>
-        <%= form.submit "Answer", class: "ticket-action" %>
-      </div>
     <% end %>
 
-    <div class="quiz-control-actions">
-      <%= button_to "Skip", skip_project_quiz_path(@project, @quiz), method: :post, params: { question: @current_question, tags: @current_tags.join(",") }, class: "ticket-action" %>
-      <%= button_to "Done", done_project_quiz_path(@project, @quiz), method: :post, params: { question: @current_question, tags: @current_tags.join(",") }, class: "ticket-action" %>
-      <%= button_to "Cancel", cancel_project_quiz_path(@project, @quiz), method: :post, params: { question: @current_question, tags: @current_tags.join(",") }, class: "ticket-action ticket-action-danger" %>
+    <div class="quiz-action-row">
+      <div class="quiz-action-group">
+        <%= button_to "Skip", skip_project_quiz_path(@project, @quiz), method: :post, params: { question: @current_question, tags: @current_tags.join(",") }, class: "ticket-action" %>
+        <button type="submit" form="quiz-answer-form" class="ticket-action ticket-action-primary">Answer</button>
+      </div>
+      <div class="quiz-action-group">
+        <%= button_to "Cancel", cancel_project_quiz_path(@project, @quiz), method: :post, params: { question: @current_question, tags: @current_tags.join(",") }, class: "ticket-action ticket-action-danger" %>
+        <%= button_to "Done", done_project_quiz_path(@project, @quiz), method: :post, params: { question: @current_question, tags: @current_tags.join(",") }, class: "ticket-action" %>
+      </div>
     </div>
   </section>
 
