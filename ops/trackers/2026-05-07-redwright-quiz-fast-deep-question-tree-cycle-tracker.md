@@ -4,7 +4,7 @@
 
 - cycle_id: `cycle-2026-05-07-redwright-quiz-fast-deep-question-tree`
 - status: `planned`
-- state: `slice_2_merged`
+- state: `slice_3_implemented`
 - updated: `2026-05-07`
 - active_slice: `none`
 - active_task: `none`
@@ -72,7 +72,7 @@ Validation:
 
 ### Slice 3: Fast Strategy Contract
 
-- status: `planned`
+- status: `implemented`
 - branch: `feat/slice-3-quiz-fast-strategy-contract`
 - PR: `none`
 - merge_target: `dev`
@@ -80,21 +80,23 @@ Validation:
 
 Tasks:
 
-- [ ] `T3.1 audit existing runtime/provider boundaries for the smallest fast strategy insertion point`
-- [ ] `T3.2 define a strategy-neutral fast generation contract`
-- [ ] `T3.3 keep deep generation as the fallback and default`
-- [ ] `T3.4 route fast generation through LLMRequestEngine`
-- [ ] `T3.5 cover unavailable, invalid, and fallback fast generation behavior`
+- [x] `T3.1 audit existing runtime/provider boundaries for the smallest fast strategy insertion point`
+- [x] `T3.2 define a strategy-neutral fast generation contract`
+- [x] `T3.3 keep deep generation as the fallback and default`
+- [x] `T3.4 route fast generation through LLMRequestEngine`
+- [x] `T3.5 cover unavailable, invalid, and fallback fast generation behavior`
 
 Commits:
 
-- [ ] `feat(llm): add quiz fast generation contract`
-- [ ] `test(llm): cover quiz fast generation fallback`
+- [x] `da2fc62 feat(llm): add quiz fast generation contract`
+- [x] `1bcc301 test(llm): cover quiz fast generation fallback`
 
 Validation:
 
-- [ ] `bundle exec bin/rails test test/services/quiz_loops/question_provider_test.rb`
-- [ ] `bundle exec bin/rails test test/services/quiz_loops/runtime_test.rb`
+- [x] `bundle exec bin/rails test test/services/quiz_loops/question_provider_test.rb` (pass)
+- [x] `bundle exec bin/rails test test/services/quiz_loops/runtime_test.rb` (pass)
+- [x] `bundle exec bin/rails test` (pass)
+- [x] `scripts/agent/tickets/check.sh` (pass)
 
 ### Slice 4: Candidate Storage and Cleanup
 
