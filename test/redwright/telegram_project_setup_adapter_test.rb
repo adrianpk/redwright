@@ -144,6 +144,14 @@ class TelegramProjectSetupAdapterTest < Minitest::Test
     end
   end
 
+  FakeTelegramClient = Struct.new(:messages) do
+    def send_message(chat_id:, text:)
+      self.messages ||= []
+      self.messages << {chat_id: chat_id, text: text}
+      {"ok" => true}
+    end
+  end
+
   def test_starts_and_advances_project_setup_over_rails_api
     client = FakeRailsClient.new
     adapter = Redwright::TelegramProjectSetupAdapter.new(client: client)
@@ -499,6 +507,59 @@ class TelegramProjectSetupAdapterTest < Minitest::Test
     assert_match("Ticket: RW-42", started.message_list.first)
     assert_match("Agent ticket execution finished.", started.message_list.last)
     assert_match("Outcome: ready_for_review", started.message_list.last)
+  end
+
+  def test_ticket_start_can_ack_immediately_and_send_final_message_asynchronously
+    jobs = []
+    client = ScriptedRailsClient.new(
+      command_bodies: {
+        "ExecuteAgentTicket" => {
+          "status" => "ok",
+          "summary" => "Agent ticket execution completed.",
+          "data" => {
+            "execution" => {
+              "mode" => "targeted",
+              "state" => "completed",
+              "ticket_ref" => "RW-42",
+              "acknowledgement" => {
+                "status" => "accepted",
+                "message" => "Agent ticket execution accepted.",
+                "ticket_ref" => "RW-42",
+                "mode" => "targeted"
+              },
+              "terminal_outcome" => {
+                "status" => "ready_for_review",
+                "ticket_ref" => "RW-42"
+              }
+            }
+          }
+        }
+      }
+    )
+    telegram_client = FakeTelegramClient.new([])
+    adapter = Redwright::TelegramProjectSetupAdapter.new(
+      client: client,
+      telegram_client: telegram_client,
+      thread_factory: ->(&block) { jobs << block; Object.new }
+    )
+
+    started = adapter.handle(event(4, "/ticket start RW-42"), trace_id: "trc-test")
+
+    assert started.handled?
+    assert_equal("ticket_start", started.command)
+    assert_equal(1, started.message_list.size)
+    assert_match("Agent ticket execution accepted.", started.message_list.first)
+    assert_match("Ticket: RW-42", started.message_list.first)
+    assert_empty(client.calls)
+    assert_empty(telegram_client.messages)
+
+    jobs.fetch(0).call
+
+    assert_equal(%w[ExecuteAgentTicket], client.calls.map { |call| call[:name] })
+    assert_equal("RW-42", client.calls.first[:payload].fetch("ticket_ref"))
+    assert_equal(1, telegram_client.messages.size)
+    assert_match("Agent ticket execution finished.", telegram_client.messages.first[:text])
+    assert_match("Outcome: ready_for_review", telegram_client.messages.first[:text])
   end
 
   private

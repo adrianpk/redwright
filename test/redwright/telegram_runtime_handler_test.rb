@@ -1451,8 +1451,8 @@ class TelegramRuntimeHandlerTest < Minitest::Test
     handler.handle(Redwright::TelegramEvent.new(update_id: 3, chat_id: 46, user_id: 77, username: "tester", text: "/project new happy-cli"))
 
     assert_equal(1, client.messages.size)
-    assert_match("Rails project setup API failed: rails api down", client.messages.last[:text])
-    assert_match("telegram rails_project_setup_error chat=46", out.string)
+    assert_match("Rails command API failed: rails api down", client.messages.last[:text])
+    assert_match("telegram rails_command_api_error chat=46", out.string)
     assert_operator(client.chat_actions.count { |action| action == { chat_id: 46, action: "typing" } }, :>=, 1)
   end
 

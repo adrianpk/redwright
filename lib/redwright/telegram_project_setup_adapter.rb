@@ -18,9 +18,13 @@ module Redwright
 
     TERMINAL_STATES = %w[completed cancelled failed needs_reconciliation].freeze
 
-    def initialize(client:, prompt_renderer: ProjectSetupPromptRenderer.new)
+    def initialize(client:, prompt_renderer: ProjectSetupPromptRenderer.new, telegram_client: nil, async_ticket_execution: nil, thread_factory: nil, out: nil)
       @client = client
       @prompt_renderer = prompt_renderer
+      @telegram_client = telegram_client
+      @async_ticket_execution = async_ticket_execution.nil? ? !telegram_client.nil? : async_ticket_execution
+      @thread_factory = thread_factory || ->(&block) { Thread.new(&block) }
+      @out = out
       @session_ids_by_chat = {}
       @project_ids_by_chat = {}
       @ticket_ids_by_chat = {}
@@ -57,6 +61,39 @@ module Redwright
     private
 
     attr_reader :client
+    attr_reader :telegram_client
+    attr_reader :thread_factory
+
+    def async_ticket_execution?
+      @async_ticket_execution == true
+    end
+
+    def run_ticket_execution_async(chat_id:, ticket_id:, trace_id:, request_id:, actor_identifier:)
+      response = client.command(
+        name: "ExecuteAgentTicket",
+        payload: {"ticket_ref" => ticket_id},
+        actor_identifier: actor_identifier,
+        request_id: request_id
+      )
+      body = response.body
+      remember_ticket_context(chat_id: chat_id, body: body)
+      messages = render_agent_ticket_execution_messages(body: body, trace_id: trace_id)
+      final_messages = messages.length > 1 ? messages.drop(1) : messages
+      final_messages.each do |message|
+        telegram_client.send_message(chat_id: chat_id, text: message.to_s)
+      end
+    rescue StandardError => e
+      telegram_client&.send_message(
+        chat_id: chat_id,
+        text: [
+          "Agent ticket execution failed.",
+          "Ticket: #{ticket_id}",
+          "Error: #{e.class}: #{e.message}",
+          "Trace: #{trace_id}"
+        ].join("\n")
+      )
+      @out&.puts("telegram ticket_execution_async_error chat=#{chat_id}: #{e.class}: #{e.message}")
+    end
 
     def handle_project_command(event:, command:, trace_id:)
       case command[:command]
@@ -254,6 +291,10 @@ module Redwright
     end
 
     def start_ticket_execution(event:, ticket_id:, trace_id:)
+      if async_ticket_execution?
+        return start_ticket_execution_async(event: event, ticket_id: ticket_id, trace_id: trace_id)
+      end
+
       response = client.command(
         name: "ExecuteAgentTicket",
         payload: {"ticket_ref" => ticket_id},
@@ -270,6 +311,51 @@ module Redwright
         message: messages.last,
         messages: messages,
         api_response: body
+      )
+    end
+
+    def start_ticket_execution_async(event:, ticket_id:, trace_id:)
+      request_id = request_id_for(event, "execute-agent-ticket")
+      actor_identifier = actor_identifier_for(event)
+      ack_message = render_agent_ticket_execution_ack(
+        ticket_ref: ticket_id,
+        trace_id: trace_id,
+        request_id: request_id
+      )
+
+      thread_factory.call do
+        run_ticket_execution_async(
+          chat_id: event.chat_id,
+          ticket_id: ticket_id,
+          trace_id: trace_id,
+          request_id: request_id,
+          actor_identifier: actor_identifier
+        )
+      end
+
+      Result.new(
+        handled: true,
+        command: "ticket_start",
+        message: ack_message,
+        messages: [ack_message],
+        api_response: {
+          "status" => "ok",
+          "summary" => "Agent ticket execution accepted.",
+          "data" => {
+            "execution" => {
+              "state" => "accepted",
+              "mode" => "targeted",
+              "ticket_ref" => ticket_id,
+              "acknowledgement" => {
+                "status" => "accepted",
+                "message" => "Agent ticket execution accepted.",
+                "ticket_ref" => ticket_id,
+                "mode" => "targeted",
+                "request_id" => request_id
+              }
+            }
+          }
+        }
       )
     end
 
@@ -460,6 +546,16 @@ module Redwright
         "Trace: #{trace_id}"
       ].join("\n")
       [ack, final]
+    end
+
+    def render_agent_ticket_execution_ack(ticket_ref:, trace_id:, request_id:)
+      [
+        "Agent ticket execution accepted.",
+        "Ticket: #{ticket_ref}",
+        "Mode: targeted",
+        "Request: #{request_id}",
+        "Trace: #{trace_id}"
+      ].join("\n")
     end
 
     def render_quiz(body:, trace_id:)

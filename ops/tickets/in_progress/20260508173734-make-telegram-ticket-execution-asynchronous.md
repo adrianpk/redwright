@@ -1,7 +1,7 @@
 ---
 id: TKT-20260508173734
 title: Make Telegram ticket execution asynchronous
-status: ready
+status: in_progress
 kind: bug
 severity: high
 priority: high
@@ -10,12 +10,12 @@ tags: telegram, agent-ticket-execution, async, llm-trace
 source: manual_test
 reported_at: 2026-05-08T17:37:34Z
 ready_at: 2026-05-08T17:37:34Z
-started_at:
+started_at: 2026-05-08T17:51:23Z
 reviewed_at:
 closed_at:
 resolution:
 owner: 
-branch:
+branch: fix/ticket-20260508173734-async-ticket-execution
 pr:
 commits: []
 ---

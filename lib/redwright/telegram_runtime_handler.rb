@@ -638,12 +638,12 @@ module Redwright
         stop_typing&.call
       end
     rescue StandardError => e
-      error_message = "Rails project setup API failed: #{e.message}"
+      error_message = "Rails command API failed: #{e.message}"
       @telegram_client.send_message(
         chat_id: event.chat_id,
         text: @message_renderer.error(message: error_message, trace_id: Trace.current_trace_id || "none")
       )
-      @out.puts("telegram rails_project_setup_error chat=#{event.chat_id}: #{e.class}: #{e.message}")
+      @out.puts("telegram rails_command_api_error chat=#{event.chat_id}: #{e.class}: #{e.message}")
       true
     end
 
