@@ -380,15 +380,48 @@ def create_scenario_records!
   [project, board, ticket]
 end
 
+def ensure_ticket_ready_for_agent_execution!(ticket, columns)
+  ticket.update!(
+    column: columns.fetch("backlog"),
+    workflow_status: "ready",
+    started_at: nil,
+    sent_to_review_at: nil,
+    review_started_at: nil,
+    review_completed_at: nil,
+    merge_started_at: nil,
+    merged_at: nil,
+    closed_at: nil,
+    runtime_execution_id: nil,
+    runtime_execution_status: nil,
+    runtime_project_ref: nil,
+    runtime_workstream_id: nil,
+    runtime_task_id: nil,
+    runtime_state: nil,
+    runtime_execution_started_at: nil,
+    runtime_execution_error: nil
+  )
+
+  policy = AgentTicketExecution::TicketSelectionPolicy.new(admin_assignee: "admin")
+  result = policy.select_targeted(ticket: Ticket.resolve_ref(ticket.display_key))
+  return if result.ok?
+
+  raise "scenario ticket is not executable: #{result.code}: #{result.message}"
+end
+
 reset_development_database!
 initialize_reference_workspace!
 project, board, ticket = create_scenario_records!
+columns = board.columns.index_by(&:key)
+ensure_ticket_ready_for_agent_execution!(ticket, columns)
+ticket.reload
 
 puts "Agent ticket scenario reset."
 puts "project_id=#{project.id}"
 puts "board_id=#{board.id}"
 puts "ticket_id=#{ticket.id}"
 puts "ticket_ref=#{ticket.display_key}"
+puts "ticket_column=#{ticket.column.key}"
+puts "ticket_workflow_status=#{ticket.workflow_status}"
 puts "reference=#{REFERENCE_ROOT}"
 puts "workspace=#{PROJECT_ROOT}"
 puts "telegram=/ticket start #{ticket.display_key}"
