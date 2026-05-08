@@ -78,7 +78,7 @@ Curated quiz notes supporting `2026-05-07-redwright-quiz-fast-deep-question-tree
 - If questions and answers become separate entities, tags, labels, and foreign keys may need to apply to both sides carefully.
 - In tree mode, selecting a branch naturally prunes sibling branches.
 - Cleanup after branch pruning may be cheap enough to run opportunistically in the next quiz round or next quiz operation.
-- Existing quiz references favor post-tagging: `ops/specs/specs/2026-05-05-redwright-quiz-questionnaire-context-spec.md` defines tags on `QuizEntry`, and `ops/quiz/2026-05-05-redwright-quiz-me-questionnaire-context-quiz.md` says LLM-based tag generation should happen during answer interpretation.
+- Existing quiz references favor post-tagging: `ops/specs/specs/2026-05-05-redwright-quiz-questionnaire-context-spec.md` defines tags on `QuizEntry`, and `ops/conv/quiz/2026-05-05-redwright-quiz-me-questionnaire-context-quiz.md` says LLM-based tag generation should happen during answer interpretation.
 - Candidate questions can imply possible tags, but the answer may justify a narrower or different tag set.
 - Example: a question may offer `stdlib`, `cobra`, and `urfave/cli` as related Go CLI library choices, but the final answer should be tagged only with the selected library and any answer-specific implications.
 - Tagging discarded branches would introduce retrieval noise.

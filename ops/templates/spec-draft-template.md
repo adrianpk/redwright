@@ -4,10 +4,10 @@
 Draft
 
 ## Quiz
-- Derive from this draft filename by replacing `-draft.md` with `-quiz.md` and placing it under `ops/quiz/`.
+- Derive from this draft filename by replacing `-draft.md` with `-quiz.md` and placing it under `ops/conv/quiz/`.
 - Example:
   - draft: `2026-05-01-project-new-operational-loop-behavior-draft.md`
-  - quiz: `../../quiz/2026-05-01-project-new-operational-loop-behavior-quiz.md`
+  - quiz: `../../conv/quiz/2026-05-01-project-new-operational-loop-behavior-quiz.md`
 
 ## Scope
 - <what this draft covers>

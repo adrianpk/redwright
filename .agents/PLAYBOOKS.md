@@ -11,6 +11,7 @@ This file indexes focused playbooks under `.agents/playbooks/`.
 - `.agents/playbooks/release-alignment.md`
 - `.agents/playbooks/specification-workflow.md`
 - `.agents/playbooks/quiz.md`
+- `.agents/playbooks/dump.md`
 
 ## Usage
 

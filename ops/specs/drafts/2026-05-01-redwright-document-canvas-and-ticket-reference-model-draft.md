@@ -4,7 +4,7 @@
 Draft
 
 ## Quiz
-- `../../quiz/2026-05-01-redwright-document-canvas-and-ticket-reference-model-quiz.md`
+- `../../conv/quiz/2026-05-01-redwright-document-canvas-and-ticket-reference-model-quiz.md`
 
 ## Scope
 - Define a document model centered on `draft`, `spec`, and `plan+tracking`.

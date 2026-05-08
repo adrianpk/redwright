@@ -32,11 +32,11 @@ This ticket captures a review and implementation task for quiz navigation and qu
 Reference artifacts:
 - `.agents/playbooks/quiz.md`
 - `ops/specs/specs/2026-05-05-redwright-quiz-questionnaire-context-spec.md`
-- `ops/quiz/2026-05-05-redwright-quiz-me-questionnaire-context-quiz.md`
+- `ops/conv/quiz/2026-05-05-redwright-quiz-me-questionnaire-context-quiz.md`
 - `ops/plans/2026-05-05-redwright-quiz-questionnaire-context-cycle-plan.md`
 - `ops/plans/2026-05-03-redwright-rails-project-setup-conversational-saga-cycle-plan.md`
 - `ops/specs/specs/2026-05-03-redwright-rails-project-setup-conversational-saga-spec.md`
-- `ops/quiz/2026-05-04-redwright-heavy-interaction-sagas-quiz.md`
+- `ops/conv/quiz/2026-05-04-redwright-heavy-interaction-sagas-quiz.md`
 - `apps/web/app/services/quiz_loops/runtime.rb`
 - `apps/web/app/controllers/project_quizzes_controller.rb`
 - `apps/web/test/integration/project_setup_telegram_e2e_test.rb`
@@ -59,13 +59,13 @@ Relevant references:
 - `.agents/playbooks/quiz.md`, sections `Core Principles`, `Question Execution Model`, and `State Awareness`: defines boundedness, sequential one-question delivery, adaptive progression after each answer, state tracking, and stopping when sufficient clarity is reached.
 - `ops/specs/specs/2026-05-05-redwright-quiz-questionnaire-context-spec.md`, section `Telegram Quiz Loop`: defines one-question-at-a-time execution, LLM-generated next question, previous Q/A influence, and control semantics for `answer`, `skip`, `done`, and `cancel`.
 - `ops/specs/specs/2026-05-05-redwright-quiz-questionnaire-context-spec.md`, section `Web Counterpart`: requires the web counterpart to reuse the same adaptive quiz loop concept as Telegram and expose the current question plus answer controls.
-- `ops/quiz/2026-05-05-redwright-quiz-me-questionnaire-context-quiz.md`, section `Telegram Flow`: requires a one-question-at-a-time loop where previous questions and answers may influence the next question.
-- `ops/quiz/2026-05-05-redwright-quiz-me-questionnaire-context-quiz.md`, section `Web Counterpart`: says the web counterpart should reuse the same adaptive loop concept as Telegram.
+- `ops/conv/quiz/2026-05-05-redwright-quiz-me-questionnaire-context-quiz.md`, section `Telegram Flow`: requires a one-question-at-a-time loop where previous questions and answers may influence the next question.
+- `ops/conv/quiz/2026-05-05-redwright-quiz-me-questionnaire-context-quiz.md`, section `Web Counterpart`: says the web counterpart should reuse the same adaptive loop concept as Telegram.
 - `ops/plans/2026-05-05-redwright-quiz-questionnaire-context-cycle-plan.md`, Slice 4: requires a reusable quiz loop runtime that persists answered and skipped entries and supports answer, skip, done, and cancel independently of Telegram or web ports.
 - `ops/plans/2026-05-05-redwright-quiz-questionnaire-context-cycle-plan.md`, Slice 6: requires web answer, skip, done, and cancel controls using the same adaptive loop semantics as Telegram.
 - `ops/plans/2026-05-03-redwright-rails-project-setup-conversational-saga-cycle-plan.md`, Slice 1: names the `/project new` setup behavior as a compact Ariadne-style trunk loop.
 - `ops/specs/specs/2026-05-03-redwright-rails-project-setup-conversational-saga-spec.md`, section `Quizal Loop Contract`: defines deterministic canonical slot collection followed by adaptive refinement, with LLM-assisted wording that must not ask redundant questions for already filled, skipped, or defaulted slots.
-- `ops/quiz/2026-05-04-redwright-heavy-interaction-sagas-quiz.md`, `Current Convergences`: says bounded interaction segments can be represented through normal state, turns, and prompt intent, and that prompt intent should be structured while adapters render channel-specific UI/copy.
+- `ops/conv/quiz/2026-05-04-redwright-heavy-interaction-sagas-quiz.md`, `Current Convergences`: says bounded interaction segments can be represented through normal state, turns, and prompt intent, and that prompt intent should be structured while adapters render channel-specific UI/copy.
 
 ## Problem
 The current web quiz navigation appears coupled to URL state and does not reliably model deterministic question progression. Current symptoms and risks:

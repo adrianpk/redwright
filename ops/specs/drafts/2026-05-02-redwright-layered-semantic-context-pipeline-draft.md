@@ -4,7 +4,7 @@
 Draft
 
 ## Quiz
-- `../../quiz/2026-05-02-redwright-layered-semantic-context-pipeline-quiz.md`
+- `../../conv/quiz/2026-05-02-redwright-layered-semantic-context-pipeline-quiz.md`
 
 ## Scope
 - Define a repository-grounded context pipeline for LLM payload construction in runtime planning/change loops.

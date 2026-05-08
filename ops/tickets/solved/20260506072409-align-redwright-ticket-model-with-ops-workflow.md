@@ -27,7 +27,7 @@ RedWright is intended to implement an ergonomic way of working. The repository-l
 
 The RedWright application ticket model should converge on the same mental model so the Markdown-based workflow and the app-backed workflow do not require separate status/property concepts.
 
-Alignment quiz notes are being captured in `ops/quiz/2026-05-06-redwright-ticket-model-alignment-quiz-raw.md`.
+Alignment quiz notes are being captured in `ops/conv/quiz/2026-05-06-redwright-ticket-model-alignment-quiz-raw.md`.
 
 ## Problem
 RedWright application tickets may currently diverge from the repository-local ticket workflow in status names, lifecycle properties, or classification fields.

@@ -1,6 +1,6 @@
 ---
 name: repo-quiz
-description: Conduct bounded RedWright repository questionnaire sessions and curate the outcome into ops/quiz artifacts. Use when the user asks to run a quiz, questionnaire, discovery round, structured questions, "hagamos un quiz", "ronda de preguntas", "quiz me", capture or curate quiz notes, create raw quiz capture, or turn a quiz result into pre-spec alignment context for RedWright.
+description: Conduct bounded RedWright repository questionnaire sessions and curate the outcome into ops/conv/quiz artifacts. Use when the user asks to run a quiz, questionnaire, discovery round, structured questions, "hagamos un quiz", "ronda de preguntas", "quiz me", capture or curate quiz notes, create raw quiz capture, or turn a quiz result into pre-spec alignment context for RedWright.
 ---
 
 # Repository Quiz
@@ -12,11 +12,11 @@ The source of truth is the repository workflow, not this skill:
 - `.agents/playbooks/quiz.md`
 - `.agents/playbooks/specification-workflow.md`
 - `ops/templates/spec-quiz-template.md`
-- `ops/quiz/`
+- `ops/conv/quiz/`
 
 ## Startup
 
-1. Confirm the repository has `.agents/playbooks/quiz.md`, `.agents/playbooks/specification-workflow.md`, `ops/templates/spec-quiz-template.md`, and `ops/quiz/`.
+1. Confirm the repository has `.agents/playbooks/quiz.md`, `.agents/playbooks/specification-workflow.md`, `ops/templates/spec-quiz-template.md`, and `ops/conv/quiz/`.
 2. Read `.agents/playbooks/quiz.md` before conducting or curating a questionnaire.
 3. Read `.agents/playbooks/specification-workflow.md` when the quiz will become a draft/spec input.
 4. Keep all artifact content in English, even when the conversation is in another language.
@@ -36,7 +36,7 @@ Before asking the first question:
 2. Internally precompute a finite candidate question set with a hard cap of 50 questions.
 3. Define what sufficient clarity means for the topic.
 4. Track question count, remaining budget, active topic, nesting level, and topic coverage.
-5. For long sessions, create or update `ops/quiz/YYYY-MM-DD-<topic>-quiz-raw.md` as working memory.
+5. For long sessions, create or update `ops/conv/quiz/YYYY-MM-DD-<topic>-quiz-raw.md` as working memory.
 
 During the session:
 
@@ -56,7 +56,7 @@ Raw capture rules:
 
 ## Curate Quiz
 
-Create or update `ops/quiz/YYYY-MM-DD-<topic>-quiz.md`.
+Create or update `ops/conv/quiz/YYYY-MM-DD-<topic>-quiz.md`.
 
 1. Use `ops/templates/spec-quiz-template.md` when a new curated artifact is needed.
 2. Distill decisions, constraints, tensions, assumptions, and open questions.

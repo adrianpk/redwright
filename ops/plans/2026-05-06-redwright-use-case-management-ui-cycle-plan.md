@@ -11,8 +11,8 @@
 - scope: `feature`
 - source_spec: `ops/specs/specs/2026-05-06-redwright-use-case-management-ui-spec.md`
 - source_quiz:
-  - `ops/quiz/2026-05-06-redwright-use-case-management-ui-quiz.md`
-  - `ops/quiz/2026-05-06-redwright-use-case-management-ui-quiz-raw.md`
+  - `ops/conv/quiz/2026-05-06-redwright-use-case-management-ui-quiz.md`
+  - `ops/conv/quiz/2026-05-06-redwright-use-case-management-ui-quiz-raw.md`
 - source_ticket: `ops/tickets/ready/20260506081044-add-use-case-management-ui.md`
 - related_future_draft: `ops/specs/drafts/2026-05-06-redwright-ticket-context-inheritance-use-case-document-model-draft.md`
 

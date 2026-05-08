@@ -13,11 +13,11 @@
 - source_references:
   - `.agents/playbooks/quiz.md`
   - `ops/specs/specs/2026-05-05-redwright-quiz-questionnaire-context-spec.md`
-  - `ops/quiz/2026-05-05-redwright-quiz-me-questionnaire-context-quiz.md`
+  - `ops/conv/quiz/2026-05-05-redwright-quiz-me-questionnaire-context-quiz.md`
   - `ops/plans/2026-05-05-redwright-quiz-questionnaire-context-cycle-plan.md`
   - `ops/plans/2026-05-03-redwright-rails-project-setup-conversational-saga-cycle-plan.md`
   - `ops/specs/specs/2026-05-03-redwright-rails-project-setup-conversational-saga-spec.md`
-  - `ops/quiz/2026-05-04-redwright-heavy-interaction-sagas-quiz.md`
+  - `ops/conv/quiz/2026-05-04-redwright-heavy-interaction-sagas-quiz.md`
 
 ## Slice List
 

@@ -12,8 +12,8 @@
 - source_spec: `ops/specs/specs/2026-05-07-redwright-ticket-use-case-formal-context-refactor-spec.md`
 - source_draft: `ops/specs/drafts/2026-05-06-redwright-ticket-context-inheritance-use-case-document-model-draft.md`
 - source_quiz:
-  - `ops/quiz/2026-05-07-redwright-ticket-context-inheritance-use-case-evidence-model-quiz.md`
-  - `ops/quiz/2026-05-07-redwright-ticket-context-inheritance-use-case-evidence-model-quiz-raw.md`
+  - `ops/conv/quiz/2026-05-07-redwright-ticket-context-inheritance-use-case-evidence-model-quiz.md`
+  - `ops/conv/quiz/2026-05-07-redwright-ticket-context-inheritance-use-case-evidence-model-quiz-raw.md`
 - merge_target: `dev`
 
 ## Slice Progress

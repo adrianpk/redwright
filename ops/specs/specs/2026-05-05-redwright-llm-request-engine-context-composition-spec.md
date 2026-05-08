@@ -9,8 +9,8 @@
 - updated: `2026-05-05`
 - scope: `runtime-core/llm-request-engine/context-composition/provider-calls/tracing-boundary`
 - derived_from:
-  - `ops/quiz/2026-05-05-redwright-llm-request-engine-context-composition-quiz.md`
-  - `ops/quiz/2026-05-05-redwright-llm-request-engine-context-composition-quiz-raw.md`
+  - `ops/conv/quiz/2026-05-05-redwright-llm-request-engine-context-composition-quiz.md`
+  - `ops/conv/quiz/2026-05-05-redwright-llm-request-engine-context-composition-quiz-raw.md`
   - `ops/specs/drafts/2026-05-05-redwright-prompt-engine-context-composition-draft.md`
   - `ops/specs/specs/2026-05-03-redwright-llm-rolling-trace-file-spec.md`
   - `ops/specs/drafts/2026-05-03-redwright-llm-rolling-trace-file-draft.md`

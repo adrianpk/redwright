@@ -9,8 +9,8 @@
 - updated: `2026-05-06`
 - scope: `rails-web/use-cases/tickets/documents/quizzes/command-query/context`
 - derived_from:
-  - `ops/quiz/2026-05-06-redwright-use-case-management-ui-quiz.md`
-  - `ops/quiz/2026-05-06-redwright-use-case-management-ui-quiz-raw.md`
+  - `ops/conv/quiz/2026-05-06-redwright-use-case-management-ui-quiz.md`
+  - `ops/conv/quiz/2026-05-06-redwright-use-case-management-ui-quiz-raw.md`
   - `ops/tickets/ready/20260506081044-add-use-case-management-ui.md`
 
 ## Problem Statement

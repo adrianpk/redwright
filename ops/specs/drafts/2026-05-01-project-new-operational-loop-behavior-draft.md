@@ -7,7 +7,7 @@ Draft
 - `ops/specs/specs/2026-05-01-project-new-operational-loop-behavior-spec.md`
 
 ## Quiz Counterpart
-- `../../quiz/2026-05-01-project-new-operational-loop-behavior-quiz.md`
+- `../../conv/quiz/2026-05-01-project-new-operational-loop-behavior-quiz.md`
 
 ## Scope
 Capture ongoing brainstorming about `/project new` behavior, operational feedback loops, and human-in-the-loop escalation rules.

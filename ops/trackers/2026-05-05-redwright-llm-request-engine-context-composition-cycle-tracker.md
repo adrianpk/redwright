@@ -11,8 +11,8 @@
 - source_plan: `ops/plans/2026-05-05-redwright-llm-request-engine-context-composition-cycle-plan.md`
 - source_spec: `ops/specs/specs/2026-05-05-redwright-llm-request-engine-context-composition-spec.md`
 - source_quiz:
-  - `ops/quiz/2026-05-05-redwright-llm-request-engine-context-composition-quiz.md`
-  - `ops/quiz/2026-05-05-redwright-llm-request-engine-context-composition-quiz-raw.md`
+  - `ops/conv/quiz/2026-05-05-redwright-llm-request-engine-context-composition-quiz.md`
+  - `ops/conv/quiz/2026-05-05-redwright-llm-request-engine-context-composition-quiz-raw.md`
 - source_drafts:
   - `ops/specs/drafts/2026-05-05-redwright-prompt-engine-context-composition-draft.md`
   - `ops/specs/drafts/2026-05-03-redwright-llm-rolling-trace-file-draft.md`

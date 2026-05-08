@@ -7,7 +7,7 @@ Curated quiz
 `ops/specs/specs/2026-05-06-redwright-use-case-management-ui-spec.md`
 
 ## Raw Capture
-`ops/quiz/2026-05-06-redwright-use-case-management-ui-quiz-raw.md`
+`ops/conv/quiz/2026-05-06-redwright-use-case-management-ui-quiz-raw.md`
 
 ## Purpose
 Capture the decisions behind RedWright's dedicated Use Case management surface and its minimal associations with tickets, documents, quizzes, plans, and agent context.

@@ -27,8 +27,8 @@ RedWright needs a UI surface to manage use cases consistently with the rest of t
 
 Alignment artifacts:
 
-- Raw quiz: `ops/quiz/2026-05-06-redwright-use-case-management-ui-quiz-raw.md`
-- Curated quiz: `ops/quiz/2026-05-06-redwright-use-case-management-ui-quiz.md`
+- Raw quiz: `ops/conv/quiz/2026-05-06-redwright-use-case-management-ui-quiz-raw.md`
+- Curated quiz: `ops/conv/quiz/2026-05-06-redwright-use-case-management-ui-quiz.md`
 - Spec: `ops/specs/specs/2026-05-06-redwright-use-case-management-ui-spec.md`
 
 ## Problem

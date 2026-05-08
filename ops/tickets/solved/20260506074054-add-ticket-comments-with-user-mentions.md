@@ -31,7 +31,7 @@ Related design placeholder:
 `ops/specs/drafts/2026-05-06-redwright-agent-user-notification-comments-draft.md`
 
 Alignment quiz:
-`ops/quiz/2026-05-06-redwright-ticket-comments-system-quiz-raw.md`
+`ops/conv/quiz/2026-05-06-redwright-ticket-comments-system-quiz-raw.md`
 
 ## Problem
 Agents need a durable, ticket-scoped way to communicate with users. Plain chat is not enough because the relevant context belongs to the ticket and may need to be reviewed later.

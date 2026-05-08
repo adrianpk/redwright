@@ -6,8 +6,8 @@
 - date: `2026-05-05`
 - source: engineering alignment draft about prompt engine context composition, context reuse, Quiz context retrieval, previous LLM interactions, preflight selection, and task-aware LLM requests
 - scope: prompt/context composition module for RedWright agents
-- quiz: `../../quiz/2026-05-05-redwright-llm-request-engine-context-composition-quiz.md`
-- raw_capture: `../../quiz/2026-05-05-redwright-llm-request-engine-context-composition-quiz-raw.md`
+- quiz: `../../conv/quiz/2026-05-05-redwright-llm-request-engine-context-composition-quiz.md`
+- raw_capture: `../../conv/quiz/2026-05-05-redwright-llm-request-engine-context-composition-quiz-raw.md`
 - promoted_spec: `../specs/2026-05-05-redwright-llm-request-engine-context-composition-spec.md`
 
 This draft is intentionally provisional. Nothing in it is set in stone.

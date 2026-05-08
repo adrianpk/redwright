@@ -11,8 +11,8 @@
 - scope: `feature`
 - source_spec: `ops/specs/specs/2026-05-04-redwright-protocol-management-web-crud-spec.md`
 - source_quiz:
-  - `ops/quiz/2026-05-04-redwright-protocol-management-web-crud-quiz.md`
-  - `ops/quiz/2026-05-04-redwright-protocol-management-web-crud-quiz-raw.md`
+  - `ops/conv/quiz/2026-05-04-redwright-protocol-management-web-crud-quiz.md`
+  - `ops/conv/quiz/2026-05-04-redwright-protocol-management-web-crud-quiz-raw.md`
 
 ## Slice List
 

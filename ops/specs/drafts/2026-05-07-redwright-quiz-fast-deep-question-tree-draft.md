@@ -8,7 +8,7 @@
 
 ## Quiz
 
-- `../../quiz/2026-05-07-redwright-quiz-fast-deep-question-tree-quiz.md`
+- `../../conv/quiz/2026-05-07-redwright-quiz-fast-deep-question-tree-quiz.md`
 
 ## Scope
 

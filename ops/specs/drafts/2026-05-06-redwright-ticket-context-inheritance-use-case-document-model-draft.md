@@ -5,8 +5,8 @@ Exploratory draft
 
 ## Related Artifacts
 - `ops/specs/specs/2026-05-06-redwright-use-case-management-ui-spec.md`
-- `ops/quiz/2026-05-06-redwright-use-case-management-ui-quiz.md`
-- `ops/quiz/2026-05-06-redwright-use-case-management-ui-quiz-raw.md`
+- `ops/conv/quiz/2026-05-06-redwright-use-case-management-ui-quiz.md`
+- `ops/conv/quiz/2026-05-06-redwright-use-case-management-ui-quiz-raw.md`
 
 ## Scope
 This draft explores a stricter future context model where `UseCase` becomes the canonical container for formal execution context and tickets inherit that context through optional use-case association.

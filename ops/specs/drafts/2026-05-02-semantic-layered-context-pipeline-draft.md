@@ -4,7 +4,7 @@
 Draft
 
 ## Quiz
-- `../../quiz/2026-05-02-semantic-layered-context-pipeline-quiz.md`
+- `../../conv/quiz/2026-05-02-semantic-layered-context-pipeline-quiz.md`
 
 ## Scope
 - Define a deterministic and model-agnostic context construction pipeline for LLM payloads.

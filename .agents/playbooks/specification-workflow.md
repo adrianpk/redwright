@@ -10,10 +10,10 @@ Use this playbook when a topic is in active design/brainstorming and not ready f
 
 ## Artifact Pairing
 
-For each draft in `ops/specs/drafts/`, maintain a paired quiz file in `ops/quiz/`.
+For each draft in `ops/specs/drafts/`, maintain a paired quiz file in `ops/conv/quiz/`.
 
 - Draft: `ops/specs/drafts/...-draft.md`
-- Quiz notes: `ops/quiz/...-quiz.md`
+- Quiz notes: `ops/conv/quiz/...-quiz.md`
 
 Both files are living artifacts until promoted.
 
@@ -39,15 +39,15 @@ Both files are living artifacts until promoted.
 
 ## Promotion Path
 
-- Iterate with drafts in `ops/specs/drafts/` and quiz notes in `ops/quiz/` until stable.
+- Iterate with drafts in `ops/specs/drafts/` and quiz notes in `ops/conv/quiz/` until stable.
 - Promote to `ops/specs/specs/*` once behavior and decisions are sufficiently converged.
 
 ## Questionnaire-Driven Direct Spec Path
 
 When a topic is explored through the quiz playbook, the pre-spec artifacts may be:
 
-- Raw capture: `ops/quiz/...-quiz-raw.md`
-- Curated quiz notes: `ops/quiz/...-quiz.md`
+- Raw capture: `ops/conv/quiz/...-quiz-raw.md`
+- Curated quiz notes: `ops/conv/quiz/...-quiz.md`
 
 In that path, a separate `ops/specs/drafts/...-draft.md` artifact is optional. A sufficiently complete curated quiz file can replace the draft and serve as the direct source for a formal spec under `ops/specs/specs/`.
 

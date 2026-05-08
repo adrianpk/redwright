@@ -23,7 +23,7 @@ It is working memory, not the final curated artifact.
 
 The final curated quiz will be maintained in:
 
-`ops/quiz/2026-05-05-redwright-quiz-me-questionnaire-context-quiz.md`
+`ops/conv/quiz/2026-05-05-redwright-quiz-me-questionnaire-context-quiz.md`
 
 ## Raw Q/A
 

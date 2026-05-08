@@ -33,7 +33,7 @@ Use this skill inside RedWright repositories when creating or updating
    - `ops/specs/drafts/`
    - `ops/plans/`
    - `ops/trackers/`
-   - `ops/quiz/`
+   - `ops/conv/quiz/`
 5. If the user requests a release PR summary, compare the relevant branches with
    `git log base..head` and `git diff --stat base..head`.
 

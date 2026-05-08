@@ -12,7 +12,7 @@ This quiz captures curated alignment for the RedWright quiz feature centered on 
 
 It is derived from the raw questionnaire capture:
 
-`ops/quiz/2026-05-05-redwright-quiz-me-questionnaire-context-quiz-raw.md`
+`ops/conv/quiz/2026-05-05-redwright-quiz-me-questionnaire-context-quiz-raw.md`
 
 ## 2. Product Boundary
 

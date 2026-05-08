@@ -29,7 +29,7 @@ The alignment quiz clarified that the UI is vital, but the model/business alignm
 
 Related model ticket: `TKT-20260506072409`.
 
-Alignment quiz notes: `ops/quiz/2026-05-06-redwright-ticket-model-alignment-quiz-raw.md`.
+Alignment quiz notes: `ops/conv/quiz/2026-05-06-redwright-ticket-model-alignment-quiz-raw.md`.
 
 ## Problem
 If the aligned ticket fields exist only in the database/model layer, the human-facing RedWright UI may still feel like a different ticket system.

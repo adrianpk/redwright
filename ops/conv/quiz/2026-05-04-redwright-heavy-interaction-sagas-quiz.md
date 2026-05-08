@@ -6,7 +6,7 @@
 - status: `curated`
 - date: `2026-05-04`
 - related_spec: `ops/specs/specs/2026-05-04-redwright-heavy-interaction-sagas-spec.md`
-- raw_capture: `ops/quiz/2026-05-04-redwright-heavy-interaction-sagas-quiz-raw.md`
+- raw_capture: `ops/conv/quiz/2026-05-04-redwright-heavy-interaction-sagas-quiz-raw.md`
 
 ## Purpose
 

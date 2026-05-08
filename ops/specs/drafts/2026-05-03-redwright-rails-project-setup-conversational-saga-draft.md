@@ -4,7 +4,7 @@
 Draft
 
 ## Quiz
-- `../../quiz/2026-05-03-redwright-rails-project-setup-conversational-saga-quiz.md`
+- `../../conv/quiz/2026-05-03-redwright-rails-project-setup-conversational-saga-quiz.md`
 
 ## Promoted Specification
 - `ops/specs/specs/2026-05-03-redwright-rails-project-setup-conversational-saga-spec.md`

@@ -10,8 +10,8 @@
 - scope: `rails-web/tickets/use-cases/documents/quizzes/formal-context`
 - derived_from:
   - `ops/specs/drafts/2026-05-06-redwright-ticket-context-inheritance-use-case-document-model-draft.md`
-  - `ops/quiz/2026-05-07-redwright-ticket-context-inheritance-use-case-evidence-model-quiz.md`
-  - `ops/quiz/2026-05-07-redwright-ticket-context-inheritance-use-case-evidence-model-quiz-raw.md`
+  - `ops/conv/quiz/2026-05-07-redwright-ticket-context-inheritance-use-case-evidence-model-quiz.md`
+  - `ops/conv/quiz/2026-05-07-redwright-ticket-context-inheritance-use-case-evidence-model-quiz-raw.md`
   - `ops/specs/specs/2026-05-06-redwright-use-case-management-ui-spec.md`
 
 ## Problem Statement

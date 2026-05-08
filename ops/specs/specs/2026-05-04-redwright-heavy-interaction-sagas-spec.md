@@ -9,7 +9,7 @@
 - updated: `2026-05-04`
 - scope: `rails-core/heavy-interaction-sagas/application-architecture/project-setup-reference`
 - derived_from:
-  - `ops/quiz/2026-05-04-redwright-heavy-interaction-sagas-quiz.md`
+  - `ops/conv/quiz/2026-05-04-redwright-heavy-interaction-sagas-quiz.md`
   - `ops/specs/specs/2026-05-03-redwright-project-setup-runnable-saga-spec.md`
   - `ops/specs/specs/2026-05-03-redwright-rails-project-setup-conversational-saga-spec.md`
   - `ops/specs/specs/2026-05-02-redwright-rails-core-command-api-and-project-setup-saga-spec.md`

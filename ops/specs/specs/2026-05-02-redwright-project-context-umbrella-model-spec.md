@@ -10,7 +10,7 @@
 - scope: `web/project-context-model`
 - derived_from:
   - `ops/specs/drafts/2026-05-02-project-context-umbrella-model-draft.md`
-  - `ops/quiz/2026-05-02-project-context-umbrella-model-quiz.md`
+  - `ops/conv/quiz/2026-05-02-project-context-umbrella-model-quiz.md`
 
 ## Problem Statement
 

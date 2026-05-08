@@ -1,0 +1,4 @@
+interface:
+  display_name: "Repo Dump"
+  short_description: "Curate free-form repository dumps"
+  default_prompt: "Use $repo-dump to capture and curate a free-form project knowledge dump."

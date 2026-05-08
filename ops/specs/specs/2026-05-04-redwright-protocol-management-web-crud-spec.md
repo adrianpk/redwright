@@ -9,8 +9,8 @@
 - updated: `2026-05-04`
 - scope: `rails-web/protocols/protocol-templates/playbooks/crud-ux`
 - derived_from:
-  - `ops/quiz/2026-05-04-redwright-protocol-management-web-crud-quiz.md`
-  - `ops/quiz/2026-05-04-redwright-protocol-management-web-crud-quiz-raw.md`
+  - `ops/conv/quiz/2026-05-04-redwright-protocol-management-web-crud-quiz.md`
+  - `ops/conv/quiz/2026-05-04-redwright-protocol-management-web-crud-quiz-raw.md`
 
 ## Problem Statement
 

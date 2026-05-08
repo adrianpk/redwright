@@ -5,7 +5,7 @@
 - type: `quiz-notes`
 - status: `living`
 - date: `2026-05-04`
-- related_raw: `ops/quiz/2026-05-04-redwright-protocol-management-web-crud-quiz-raw.md`
+- related_raw: `ops/conv/quiz/2026-05-04-redwright-protocol-management-web-crud-quiz-raw.md`
 
 ## Purpose
 

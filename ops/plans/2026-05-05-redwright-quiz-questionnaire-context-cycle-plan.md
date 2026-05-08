@@ -11,8 +11,8 @@
 - scope: `feature`
 - source_spec: `ops/specs/specs/2026-05-05-redwright-quiz-questionnaire-context-spec.md`
 - source_quiz:
-  - `ops/quiz/2026-05-05-redwright-quiz-me-questionnaire-context-quiz.md`
-  - `ops/quiz/2026-05-05-redwright-quiz-me-questionnaire-context-quiz-raw.md`
+  - `ops/conv/quiz/2026-05-05-redwright-quiz-me-questionnaire-context-quiz.md`
+  - `ops/conv/quiz/2026-05-05-redwright-quiz-me-questionnaire-context-quiz-raw.md`
 - source_draft: `ops/specs/drafts/2026-05-05-redwright-questionnaire-context-and-ticket-driven-engineering-draft.md`
 
 ## Slice List

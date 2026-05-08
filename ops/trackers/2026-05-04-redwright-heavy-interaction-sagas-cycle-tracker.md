@@ -11,8 +11,8 @@
 - source_plan: `ops/plans/2026-05-04-redwright-heavy-interaction-sagas-cycle-plan.md`
 - source_spec: `ops/specs/specs/2026-05-04-redwright-heavy-interaction-sagas-spec.md`
 - source_quizzes:
-  - `ops/quiz/2026-05-04-redwright-heavy-interaction-sagas-quiz.md`
-  - `ops/quiz/2026-05-04-redwright-heavy-interaction-sagas-quiz-raw.md`
+  - `ops/conv/quiz/2026-05-04-redwright-heavy-interaction-sagas-quiz.md`
+  - `ops/conv/quiz/2026-05-04-redwright-heavy-interaction-sagas-quiz-raw.md`
 
 ## Slice Progress
 

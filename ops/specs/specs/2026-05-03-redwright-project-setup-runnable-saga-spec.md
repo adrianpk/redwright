@@ -10,7 +10,7 @@
 - scope: `rails-core/api/telegram/project-setup/materialization/initial-implementation`
 - derived_from:
   - `ops/specs/drafts/2026-05-03-redwright-project-setup-runnable-saga-draft.md`
-  - `ops/quiz/2026-05-03-redwright-project-setup-runnable-saga-quiz.md`
+  - `ops/conv/quiz/2026-05-03-redwright-project-setup-runnable-saga-quiz.md`
   - `ops/specs/specs/2026-05-03-redwright-rails-project-setup-conversational-saga-spec.md`
   - `ops/specs/specs/2026-05-02-redwright-rails-core-command-api-and-project-setup-saga-spec.md`
   - `ops/specs/specs/2026-05-02-redwright-web-project-initialization-and-agent-workflow-spec.md`

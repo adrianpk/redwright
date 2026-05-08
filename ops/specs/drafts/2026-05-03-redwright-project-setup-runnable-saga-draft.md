@@ -5,7 +5,7 @@
 - type: `spec-draft`
 - status: `draft`
 - date: `2026-05-03`
-- quiz: `../../quiz/2026-05-03-redwright-project-setup-runnable-saga-quiz.md`
+- quiz: `../../conv/quiz/2026-05-03-redwright-project-setup-runnable-saga-quiz.md`
 
 ## Scope
 

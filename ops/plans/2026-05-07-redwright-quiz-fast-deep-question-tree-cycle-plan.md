@@ -12,7 +12,7 @@
 - source_spec: `ops/specs/specs/2026-05-07-redwright-quiz-fast-deep-question-tree-spec.md`
 - source_references:
   - `.agents/playbooks/quiz.md`
-  - `ops/quiz/2026-05-07-redwright-quiz-fast-deep-question-tree-quiz.md`
+  - `ops/conv/quiz/2026-05-07-redwright-quiz-fast-deep-question-tree-quiz.md`
   - `ops/specs/drafts/2026-05-07-redwright-quiz-fast-deep-question-tree-draft.md`
   - `ops/specs/specs/2026-05-05-redwright-quiz-questionnaire-context-spec.md`
   - `ops/specs/specs/2026-05-05-redwright-llm-request-engine-context-composition-spec.md`
