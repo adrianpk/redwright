@@ -4,9 +4,9 @@
 
 - cycle_id: `cycle-2026-05-08-redwright-agent-ticket-execution`
 - status: `executing`
-- state: `slice_14_ready_for_review`
+- state: `slice_15_ready_for_review`
 - updated: `2026-05-08`
-- active_slice: `14`
+- active_slice: `15`
 - active_task: `none`
 - source_plan: `ops/plans/2026-05-08-redwright-agent-ticket-execution-cycle-plan.md`
 - source_spec: `ops/specs/specs/2026-05-08-redwright-agent-ticket-execution-spec.md`
@@ -511,9 +511,9 @@ Notes:
 
 ### Slice 14: Kanban Transition Integration
 
-- status: `ready_for_review`
+- status: `merged`
 - branch: `feat/slice-14-agent-ticket-kanban-transition`
-- PR: `pending`
+- PR: `merged`
 - merge_target: `dev`
 - last_sync_commit: `dev`
 
@@ -545,28 +545,38 @@ Notes:
 
 ### Slice 15: Automated End-To-End Coverage
 
-- status: `planned`
+- status: `ready_for_review`
 - branch: `feat/slice-15-agent-ticket-e2e`
 - PR: `pending`
 - merge_target: `dev`
-- last_sync_commit: `pending`
+- last_sync_commit: `dev`
 
 Tasks:
 
-- [ ] `T15.1 wire the Go fixture, ticket, fake LLM, command, and workspace together`
-- [ ] `T15.2 exercise successful implementation through validation and commit`
-- [ ] `T15.3 exercise retry after validation failure`
-- [ ] `T15.4 exercise blocked outcome after retry exhaustion`
-- [ ] `T15.5 assert no remote Git dependency`
+- [x] `T15.1 wire the Go fixture, ticket, fake LLM, command, and workspace together`
+- [x] `T15.2 exercise successful implementation through validation and commit`
+- [x] `T15.3 exercise retry after validation failure`
+- [x] `T15.4 exercise blocked outcome after retry exhaustion`
+- [x] `T15.5 assert no remote Git dependency`
 
 Commits:
 
-- [ ] `test(runtime): add agent ticket execution e2e`
-- [ ] `test(runtime): cover agent ticket blocked e2e`
+- [x] `test(runtime): add agent ticket execution e2e`
+- [x] `test(runtime): cover agent ticket blocked e2e`
 
 Validation:
 
-- [ ] `not run`
+- [x] `bin/rails test test/services/agent_ticket_execution/end_to_end_test.rb`
+- [x] `bin/rails test test/services/agent_ticket_execution/end_to_end_test.rb test/services/agent_ticket_execution/command_query_handlers_test.rb test/services/agent_ticket_execution/validation_loop_test.rb`
+- [x] `ruby -c apps/web/test/services/agent_ticket_execution/end_to_end_test.rb`
+- [x] `git --no-pager diff --no-ext-diff --check`
+
+Notes:
+
+- Added automated e2e coverage through `ExecuteAgentTicket`, resettable Go fixture workspace, fake fuzzy LLM responses, validation, local commit, and Kanban transition.
+- The success case asserts context sections, review transition, feature branch, local commit subject, and absence of git remotes.
+- The retry case asserts validation feedback reaches the second LLM request and still completes with local-only git state.
+- The blocked case asserts retry exhaustion moves the ticket to `blocked` and does not create a feature commit.
 
 ### Slice 16: Manual Acceptance And Cycle Closure
 
