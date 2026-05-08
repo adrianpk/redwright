@@ -1,33 +1,36 @@
 ---
 id: redwright-agent-ticket-architecture-corrections-cycle-tracker-2026-05-08
 title: RedWright Agent Ticket Architecture Corrections Cycle Tracker
-state: planned
+state: slice_1_ready_for_review
 created_at: 2026-05-08T19:46:04Z
 plan: ops/plans/2026-05-08-redwright-agent-ticket-architecture-corrections-cycle-plan.md
 ticket: TKT-20260508194604
-active_slice: none
+active_slice: 1
 ---
 
 # RedWright Agent Ticket Architecture Corrections Cycle Tracker
 
 ## Cycle Status
-- state: `planned`
-- active_slice: `none`
+- state: `slice_1_ready_for_review`
+- active_slice: `1`
 - max_slices: `6`
 - current_branch: `dev`
 
 ## Slice 1: Extract Telegram Ticket Command Handling
 - branch: `refactor/slice-1-telegram-ticket-command-adapter`
-- status: `pending`
+- status: `ready_for_review`
 - tasks:
-  - [ ] Identify the ticket command surface inside `TelegramProjectSetupAdapter`.
-  - [ ] Extract ticket command parsing/dispatch into a focused adapter.
-  - [ ] Preserve async acknowledgement and final message behavior.
-  - [ ] Preserve trace propagation and ticket context memory.
-  - [ ] Run focused Telegram adapter tests.
-- commits: []
+  - [x] Identify the ticket command surface inside `TelegramProjectSetupAdapter`.
+  - [x] Extract ticket command parsing/dispatch into a focused adapter.
+  - [x] Preserve async acknowledgement and final message behavior.
+  - [x] Preserve trace propagation and ticket context memory.
+  - [x] Run focused Telegram adapter tests.
+- commits:
+  - `a68dd21 refactor(telegram): extract ticket command adapter`
 - pr:
-- validation: []
+- validation:
+  - `ruby -Itest test/redwright/telegram_project_setup_adapter_test.rb`
+  - `ruby -Itest test/redwright/telegram_runtime_handler_test.rb`
 
 ## Slice 2: Extract Structured Patch Application
 - branch: `refactor/slice-2-structured-patch-applier`
@@ -98,3 +101,5 @@ active_slice: none
 
 ## Activity Log
 - `2026-05-08` state=`planned` note=`created ticket, plan, and tracker for the architecture correction cycle`
+- `2026-05-08` state=`executing_slice` note=`started Slice 1 on refactor/slice-1-telegram-ticket-command-adapter and extracted Telegram ticket command handling into a dedicated adapter`
+- `2026-05-08` state=`slice_1_ready_for_review` note=`extracted Telegram ticket command handling into Redwright::TelegramTicketCommandAdapter while preserving adapter and runtime handler tests`

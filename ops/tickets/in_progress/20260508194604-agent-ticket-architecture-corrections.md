@@ -1,7 +1,7 @@
 ---
 id: TKT-20260508194604
 title: Correct agent ticket execution architecture risks
-status: ready
+status: in_progress
 kind: cleanup
 severity: high
 priority: high
@@ -10,12 +10,12 @@ tags: architecture, agent-ticket, runtime, llm, telegram
 source: chat
 reported_at: 2026-05-08T19:46:04Z
 ready_at: 2026-05-08T19:46:04Z
-started_at:
+started_at: 2026-05-08T19:46:04Z
 reviewed_at:
 closed_at:
 resolution:
 owner:
-branch:
+branch: refactor/slice-1-telegram-ticket-command-adapter
 pr:
 commits: []
 ---
