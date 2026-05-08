@@ -4,9 +4,9 @@
 
 - cycle_id: `cycle-2026-05-08-redwright-agent-ticket-execution`
 - status: `executing`
-- state: `slice_10_ready_for_review`
+- state: `slice_11_ready_for_review`
 - updated: `2026-05-08`
-- active_slice: `10`
+- active_slice: `11`
 - active_task: `none`
 - source_plan: `ops/plans/2026-05-08-redwright-agent-ticket-execution-cycle-plan.md`
 - source_spec: `ops/specs/specs/2026-05-08-redwright-agent-ticket-execution-spec.md`
@@ -375,9 +375,9 @@ Notes:
 
 ### Slice 10: Ticket Execution LLM Contract
 
-- status: `ready_for_review`
+- status: `merged`
 - branch: `feat/slice-10-agent-ticket-llm-contract`
-- PR: `pending`
+- PR: `merged`
 - merge_target: `dev`
 - last_sync_commit: `dev`
 
@@ -409,28 +409,37 @@ Notes:
 
 ### Slice 11: Harness Application Of LLM Output
 
-- status: `planned`
+- status: `ready_for_review`
 - branch: `feat/slice-11-agent-ticket-harness-apply`
 - PR: `pending`
 - merge_target: `dev`
-- last_sync_commit: `pending`
+- last_sync_commit: `dev`
 
 Tasks:
 
-- [ ] `T11.1 map response file/code instructions to existing primitives`
-- [ ] `T11.2 apply file and patch changes inside sandbox`
-- [ ] `T11.3 execute requested safe commands inside sandbox`
-- [ ] `T11.4 record affected files and action outcomes`
-- [ ] `T11.5 cover apply success, invalid output, and primitive failure paths`
+- [x] `T11.1 map response file/code instructions to existing primitives`
+- [x] `T11.2 apply file and patch changes inside sandbox`
+- [x] `T11.3 execute requested safe commands inside sandbox`
+- [x] `T11.4 record affected files and action outcomes`
+- [x] `T11.5 cover apply success, invalid output, and primitive failure paths`
 
 Commits:
 
-- [ ] `feat(runtime): apply agent ticket LLM output`
-- [ ] `test(runtime): cover agent ticket output application`
+- [x] `feat(runtime): apply agent ticket LLM output`
+- [x] `test(runtime): cover agent ticket output application`
 
 Validation:
 
-- [ ] `not run`
+- [x] `bin/rails test test/services/agent_ticket_execution/output_applier_test.rb test/services/agent_ticket_execution/llm_contract_test.rb test/services/agent_ticket_execution/workspace_boundary_test.rb`
+- [x] `ruby -c apps/web/app/services/agent_ticket_execution/output_applier.rb`
+- [x] `git --no-pager diff --no-ext-diff --check`
+
+Notes:
+
+- Added `AgentTicketExecution::OutputApplier` to translate structured LLM output into existing primitive actions.
+- Supported file content writes, patch application, direct allowed primitive actions, and command execution.
+- The applier stops on the first primitive failure and returns action outcomes for the execution loop.
+- No new primitive type was introduced.
 
 ### Slice 12: Validation Loop
 
