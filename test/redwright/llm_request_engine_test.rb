@@ -118,6 +118,46 @@ class LlmRequestEngineTest < Minitest::Test
     assert_equal "not json", response.raw_response_ref
     assert_includes response.warnings, "Provider response was not valid JSON"
     assert_equal "JSON::ParserError", response.diagnostics.fetch(:error_class)
+    assert_equal "invalid_json", response.diagnostics.fetch(:response_failure)
+  end
+
+  def test_generate_structured_message_normalizes_empty_provider_response
+    client = FakeClient.new(content: "")
+    engine = Redwright::LLM::RequestEngine.new(llm_client: client)
+
+    response = engine.generate_structured_message(
+      model: "example/model",
+      model_role: "non_coding",
+      provider: "example",
+      action: "project_setup_prompt_render",
+      system_prompt: "Return JSON.",
+      user_text: "{}"
+    )
+
+    assert_equal "invalid_response", response.status
+    assert_equal "", response.rendered_text
+    assert_includes response.warnings, "Provider response was empty"
+    assert_equal "empty_content", response.diagnostics.fetch(:response_failure)
+  end
+
+  def test_generate_structured_message_normalizes_non_object_json
+    client = FakeClient.new(content: JSON.generate(["wrong"]))
+    engine = Redwright::LLM::RequestEngine.new(llm_client: client)
+
+    response = engine.generate_structured_message(
+      model: "example/model",
+      model_role: "non_coding",
+      provider: "example",
+      action: "project_setup_prompt_render",
+      system_prompt: "Return JSON.",
+      user_text: "{}"
+    )
+
+    assert_equal "invalid_response", response.status
+    assert_equal "[\"wrong\"]", response.raw_response_ref
+    assert_includes response.warnings, "Provider response did not match the output contract"
+    assert_equal "non_object_json", response.diagnostics.fetch(:response_failure)
+    assert_equal "Array", response.diagnostics.fetch(:parsed_class)
   end
 
   def test_generate_structured_message_normalizes_missing_required_field
@@ -136,7 +176,10 @@ class LlmRequestEngineTest < Minitest::Test
 
     assert_equal "invalid_response", response.status
     assert_equal "", response.rendered_text
+    assert_equal "{\"text\":\"Wrong field\"}", response.raw_response_ref
     assert_includes response.warnings, "Provider response missed required fields: message"
+    assert_equal "missing_required_fields", response.diagnostics.fetch(:response_failure)
+    assert_equal ["message"], response.diagnostics.fetch(:missing_required_fields)
   end
 
   def test_generate_structured_message_normalizes_provider_error_without_raising

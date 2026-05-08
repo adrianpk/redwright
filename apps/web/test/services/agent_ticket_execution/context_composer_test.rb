@@ -27,13 +27,17 @@ module AgentTicketExecution
         assert_equal "ticket_record", sections.fetch("ticket").authority
         assert_equal "workspace_filesystem", sections.fetch("relevant_files").authority
         assert_equal "project_protocol_model", sections.fetch("protocol_model").authority
+        assert_equal "project_protocol_model", sections.fetch("protocol_files").authority
         assert_equal "historical_agent_llm_interaction", sections.fetch("previous_interactions").authority
         assert_includes sections.fetch("ticket").content.fetch("description"), "done <task-number>"
         assert_includes sections.fetch("repository_tree").content.fetch("entries").map { |entry| entry.fetch("path") }, "main.go"
+        refute_includes sections.fetch("repository_tree").content.fetch("entries").map { |entry| entry.fetch("path") }, "AGENTS.md"
         assert_includes sections.fetch("relevant_files").content.map { |file| file.fetch("path") }, "main.go"
+        refute_includes sections.fetch("relevant_files").content.map { |file| file.fetch("path") }, "AGENTS.md"
         assert_includes sections.fetch("tests").content.map { |file| file.fetch("path") }, "main_test.go"
         assert_equal "available", sections.fetch("operational_setup").content.fetch("status")
         assert_includes sections.fetch("protocol_files").content.map { |file| file.fetch("path") }, "AGENTS.md"
+        assert_includes sections.fetch("protocol_files").content.first.fetch("content"), "Use Conventional Commits"
         assert_equal false, sections.fetch("previous_interactions").content.fetch("human_chat_included")
         assert_equal 1, sections.fetch("previous_interactions").content.fetch("records").length
 
@@ -41,6 +45,8 @@ module AgentTicketExecution
         assert_operator context.diagnostics.fetch("context_bytes"), :>, 0
         assert_equal fixture.ticket.id, context.trace_metadata.fetch(:ticket_id)
         assert_equal fixture.project_path, context.trace_metadata.fetch(:project_root)
+        assert_equal "test", context.trace_metadata.fetch(:source_channel)
+        assert_equal "agent-test", context.trace_metadata.fetch(:actor_identifier)
         assert_equal context.context_sections, context.llm_request_inputs.fetch(:context_sections)
       end
     end

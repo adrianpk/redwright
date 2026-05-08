@@ -3,6 +3,7 @@
 require "shellwords"
 
 require_relative "project_setup_prompt_renderer"
+require_relative "trace"
 
 module Redwright
   class TelegramProjectSetupAdapter
@@ -69,18 +70,20 @@ module Redwright
     end
 
     def run_ticket_execution_async(chat_id:, ticket_id:, trace_id:, request_id:, actor_identifier:)
-      response = client.command(
-        name: "ExecuteAgentTicket",
-        payload: {"ticket_ref" => ticket_id},
-        actor_identifier: actor_identifier,
-        request_id: request_id
-      )
-      body = response.body
-      remember_ticket_context(chat_id: chat_id, body: body)
-      messages = render_agent_ticket_execution_messages(body: body, trace_id: trace_id)
-      final_messages = messages.length > 1 ? messages.drop(1) : messages
-      final_messages.each do |message|
-        telegram_client.send_message(chat_id: chat_id, text: message.to_s)
+      Trace.with_trace_id(trace_id) do
+        response = client.command(
+          name: "ExecuteAgentTicket",
+          payload: {"ticket_ref" => ticket_id},
+          actor_identifier: actor_identifier,
+          request_id: request_id
+        )
+        body = response.body
+        remember_ticket_context(chat_id: chat_id, body: body)
+        messages = render_agent_ticket_execution_messages(body: body, trace_id: trace_id)
+        final_messages = messages.length > 1 ? messages.drop(1) : messages
+        final_messages.each do |message|
+          telegram_client.send_message(chat_id: chat_id, text: message.to_s)
+        end
       end
     rescue StandardError => e
       telegram_client&.send_message(
@@ -539,10 +542,12 @@ module Redwright
       ].join("\n")
       return [ack] unless terminal.is_a?(Hash) && !terminal.empty?
 
+      outcome = terminal["status"] || execution["state"] || "unknown"
+      heading = %w[blocked failed error].include?(outcome.to_s) ? "Agent ticket execution blocked." : "Agent ticket execution finished."
       final = [
-        "Agent ticket execution finished.",
+        heading,
         "Ticket: #{terminal['ticket_ref'] || terminal['ticket_key'] || terminal['ticket_id'] || ticket_ref || ticket_id || 'pending'}",
-        "Outcome: #{terminal['status'] || execution['state'] || 'unknown'}",
+        "Outcome: #{outcome}",
         "Trace: #{trace_id}"
       ].join("\n")
       [ack, final]

@@ -33,10 +33,18 @@ module AgentTicketExecution
         assert_equal fixture.ticket.id, provider_prompt.dig("request", "ticket_id")
         assert_includes provider_prompt.fetch("context_sections").map { |section| section.fetch("name") }, "repository_tree"
         assert_includes provider_prompt.fetch("context_sections").to_s, "main.go"
+        protocol_model_section = provider_prompt.fetch("context_sections").find { |section| section.fetch("name") == "protocol_model" }
+        assert_equal true, protocol_model_section.fetch("content_omitted")
+        assert_equal "duplicated_by_protocol_files", protocol_model_section.fetch("omission_reason")
+        refute_includes protocol_model_section.keys, "content"
         assert_equal LlmContract::ACTION, recorder.requests.first.fetch(:action)
         assert_includes recorder.requests.first.fetch(:user_text), "context_sections"
         assert_equal LlmContract::ACTION, recorder.responses.first.fetch(:action)
         assert_equal fixture.ticket.id, recorder.requests.first.fetch(:ticket_id)
+        assert_equal "test", recorder.requests.first.fetch(:source_channel)
+        assert_equal "agent-test", recorder.requests.first.fetch(:actor_identifier)
+        assert_equal [], recorder.responses.first.fetch(:warnings)
+        assert_equal({context_bytes: 123}, recorder.responses.first.fetch(:diagnostics))
       end
     end
 

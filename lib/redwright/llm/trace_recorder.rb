@@ -83,7 +83,9 @@ module Redwright
         model: nil,
         model_alias: nil,
         resolved_model: nil,
-        payload_bytes: nil
+        payload_bytes: nil,
+        warnings: nil,
+        diagnostics: nil
       )
         @trace.llm_response(
           status: status,
@@ -111,7 +113,9 @@ module Redwright
           model: model,
           model_alias: model_alias,
           resolved_model: resolved_model,
-          payload_bytes: payload_bytes
+          payload_bytes: payload_bytes,
+          warnings: warnings,
+          diagnostics: diagnostics
         )
       end
     end

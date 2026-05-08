@@ -4,6 +4,8 @@ require "json"
 require "net/http"
 require "uri"
 
+require_relative "trace"
+
 module Redwright
   class TelegramRailsApiClient
     Response = Struct.new(:ok, :status_code, :body, keyword_init: true) do
@@ -43,7 +45,12 @@ module Redwright
       body = {
         name: name.to_s,
         payload: payload.is_a?(Hash) ? payload : {},
-        request_id: request_id.to_s
+        request_id: request_id.to_s,
+        execution_context: {
+          actor_identifier: actor_identifier.to_s,
+          source_channel: "telegram",
+          trace_id: Trace.current_trace_id
+        }.compact
       }
       response = @transport.call(
         uri: URI.join("#{@base_url}/", path),

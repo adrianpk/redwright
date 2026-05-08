@@ -20,6 +20,10 @@ module AgentTicketExecution
       %r{\Aspec/}
     ].freeze
     SKIPPED_DIRECTORIES = %w[.git node_modules vendor tmp log coverage dist build target .next].freeze
+    PROTOCOL_FILE_PATTERNS = [
+      %r{\AAGENTS\.md\z},
+      %r{\A\.agents/}
+    ].freeze
 
     Context = Struct.new(:context_sections, :trace_metadata, :user_text, :diagnostics, keyword_init: true) do
       def llm_request_inputs
@@ -47,7 +51,7 @@ module AgentTicketExecution
         section("relevant_files", file_payload(workspace_path, relevant_files(files)), "workspace_filesystem"),
         section("tests", file_payload(workspace_path, test_files(files)), "workspace_filesystem"),
         section("operational_setup", operational_setup_payload(project, workspace_path), "project_operational_setup"),
-        section("protocol_files", protocol_file_payload(project, workspace_path), "workspace_filesystem"),
+        section("protocol_files", protocol_file_payload(project), "project_protocol_model"),
         section("protocol_model", project.protocol_state, "project_protocol_model"),
         section("previous_interactions", previous_interactions_payload(ticket, request), "historical_agent_llm_interaction")
       ]
@@ -57,7 +61,7 @@ module AgentTicketExecution
 
       Context.new(
         context_sections: sections,
-        trace_metadata: trace_metadata(ticket, project, workspace_path, sections),
+        trace_metadata: trace_metadata(ticket, project, workspace_path, sections, request),
         user_text: JSON.generate(user_text_payload(ticket, request)),
         diagnostics: diagnostics(sections)
       )
@@ -151,20 +155,16 @@ module AgentTicketExecution
       )
     end
 
-    def protocol_file_payload(project, workspace_path)
+    def protocol_file_payload(project)
       project.protocol_state.fetch("documents", []).filter_map do |document|
         path = document.fetch("path", nil)
         next if path.blank?
 
-        full_path = File.expand_path(path, workspace_path)
-        next unless safe_child_path?(workspace_path, full_path)
-        next unless File.file?(full_path)
-
         {
           "path" => path,
           "title" => document.fetch("title", path),
-          "content" => read_file(full_path),
-          "truncated" => File.size(full_path) > MAX_FILE_BYTES
+          "content" => document.fetch("body", "").to_s,
+          "truncated" => false
         }
       end
     end
@@ -202,6 +202,7 @@ module AgentTicketExecution
 
         relative = path.delete_prefix("#{root}/")
         next if skipped_path?(relative)
+        next if protocol_path?(relative)
 
         {path: relative, bytes: File.size(path)}
       end.sort_by { |file| file.fetch(:path) }
@@ -209,6 +210,10 @@ module AgentTicketExecution
 
     def skipped_path?(relative_path)
       relative_path.split(File::SEPARATOR).any? { |part| SKIPPED_DIRECTORIES.include?(part) }
+    end
+
+    def protocol_path?(relative_path)
+      PROTOCOL_FILE_PATTERNS.any? { |pattern| pattern.match?(relative_path) }
     end
 
     def read_file(path)
@@ -223,13 +228,16 @@ module AgentTicketExecution
       expanded_path == expanded_root || expanded_path.start_with?("#{expanded_root}/")
     end
 
-    def trace_metadata(ticket, project, workspace_path, sections)
+    def trace_metadata(ticket, project, workspace_path, sections, request)
       {
-        trace_id: nil,
+        trace_id: request["trace_id"],
         project_id: project.id,
         project_ref: project.repo_url,
         project_root: workspace_path,
         ticket_id: ticket.id,
+        session_id: request["session_id"],
+        source_channel: request["source_channel"],
+        actor_identifier: request["actor_identifier"],
         context_summary: sections.map(&:to_h),
         context_bytes: sections.sum(&:bytes),
         context_sections: sections.map(&:name)

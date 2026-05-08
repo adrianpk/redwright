@@ -1,7 +1,7 @@
 ---
 id: TKT-20260508181112
 title: Improve agent ticket LLM response diagnostics and context shaping
-status: ready
+status: in_progress
 kind: bug
 severity: high
 priority: high
@@ -10,12 +10,12 @@ tags: llm-trace, agent-ticket-execution, context, diagnostics
 source: trace
 reported_at: 2026-05-08T18:11:12Z
 ready_at: 2026-05-08T18:11:12Z
-started_at:
+started_at: 2026-05-08T18:10:54Z
 reviewed_at:
 closed_at:
 resolution:
 owner: 
-branch:
+branch: fix/ticket-20260508181112-llm-diagnostics-context
 pr:
 commits: []
 ---

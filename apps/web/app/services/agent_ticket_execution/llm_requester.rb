@@ -58,19 +58,28 @@ module AgentTicketExecution
     attr_reader :request_engine, :contract, :model, :provider, :trace_recorder
 
     def provider_user_text(user_text:, context_sections:)
+      section_names = context_sections.map { |section| section.name.to_s }
       JSON.generate(
         "request" => JSON.parse(user_text),
-        "context_sections" => context_sections.map { |section| provider_context_section(section) }
+        "context_sections" => context_sections.map { |section| provider_context_section(section, section_names: section_names) }
       )
     rescue JSON::ParserError
       JSON.generate(
         "request" => user_text.to_s,
-        "context_sections" => context_sections.map { |section| provider_context_section(section) }
+        "context_sections" => context_sections.map { |section| provider_context_section(section, section_names: section_names) }
       )
     end
 
-    def provider_context_section(section)
-      section.to_h.merge("content" => section.content)
+    def provider_context_section(section, section_names:)
+      payload = section.to_h
+      if section.name.to_s == "protocol_model" && section_names.include?("protocol_files")
+        payload.merge(
+          "content_omitted" => true,
+          "omission_reason" => "duplicated_by_protocol_files"
+        )
+      else
+        payload.merge("content" => section.content)
+      end
     end
 
     def record_request(user_text:, context_sections:, trace_metadata:)
@@ -82,12 +91,16 @@ module AgentTicketExecution
         model: model,
         action: LlmContract::ACTION,
         payload_bytes: user_text.bytesize,
+        trace_id: trace_metadata[:trace_id],
         system_prompt: LlmContract.system_prompt,
         user_text: user_text,
         project_id: trace_metadata[:project_id],
         project_ref: trace_metadata[:project_ref],
         project_root: trace_metadata[:project_root],
         ticket_id: trace_metadata[:ticket_id],
+        session_id: trace_metadata[:session_id],
+        source_channel: trace_metadata[:source_channel],
+        actor_identifier: trace_metadata[:actor_identifier],
         context_summary: trace_metadata[:context_summary],
         context_bytes: trace_metadata[:context_bytes],
         context_sections: context_sections.map(&:to_h)
@@ -102,6 +115,7 @@ module AgentTicketExecution
         latency_ms: 0,
         output_bytes: response.raw_response_ref.to_s.bytesize,
         llm_call_id: llm_call_id,
+        trace_id: trace_metadata[:trace_id],
         finish_reason: response.provider_metadata[:finish_reason],
         raw_output: response.raw_response_ref,
         parsed_fields: response.semantic_payload.keys,
@@ -109,11 +123,16 @@ module AgentTicketExecution
         project_ref: trace_metadata[:project_ref],
         project_root: trace_metadata[:project_root],
         ticket_id: trace_metadata[:ticket_id],
+        session_id: trace_metadata[:session_id],
+        source_channel: trace_metadata[:source_channel],
+        actor_identifier: trace_metadata[:actor_identifier],
         action: LlmContract::ACTION,
         model_role: LlmContract::MODEL_ROLE,
         provider: provider,
         model: model,
-        payload_bytes: response.diagnostics[:context_bytes]
+        payload_bytes: response.diagnostics[:context_bytes],
+        warnings: response.warnings,
+        diagnostics: response.diagnostics
       )
     end
   end

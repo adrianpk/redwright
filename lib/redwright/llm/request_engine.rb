@@ -77,11 +77,53 @@ module Redwright
       end
 
       def normalize_completion(completion:, output_contract:, provider:, model:, model_role:, action:, context_sections:, trace_metadata:, redacted: false)
-        parsed = JSON.parse(completion.content.to_s)
-        return invalid_shape_response(provider: provider, model: model, model_role: model_role, action: action, context_sections: context_sections, trace_metadata: trace_metadata) unless parsed.is_a?(Hash)
+        content = completion.content.to_s
+        if content.strip.empty?
+          return failure_response(
+            "invalid_response",
+            "Provider response was empty",
+            provider: provider,
+            model: model,
+            model_role: model_role,
+            action: action,
+            context_sections: context_sections,
+            trace_metadata: trace_metadata,
+            raw_response_ref: completion.content,
+            diagnostic_details: {response_failure: "empty_content"},
+            redacted: redacted
+          )
+        end
+
+        parsed = JSON.parse(content)
+        unless parsed.is_a?(Hash)
+          return invalid_shape_response(
+            provider: provider,
+            model: model,
+            model_role: model_role,
+            action: action,
+            context_sections: context_sections,
+            trace_metadata: trace_metadata,
+            raw_response_ref: content,
+            diagnostic_details: {response_failure: "non_object_json", parsed_class: parsed.class.name},
+            redacted: redacted
+          )
+        end
 
         missing = required_fields(output_contract).reject { |field| parsed.key?(field) && !parsed[field].to_s.strip.empty? }
-        return invalid_shape_response(provider: provider, model: model, model_role: model_role, action: action, context_sections: context_sections, trace_metadata: trace_metadata, missing_fields: missing) unless missing.empty?
+        unless missing.empty?
+          return invalid_shape_response(
+            provider: provider,
+            model: model,
+            model_role: model_role,
+            action: action,
+            context_sections: context_sections,
+            trace_metadata: trace_metadata,
+            missing_fields: missing,
+            raw_response_ref: content,
+            diagnostic_details: {response_failure: "missing_required_fields", missing_required_fields: missing},
+            redacted: redacted
+          )
+        end
 
         rendered_text = parsed.fetch(rendered_text_field(output_contract)).to_s.strip
         Response.new(
@@ -95,15 +137,15 @@ module Redwright
           diagnostics: diagnostics(context_sections: context_sections, trace_metadata: trace_metadata, redacted: redacted)
         )
       rescue JSON::ParserError => e
-        failure_response("invalid_response", "Provider response was not valid JSON", provider: provider, model: model, model_role: model_role, action: action, context_sections: context_sections, trace_metadata: trace_metadata, error: e, raw_response_ref: completion.content)
+        failure_response("invalid_response", "Provider response was not valid JSON", provider: provider, model: model, model_role: model_role, action: action, context_sections: context_sections, trace_metadata: trace_metadata, error: e, raw_response_ref: content, diagnostic_details: {response_failure: "invalid_json"}, redacted: redacted)
       end
 
-      def invalid_shape_response(provider:, model:, model_role:, action:, context_sections:, trace_metadata:, missing_fields: [])
+      def invalid_shape_response(provider:, model:, model_role:, action:, context_sections:, trace_metadata:, missing_fields: [], raw_response_ref: nil, diagnostic_details: {}, redacted: false)
         message = missing_fields.empty? ? "Provider response did not match the output contract" : "Provider response missed required fields: #{missing_fields.join(', ')}"
-        failure_response("invalid_response", message, provider: provider, model: model, model_role: model_role, action: action, context_sections: context_sections, trace_metadata: trace_metadata)
+        failure_response("invalid_response", message, provider: provider, model: model, model_role: model_role, action: action, context_sections: context_sections, trace_metadata: trace_metadata, raw_response_ref: raw_response_ref, diagnostic_details: diagnostic_details, redacted: redacted)
       end
 
-      def failure_response(status, message, provider:, model:, model_role:, action:, context_sections:, trace_metadata:, error: nil, raw_response_ref: nil)
+      def failure_response(status, message, provider:, model:, model_role:, action:, context_sections:, trace_metadata:, error: nil, raw_response_ref: nil, diagnostic_details: {}, redacted: false)
         Response.new(
           status: status,
           semantic_payload: {},
@@ -112,7 +154,7 @@ module Redwright
           usage: nil,
           warnings: [message],
           raw_response_ref: raw_response_ref || error&.message,
-          diagnostics: diagnostics(context_sections: context_sections, trace_metadata: trace_metadata, error: error)
+          diagnostics: diagnostics(context_sections: context_sections, trace_metadata: trace_metadata, error: error, redacted: redacted, details: diagnostic_details)
         )
       end
 
@@ -136,7 +178,7 @@ module Redwright
         }.compact
       end
 
-      def diagnostics(context_sections:, trace_metadata:, error: nil, redacted: false)
+      def diagnostics(context_sections:, trace_metadata:, error: nil, redacted: false, details: {})
         data = {
           context_sections: context_section_names(context_sections),
           context_section_authorities: context_section_authorities(context_sections),
@@ -146,6 +188,7 @@ module Redwright
         }
         data[:error_class] = error.class.name if error
         data[:error_message] = error.message if error
+        details.each { |key, value| data[key.to_sym] = value } if details
         data
       end
 

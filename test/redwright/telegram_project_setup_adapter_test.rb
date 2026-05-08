@@ -562,6 +562,56 @@ class TelegramProjectSetupAdapterTest < Minitest::Test
     assert_match("Outcome: ready_for_review", telegram_client.messages.first[:text])
   end
 
+  def test_async_ticket_execution_preserves_trace_context_and_reports_blocked_outcome
+    jobs = []
+    observed_trace_id = nil
+    client = ScriptedRailsClient.new(
+      command_bodies: {
+        "ExecuteAgentTicket" => {
+          "status" => "ok",
+          "summary" => "Agent ticket execution blocked.",
+          "data" => {
+            "execution" => {
+              "mode" => "targeted",
+              "state" => "blocked",
+              "ticket_ref" => "RW-42",
+              "acknowledgement" => {
+                "status" => "accepted",
+                "message" => "Agent ticket execution accepted.",
+                "ticket_ref" => "RW-42",
+                "mode" => "targeted"
+              },
+              "terminal_outcome" => {
+                "status" => "blocked",
+                "ticket_ref" => "RW-42"
+              }
+            }
+          }
+        }
+      }
+    )
+    client.define_singleton_method(:command) do |**kwargs|
+      observed_trace_id = Redwright::Trace.current_trace_id
+      super(**kwargs)
+    end
+    telegram_client = FakeTelegramClient.new([])
+    adapter = Redwright::TelegramProjectSetupAdapter.new(
+      client: client,
+      telegram_client: telegram_client,
+      thread_factory: ->(&block) { jobs << block; Object.new }
+    )
+
+    started = adapter.handle(event(4, "/ticket start RW-42"), trace_id: "trc-async")
+
+    assert started.handled?
+    jobs.fetch(0).call
+
+    assert_equal "trc-async", observed_trace_id
+    assert_equal(1, telegram_client.messages.size)
+    assert_match("Agent ticket execution blocked.", telegram_client.messages.first[:text])
+    assert_match("Outcome: blocked", telegram_client.messages.first[:text])
+  end
+
   private
 
   def event(update_id, text)

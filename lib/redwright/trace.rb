@@ -133,7 +133,9 @@ module Redwright
       model: nil,
       model_alias: nil,
       resolved_model: nil,
-      payload_bytes: nil
+      payload_bytes: nil,
+      warnings: nil,
+      diagnostics: nil
     )
       llm_call_id ||= generate_llm_call_id
       return unless llm_foreground_enabled? || llm_file_enabled?
@@ -149,6 +151,7 @@ module Redwright
           decision_source: decision_source,
           parsed_intent: parsed_intent,
           parsed_message: parsed_message,
+          warnings: Array(warnings).empty? ? nil : Array(warnings).join(" | "),
           raw_output: raw_output
         }.compact)
       end
@@ -179,7 +182,9 @@ module Redwright
         parsed_message: parsed_message,
         parsed_fields: parsed_fields,
         decision_source: decision_source,
-        error: error
+        error: error,
+        warnings: warnings,
+        diagnostics: diagnostics
       )
       llm_call_id
     end

@@ -58,6 +58,8 @@ class LlmTraceRecorderTest < Minitest::Test
         provider: "openrouter",
         model: "openrouter/auto",
         payload_bytes: 12,
+        warnings: ["Provider response was empty"],
+        diagnostics: {response_failure: "empty_content"},
         project_id: 77,
         session_id: 41,
         source_channel: "project_setup"
@@ -73,6 +75,8 @@ class LlmTraceRecorderTest < Minitest::Test
       assert_equal ["setup_summary"], request.fetch("context_sections")
       assert_equal "ok", response.fetch("status")
       assert_equal "Question?", response.fetch("parsed_message")
+      assert_equal ["Provider response was empty"], response.fetch("warnings")
+      assert_equal "empty_content", response.fetch("diagnostics").fetch("response_failure")
     end
   end
 
