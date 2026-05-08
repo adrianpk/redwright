@@ -9,10 +9,11 @@ module AgentTicketExecution
       new.register(dispatcher)
     end
 
-    def initialize(executor: nil, selection_policy: nil, workspace_boundary: nil)
+    def initialize(executor: nil, selection_policy: nil, workspace_boundary: nil, context_composer: nil)
       @executor = executor || AcceptedExecutor.new
       @selection_policy = selection_policy
       @workspace_boundary = workspace_boundary
+      @context_composer = context_composer
     end
 
     def register(dispatcher)
@@ -32,10 +33,25 @@ module AgentTicketExecution
       workspace = resolve_workspace(request: request, ticket: ticket)
       return workspace_error_result(workspace, request_id: request_id) if workspace && !workspace.ok?
 
-      execution = normalize_execution(executor.call(request: request, ticket: ticket, workspace: workspace))
+      execution_context = compose_execution_context(request: request, ticket: ticket, workspace: workspace)
+      execution = normalize_execution(
+        executor.call(
+          request: request,
+          ticket: ticket,
+          workspace: workspace,
+          execution_context: execution_context
+        )
+      )
       CommandQuery::Result.ok(
         request_id: request_id,
-        data: execution_data(request: request, ticket: ticket, board: board, workspace: workspace, execution: execution),
+        data: execution_data(
+          request: request,
+          ticket: ticket,
+          board: board,
+          workspace: workspace,
+          execution_context: execution_context,
+          execution: execution
+        ),
         effects: execution_effects(request: request, ticket: ticket, board: board, execution: execution)
       )
     end
@@ -45,6 +61,7 @@ module AgentTicketExecution
     attr_reader :executor
     attr_reader :selection_policy
     attr_reader :workspace_boundary
+    attr_reader :context_composer
 
     def build_request(payload:, context:, request_id:)
       ticket_id = value_from(payload, "ticket_id").presence
@@ -99,6 +116,13 @@ module AgentTicketExecution
       boundary.resolve(ticket: ticket, branch_name: value_from(request, "branch_name"))
     end
 
+    def compose_execution_context(request:, ticket:, workspace:)
+      composer = context_composer
+      return nil unless composer
+
+      composer.compose(ticket: ticket, request: request, workspace: workspace)
+    end
+
     def normalize_execution(raw)
       execution = raw.is_a?(Hash) ? raw : {}
       state = execution.fetch("state", "accepted").to_s
@@ -111,7 +135,7 @@ module AgentTicketExecution
       }
     end
 
-    def execution_data(request:, ticket:, board:, workspace:, execution:)
+    def execution_data(request:, ticket:, board:, workspace:, execution_context:, execution:)
       {
         "summary" => summary_for(execution),
         "execution" => {
@@ -123,6 +147,7 @@ module AgentTicketExecution
           "board_id" => ticket&.board_id || board&.id || request.fetch("board_id"),
           "assignee" => request.fetch("assignee"),
           "workspace" => workspace&.context,
+          "context" => execution_context&.diagnostics,
           "acknowledgement" => execution.fetch("acknowledgement"),
           "terminal_outcome" => execution.fetch("terminal_outcome"),
           "details" => execution.fetch("details")
@@ -195,7 +220,7 @@ module AgentTicketExecution
   end
 
   class AcceptedExecutor
-    def call(request:, ticket:, workspace: nil)
+    def call(request:, ticket:, workspace: nil, execution_context: nil)
       {
         "state" => "accepted",
         "acknowledgement" => {
@@ -209,7 +234,8 @@ module AgentTicketExecution
         "details" => {
           "async" => true,
           "executor" => "accepted_boundary",
-          "workspace_path" => workspace&.workspace_path
+          "workspace_path" => workspace&.workspace_path,
+          "context_sections" => execution_context&.diagnostics&.fetch("section_names", nil)
         }
       }
     end
