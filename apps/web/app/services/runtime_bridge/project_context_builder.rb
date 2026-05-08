@@ -27,7 +27,8 @@ module RuntimeBridge
       {
         "project" => project_data,
         "slots" => slots,
-        "runtime" => runtime_data(slots)
+        "runtime" => runtime_data(slots),
+        "operational_setup" => operational_setup_data
       }
     end
 
@@ -72,6 +73,10 @@ module RuntimeBridge
         "framework" => slots.fetch("framework").fetch("value"),
         "libraries" => slots.fetch("libraries").fetch("value")
       }
+    end
+
+    def operational_setup_data
+      AgentTicketExecution::OperationalSetup.new(project: project).discover
     end
 
     def default_slot_value(slot_key)

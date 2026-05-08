@@ -42,6 +42,7 @@ module ProjectSetup
       write_scaffold_files(path) if scaffold_profile?
       @validation_result = validate_scaffold(path)
       protocol_materialization = materialize_project_protocols(path)
+      operational_setup = materialize_operational_setup(path)
       File.write(manifest_path, YAML.dump(manifest_payload(manifest_path: manifest_path, protocol_materialization: protocol_materialization)))
       File.write(readme_path, readme_body)
       File.write(setup_notes_path, setup_notes_body)
@@ -65,6 +66,7 @@ module ProjectSetup
         "setup_notes_relative_path" => File.join(DEFAULT_RELATIVE_ROOT, slug, ".redwright", "setup-notes.md"),
         "protocol_materialization_status" => protocol_materialization.fetch("status"),
         "protocol_files" => protocol_materialization.fetch("files"),
+        "operational_setup" => operational_setup,
         "runtime_root_path" => @project.root_path,
         "repo_url" => @project.repo_url,
         "scaffold_profile" => scaffold_profile_key,
@@ -153,6 +155,7 @@ module ProjectSetup
         "scaffold" => scaffold_payload,
         "validation" => validation_payload,
         "protocols" => protocols_payload(protocol_materialization),
+        "operational_setup" => @operational_setup || {},
         "runtime" => {
           "container_profile" => slot_value("runtime_container_profile")
         },
@@ -178,6 +181,10 @@ module ProjectSetup
         project: @project,
         workspace_path: path
       ).call
+    end
+
+    def materialize_operational_setup(path)
+      @operational_setup = AgentTicketExecution::OperationalSetup.new(project: @project).ensure!(workspace_path: path)
     end
 
     def readme_body
@@ -210,6 +217,18 @@ module ProjectSetup
             GO_CLI_VALIDATION_COMMAND,
             "go run .",
             "```"
+          ]
+        )
+      end
+      if @operational_setup.present?
+        lines.concat(
+          [
+            "",
+            "## Agent Operational Setup",
+            "",
+            "- Status: #{@operational_setup.fetch("status")}",
+            "- Dockerfile: #{@operational_setup.fetch("dockerfile_relative_path")}",
+            "- Production Dockerfile separate: #{@operational_setup.fetch("production_dockerfile_separate") ? "yes" : "no"}"
           ]
         )
       end
@@ -255,6 +274,20 @@ module ProjectSetup
             "- Files: #{scaffold_files.join(", ")}",
             "- Validation command: #{GO_CLI_VALIDATION_COMMAND}",
             "- Validation reason: #{validation_payload.fetch("reason")}"
+          ]
+        )
+      end
+      if @operational_setup.present?
+        lines.concat(
+          [
+            "",
+            "## Agent Operational Setup",
+            "",
+            "- Status: #{@operational_setup.fetch("status")}",
+            "- Source: #{@operational_setup.fetch("source")}",
+            "- Directory: #{@operational_setup.fetch("agent_relative_path")}",
+            "- Dockerfile: #{@operational_setup.fetch("dockerfile_relative_path")}",
+            "- Production Dockerfile separate: #{@operational_setup.fetch("production_dockerfile_separate") ? "yes" : "no"}"
           ]
         )
       end
