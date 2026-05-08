@@ -9,11 +9,12 @@ module AgentTicketExecution
       new.register(dispatcher)
     end
 
-    def initialize(executor: nil, selection_policy: nil, workspace_boundary: nil, context_composer: nil)
+    def initialize(executor: nil, selection_policy: nil, workspace_boundary: nil, context_composer: nil, kanban_transitioner: nil)
       @executor = executor || AcceptedExecutor.new
       @selection_policy = selection_policy
       @workspace_boundary = workspace_boundary
       @context_composer = context_composer
+      @kanban_transitioner = kanban_transitioner || KanbanTransitioner.new
     end
 
     def register(dispatcher)
@@ -33,6 +34,7 @@ module AgentTicketExecution
       workspace = resolve_workspace(request: request, ticket: ticket)
       return workspace_error_result(workspace, request_id: request_id) if workspace && !workspace.ok?
 
+      start_transition = kanban_transitioner.mark_started(ticket: ticket)
       execution_context = compose_execution_context(request: request, ticket: ticket, workspace: workspace)
       execution = normalize_execution(
         executor.call(
@@ -42,6 +44,11 @@ module AgentTicketExecution
           execution_context: execution_context
         )
       )
+      terminal_transition = kanban_transitioner.apply_terminal_outcome(ticket: ticket, execution: execution)
+      execution.fetch("details")["kanban"] = {
+        "start" => start_transition.to_h,
+        "terminal" => terminal_transition.to_h
+      }
       CommandQuery::Result.ok(
         request_id: request_id,
         data: execution_data(
@@ -62,6 +69,7 @@ module AgentTicketExecution
     attr_reader :selection_policy
     attr_reader :workspace_boundary
     attr_reader :context_composer
+    attr_reader :kanban_transitioner
 
     def build_request(payload:, context:, request_id:)
       ticket_id = value_from(payload, "ticket_id").presence
