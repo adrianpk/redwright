@@ -1,18 +1,18 @@
 ---
 id: redwright-agent-ticket-architecture-corrections-cycle-tracker-2026-05-08
 title: RedWright Agent Ticket Architecture Corrections Cycle Tracker
-state: slice_3_merged
+state: slice_4_ready_for_review
 created_at: 2026-05-08T19:46:04Z
 plan: ops/plans/2026-05-08-redwright-agent-ticket-architecture-corrections-cycle-plan.md
 ticket: TKT-20260508194604
-active_slice: 3
+active_slice: 4
 ---
 
 # RedWright Agent Ticket Architecture Corrections Cycle Tracker
 
 ## Cycle Status
-- state: `slice_3_merged`
-- active_slice: `3`
+- state: `slice_4_ready_for_review`
+- active_slice: `4`
 - max_slices: `6`
 - current_branch: `dev`
 
@@ -64,15 +64,20 @@ active_slice: 3
 
 ## Slice 4: Introduce Agent Ticket Context Section Providers
 - branch: `refactor/slice-4-agent-ticket-context-providers`
-- status: `pending`
+- status: `ready_for_review`
 - tasks:
-  - [ ] Extract current context sections into provider objects.
-  - [ ] Preserve section names, authorities, and payload shapes.
-  - [ ] Preserve protocol exclusion/deduplication behavior.
-  - [ ] Run context composer and LLM requester tests.
+  - [x] Extract current context sections into provider objects.
+  - [x] Preserve section names, authorities, and payload shapes.
+  - [x] Preserve protocol exclusion/deduplication behavior.
+  - [x] Run context composer and LLM requester tests.
 - commits: []
 - pr:
-- validation: []
+- validation:
+  - `cd apps/web && bin/rails test test/services/agent_ticket_execution/context_composer_test.rb`
+  - `cd apps/web && bin/rails test test/services/agent_ticket_execution/llm_requester_test.rb`
+  - `cd apps/web && bin/rails test test/services/agent_ticket_execution`
+  - `scripts/agent/tickets/check.sh`
+  - `git diff --check --no-ext-diff`
 
 ## Slice 5: Move Validation Defaults Into Operational Setup
 - branch: `refactor/slice-5-agent-ticket-validation-defaults`
@@ -115,3 +120,5 @@ active_slice: 3
 - `2026-05-08` state=`executing_slice` note=`started Slice 3 on refactor/slice-3-agent-ticket-command-query-runner and extracted request building, runner orchestration, and response presentation`
 - `2026-05-08` state=`slice_3_ready_for_review` note=`reduced CommandQueryHandlers to an entrypoint around RequestBuilder, Runner, and ResponsePresenter while preserving focused and e2e agent ticket tests`
 - `2026-05-08` state=`slice_3_merged` note=`merged PR #384 into dev`
+- `2026-05-08` state=`executing_slice` note=`started Slice 4 on refactor/slice-4-agent-ticket-context-providers and extracted context section responsibilities into provider objects`
+- `2026-05-08` state=`slice_4_ready_for_review` note=`introduced context section providers while preserving section names, payload shapes, protocol filesystem exclusion, and focused LLM request tests`
