@@ -1,5 +1,6 @@
 ENV["RAILS_ENV"] ||= "test"
 require_relative "../config/environment"
+require_relative "support/agent_ticket_execution_workspace_fixture"
 require "rails/test_help"
 require "securerandom"
 
@@ -79,4 +80,5 @@ end
 
 class ActiveSupport::TestCase
   include ProjectBoardTestHelper
+  include AgentTicketExecutionWorkspaceFixture
 end
