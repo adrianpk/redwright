@@ -1,18 +1,18 @@
 ---
 id: redwright-agent-ticket-architecture-corrections-cycle-tracker-2026-05-08
 title: RedWright Agent Ticket Architecture Corrections Cycle Tracker
-state: slice_5_merged
+state: slice_6_ready_for_review
 created_at: 2026-05-08T19:46:04Z
 plan: ops/plans/2026-05-08-redwright-agent-ticket-architecture-corrections-cycle-plan.md
 ticket: TKT-20260508194604
-active_slice: 5
+active_slice: 6
 ---
 
 # RedWright Agent Ticket Architecture Corrections Cycle Tracker
 
 ## Cycle Status
-- state: `slice_5_merged`
-- active_slice: `5`
+- state: `slice_6_ready_for_review`
+- active_slice: `6`
 - max_slices: `6`
 - current_branch: `dev`
 
@@ -99,16 +99,20 @@ active_slice: 5
 
 ## Slice 6: End-to-End Hardening and Closure
 - branch: `test/slice-6-agent-ticket-architecture-e2e`
-- status: `pending`
+- status: `ready_for_review`
 - tasks:
-  - [ ] Run focused tests across all refactored boundaries.
-  - [ ] Run full Rails and Ruby suites as warranted by the final blast radius.
-  - [ ] Run deterministic Go todo scenario reset and inspection.
-  - [ ] Record closure notes in this tracker.
+  - [x] Run focused tests across all refactored boundaries.
+  - [x] Run full Rails and Ruby suites as warranted by the final blast radius.
+  - [x] Run deterministic Go todo scenario reset and inspection.
+  - [x] Record closure notes in this tracker.
   - [ ] Move `TKT-20260508194604` to solved after merge.
 - commits: []
 - pr:
-- validation: []
+- validation:
+  - `ruby -Itest test/redwright/telegram_project_setup_adapter_test.rb test/redwright/telegram_runtime_handler_test.rb test/redwright/structured_patch_applier_test.rb test/redwright/primitive_executor_test.rb`
+  - `cd apps/web && bin/rails test test/services/agent_ticket_execution`
+  - `scripts/agent/tickets/check.sh`
+  - `make agent-ticket-scenario-reset && make agent-ticket-scenario-inspect`
 
 ## Decision Log
 - `2026-05-08` Planned the cycle with 6 slices after the architecture audit of
@@ -132,3 +136,4 @@ active_slice: 5
 - `2026-05-08` state=`executing_slice` note=`started Slice 5 on refactor/slice-5-agent-ticket-validation-defaults and moved validation command selection into operational setup metadata`
 - `2026-05-08` state=`slice_5_ready_for_review` note=`removed Go-specific validation defaults from ValidationLoop and resolved validation commands through operational setup/runtime metadata`
 - `2026-05-08` state=`slice_5_merged` note=`merged PR #386 into dev`
+- `2026-05-08` state=`slice_6_ready_for_review` note=`completed final hardening checks across Telegram adapters, primitive patch application, agent ticket execution, ticket checks, and deterministic Go todo scenario reset/inspection`
