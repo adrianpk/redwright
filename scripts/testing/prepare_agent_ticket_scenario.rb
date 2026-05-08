@@ -7,6 +7,7 @@ require "shellwords"
 
 REPO_ROOT = Rails.root.join("..", "..").expand_path
 TESTING_ROOT = REPO_ROOT.join("_workspace", "testing")
+REFERENCE_ROOT = TESTING_ROOT.join("reference", "go-todo-agent")
 PROJECTS_ROOT = TESTING_ROOT.join("Projects")
 PROJECT_ROOT = PROJECTS_ROOT.join("go-todo-agent")
 PROJECT_NAME = "Go Todo Agent"
@@ -264,15 +265,15 @@ def go_todo_test
   GO
 end
 
-def reset_workspace!
-  FileUtils.rm_rf(TESTING_ROOT)
-  FileUtils.mkdir_p(PROJECT_ROOT)
-  write_file(PROJECT_ROOT.join(".gitignore"), "todo.txt\ntodo.test\ncoverage.out\n")
-  write_file(PROJECT_ROOT.join("go.mod"), "module example.com/todo\n\ngo 1.22\n")
-  write_file(PROJECT_ROOT.join("main.go"), go_todo_main)
-  write_file(PROJECT_ROOT.join("main_test.go"), go_todo_test)
+def initialize_reference_workspace!
+  FileUtils.rm_rf(REFERENCE_ROOT)
+  FileUtils.mkdir_p(REFERENCE_ROOT)
+  write_file(REFERENCE_ROOT.join(".gitignore"), "todo.txt\ntodo.test\ncoverage.out\n")
+  write_file(REFERENCE_ROOT.join("go.mod"), "module example.com/todo\n\ngo 1.22\n")
+  write_file(REFERENCE_ROOT.join("main.go"), go_todo_main)
+  write_file(REFERENCE_ROOT.join("main_test.go"), go_todo_test)
   write_file(
-    PROJECT_ROOT.join("rw", "agent", "Dockerfile"),
+    REFERENCE_ROOT.join("rw", "agent", "Dockerfile"),
     <<~DOCKERFILE
       FROM golang:1.22-alpine
       WORKDIR /workspace
@@ -281,7 +282,7 @@ def reset_workspace!
     DOCKERFILE
   )
   write_file(
-    PROJECT_ROOT.join("rw", "agent", "runtime-setup.json"),
+    REFERENCE_ROOT.join("rw", "agent", "runtime-setup.json"),
     JSON.pretty_generate(
       "purpose" => "agent_ticket_execution",
       "validation_commands" => ["go test ./..."],
@@ -289,12 +290,18 @@ def reset_workspace!
     )
   )
 
-  run_command!("git init -q", chdir: PROJECT_ROOT.to_s)
-  run_command!("git config user.name redwright-testing", chdir: PROJECT_ROOT.to_s)
-  run_command!("git config user.email redwright-testing@example.local", chdir: PROJECT_ROOT.to_s)
+  run_command!("git init -q", chdir: REFERENCE_ROOT.to_s)
+  run_command!("git config user.name redwright-testing", chdir: REFERENCE_ROOT.to_s)
+  run_command!("git config user.email redwright-testing@example.local", chdir: REFERENCE_ROOT.to_s)
 end
 
-def compose_protocols!(project)
+def reset_workspace_from_reference!
+  FileUtils.rm_rf(PROJECTS_ROOT)
+  FileUtils.mkdir_p(PROJECTS_ROOT)
+  FileUtils.cp_r(REFERENCE_ROOT, PROJECT_ROOT)
+end
+
+def compose_protocols!(project, workspace_path:)
   catalog = ProjectProtocols::TemplateCatalog.new
   catalog.all_templates
   composition = ProjectProtocols::Composer.new(project: project, registry: catalog).call
@@ -317,7 +324,7 @@ def compose_protocols!(project)
     protocol_document.save!
   end
   protocol.documents.where.not(key: expected_keys).destroy_all
-  ProjectProtocols::FilesystemMaterializer.new(project: project, workspace_path: PROJECT_ROOT.to_s).call
+  ProjectProtocols::FilesystemMaterializer.new(project: project, workspace_path: workspace_path.to_s).call
 end
 
 def create_scenario_records!
@@ -366,19 +373,21 @@ def create_scenario_records!
     source: "implementation"
   )
 
-  compose_protocols!(project)
-  run_command!("git add -A", chdir: PROJECT_ROOT.to_s)
-  run_command!("git commit -q -m #{Shellwords.escape("testing: reset go todo agent scenario")}", chdir: PROJECT_ROOT.to_s)
+  compose_protocols!(project, workspace_path: REFERENCE_ROOT)
+  run_command!("git add -A", chdir: REFERENCE_ROOT.to_s)
+  run_command!("git commit -q -m #{Shellwords.escape("Initial commit")}", chdir: REFERENCE_ROOT.to_s)
+  reset_workspace_from_reference!
   [project, board, ticket]
 end
 
 reset_development_database!
-reset_workspace!
+initialize_reference_workspace!
 project, board, ticket = create_scenario_records!
 
 puts "Agent ticket scenario reset."
 puts "project_id=#{project.id}"
 puts "board_id=#{board.id}"
 puts "ticket_id=#{ticket.id}"
+puts "reference=#{REFERENCE_ROOT}"
 puts "workspace=#{PROJECT_ROOT}"
 puts "telegram=/ticket start #{ticket.id}"
