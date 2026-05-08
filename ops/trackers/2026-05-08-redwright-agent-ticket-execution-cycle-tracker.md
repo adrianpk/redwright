@@ -4,9 +4,9 @@
 
 - cycle_id: `cycle-2026-05-08-redwright-agent-ticket-execution`
 - status: `executing`
-- state: `slice_3_ready_for_review`
+- state: `slice_4_ready_for_review`
 - updated: `2026-05-08`
-- active_slice: `3`
+- active_slice: `4`
 - active_task: `none`
 - source_plan: `ops/plans/2026-05-08-redwright-agent-ticket-execution-cycle-plan.md`
 - source_spec: `ops/specs/specs/2026-05-08-redwright-agent-ticket-execution-spec.md`
@@ -139,9 +139,9 @@ Notes:
 
 ### Slice 3: Project Operational Setup
 
-- status: `ready_for_review`
+- status: `merged`
 - branch: `feat/slice-3-agent-ticket-operational-setup`
-- PR: `pending`
+- PR: `merged`
 - merge_target: `dev`
 - last_sync_commit: `dev`
 
@@ -174,28 +174,37 @@ Notes:
 
 ### Slice 4: Ticket Execution Command Boundary
 
-- status: `planned`
+- status: `ready_for_review`
 - branch: `feat/slice-4-agent-ticket-command`
 - PR: `pending`
 - merge_target: `dev`
-- last_sync_commit: `pending`
+- last_sync_commit: `dev`
 
 Tasks:
 
-- [ ] `T4.1 define command inputs for targeted ticket execution`
-- [ ] `T4.2 define command inputs for liberal pickup execution`
-- [ ] `T4.3 route command through application/domain boundary without Telegram coupling`
-- [ ] `T4.4 return normalized command acknowledgement and terminal outcome shapes`
-- [ ] `T4.5 cover command dispatch with unit/service tests`
+- [x] `T4.1 define command inputs for targeted ticket execution`
+- [x] `T4.2 define command inputs for liberal pickup execution`
+- [x] `T4.3 route command through application/domain boundary without Telegram coupling`
+- [x] `T4.4 return normalized command acknowledgement and terminal outcome shapes`
+- [x] `T4.5 cover command dispatch with unit/service tests`
 
 Commits:
 
-- [ ] `feat(runtime): add agent ticket execution command`
-- [ ] `test(runtime): cover agent ticket execution command`
+- [x] `feat(runtime): add agent ticket execution command`
+- [x] `test(runtime): cover agent ticket execution command`
 
 Validation:
 
-- [ ] `not run`
+- [x] `bin/rails test test/services/agent_ticket_execution/command_query_handlers_test.rb`
+- [x] `bin/rails test test/controllers/api/v1/command_queries_controller_test.rb -n test_accepts_agent_ticket_execution_through_command_api`
+
+Notes:
+
+- Added transport-neutral `ExecuteAgentTicket` command under `AgentTicketExecution::CommandQueryHandlers`.
+- Targeted mode requires `ticket_id` and resolves ticket project/board context.
+- Pickup mode accepts `project_id` or `board_id` for future liberal ticket selection.
+- The first executor is an accepted/no-op boundary so Telegram and tests can trigger the command before the full loop exists.
+- The response shape includes acknowledgement and terminal outcome slots; injected executors can already return terminal outcomes for future orchestration.
 
 ### Slice 5: Telegram Invocation And Async UX
 

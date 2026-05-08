@@ -1,0 +1,117 @@
+require "test_helper"
+
+module AgentTicketExecution
+  class CommandQueryHandlersTest < ActiveSupport::TestCase
+    test "executes targeted ticket command through application dispatcher" do
+      board = create_board(project_key: "agent-command-targeted-#{SecureRandom.hex(4)}")
+      backlog = board.columns.create!(key: "backlog", title: "Backlog", position: 0)
+      ticket = board.tickets.create!(column: backlog, title: "Targeted implementation")
+
+      result = CommandQuery::ApplicationDispatcher.build.call(command("ExecuteAgentTicket", {
+        ticket_id: ticket.id
+      }, request_id: "req-agent-targeted"))
+
+      assert result.ok?, result.errors.inspect
+      execution = result.data.fetch("execution")
+      assert_equal "Agent ticket execution accepted.", result.data.fetch("summary")
+      assert_equal "targeted", execution.fetch("mode")
+      assert_equal "accepted", execution.fetch("state")
+      assert_equal ticket.id, execution.fetch("ticket_id")
+      assert_equal board.project_id, execution.fetch("project_id")
+      assert_equal board.id, execution.fetch("board_id")
+      assert_nil execution.fetch("terminal_outcome")
+      assert_equal "accepted", execution.dig("acknowledgement", "status")
+      assert_equal "agent_ticket_execution_accepted", result.effects.first.fetch("type")
+    end
+
+    test "accepts liberal pickup command without Telegram coupling" do
+      board = create_board(project_key: "agent-command-pickup-#{SecureRandom.hex(4)}")
+      board.columns.create!(key: "backlog", title: "Backlog", position: 0)
+
+      result = CommandQuery::ApplicationDispatcher.build.call(command("ExecuteAgentTicket", {
+        mode: "pickup",
+        board_id: board.id,
+        assignee: "agent-coder",
+        loop: true,
+        max_tickets: 3
+      }, request_id: "req-agent-pickup"))
+
+      assert result.ok?, result.errors.inspect
+      execution = result.data.fetch("execution")
+      assert_equal "pickup", execution.fetch("mode")
+      assert_equal board.id, execution.fetch("board_id")
+      assert_equal board.project_id, execution.fetch("project_id")
+      assert_equal "agent-coder", execution.fetch("assignee")
+      assert_equal true, execution.dig("details", "async")
+      assert_equal "accepted_boundary", execution.dig("details", "executor")
+    end
+
+    test "returns normalized terminal outcome from injected executor" do
+      board = create_board(project_key: "agent-command-terminal-#{SecureRandom.hex(4)}")
+      backlog = board.columns.create!(key: "backlog", title: "Backlog", position: 0)
+      ticket = board.tickets.create!(column: backlog, title: "Terminal implementation")
+      dispatcher = CommandQuery::Dispatcher.new
+      CommandQueryHandlers.new(executor: FakeTerminalExecutor.new).register(dispatcher)
+
+      result = dispatcher.call(command("ExecuteAgentTicket", {
+        ticket_id: ticket.id
+      }, request_id: "req-agent-terminal"))
+
+      assert result.ok?, result.errors.inspect
+      execution = result.data.fetch("execution")
+      assert_equal "Agent ticket execution completed.", result.data.fetch("summary")
+      assert_equal "completed", execution.fetch("state")
+      assert_equal "ready_for_review", execution.dig("terminal_outcome", "status")
+      assert_equal ticket.id, execution.dig("terminal_outcome", "ticket_id")
+      assert_equal "agent_ticket_execution_completed", result.effects.first.fetch("type")
+      assert_equal "test:agent", FakeTerminalExecutor.last_request.fetch("actor_identifier")
+    end
+
+    test "rejects invalid command payloads" do
+      result = CommandQuery::ApplicationDispatcher.build.call(command("ExecuteAgentTicket", {
+        mode: "targeted"
+      }, request_id: "req-agent-invalid"))
+
+      assert result.error?
+      assert_equal "invalid_payload", result.errors.first.fetch(:code)
+      assert_equal "ticket_id is required for targeted execution", result.errors.first.fetch(:message)
+    end
+
+    private
+
+    class FakeTerminalExecutor
+      class << self
+        attr_accessor :last_request
+      end
+
+      def call(request:, ticket:)
+        self.class.last_request = request
+        {
+          "state" => "completed",
+          "acknowledgement" => {
+            "status" => "accepted",
+            "message" => "Agent ticket execution accepted."
+          },
+          "terminal_outcome" => {
+            "status" => "ready_for_review",
+            "ticket_id" => ticket.id,
+            "validation" => "passed"
+          },
+          "details" => {
+            "commit_sha" => "abc123"
+          }
+        }
+      end
+    end
+
+    def command(name, payload, request_id:)
+      {
+        "kind" => "command",
+        "name" => name,
+        "payload" => payload,
+        "execution_context" => {"actor_identifier" => "test:agent", "source_channel" => "test"},
+        "request_id" => request_id
+      }
+    end
+  end
+end

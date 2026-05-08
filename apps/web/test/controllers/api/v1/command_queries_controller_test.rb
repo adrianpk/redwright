@@ -789,6 +789,35 @@ class Api::V1::CommandQueriesControllerTest < ActionDispatch::IntegrationTest
     assert_includes captured_request.dig("payload", "message"), "Runtime API Ticket"
   end
 
+  test "accepts agent ticket execution through command api" do
+    board = create_board(project_key: "api-agent-ticket-execution-#{SecureRandom.hex(4)}")
+    backlog = board.columns.create!(key: "backlog", title: "Backlog", position: 0)
+    ticket = board.tickets.create!(column: backlog, title: "API agent ticket")
+
+    post "/api/v1/commands",
+      params: {
+        name: "ExecuteAgentTicket",
+        payload: {
+          ticket_id: ticket.id
+        },
+        execution_context: {
+          actor_identifier: "test:api",
+          source_channel: "api"
+        },
+        request_id: "req-api-agent-ticket-execution"
+      },
+      headers: actor_headers,
+      as: :json
+
+    assert_response :success
+    body = json_body
+    assert_equal "ok", body.fetch("status")
+    assert_equal "targeted", body.dig("data", "execution", "mode")
+    assert_equal "accepted", body.dig("data", "execution", "state")
+    assert_equal ticket.id, body.dig("data", "execution", "ticket_id")
+    assert_equal "agent_ticket_execution_accepted", body.fetch("effects").first.fetch("type")
+  end
+
   private
 
   def started_alignment_session
