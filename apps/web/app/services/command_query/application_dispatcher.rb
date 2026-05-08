@@ -5,6 +5,7 @@ module CommandQuery
       ProjectSetup::CommandQueryHandlers.register(dispatcher)
       ProjectProtocols::CommandQueryHandlers.register(dispatcher)
       RuntimeContainers::CommandQueryHandlers.register(dispatcher)
+      AgentTicketExecution::CommandQueryHandlers.register(dispatcher)
       UseCases::CommandQueryHandlers.register(dispatcher)
       DocumentManagement::CommandQueryHandlers.register(dispatcher)
       BoardWorkflow::CommandQueryHandlers.register(dispatcher)
