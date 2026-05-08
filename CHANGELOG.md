@@ -40,7 +40,7 @@ entry per commit.
   and use case command-query handlers.
 - Added ticket comments with Markdown rendering and mention metadata.
 - Added ticket editing improvements: modal maximization, markdown preview,
-  higher-priority Use Case placement, and folded comments in maximized mode.
+  higher-priority use case placement, and folded comments in maximized mode.
 - Added UI gallery screenshots for the board and ticket edit modal states.
 
 ### Changed
@@ -55,7 +55,7 @@ entry per commit.
 - Strengthened the agent ticket LLM prompt contract and added defensive
   normalization for recoverable near misses such as `ready`, `changes`, and
   `commands[].cmd`.
-- Refactored ticket formal context ownership so tickets use optional Use Case
+- Refactored ticket formal context ownership so tickets use optional use case
   scope instead of direct formal document attachments.
 - Preserved use case scope when promoting drafts into specs and expanded scope
   coverage for documents, quizzes, and quiz entries.
