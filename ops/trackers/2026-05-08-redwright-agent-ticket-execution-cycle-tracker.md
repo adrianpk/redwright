@@ -4,9 +4,9 @@
 
 - cycle_id: `cycle-2026-05-08-redwright-agent-ticket-execution`
 - status: `executing`
-- state: `slice_7_ready_for_review`
+- state: `slice_8_ready_for_review`
 - updated: `2026-05-08`
-- active_slice: `7`
+- active_slice: `8`
 - active_task: `none`
 - source_plan: `ops/plans/2026-05-08-redwright-agent-ticket-execution-cycle-plan.md`
 - source_spec: `ops/specs/specs/2026-05-08-redwright-agent-ticket-execution-spec.md`
@@ -274,9 +274,9 @@ Notes:
 
 ### Slice 7: Sandbox Workspace Execution Boundary
 
-- status: `ready_for_review`
+- status: `merged`
 - branch: `feat/slice-7-agent-ticket-sandbox-boundary`
-- PR: `pending`
+- PR: `merged`
 - merge_target: `dev`
 - last_sync_commit: `dev`
 
@@ -307,28 +307,37 @@ Notes:
 
 ### Slice 8: Ticket Execution Context Composition
 
-- status: `planned`
+- status: `ready_for_review`
 - branch: `feat/slice-8-agent-ticket-context`
 - PR: `pending`
 - merge_target: `dev`
-- last_sync_commit: `pending`
+- last_sync_commit: `dev`
 
 Tasks:
 
-- [ ] `T8.1 gather ticket body, project metadata, repository tree, and relevant files`
-- [ ] `T8.2 gather tests and operational setup context`
-- [ ] `T8.3 gather materialized and modeled protocol context when available`
-- [ ] `T8.4 pass explicit context inputs to LLMRequestEngine`
-- [ ] `T8.5 expose context diagnostics through existing trace behavior`
+- [x] `T8.1 gather ticket body, project metadata, repository tree, and relevant files`
+- [x] `T8.2 gather tests and operational setup context`
+- [x] `T8.3 gather materialized and modeled protocol context when available`
+- [x] `T8.4 pass explicit context inputs to LLMRequestEngine`
+- [x] `T8.5 expose context diagnostics through existing trace behavior`
 
 Commits:
 
-- [ ] `feat(llm): compose agent ticket execution context`
-- [ ] `test(llm): cover agent ticket context sections`
+- [x] `feat(llm): compose agent ticket execution context`
+- [x] `test(llm): cover agent ticket context sections`
 
 Validation:
 
-- [ ] `not run`
+- [x] `bin/rails test test/services/agent_ticket_execution/context_composer_test.rb test/services/agent_ticket_execution/command_query_handlers_test.rb test/services/agent_ticket_execution/workspace_boundary_test.rb`
+- [x] `bin/rails test test/controllers/api/v1/command_queries_controller_test.rb -i test_accepts_agent_ticket_execution_through_command_api`
+- [x] `ruby -Itest test/redwright/llm_request_engine_test.rb`
+
+Notes:
+
+- Added `AgentTicketExecution::ContextComposer` to build explicit LLM request inputs for ticket execution.
+- Context sections include ticket, project metadata, repository tree, relevant files, tests, operational setup, materialized protocol files, and modeled protocol state.
+- The command handler can inject a context composer and pass the composed package to executors without changing the accepted async boundary.
+- Context diagnostics expose section names, authorities, and byte counts for trace visibility.
 
 ### Slice 9: Previous Interaction Context
 

@@ -112,17 +112,39 @@ module AgentTicketExecution
       end
     end
 
+    test "passes composed execution context to injected executor" do
+      with_agent_ticket_execution_workspace do |fixture|
+        dispatcher = CommandQuery::Dispatcher.new
+        CommandQueryHandlers.new(
+          executor: FakeTerminalExecutor.new,
+          workspace_boundary: WorkspaceBoundary.new(allowed_projects_root: fixture.projects_root),
+          context_composer: ContextComposer.new
+        ).register(dispatcher)
+
+        result = dispatcher.call(command("ExecuteAgentTicket", {
+          ticket_id: fixture.ticket.id
+        }, request_id: "req-agent-context"))
+
+        assert result.ok?, result.errors.inspect
+        assert_includes result.data.dig("execution", "context", "section_names"), "ticket"
+        assert_includes result.data.dig("execution", "context", "section_names"), "repository_tree"
+        assert_includes FakeTerminalExecutor.last_execution_context.llm_request_inputs.fetch(:context_sections).map(&:name), "tests"
+      end
+    end
+
     private
 
     class FakeTerminalExecutor
       class << self
         attr_accessor :last_request
         attr_accessor :last_workspace
+        attr_accessor :last_execution_context
       end
 
-      def call(request:, ticket:, workspace: nil)
+      def call(request:, ticket:, workspace: nil, execution_context: nil)
         self.class.last_request = request
         self.class.last_workspace = workspace
+        self.class.last_execution_context = execution_context
         {
           "state" => "completed",
           "acknowledgement" => {
