@@ -260,6 +260,7 @@ module AgentTicketExecutionWorkspaceFixture
         repo_url: "local://#{project_key}",
         stack_slug: "go"
       )
+      create_default_runtime_container(project)
       board = Board.create!(name: "Todo CLI", project_key: project_key, project: project)
       columns = create_agent_ticket_execution_columns(board)
       ticket = Ticket.create!(
@@ -296,6 +297,37 @@ module AgentTicketExecutionWorkspaceFixture
     ].each_with_object({}).with_index do |((key, title), columns), index|
       columns[key] = Column.create!(board: board, key: key, title: title, position: index)
     end
+  end
+
+  def create_default_runtime_container(project)
+    project.create_runtime_container!(
+      profile: "go_cli",
+      status: "draft",
+      readiness: "generated",
+      base_image: "golang:1.22",
+      runtime_name: "go",
+      runtime_version: "1.22",
+      working_directory: "/workspace/project",
+      system_packages: ["git", "ca-certificates"],
+      dependency_commands: [{"name" => "download", "command" => "go mod download"}],
+      test_commands: [{"name" => "test", "command" => "go test ./..."}],
+      lint_commands: [{"name" => "vet", "command" => "go vet ./..."}],
+      build_commands: [{"name" => "build", "command" => "go build ./..."}],
+      format_commands: [{"name" => "format", "command" => "gofmt -w ."}],
+      repository_mount: {"strategy" => "bind", "source" => "repository_root", "target" => "/workspace/project"},
+      cache_mounts: [],
+      environment: {"GOTOOLCHAIN" => "local"},
+      secret_placeholders: [],
+      network_policy: {"mode" => "limited"},
+      user_policy: {"user" => "root"},
+      validation_command: "go test ./...",
+      validation_status: "not_run",
+      generated_files: [],
+      provenance: {"source" => "test"},
+      assumptions: [],
+      missing_information: [],
+      risks: []
+    )
   end
 
   def ticket_description

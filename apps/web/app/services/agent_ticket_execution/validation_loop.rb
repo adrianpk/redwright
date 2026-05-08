@@ -3,7 +3,7 @@ require "json"
 module AgentTicketExecution
   class ValidationLoop
     DEFAULT_MAX_ATTEMPTS = 3
-    DEFAULT_VALIDATION_COMMANDS = ["go test ./..."].freeze
+    DEFAULT_VALIDATION_COMMANDS = [].freeze
 
     Result = Struct.new(:state, :terminal_outcome, :attempts, :validation_results, :application_results, keyword_init: true) do
       def completed?
@@ -31,7 +31,7 @@ module AgentTicketExecution
       context_composer:,
       llm_requester:,
       output_applier: OutputApplier.new,
-      validation_commands: DEFAULT_VALIDATION_COMMANDS,
+      validation_commands: nil,
       max_attempts: DEFAULT_MAX_ATTEMPTS,
       previous_interaction_store: nil
     )
@@ -82,7 +82,19 @@ module AgentTicketExecution
           next
         end
 
-        validation_results = run_validation(workspace)
+        validation_commands = validation_commands_for(ticket, workspace)
+        if validation_commands.empty?
+          return blocked_result(
+            ticket,
+            attempt,
+            "validation_commands_missing",
+            "no validation commands were available from the operational setup",
+            validation_results,
+            application_results
+          )
+        end
+
+        validation_results = run_validation(workspace, validation_commands)
         if validation_results.all? { |result| result.fetch("status") == "ok" }
           return completed_result(ticket, attempt, validation_results, application_results)
         end
@@ -104,8 +116,17 @@ module AgentTicketExecution
 
     attr_reader :context_composer, :llm_requester, :output_applier, :validation_commands, :max_attempts, :previous_interaction_store
 
-    def run_validation(workspace)
-      validation_commands.map.with_index do |command, index|
+    def validation_commands_for(ticket, workspace)
+      explicit_commands = Array(validation_commands).compact_blank
+      return explicit_commands unless explicit_commands.empty?
+
+      OperationalSetup.new(project: ticket.project)
+        .discover(workspace_path: workspace.workspace_path)
+        .fetch("validation_commands", [])
+    end
+
+    def run_validation(workspace, commands)
+      commands.map.with_index do |command, index|
         result = workspace.primitive_executor.execute(
           project_root: workspace.workspace_path,
           action: {

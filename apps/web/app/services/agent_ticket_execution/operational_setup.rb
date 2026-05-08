@@ -37,11 +37,12 @@ module AgentTicketExecution
       agent_path = agent_directory_path(root_path)
       dockerfile = dockerfile_path(root_path)
       metadata = metadata_path(root_path)
+      metadata_payload = read_metadata(metadata)
 
       {
         "available" => File.file?(dockerfile),
         "status" => File.file?(dockerfile) ? "available" : "missing",
-        "source" => metadata_source(metadata),
+        "source" => metadata_source(metadata_payload),
         "root_path" => File.join(root_path, ROOT_DIRECTORY),
         "agent_path" => agent_path,
         "dockerfile_path" => dockerfile,
@@ -52,6 +53,7 @@ module AgentTicketExecution
         "metadata_relative_path" => File.join(ROOT_DIRECTORY, AGENT_DIRECTORY, METADATA_NAME),
         "production_dockerfile_path" => production_dockerfile_path(root_path),
         "production_dockerfile_separate" => production_dockerfile_separate?(root_path),
+        "validation_commands" => validation_commands(metadata_payload),
         "runtime_container_id" => project.runtime_container&.id
       }
     end
@@ -73,6 +75,7 @@ module AgentTicketExecution
         "source" => "runtime_container_generated_file",
         "runtime_container_id" => project.runtime_container&.id,
         "dockerfile_source_path" => dockerfile.fetch("path"),
+        "validation_commands" => validation_commands({}),
         "notes" => [
           "This Dockerfile is for RedWright agent work only.",
           "It is not the production Dockerfile for this project."
@@ -80,12 +83,34 @@ module AgentTicketExecution
       }
     end
 
-    def metadata_source(metadata)
-      return "project_file" unless File.file?(metadata)
+    def metadata_source(metadata_payload)
+      metadata_payload.fetch("source", "project_file")
+    end
 
-      JSON.parse(File.read(metadata)).fetch("source", "project_file")
+    def read_metadata(metadata)
+      return {} unless File.file?(metadata)
+
+      JSON.parse(File.read(metadata))
     rescue JSON::ParserError
-      "project_file"
+      {}
+    end
+
+    def validation_commands(metadata_payload)
+      commands = normalize_commands(metadata_payload.fetch("validation_commands", []))
+      commands = normalize_commands([project.runtime_container&.validation_command]) if commands.empty?
+      commands = normalize_commands(project.runtime_container&.test_commands) if commands.empty?
+      commands
+    end
+
+    def normalize_commands(commands)
+      Array(commands).filter_map do |command|
+        case command
+        when String
+          command.presence
+        when Hash
+          command.fetch("command", command[:command]).presence
+        end
+      end.uniq
     end
 
     def readme_body

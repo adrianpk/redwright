@@ -76,6 +76,20 @@ module AgentTicketExecution
       end
     end
 
+    test "blocks when operational setup does not provide validation commands" do
+      with_agent_ticket_execution_workspace do |fixture|
+        fixture.project.runtime_container.destroy!
+        fixture.project.reload
+        workspace = WorkspaceBoundary.new(allowed_projects_root: fixture.projects_root).resolve(ticket: fixture.ticket)
+        llm = FakeRequester.new([proposed_main_payload(done_command_main)])
+
+        result = loop_for(llm, max_attempts: 1).call(request: request_payload(fixture.ticket), ticket: fixture.ticket, workspace: workspace)
+
+        assert result.blocked?, result.to_execution.inspect
+        assert_equal "validation_commands_missing", result.terminal_outcome.fetch("code")
+      end
+    end
+
     test "records previous agent LLM interactions for attempts" do
       with_agent_ticket_execution_workspace do |fixture|
         Dir.mktmpdir("redwright-validation-loop-previous-") do |dir|

@@ -1,18 +1,18 @@
 ---
 id: redwright-agent-ticket-architecture-corrections-cycle-tracker-2026-05-08
 title: RedWright Agent Ticket Architecture Corrections Cycle Tracker
-state: slice_4_merged
+state: slice_5_ready_for_review
 created_at: 2026-05-08T19:46:04Z
 plan: ops/plans/2026-05-08-redwright-agent-ticket-architecture-corrections-cycle-plan.md
 ticket: TKT-20260508194604
-active_slice: 4
+active_slice: 5
 ---
 
 # RedWright Agent Ticket Architecture Corrections Cycle Tracker
 
 ## Cycle Status
-- state: `slice_4_merged`
-- active_slice: `4`
+- state: `slice_5_ready_for_review`
+- active_slice: `5`
 - max_slices: `6`
 - current_branch: `dev`
 
@@ -81,15 +81,21 @@ active_slice: 4
 
 ## Slice 5: Move Validation Defaults Into Operational Setup
 - branch: `refactor/slice-5-agent-ticket-validation-defaults`
-- status: `pending`
+- status: `ready_for_review`
 - tasks:
-  - [ ] Add validation command discovery to operational setup/runtime metadata.
-  - [ ] Remove Go-specific default ownership from the generic validation loop.
-  - [ ] Keep the Go todo scenario validating with `go test ./...`.
-  - [ ] Run operational setup, validation loop, and scenario reset checks.
+  - [x] Add validation command discovery to operational setup/runtime metadata.
+  - [x] Remove Go-specific default ownership from the generic validation loop.
+  - [x] Keep the Go todo scenario validating with `go test ./...`.
+  - [x] Run operational setup, validation loop, and scenario reset checks.
 - commits: []
 - pr:
-- validation: []
+- validation:
+  - `cd apps/web && bin/rails test test/services/agent_ticket_execution/operational_setup_test.rb`
+  - `cd apps/web && bin/rails test test/services/agent_ticket_execution/validation_loop_test.rb`
+  - `cd apps/web && bin/rails test test/services/agent_ticket_execution`
+  - `scripts/agent/tickets/check.sh`
+  - `make agent-ticket-scenario-reset && make agent-ticket-scenario-inspect`
+  - `git diff --check --no-ext-diff`
 
 ## Slice 6: End-to-End Hardening and Closure
 - branch: `test/slice-6-agent-ticket-architecture-e2e`
@@ -123,3 +129,5 @@ active_slice: 4
 - `2026-05-08` state=`executing_slice` note=`started Slice 4 on refactor/slice-4-agent-ticket-context-providers and extracted context section responsibilities into provider objects`
 - `2026-05-08` state=`slice_4_ready_for_review` note=`introduced context section providers while preserving section names, payload shapes, protocol filesystem exclusion, and focused LLM request tests`
 - `2026-05-08` state=`slice_4_merged` note=`merged PR #385 into dev`
+- `2026-05-08` state=`executing_slice` note=`started Slice 5 on refactor/slice-5-agent-ticket-validation-defaults and moved validation command selection into operational setup metadata`
+- `2026-05-08` state=`slice_5_ready_for_review` note=`removed Go-specific validation defaults from ValidationLoop and resolved validation commands through operational setup/runtime metadata`

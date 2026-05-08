@@ -14,6 +14,7 @@ module AgentTicketExecution
         assert_equal ".rw", setup.fetch("root_relative_path")
         assert_equal ".rw/agent", setup.fetch("agent_relative_path")
         assert_equal ".rw/agent/Dockerfile", setup.fetch("dockerfile_relative_path")
+        assert_equal ["go test ./..."], setup.fetch("validation_commands")
         assert_equal true, setup.fetch("production_dockerfile_separate")
         assert_path_exists File.join(fixture.project_path, ".rw", "agent", "Dockerfile")
         assert_path_exists File.join(fixture.project_path, ".rw", "agent", "runtime-setup.json")
@@ -23,6 +24,7 @@ module AgentTicketExecution
         metadata = JSON.parse(File.read(File.join(fixture.project_path, ".rw", "agent", "runtime-setup.json")))
         assert_equal "agent_ticket_execution", metadata.fetch("purpose")
         assert_equal fixture.project.runtime_container.id, metadata.fetch("runtime_container_id")
+        assert_equal ["go test ./..."], metadata.fetch("validation_commands")
       end
     end
 
@@ -38,6 +40,7 @@ module AgentTicketExecution
         assert_equal true, setup.fetch("available")
         assert_equal "available", setup.fetch("status")
         assert_equal "project_file", setup.fetch("source")
+        assert_equal ["go test ./..."], setup.fetch("validation_commands")
         assert_equal "FROM alpine:3.20\n", File.read(provided_path)
       end
     end
@@ -50,14 +53,33 @@ module AgentTicketExecution
         assert_equal false, setup.fetch("available")
         assert_equal "missing", setup.fetch("status")
         assert_equal ".rw/agent/Dockerfile", setup.fetch("dockerfile_relative_path")
+        assert_equal ["go test ./..."], setup.fetch("validation_commands")
         assert_not File.exist?(File.join(fixture.project_path, ".rw"))
+      end
+    end
+
+    test "prefers metadata validation commands over runtime container commands" do
+      with_agent_ticket_execution_workspace do |fixture|
+        setup_path = File.join(fixture.project_path, ".rw", "agent")
+        FileUtils.mkdir_p(setup_path)
+        File.write(File.join(setup_path, "Dockerfile"), "FROM golang:1.22\n")
+        File.write(
+          File.join(setup_path, "runtime-setup.json"),
+          JSON.generate("source" => "project_file", "validation_commands" => ["go test ./...", "go vet ./..."])
+        )
+        create_runtime_container(fixture.project, dockerfile_body: "FROM golang:1.22\n")
+
+        setup = OperationalSetup.new(project: fixture.project).discover(workspace_path: fixture.project_path)
+
+        assert_equal ["go test ./...", "go vet ./..."], setup.fetch("validation_commands")
       end
     end
 
     private
 
     def create_runtime_container(project, dockerfile_body:)
-      project.create_runtime_container!(
+      runtime_container = project.runtime_container || project.build_runtime_container
+      runtime_container.update!(
         profile: "go_cli",
         status: "draft",
         readiness: "generated",
