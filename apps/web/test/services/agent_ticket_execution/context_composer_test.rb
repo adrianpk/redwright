@@ -59,8 +59,8 @@ module AgentTicketExecution
     end
 
     def write_runtime_setup(project_path)
-      FileUtils.mkdir_p(File.join(project_path, "rw", "agent"))
-      File.write(File.join(project_path, "rw", "agent", "Dockerfile"), "FROM golang:1.22\n")
+      FileUtils.mkdir_p(File.join(project_path, ".rw", "agent"))
+      File.write(File.join(project_path, ".rw", "agent", "Dockerfile"), "FROM golang:1.22\n")
     end
 
     def write_project_protocols(project, project_path)

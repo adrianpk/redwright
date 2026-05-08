@@ -555,11 +555,11 @@ module ProjectSetup
         assert_equal "go_cli", manifest.dig("runtime_containers", "state", "profile")
         assert_equal result.data.fetch("runtime_containers_readiness_ticket_id"), manifest.dig("runtime_containers", "readiness_ticket_id")
         assert_equal "materialized", workspace.dig("operational_setup", "status")
-        assert_equal "rw/agent/Dockerfile", workspace.dig("operational_setup", "dockerfile_relative_path")
+        assert_equal ".rw/agent/Dockerfile", workspace.dig("operational_setup", "dockerfile_relative_path")
         assert_equal true, workspace.dig("operational_setup", "production_dockerfile_separate")
         assert_equal "materialized", manifest.dig("operational_setup", "status")
-        assert File.file?(File.join(path, "rw", "agent", "Dockerfile"))
-        assert_includes File.read(File.join(path, "rw", "agent", "Dockerfile")), "FROM golang:1.22"
+        assert File.file?(File.join(path, ".rw", "agent", "Dockerfile"))
+        assert_includes File.read(File.join(path, ".rw", "agent", "Dockerfile")), "FROM golang:1.22"
         assert_equal "go test ./...", manifest.dig("validation", "command")
         assert_includes %w[passed skipped failed], manifest.dig("validation", "status")
         assert_equal manifest.dig("validation", "status"), workspace.fetch("validation_status")

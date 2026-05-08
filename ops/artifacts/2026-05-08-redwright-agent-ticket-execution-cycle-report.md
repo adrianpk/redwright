@@ -32,7 +32,7 @@ The delivered path can select or target an eligible ticket, resolve a resettable
 ### Slice 3: Project Operational Setup
 
 - status: `merged`
-- result: added `rw/agent` operational setup discovery and materialization for agent runtime context.
+- result: added `.rw/agent` operational setup discovery and materialization for agent runtime context.
 
 ### Slice 4: Ticket Execution Command Boundary
 

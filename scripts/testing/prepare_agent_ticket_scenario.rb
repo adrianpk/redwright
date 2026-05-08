@@ -273,7 +273,7 @@ def initialize_reference_workspace!
   write_file(REFERENCE_ROOT.join("main.go"), go_todo_main)
   write_file(REFERENCE_ROOT.join("main_test.go"), go_todo_test)
   write_file(
-    REFERENCE_ROOT.join("rw", "agent", "Dockerfile"),
+    REFERENCE_ROOT.join(".rw", "agent", "Dockerfile"),
     <<~DOCKERFILE
       FROM golang:1.22-alpine
       WORKDIR /workspace
@@ -282,7 +282,7 @@ def initialize_reference_workspace!
     DOCKERFILE
   )
   write_file(
-    REFERENCE_ROOT.join("rw", "agent", "runtime-setup.json"),
+    REFERENCE_ROOT.join(".rw", "agent", "runtime-setup.json"),
     JSON.pretty_generate(
       "purpose" => "agent_ticket_execution",
       "validation_commands" => ["go test ./..."],

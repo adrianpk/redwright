@@ -18,7 +18,7 @@ module RuntimeBridge
       assert_equal "manual", context.dig("runtime", "agent_workflow_mode")
       assert_equal "runtime_default", context.dig("slots", "runtime_container_profile", "source")
       assert_equal "missing", context.dig("operational_setup", "status")
-      assert_equal "rw/agent/Dockerfile", context.dig("operational_setup", "dockerfile_relative_path")
+      assert_equal ".rw/agent/Dockerfile", context.dig("operational_setup", "dockerfile_relative_path")
     end
   end
 end

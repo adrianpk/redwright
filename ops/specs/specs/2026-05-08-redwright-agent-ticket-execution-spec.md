@@ -33,7 +33,7 @@ The first implementation must avoid pretending to solve the full autonomous soft
 - keep initial scope single-agent and avoid parallel multi-agent execution
 - run ticket work inside a sandboxed project workspace
 - use a provided project operational Dockerfile or equivalent runtime setup for the first cycle
-- reserve a project-local operational area such as `./rw` for RedWright runtime setup files when needed
+- reserve a project-local operational area such as `./.rw` for RedWright runtime setup files when needed
 - build rich ticket-execution LLM context through `LLMRequestEngine`
 - include recent agent-LLM interaction context during retry loops
 - use existing harness/runtime primitives where possible instead of expanding the primitive catalog
@@ -97,7 +97,7 @@ The canonical first scenario is:
 2. The project has a simple Go CLI todo-list implementation.
 3. The project has a well-specified ticket asking for a small feature such as marking a task as done.
 4. The project has table-driven tests or an equivalent validation suite.
-5. The project has a RedWright operational setup, likely under `./rw`, with a provided Dockerfile or equivalent runtime instructions.
+5. The project has a RedWright operational setup, likely under `./.rw`, with a provided Dockerfile or equivalent runtime instructions.
 6. The user triggers the agent through Telegram.
 7. RedWright sends a quick acknowledgement and continues asynchronously.
 8. The agent creates or selects a ticket-specific branch.
@@ -176,16 +176,16 @@ Automated tests must use a resettable and teardown-capable `_workspace` area so 
 
 ### Project Operational Area
 
-RedWright may reserve a project-local operational area named `./rw`.
+RedWright may reserve a project-local operational area named `./.rw`.
 
-The `./rw` area can hold runtime setup context that currently cannot be represented conveniently by the platform model. It is a bridge, not the final source of truth.
+The `./.rw` area can hold runtime setup context that currently cannot be represented conveniently by the platform model. It is a bridge, not the final source of truth.
 
 For the first implementation:
 
-- `./rw` may be created during project initialization
-- `./rw` does not need to be added to the generated project's `.gitignore`
+- `./.rw` may be created during project initialization
+- `./.rw` does not need to be added to the generated project's `.gitignore`
 - the generated project should still receive a `.gitignore`
-- versioning policy for `./rw` is not central to this implementation
+- versioning policy for `./.rw` is not central to this implementation
 
 ### Runtime Setup
 
@@ -222,7 +222,7 @@ The request context should include:
 - repository tree
 - full relevant source files and test files when payload size permits
 - existing tests
-- `./rw` operational setup, including Dockerfile or equivalent runtime setup
+- `./.rw` operational setup, including Dockerfile or equivalent runtime setup
 - project protocols, including materialized protocol files such as `AGENTS.md` when available
 - modeled protocol context when available
 - validation command output from previous attempts
@@ -444,7 +444,7 @@ Manual acceptance should include:
 ## Acceptance Criteria
 
 - A well-specified programming ticket in an established `_workspace` project can be executed by the agent.
-- The project can use a provided operational Dockerfile or equivalent setup under `./rw`.
+- The project can use a provided operational Dockerfile or equivalent setup under `./.rw`.
 - The agent can run inside the sandboxed workspace without mutating the RedWright harness repository.
 - Telegram can trigger a targeted ticket execution.
 - Telegram sends an initial acknowledgement and final outcome message.
@@ -486,7 +486,7 @@ This spec is intentionally one specification, but the implementation should be d
 
 ### Slice 3: Project Operational Setup
 
-- materialize or accept `./rw`
+- materialize or accept `./.rw`
 - place the provided operational Dockerfile or equivalent setup there
 - expose the operational setup as context for ticket execution
 - keep production Dockerfile concerns separate
@@ -614,6 +614,6 @@ This spec is intentionally one specification, but the implementation should be d
 - Which current primitive contracts are sufficient, and which gaps are real?
 - What exact shape should the `LLMRequestEngine` ticket-execution request use?
 - What exact response schema should ticket execution require?
-- Where exactly should `./rw` materialization live in current project initialization code?
+- Where exactly should `./.rw` materialization live in current project initialization code?
 - Should the first local fake represent push, or should push be entirely skipped?
 - How much validation/debug output should be normal trace versus debug-only trace?

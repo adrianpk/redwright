@@ -63,16 +63,16 @@
 - status: `planned`
 - branch: `feat/slice-3-agent-ticket-operational-setup`
 - pr_title: `feat(slice-3): add agent ticket operational setup`
-- objective: `materialize or consume project-local operational setup under ./rw for sandboxed agent work`
+- objective: `materialize or consume project-local operational setup under ./.rw for sandboxed agent work`
 - tasks:
-- [ ] `T3.1 define the first ./rw operational directory shape`
+- [ ] `T3.1 define the first ./.rw operational directory shape`
 - [ ] `T3.2 place or accept a provided Dockerfile or equivalent runtime setup`
 - [ ] `T3.3 expose operational setup to ticket execution context`
 - [ ] `T3.4 keep production Dockerfile concerns separate`
 - [ ] `T3.5 cover operational setup discovery in tests`
 - acceptance:
 - `agent ticket execution can locate project operational setup`
-- `./rw is treated as RedWright operational context`
+- `./.rw is treated as RedWright operational context`
 - `production runtime setup is not conflated with agent work setup`
 - planned_commits:
 - `feat(runtime): add agent operational setup discovery`
@@ -341,7 +341,7 @@
 
 - A well-specified programming ticket in an established `_workspace` project can be executed by the agent.
 - The first scenario uses a Go CLI todo-list project with only standard-library dependencies.
-- The project has a provided operational setup under `./rw` or equivalent.
+- The project has a provided operational setup under `./.rw` or equivalent.
 - Telegram can trigger targeted ticket execution with quick acknowledgement and final outcome.
 - The command boundary can execute targeted and liberal pickup modes.
 - The agent operates inside the sandbox/worktree boundary.

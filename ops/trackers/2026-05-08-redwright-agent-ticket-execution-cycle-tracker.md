@@ -73,7 +73,7 @@ Validation:
 - It writes `.redwright/manifest.yml`, `README.md`, `.redwright/setup-notes.md`, scaffold files when applicable, and materialized protocol files such as `AGENTS.md` and `.agents/*`.
 - Existing tests cover local workspace materialization, idempotent replay, protocol materialization, and Go CLI scaffold generation.
 - The Go CLI scaffold currently records `go.mod`, `main.go`, and `main_test.go`; validation command is `go test ./...`.
-- Real naming/shape gap: the spec proposes `./rw`, while current materialization uses `.redwright`. Later slices must decide whether to add `./rw`, reuse `.redwright`, or bridge both without breaking existing materialization.
+- Real naming/shape gap: the spec proposes `./.rw`, while current materialization uses `.redwright`. Later slices must decide whether to add `./.rw`, reuse `.redwright`, or bridge both without breaking existing materialization.
 - Real fixture gap: existing Go CLI scaffold is project setup oriented, not the todo-list ticket execution fixture with table-driven tests required by Slice 2.
 
 ### Runtime Containers Boundary
@@ -81,7 +81,7 @@ Validation:
 - `ProjectRuntimeContainer` already models runtime container profile, readiness, validation state, commands, repository mount, environment, secret placeholders, generated files, assumptions, risks, and provenance.
 - `RuntimeContainers::ExecutionReadiness` already blocks sandbox-required ticket execution when runtime containers are missing, blocked, stale, or not ready.
 - `RuntimeContainers::GoCliGenerator` already produces a Go CLI runtime container profile with `golang:<version>`, `go mod download`, `go test ./...`, `go vet ./...`, `go build ./...`, and `gofmt -w .`.
-- Real scope alignment gap: the first spec prefers a provided operational Dockerfile or equivalent setup for ticket execution; existing runtime containers can represent generated files but are not yet wired as the direct `./rw` operational setup source for the new loop.
+- Real scope alignment gap: the first spec prefers a provided operational Dockerfile or equivalent setup for ticket execution; existing runtime containers can represent generated files but are not yet wired as the direct `./.rw` operational setup source for the new loop.
 
 ### LLM Request Boundary
 
@@ -103,7 +103,7 @@ Validation:
 - The required low-level primitives mostly exist.
 - Kanban, ticket, workspace materialization, runtime container readiness, and LLM request boundaries exist.
 - The main missing capability is orchestration: selecting an eligible ticket, preparing the sandbox/worktree, composing ticket-specific LLM context, applying structured LLM output, validating, retrying, committing, and transitioning the ticket.
-- The largest early design decision is whether to reuse `.redwright`, introduce `./rw`, or bridge both for the first operational setup surface.
+- The largest early design decision is whether to reuse `.redwright`, introduce `./.rw`, or bridge both for the first operational setup surface.
 - Slice 2 can proceed without runtime behavior changes by adding a resettable `_workspace` fixture for the Go todo-list ticket scenario.
 
 ### Slice 2: Test Workspace Fixture Infrastructure
@@ -147,7 +147,7 @@ Notes:
 
 Tasks:
 
-- [x] `T3.1 define the first ./rw operational directory shape`
+- [x] `T3.1 define the first ./.rw operational directory shape`
 - [x] `T3.2 place or accept a provided Dockerfile or equivalent runtime setup`
 - [x] `T3.3 expose operational setup to ticket execution context`
 - [x] `T3.4 keep production Dockerfile concerns separate`
@@ -165,10 +165,10 @@ Validation:
 
 Notes:
 
-- Added `AgentTicketExecution::OperationalSetup` as the first `./rw` operational setup boundary.
-- The first directory shape is `rw/agent`, with `rw/agent/Dockerfile`, `rw/agent/runtime-setup.json`, and `rw/agent/README.md`.
-- Existing project-provided `rw/agent/Dockerfile` files are accepted without overwrite.
-- When no provided setup exists, the materializer writes the generated runtime container Dockerfile into `rw/agent/Dockerfile`.
+- Added `AgentTicketExecution::OperationalSetup` as the first `./.rw` operational setup boundary.
+- The first directory shape is `.rw/agent`, with `.rw/agent/Dockerfile`, `.rw/agent/runtime-setup.json`, and `.rw/agent/README.md`.
+- Existing project-provided `.rw/agent/Dockerfile` files are accepted without overwrite.
+- When no provided setup exists, the materializer writes the generated runtime container Dockerfile into `.rw/agent/Dockerfile`.
 - `RuntimeBridge::ProjectContextBuilder` exposes operational setup metadata without materializing files.
 - Local project materialization includes operational setup in the workspace payload and `.redwright/manifest.yml`.
 

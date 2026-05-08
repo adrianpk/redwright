@@ -3,7 +3,7 @@ require "json"
 
 module AgentTicketExecution
   class OperationalSetup
-    ROOT_DIRECTORY = "rw".freeze
+    ROOT_DIRECTORY = ".rw".freeze
     AGENT_DIRECTORY = "agent".freeze
     DOCKERFILE_NAME = "Dockerfile".freeze
     METADATA_NAME = "runtime-setup.json".freeze
