@@ -20,7 +20,7 @@ module AgentTicketExecution
     def self.default_dependencies
       return {} if Rails.env.test?
 
-      workspace_root = Rails.root.join("..", "..", "_workspace", "Projects").expand_path.to_s
+      workspace_root = Rails.root.join("..", "..", "_workspace").expand_path.to_s
       context_composer = ContextComposer.new
       {
         executor: default_executor(context_composer: context_composer),
