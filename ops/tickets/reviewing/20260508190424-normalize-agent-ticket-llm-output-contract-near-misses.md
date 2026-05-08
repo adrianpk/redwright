@@ -1,7 +1,7 @@
 ---
 id: TKT-20260508190424
 title: Normalize agent ticket LLM output contract near misses
-status: in_progress
+status: reviewing
 kind: bug
 severity: high
 priority: high
@@ -11,13 +11,14 @@ source: manual_test
 reported_at: 2026-05-08T19:04:24Z
 ready_at: 2026-05-08T19:04:24Z
 started_at: 2026-05-08T19:06:09Z
-reviewed_at:
+reviewed_at: 2026-05-08T19:24:39Z
 closed_at:
 resolution:
 owner:
 branch: fix/ticket-20260508190424-llm-contract-normalization
-pr:
-commits: []
+pr: https://codeberg.org/adrianpk/redwright/pulls/380
+commits:
+  - 7f69e27
 ---
 
 ## Context
@@ -241,4 +242,4 @@ Agent/project context:
 - Run `scripts/agent/tickets/check.sh`.
 
 ## Outcome
-Pending implementation.
+Implemented in PR #380.
