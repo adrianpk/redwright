@@ -6,9 +6,13 @@ require_relative "project_setup_prompt_renderer"
 
 module Redwright
   class TelegramProjectSetupAdapter
-    Result = Struct.new(:handled, :command, :message, :api_response, keyword_init: true) do
+    Result = Struct.new(:handled, :command, :message, :messages, :api_response, keyword_init: true) do
       def handled?
         handled == true
+      end
+
+      def message_list
+        Array(messages || message).compact
       end
     end
 
@@ -251,18 +255,20 @@ module Redwright
 
     def start_ticket_execution(event:, ticket_id:, trace_id:)
       response = client.command(
-        name: "StartTicketExecution",
+        name: "ExecuteAgentTicket",
         payload: {"ticket_id" => ticket_id},
         actor_identifier: actor_identifier_for(event),
-        request_id: request_id_for(event, "start-ticket-execution")
+        request_id: request_id_for(event, "execute-agent-ticket")
       )
       body = response.body
       remember_ticket_context(chat_id: event.chat_id, body: body)
+      messages = render_agent_ticket_execution_messages(body: body, trace_id: trace_id)
 
       Result.new(
         handled: true,
         command: "ticket_start",
-        message: render_ticket_execution(body: body, trace_id: trace_id),
+        message: messages.last,
+        messages: messages,
         api_response: body
       )
     end
@@ -423,6 +429,38 @@ module Redwright
       ].join("\n")
     end
 
+    def render_agent_ticket_execution_messages(body:, trace_id:)
+      if body.fetch("status", "") == "error"
+        return [
+          [
+            "Agent ticket execution error: #{summary_from(body)}",
+            *error_lines_from(body),
+            "Trace: #{trace_id}"
+          ].join("\n")
+        ]
+      end
+
+      execution = body.dig("data", "execution") || {}
+      acknowledgement = execution["acknowledgement"] || {}
+      terminal = execution["terminal_outcome"]
+      ticket_id = execution["ticket_id"] || acknowledgement["ticket_id"]
+      ack = [
+        acknowledgement["message"].to_s.empty? ? "Agent ticket execution accepted." : acknowledgement["message"],
+        "Ticket: #{ticket_id || 'pending'}",
+        "Mode: #{execution['mode'] || acknowledgement['mode'] || 'targeted'}",
+        "Trace: #{trace_id}"
+      ].join("\n")
+      return [ack] unless terminal.is_a?(Hash) && !terminal.empty?
+
+      final = [
+        "Agent ticket execution finished.",
+        "Ticket: #{terminal['ticket_id'] || ticket_id || 'pending'}",
+        "Outcome: #{terminal['status'] || execution['state'] || 'unknown'}",
+        "Trace: #{trace_id}"
+      ].join("\n")
+      [ack, final]
+    end
+
     def render_quiz(body:, trace_id:)
       data = body["data"] || {}
       if body.fetch("status", "") == "error"
@@ -477,8 +515,8 @@ module Redwright
     end
 
     def remember_ticket_context(chat_id:, body:)
-      project_id = body["project_id"] || body.dig("data", "project_id")
-      ticket_id = body["ticket_id"] || body.dig("data", "ticket_id")
+      project_id = body["project_id"] || body.dig("data", "project_id") || body.dig("data", "execution", "project_id")
+      ticket_id = body["ticket_id"] || body.dig("data", "ticket_id") || body.dig("data", "execution", "ticket_id")
       @project_ids_by_chat[chat_id] = project_id if project_id
       @ticket_ids_by_chat[chat_id] = ticket_id if ticket_id
     end

@@ -626,7 +626,9 @@ module Redwright
         result = @project_setup_adapter.handle(event, trace_id: Trace.current_trace_id || "none")
         return false unless result&.handled?
 
-        @telegram_client.send_message(chat_id: event.chat_id, text: result.message.to_s)
+        result.message_list.each do |message|
+          @telegram_client.send_message(chat_id: event.chat_id, text: message.to_s)
+        end
         @out.puts(
           "telegram rails_project_setup chat=#{event.chat_id} command=#{result.command} " \
           "state=#{project_setup_state_from(result.api_response)}"
