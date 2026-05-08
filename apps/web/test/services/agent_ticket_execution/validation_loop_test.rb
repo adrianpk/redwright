@@ -15,6 +15,8 @@ module AgentTicketExecution
         assert result.completed?, result.to_execution.inspect
         assert_equal 1, result.attempts
         assert_equal "ready_for_review", result.terminal_outcome.fetch("status")
+        assert_equal fixture.ticket.display_key, result.terminal_outcome.fetch("ticket_ref")
+        assert_equal fixture.ticket.ticket_key, result.terminal_outcome.fetch("ticket_key")
         assert_equal "ok", result.validation_results.first.fetch("status")
         assert_equal 1, llm.contexts.length
       end
@@ -91,6 +93,8 @@ module AgentTicketExecution
         assert_equal "blocked", execution.fetch("state")
         assert_equal "blocked", execution.dig("terminal_outcome", "status")
         assert_equal "blocked", execution.dig("acknowledgement", "status")
+        assert_equal fixture.ticket.display_key, execution.dig("acknowledgement", "ticket_ref")
+        assert_equal fixture.ticket.ticket_key, execution.dig("terminal_outcome", "ticket_key")
         assert_equal fixture.ticket.id, execution.dig("terminal_outcome", "ticket_id")
       end
     end

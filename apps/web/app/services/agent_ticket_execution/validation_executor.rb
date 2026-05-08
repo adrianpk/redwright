@@ -13,6 +13,8 @@ module AgentTicketExecution
           "message" => result.completed? ? "Agent ticket execution completed." : "Agent ticket execution blocked.",
           "request_id" => request.fetch("request_id"),
           "ticket_id" => ticket.id,
+          "ticket_ref" => ticket.display_key,
+          "ticket_key" => ticket.ticket_key,
           "mode" => request.fetch("mode")
         }
       )
@@ -25,6 +27,8 @@ module AgentTicketExecution
         execution["terminal_outcome"] = {
           "status" => "blocked",
           "ticket_id" => ticket.id,
+          "ticket_ref" => ticket.display_key,
+          "ticket_key" => ticket.ticket_key,
           "code" => git_result.code,
           "reason" => git_result.message
         }

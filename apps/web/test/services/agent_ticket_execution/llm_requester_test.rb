@@ -29,7 +29,12 @@ module AgentTicketExecution
         assert_equal LlmContract::ACTION, engine.calls.first.fetch(:action)
         assert_equal LlmContract.output_contract, engine.calls.first.fetch(:output_contract)
         assert_equal execution_context.context_sections, engine.calls.first.fetch(:context_sections)
+        provider_prompt = JSON.parse(engine.calls.first.fetch(:user_text))
+        assert_equal fixture.ticket.id, provider_prompt.dig("request", "ticket_id")
+        assert_includes provider_prompt.fetch("context_sections").map { |section| section.fetch("name") }, "repository_tree"
+        assert_includes provider_prompt.fetch("context_sections").to_s, "main.go"
         assert_equal LlmContract::ACTION, recorder.requests.first.fetch(:action)
+        assert_includes recorder.requests.first.fetch(:user_text), "context_sections"
         assert_equal LlmContract::ACTION, recorder.responses.first.fetch(:action)
         assert_equal fixture.ticket.id, recorder.requests.first.fetch(:ticket_id)
       end

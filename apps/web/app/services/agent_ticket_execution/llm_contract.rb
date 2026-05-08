@@ -15,6 +15,9 @@ module AgentTicketExecution
       Return only JSON matching the requested contract.
       Do not claim that changes were applied; describe the files, commands, and actions RedWright should apply.
       Use existing repository protocols and validation expectations from the provided context.
+      For file edits, return either files with full replacement content or files with an apply_patch-compatible patch.
+      Prefer the smallest complete change that satisfies the ticket and tests.
+      Include validation commands RedWright should run, such as go test ./..., in commands when relevant.
       When blocked, set status to blocked and provide a concrete blocking_reason.
     PROMPT
 

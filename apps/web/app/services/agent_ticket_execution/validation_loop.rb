@@ -155,6 +155,8 @@ module AgentTicketExecution
         terminal_outcome: {
           "status" => "ready_for_review",
           "ticket_id" => ticket.id,
+          "ticket_ref" => ticket.display_key,
+          "ticket_key" => ticket.ticket_key,
           "validation" => "passed"
         }
       )
@@ -169,6 +171,8 @@ module AgentTicketExecution
         terminal_outcome: {
           "status" => "blocked",
           "ticket_id" => ticket.id,
+          "ticket_ref" => ticket.display_key,
+          "ticket_key" => ticket.ticket_key,
           "code" => code,
           "reason" => reason
         }

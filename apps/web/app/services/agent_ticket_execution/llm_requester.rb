@@ -35,14 +35,15 @@ module AgentTicketExecution
       user_text = inputs.fetch(:user_text)
       context_sections = inputs.fetch(:context_sections)
       trace_metadata = inputs.fetch(:trace_metadata)
-      llm_call_id = record_request(user_text: user_text, context_sections: context_sections, trace_metadata: trace_metadata)
+      provider_user_text = provider_user_text(user_text: user_text, context_sections: context_sections)
+      llm_call_id = record_request(user_text: provider_user_text, context_sections: context_sections, trace_metadata: trace_metadata)
       response = request_engine.generate_structured_message(
         model: model,
         model_role: LlmContract::MODEL_ROLE,
         provider: provider,
         action: LlmContract::ACTION,
         system_prompt: LlmContract.system_prompt,
-        user_text: user_text,
+        user_text: provider_user_text,
         output_contract: LlmContract.output_contract,
         context_sections: context_sections,
         trace_metadata: trace_metadata
@@ -55,6 +56,22 @@ module AgentTicketExecution
     private
 
     attr_reader :request_engine, :contract, :model, :provider, :trace_recorder
+
+    def provider_user_text(user_text:, context_sections:)
+      JSON.generate(
+        "request" => JSON.parse(user_text),
+        "context_sections" => context_sections.map { |section| provider_context_section(section) }
+      )
+    rescue JSON::ParserError
+      JSON.generate(
+        "request" => user_text.to_s,
+        "context_sections" => context_sections.map { |section| provider_context_section(section) }
+      )
+    end
+
+    def provider_context_section(section)
+      section.to_h.merge("content" => section.content)
+    end
 
     def record_request(user_text:, context_sections:, trace_metadata:)
       return nil unless trace_recorder
