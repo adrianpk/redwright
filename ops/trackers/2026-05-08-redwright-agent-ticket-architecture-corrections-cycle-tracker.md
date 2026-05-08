@@ -1,7 +1,7 @@
 ---
 id: redwright-agent-ticket-architecture-corrections-cycle-tracker-2026-05-08
 title: RedWright Agent Ticket Architecture Corrections Cycle Tracker
-state: slice_1_ready_for_review
+state: slice_1_merged
 created_at: 2026-05-08T19:46:04Z
 plan: ops/plans/2026-05-08-redwright-agent-ticket-architecture-corrections-cycle-plan.md
 ticket: TKT-20260508194604
@@ -11,7 +11,7 @@ active_slice: 1
 # RedWright Agent Ticket Architecture Corrections Cycle Tracker
 
 ## Cycle Status
-- state: `slice_1_ready_for_review`
+- state: `slice_1_merged`
 - active_slice: `1`
 - max_slices: `6`
 - current_branch: `dev`
@@ -103,3 +103,4 @@ active_slice: 1
 - `2026-05-08` state=`planned` note=`created ticket, plan, and tracker for the architecture correction cycle`
 - `2026-05-08` state=`executing_slice` note=`started Slice 1 on refactor/slice-1-telegram-ticket-command-adapter and extracted Telegram ticket command handling into a dedicated adapter`
 - `2026-05-08` state=`slice_1_ready_for_review` note=`extracted Telegram ticket command handling into Redwright::TelegramTicketCommandAdapter while preserving adapter and runtime handler tests`
+- `2026-05-08` state=`slice_1_merged` note=`merged PR #382 into dev`
