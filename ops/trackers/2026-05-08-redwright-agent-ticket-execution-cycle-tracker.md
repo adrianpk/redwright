@@ -4,9 +4,9 @@
 
 - cycle_id: `cycle-2026-05-08-redwright-agent-ticket-execution`
 - status: `executing`
-- state: `slice_11_ready_for_review`
+- state: `slice_12_ready_for_review`
 - updated: `2026-05-08`
-- active_slice: `11`
+- active_slice: `12`
 - active_task: `none`
 - source_plan: `ops/plans/2026-05-08-redwright-agent-ticket-execution-cycle-plan.md`
 - source_spec: `ops/specs/specs/2026-05-08-redwright-agent-ticket-execution-spec.md`
@@ -409,9 +409,9 @@ Notes:
 
 ### Slice 11: Harness Application Of LLM Output
 
-- status: `ready_for_review`
+- status: `merged`
 - branch: `feat/slice-11-agent-ticket-harness-apply`
-- PR: `pending`
+- PR: `merged`
 - merge_target: `dev`
 - last_sync_commit: `dev`
 
@@ -443,28 +443,37 @@ Notes:
 
 ### Slice 12: Validation Loop
 
-- status: `planned`
+- status: `ready_for_review`
 - branch: `feat/slice-12-agent-ticket-validation-loop`
 - PR: `pending`
 - merge_target: `dev`
-- last_sync_commit: `pending`
+- last_sync_commit: `dev`
 
 Tasks:
 
-- [ ] `T12.1 run project validation commands for the Go fixture`
-- [ ] `T12.2 capture lint, compile, test, runtime, and behavioral output`
-- [ ] `T12.3 feed validation failures into corrective LLM requests`
-- [ ] `T12.4 enforce retry limit constant`
-- [ ] `T12.5 mark unresolved execution blocked through command outcome`
+- [x] `T12.1 run project validation commands for the Go fixture`
+- [x] `T12.2 capture lint, compile, test, runtime, and behavioral output`
+- [x] `T12.3 feed validation failures into corrective LLM requests`
+- [x] `T12.4 enforce retry limit constant`
+- [x] `T12.5 mark unresolved execution blocked through command outcome`
 
 Commits:
 
-- [ ] `feat(runtime): add agent ticket validation loop`
-- [ ] `test(runtime): cover agent ticket validation retries`
+- [x] `feat(runtime): add agent ticket validation loop`
+- [x] `test(runtime): cover agent ticket validation retries`
 
 Validation:
 
-- [ ] `not run`
+- [x] `bin/rails test test/services/agent_ticket_execution/validation_loop_test.rb test/services/agent_ticket_execution/output_applier_test.rb test/services/agent_ticket_execution/context_composer_test.rb`
+- [x] `ruby -c apps/web/app/services/agent_ticket_execution/validation_loop.rb && ruby -c apps/web/app/services/agent_ticket_execution/validation_executor.rb && ruby -c apps/web/app/services/agent_ticket_execution/context_composer.rb`
+- [x] `git --no-pager diff --no-ext-diff --check`
+
+Notes:
+
+- Added `AgentTicketExecution::ValidationLoop` to apply LLM output, run validation commands, and retry with validation feedback.
+- Added `AgentTicketExecution::ValidationExecutor` to adapt loop results to the command executor outcome shape.
+- Validation output is included in the next composed LLM context after failures.
+- Retry exhaustion produces a blocked terminal outcome with a technical reason.
 
 ### Slice 13: Git Branch And Commit
 
