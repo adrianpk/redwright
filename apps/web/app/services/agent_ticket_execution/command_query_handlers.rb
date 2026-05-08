@@ -81,6 +81,8 @@ module AgentTicketExecution
         "assignee" => value_from(payload, "assignee").to_s.presence,
         "admin_assignee" => value_from(payload, "admin_assignee").to_s.presence,
         "branch_name" => value_from(payload, "branch_name").to_s.presence,
+        "session_id" => value_from(payload, "session_id").to_s.presence,
+        "agent_id" => value_from(payload, "agent_id").to_s.presence,
         "actor_identifier" => actor_identifier_from(context),
         "source_channel" => value_from(context, "source_channel").to_s.presence || "unknown",
         "loop" => {

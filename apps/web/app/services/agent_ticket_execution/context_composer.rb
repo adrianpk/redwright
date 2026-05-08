@@ -31,6 +31,11 @@ module AgentTicketExecution
       end
     end
 
+    def initialize(previous_interaction_store: nil, previous_interaction_limit: PreviousInteractionStore::DEFAULT_LIMIT)
+      @previous_interaction_store = previous_interaction_store
+      @previous_interaction_limit = previous_interaction_limit
+    end
+
     def compose(ticket:, request:, workspace:)
       project = ticket.project
       workspace_path = workspace&.workspace_path || project.root_path
@@ -43,7 +48,8 @@ module AgentTicketExecution
         section("tests", file_payload(workspace_path, test_files(files)), "workspace_filesystem"),
         section("operational_setup", operational_setup_payload(project, workspace_path), "project_operational_setup"),
         section("protocol_files", protocol_file_payload(project, workspace_path), "workspace_filesystem"),
-        section("protocol_model", project.protocol_state, "project_protocol_model")
+        section("protocol_model", project.protocol_state, "project_protocol_model"),
+        section("previous_interactions", previous_interactions_payload(ticket, request), "historical_agent_llm_interaction")
       ]
 
       Context.new(
@@ -55,6 +61,8 @@ module AgentTicketExecution
     end
 
     private
+
+    attr_reader :previous_interaction_store, :previous_interaction_limit
 
     def section(name, content, authority)
       Redwright::LLM::ContextSection.new(
@@ -117,6 +125,24 @@ module AgentTicketExecution
 
     def operational_setup_payload(project, workspace_path)
       OperationalSetup.new(project: project).discover(workspace_path: workspace_path)
+    end
+
+    def previous_interactions_payload(ticket, request)
+      {
+        "scope" => "agent_llm_loop",
+        "human_chat_included" => false,
+        "records" => previous_interaction_records(ticket, request)
+      }
+    end
+
+    def previous_interaction_records(ticket, request)
+      return [] unless previous_interaction_store
+
+      previous_interaction_store.recent(
+        ticket: ticket,
+        request: request,
+        limit: previous_interaction_limit
+      )
     end
 
     def protocol_file_payload(project, workspace_path)
