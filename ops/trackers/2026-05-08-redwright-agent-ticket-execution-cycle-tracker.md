@@ -4,9 +4,9 @@
 
 - cycle_id: `cycle-2026-05-08-redwright-agent-ticket-execution`
 - status: `executing`
-- state: `slice_5_ready_for_review`
+- state: `slice_6_ready_for_review`
 - updated: `2026-05-08`
-- active_slice: `5`
+- active_slice: `6`
 - active_task: `none`
 - source_plan: `ops/plans/2026-05-08-redwright-agent-ticket-execution-cycle-plan.md`
 - source_spec: `ops/specs/specs/2026-05-08-redwright-agent-ticket-execution-spec.md`
@@ -208,9 +208,9 @@ Notes:
 
 ### Slice 5: Telegram Invocation And Async UX
 
-- status: `ready_for_review`
+- status: `merged`
 - branch: `feat/slice-5-agent-ticket-telegram`
-- PR: `pending`
+- PR: `merged`
 - merge_target: `dev`
 - last_sync_commit: `dev`
 
@@ -241,28 +241,36 @@ Notes:
 
 ### Slice 6: Ticket Eligibility And Selection
 
-- status: `planned`
+- status: `ready_for_review`
 - branch: `feat/slice-6-agent-ticket-selection`
 - PR: `pending`
 - merge_target: `dev`
-- last_sync_commit: `pending`
+- last_sync_commit: `dev`
 
 Tasks:
 
-- [ ] `T6.1 implement targeted ticket eligibility checks`
-- [ ] `T6.2 implement liberal pickup eligibility checks`
-- [ ] `T6.3 exclude tickets self-assigned to the user/admin`
-- [ ] `T6.4 map to existing development-capable Kanban states`
-- [ ] `T6.5 cover eligible, ineligible, self-assigned, and blocked cases`
+- [x] `T6.1 implement targeted ticket eligibility checks`
+- [x] `T6.2 implement liberal pickup eligibility checks`
+- [x] `T6.3 exclude tickets self-assigned to the user/admin`
+- [x] `T6.4 map to existing development-capable Kanban states`
+- [x] `T6.5 cover eligible, ineligible, self-assigned, and blocked cases`
 
 Commits:
 
-- [ ] `feat(tickets): add agent ticket selection policy`
-- [ ] `test(tickets): cover agent ticket eligibility`
+- [x] `feat(tickets): add agent ticket selection policy`
+- [x] `test(tickets): cover agent ticket eligibility`
 
 Validation:
 
-- [ ] `not run`
+- [x] `bin/rails test test/services/agent_ticket_execution/ticket_selection_policy_test.rb test/services/agent_ticket_execution/command_query_handlers_test.rb`
+
+Notes:
+
+- Added `AgentTicketExecution::TicketSelectionPolicy` for targeted and pickup ticket eligibility.
+- Targeted execution accepts only visible development-ready tickets.
+- Pickup execution selects from development-capable columns and workflow states.
+- Liberal pickup skips tickets self-assigned to the configured admin/user assignee.
+- `ExecuteAgentTicket` now selects the concrete ticket before invoking its executor.
 
 ### Slice 7: Sandbox Workspace Execution Boundary
 

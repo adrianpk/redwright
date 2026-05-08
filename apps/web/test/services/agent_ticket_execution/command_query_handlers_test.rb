@@ -26,7 +26,8 @@ module AgentTicketExecution
 
     test "accepts liberal pickup command without Telegram coupling" do
       board = create_board(project_key: "agent-command-pickup-#{SecureRandom.hex(4)}")
-      board.columns.create!(key: "backlog", title: "Backlog", position: 0)
+      backlog = board.columns.create!(key: "backlog", title: "Backlog", position: 0)
+      ticket = board.tickets.create!(column: backlog, title: "Picked implementation", assignee: "agent-coder")
 
       result = CommandQuery::ApplicationDispatcher.build.call(command("ExecuteAgentTicket", {
         mode: "pickup",
@@ -39,6 +40,7 @@ module AgentTicketExecution
       assert result.ok?, result.errors.inspect
       execution = result.data.fetch("execution")
       assert_equal "pickup", execution.fetch("mode")
+      assert_equal ticket.id, execution.fetch("ticket_id")
       assert_equal board.id, execution.fetch("board_id")
       assert_equal board.project_id, execution.fetch("project_id")
       assert_equal "agent-coder", execution.fetch("assignee")
@@ -75,6 +77,19 @@ module AgentTicketExecution
       assert result.error?
       assert_equal "invalid_payload", result.errors.first.fetch(:code)
       assert_equal "ticket_id is required for targeted execution", result.errors.first.fetch(:message)
+    end
+
+    test "rejects ineligible targeted tickets" do
+      board = create_board(project_key: "agent-command-ineligible-#{SecureRandom.hex(4)}")
+      review = board.columns.create!(key: "review", title: "Review", position: 0)
+      ticket = board.tickets.create!(column: review, title: "Already in review")
+
+      result = CommandQuery::ApplicationDispatcher.build.call(command("ExecuteAgentTicket", {
+        ticket_id: ticket.id
+      }, request_id: "req-agent-ineligible"))
+
+      assert result.error?
+      assert_equal "ticket_not_development_ready", result.errors.first.fetch(:code)
     end
 
     private
