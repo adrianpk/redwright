@@ -21,8 +21,6 @@ class StructuredPatchApplierTest < Minitest::Test
            package main
           +
           +import "fmt"
-           
-           func main() {}
           *** Add File: README.md
           +# Demo
           +
