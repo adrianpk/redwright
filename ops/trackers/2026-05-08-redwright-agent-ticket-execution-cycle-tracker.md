@@ -4,9 +4,9 @@
 
 - cycle_id: `cycle-2026-05-08-redwright-agent-ticket-execution`
 - status: `executing`
-- state: `slice_2_ready_for_review`
+- state: `slice_3_ready_for_review`
 - updated: `2026-05-08`
-- active_slice: `2`
+- active_slice: `3`
 - active_task: `none`
 - source_plan: `ops/plans/2026-05-08-redwright-agent-ticket-execution-cycle-plan.md`
 - source_spec: `ops/specs/specs/2026-05-08-redwright-agent-ticket-execution-spec.md`
@@ -108,9 +108,9 @@ Validation:
 
 ### Slice 2: Test Workspace Fixture Infrastructure
 
-- status: `ready_for_review`
+- status: `merged`
 - branch: `feat/slice-2-agent-ticket-workspace-fixture`
-- PR: `pending`
+- PR: `merged`
 - merge_target: `dev`
 - last_sync_commit: `dev`
 
@@ -139,28 +139,38 @@ Notes:
 
 ### Slice 3: Project Operational Setup
 
-- status: `planned`
+- status: `ready_for_review`
 - branch: `feat/slice-3-agent-ticket-operational-setup`
 - PR: `pending`
 - merge_target: `dev`
-- last_sync_commit: `pending`
+- last_sync_commit: `dev`
 
 Tasks:
 
-- [ ] `T3.1 define the first ./rw operational directory shape`
-- [ ] `T3.2 place or accept a provided Dockerfile or equivalent runtime setup`
-- [ ] `T3.3 expose operational setup to ticket execution context`
-- [ ] `T3.4 keep production Dockerfile concerns separate`
-- [ ] `T3.5 cover operational setup discovery in tests`
+- [x] `T3.1 define the first ./rw operational directory shape`
+- [x] `T3.2 place or accept a provided Dockerfile or equivalent runtime setup`
+- [x] `T3.3 expose operational setup to ticket execution context`
+- [x] `T3.4 keep production Dockerfile concerns separate`
+- [x] `T3.5 cover operational setup discovery in tests`
 
 Commits:
 
-- [ ] `feat(runtime): add agent operational setup discovery`
-- [ ] `test(runtime): cover agent operational setup context`
+- [x] `feat(runtime): add agent operational setup discovery`
+- [x] `test(runtime): cover agent operational setup context`
 
 Validation:
 
-- [ ] `not run`
+- [x] `bin/rails test test/services/agent_ticket_execution/operational_setup_test.rb test/services/runtime_bridge/project_context_builder_test.rb`
+- [x] `bin/rails test test/services/project_setup/context_loop_service_test.rb -n test_go_cli_setup_materializes_scaffold_files_and_validation_outcome`
+
+Notes:
+
+- Added `AgentTicketExecution::OperationalSetup` as the first `./rw` operational setup boundary.
+- The first directory shape is `rw/agent`, with `rw/agent/Dockerfile`, `rw/agent/runtime-setup.json`, and `rw/agent/README.md`.
+- Existing project-provided `rw/agent/Dockerfile` files are accepted without overwrite.
+- When no provided setup exists, the materializer writes the generated runtime container Dockerfile into `rw/agent/Dockerfile`.
+- `RuntimeBridge::ProjectContextBuilder` exposes operational setup metadata without materializing files.
+- Local project materialization includes operational setup in the workspace payload and `.redwright/manifest.yml`.
 
 ### Slice 4: Ticket Execution Command Boundary
 
