@@ -49,7 +49,7 @@ module AgentTicketExecution
         trace_metadata: trace_metadata
       )
       contract_result = response.ok? ? contract.validate(response.semantic_payload) : nil
-      record_response(response: response, llm_call_id: llm_call_id, trace_metadata: trace_metadata)
+      record_response(response: response, contract_result: contract_result, llm_call_id: llm_call_id, trace_metadata: trace_metadata)
       Result.new(ok: response.ok? && contract_result&.ok?, response: response, contract_result: contract_result)
     end
 
@@ -107,8 +107,16 @@ module AgentTicketExecution
       )
     end
 
-    def record_response(response:, llm_call_id:, trace_metadata:)
+    def record_response(response:, contract_result:, llm_call_id:, trace_metadata:)
       return nil unless trace_recorder
+
+      diagnostics = response.diagnostics.dup
+      diagnostics[:contract_normalizations] = contract_result.normalizations if contract_result&.normalizations&.any?
+      diagnostics[:contract_validation] = {
+        code: contract_result.code,
+        message: contract_result.message,
+        ok: contract_result.ok?
+      } if contract_result
 
       trace_recorder.record_response(
         status: response.status,
@@ -132,7 +140,7 @@ module AgentTicketExecution
         model: model,
         payload_bytes: response.diagnostics[:context_bytes],
         warnings: response.warnings,
-        diagnostics: response.diagnostics
+        diagnostics: diagnostics
       )
     end
   end

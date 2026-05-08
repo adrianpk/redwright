@@ -49,6 +49,37 @@ module AgentTicketExecution
       end
     end
 
+    test "applies structured apply patch output" do
+      with_agent_ticket_execution_workspace do |fixture|
+        workspace = WorkspaceBoundary.new(allowed_projects_root: fixture.projects_root).resolve(ticket: fixture.ticket)
+
+        result = OutputApplier.new.apply(
+          workspace: workspace,
+          payload: {
+            "files" => [
+              {
+                "path" => "main.go",
+                "patch" => <<~PATCH
+                  *** Begin Patch
+                  *** Update File: main.go
+                  @@
+                   import (
+                     "bufio"
+                     "fmt"
+                  +  "strconv"
+                     "io"
+                  *** End Patch
+                PATCH
+              }
+            ]
+          }
+        )
+
+        assert result.ok?, result.to_h.inspect
+        assert_includes File.read(File.join(fixture.project_path, "main.go")), "\"strconv\""
+      end
+    end
+
     test "rejects invalid output before primitive execution" do
       with_agent_ticket_execution_workspace do |fixture|
         workspace = WorkspaceBoundary.new(allowed_projects_root: fixture.projects_root).resolve(ticket: fixture.ticket)

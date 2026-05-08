@@ -40,6 +40,25 @@ module AgentTicketExecution
       end
     end
 
+    test "normalizes near-miss LLM response before applying and validating" do
+      with_agent_ticket_execution_workspace do |fixture|
+        workspace = WorkspaceBoundary.new(allowed_projects_root: fixture.projects_root).resolve(ticket: fixture.ticket)
+        requester = LlmRequester.new(
+          request_engine: FakeRequestEngine.new(near_miss_patch_payload),
+          model: "test/model",
+          provider: "test"
+        )
+
+        result = loop_for(requester, max_attempts: 1).call(request: request_payload(fixture.ticket), ticket: fixture.ticket, workspace: workspace)
+
+        assert result.completed?, result.to_execution.inspect
+        assert_equal 1, result.attempts
+        assert_equal "ready_for_review", result.terminal_outcome.fetch("status")
+        assert_equal "ok", result.validation_results.first.fetch("status")
+        assert_includes File.read(File.join(fixture.project_path, "main.go")), "case \"done\":"
+      end
+    end
+
     test "blocks when retry limit is exhausted" do
       with_agent_ticket_execution_workspace do |fixture|
         workspace = WorkspaceBoundary.new(allowed_projects_root: fixture.projects_root).resolve(ticket: fixture.ticket)
@@ -156,6 +175,75 @@ module AgentTicketExecution
         ],
         "commands" => [],
         "affected_files" => ["main.go"]
+      }
+    end
+
+    def near_miss_patch_payload
+      {
+        "status" => "ready",
+        "blocking_reason" => nil,
+        "summary" => "Add support for todo done.",
+        "changes" => [
+          {
+            "type" => "apply_patch",
+            "path" => "main.go",
+            "patch" => <<~PATCH
+              *** Begin Patch
+              *** Update File: main.go
+              @@
+               import (
+                 "bufio"
+                 "fmt"
+                 "io"
+                 "os"
+              +  "strconv"
+                 "strings"
+               )
+              @@
+               func run(args []string, stdout io.Writer, stderr io.Writer) int {
+                 if len(args) == 0 {
+              -    fmt.Fprintln(stderr, "usage: todo <add|list> [task]")
+              +    fmt.Fprintln(stderr, "usage: todo <add|list|done> [task]")
+                   return 2
+                 }
+              @@
+                   if err := saveTasks(todoFilePath(), tasks); err != nil {
+                     fmt.Fprintf(stderr, "save tasks: %v\\n", err)
+                     return 1
+                   }
+                   fmt.Fprintf(stdout, "added: %d\\n", len(tasks))
+                   return 0
+              +  case "done":
+              +    if len(args) != 2 {
+              +      fmt.Fprintln(stderr, "usage: todo done <task-number>")
+              +      return 2
+              +    }
+              +
+              +    n, err := strconv.Atoi(strings.TrimSpace(args[1]))
+              +    if err != nil || n < 1 || n > len(tasks) {
+              +      fmt.Fprintln(stderr, "usage: todo done <task-number>")
+              +      return 2
+              +    }
+              +
+              +    tasks[n-1].Done = true
+              +    if err := saveTasks(todoFilePath(), tasks); err != nil {
+              +      fmt.Fprintf(stderr, "save tasks: %v\\n", err)
+              +      return 1
+              +    }
+              +
+              +    fmt.Fprintf(stdout, "done: %d\\n", n)
+              +    return 0
+                 case "list":
+                   for index, task := range tasks {
+                     marker := " "
+              *** End Patch
+            PATCH
+          }
+        ],
+        "commands" => [
+          {"cmd" => "go fmt ./...", "purpose" => "format"},
+          {"cmd" => "go test ./...", "purpose" => "validate"}
+        ]
       }
     end
 
@@ -311,6 +399,39 @@ module AgentTicketExecution
         contexts << execution_context
         payload = @payloads.fetch(contexts.length - 1)
         Result.new(payload: payload, warnings: [])
+      end
+    end
+
+    class FakeRequestEngine
+      Response = Struct.new(
+        :status,
+        :semantic_payload,
+        :rendered_text,
+        :provider_metadata,
+        :warnings,
+        :raw_response_ref,
+        :diagnostics,
+        keyword_init: true
+      ) do
+        def ok?
+          status == "ok"
+        end
+      end
+
+      def initialize(payload)
+        @payload = payload
+      end
+
+      def generate_structured_message(**)
+        Response.new(
+          status: "ok",
+          semantic_payload: @payload,
+          rendered_text: @payload.fetch("summary"),
+          provider_metadata: {finish_reason: "stop"},
+          warnings: [],
+          raw_response_ref: @payload.to_json,
+          diagnostics: {context_bytes: 123}
+        )
       end
     end
   end

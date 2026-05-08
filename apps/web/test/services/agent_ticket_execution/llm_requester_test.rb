@@ -44,7 +44,41 @@ module AgentTicketExecution
         assert_equal "test", recorder.requests.first.fetch(:source_channel)
         assert_equal "agent-test", recorder.requests.first.fetch(:actor_identifier)
         assert_equal [], recorder.responses.first.fetch(:warnings)
-        assert_equal({context_bytes: 123}, recorder.responses.first.fetch(:diagnostics))
+        assert_equal "ok", recorder.responses.first.fetch(:diagnostics).fetch(:contract_validation).fetch(:code)
+        assert_equal 123, recorder.responses.first.fetch(:diagnostics).fetch(:context_bytes)
+      end
+    end
+
+    test "returns normalized near-miss contract payload and records diagnostics" do
+      with_agent_ticket_execution_workspace do |fixture|
+        workspace = WorkspaceBoundary.new(allowed_projects_root: fixture.projects_root).resolve(ticket: fixture.ticket)
+        execution_context = ContextComposer.new.compose(
+          ticket: fixture.ticket,
+          request: request_payload(fixture.ticket),
+          workspace: workspace
+        )
+        engine = FakeRequestEngine.new(
+          "status" => "ready",
+          "summary" => "Add the done command.",
+          "changes" => [{"type" => "apply_patch", "path" => "main.go", "patch" => "*** Begin Patch\n*** Update File: main.go\n*** End Patch"}],
+          "commands" => [{"cmd" => "go test ./...", "purpose" => "validate"}]
+        )
+        recorder = FakeTraceRecorder.new
+
+        result = LlmRequester.new(
+          request_engine: engine,
+          model: "test/model",
+          provider: "test",
+          trace_recorder: recorder
+        ).call(execution_context: execution_context)
+
+        assert result.ok?, result.warnings.inspect
+        assert_equal "proposed_changes", result.payload.fetch("status")
+        assert_equal [{"path" => "main.go", "patch" => "*** Begin Patch\n*** Update File: main.go\n*** End Patch"}], result.payload.fetch("files")
+        assert_equal [{"command" => "go test ./...", "purpose" => "validate"}], result.payload.fetch("commands")
+        diagnostics = recorder.responses.first.fetch(:diagnostics)
+        assert_equal true, diagnostics.fetch(:contract_validation).fetch(:ok)
+        assert_includes diagnostics.fetch(:contract_normalizations), {"field" => "status", "from" => "ready", "to" => "proposed_changes"}
       end
     end
 

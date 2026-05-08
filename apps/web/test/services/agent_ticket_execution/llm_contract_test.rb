@@ -32,6 +32,36 @@ module AgentTicketExecution
       assert_equal "Add bounds checks before indexing tasks.", result.payload.fetch("retry_instruction")
     end
 
+    test "normalizes useful near-miss executable response shape" do
+      result = LlmContract.new.validate(
+        "status" => "ready",
+        "summary" => "Add done command.",
+        "changes" => [
+          {
+            "type" => "apply_patch",
+            "path" => "main.go",
+            "patch" => "*** Begin Patch\n*** Update File: main.go\n*** End Patch"
+          }
+        ],
+        "commands" => [
+          {"cmd" => "go test ./...", "purpose" => "validate"}
+        ]
+      )
+
+      assert result.ok?, result.message
+      assert_equal "proposed_changes", result.payload.fetch("status")
+      assert_equal(
+        [{"path" => "main.go", "patch" => "*** Begin Patch\n*** Update File: main.go\n*** End Patch"}],
+        result.payload.fetch("files")
+      )
+      assert_equal [{"command" => "go test ./...", "purpose" => "validate"}], result.payload.fetch("commands")
+      assert_equal 4, result.normalizations.length
+      assert_includes result.normalizations, {"field" => "status", "from" => "ready", "to" => "proposed_changes"}
+      assert_includes result.normalizations, {"field" => "changes", "to" => "files"}
+      assert_includes result.normalizations, {"field" => "changes[0].type", "action" => "dropped"}
+      assert_includes result.normalizations, {"field" => "commands[0].cmd", "to" => "commands[0].command"}
+    end
+
     test "accepts blocked response only with blocking reason" do
       blocked = LlmContract.new.validate(
         "status" => "blocked",

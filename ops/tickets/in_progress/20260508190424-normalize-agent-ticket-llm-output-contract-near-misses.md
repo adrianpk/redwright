@@ -1,7 +1,7 @@
 ---
 id: TKT-20260508190424
 title: Normalize agent ticket LLM output contract near misses
-status: ready
+status: in_progress
 kind: bug
 severity: high
 priority: high
@@ -10,12 +10,12 @@ tags: agent-ticket-execution, llm-contract, context, validation
 source: manual_test
 reported_at: 2026-05-08T19:04:24Z
 ready_at: 2026-05-08T19:04:24Z
-started_at:
+started_at: 2026-05-08T19:06:09Z
 reviewed_at:
 closed_at:
 resolution:
 owner:
-branch:
+branch: fix/ticket-20260508190424-llm-contract-normalization
 pr:
 commits: []
 ---
