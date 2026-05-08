@@ -51,6 +51,8 @@ module AgentTicketExecution
     test "returns normalized terminal outcome from injected executor" do
       board = create_board(project_key: "agent-command-terminal-#{SecureRandom.hex(4)}")
       backlog = board.columns.create!(key: "backlog", title: "Backlog", position: 0)
+      board.columns.create!(key: "in_progress", title: "In Progress", position: 1)
+      review = board.columns.create!(key: "review", title: "Review", position: 2)
       ticket = board.tickets.create!(column: backlog, title: "Terminal implementation")
       dispatcher = CommandQuery::Dispatcher.new
       CommandQueryHandlers.new(executor: FakeTerminalExecutor.new).register(dispatcher)
@@ -67,6 +69,66 @@ module AgentTicketExecution
       assert_equal ticket.id, execution.dig("terminal_outcome", "ticket_id")
       assert_equal "agent_ticket_execution_completed", result.effects.first.fetch("type")
       assert_equal "test:agent", FakeTerminalExecutor.last_request.fetch("actor_identifier")
+      assert_equal "moved", execution.dig("details", "kanban", "start", "status")
+      assert_equal "moved", execution.dig("details", "kanban", "terminal", "status")
+      assert_equal "review", execution.dig("details", "kanban", "terminal", "to_column_key")
+
+      ticket.reload
+      assert_equal review.id, ticket.column_id
+      assert_equal "reviewing", ticket.workflow_status
+      assert ticket.started_at
+      assert ticket.sent_to_review_at
+      assert ticket.review_started_at
+    end
+
+    test "marks unresolved execution blocked through Kanban transition" do
+      board = create_board(project_key: "agent-command-blocked-#{SecureRandom.hex(4)}")
+      backlog = board.columns.create!(key: "backlog", title: "Backlog", position: 0)
+      board.columns.create!(key: "in_progress", title: "In Progress", position: 1)
+      blocked = board.columns.create!(key: "blocked", title: "Blocked", position: 2)
+      ticket = board.tickets.create!(column: backlog, title: "Blocked implementation")
+      dispatcher = CommandQuery::Dispatcher.new
+      CommandQueryHandlers.new(executor: FakeBlockedExecutor.new).register(dispatcher)
+
+      result = dispatcher.call(command("ExecuteAgentTicket", {
+        ticket_id: ticket.id
+      }, request_id: "req-agent-blocked"))
+
+      assert result.ok?, result.errors.inspect
+      execution = result.data.fetch("execution")
+      assert_equal "blocked", execution.fetch("state")
+      assert_equal "blocked", execution.dig("terminal_outcome", "status")
+      assert_equal "moved", execution.dig("details", "kanban", "start", "status")
+      assert_equal "moved", execution.dig("details", "kanban", "terminal", "status")
+      assert_equal "blocked", execution.dig("details", "kanban", "terminal", "to_column_key")
+
+      ticket.reload
+      assert_equal blocked.id, ticket.column_id
+      assert_equal "blocked", ticket.workflow_status
+      assert ticket.started_at
+    end
+
+    test "skips Kanban transitions when target columns are missing" do
+      board = create_board(project_key: "agent-command-kanban-skip-#{SecureRandom.hex(4)}")
+      backlog = board.columns.create!(key: "backlog", title: "Backlog", position: 0)
+      ticket = board.tickets.create!(column: backlog, title: "Terminal implementation without review")
+      dispatcher = CommandQuery::Dispatcher.new
+      CommandQueryHandlers.new(executor: FakeTerminalExecutor.new).register(dispatcher)
+
+      result = dispatcher.call(command("ExecuteAgentTicket", {
+        ticket_id: ticket.id
+      }, request_id: "req-agent-kanban-skip"))
+
+      assert result.ok?, result.errors.inspect
+      execution = result.data.fetch("execution")
+      assert_equal "skipped", execution.dig("details", "kanban", "start", "status")
+      assert_equal "target_column_missing", execution.dig("details", "kanban", "start", "reason")
+      assert_equal "skipped", execution.dig("details", "kanban", "terminal", "status")
+      assert_equal "target_column_missing", execution.dig("details", "kanban", "terminal", "reason")
+
+      ticket.reload
+      assert_equal backlog.id, ticket.column_id
+      assert_equal "ready", ticket.workflow_status
     end
 
     test "rejects invalid command payloads" do
@@ -158,6 +220,27 @@ module AgentTicketExecution
           },
           "details" => {
             "commit_sha" => "abc123"
+          }
+        }
+      end
+    end
+
+    class FakeBlockedExecutor
+      def call(request:, ticket:, workspace: nil, execution_context: nil)
+        {
+          "state" => "blocked",
+          "acknowledgement" => {
+            "status" => "blocked",
+            "message" => "Agent ticket execution blocked."
+          },
+          "terminal_outcome" => {
+            "status" => "blocked",
+            "ticket_id" => ticket.id,
+            "code" => "retry_limit_exhausted",
+            "reason" => "validation failed"
+          },
+          "details" => {
+            "validation" => "failed"
           }
         }
       end

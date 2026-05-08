@@ -4,9 +4,9 @@
 
 - cycle_id: `cycle-2026-05-08-redwright-agent-ticket-execution`
 - status: `executing`
-- state: `slice_13_ready_for_review`
+- state: `slice_14_ready_for_review`
 - updated: `2026-05-08`
-- active_slice: `13`
+- active_slice: `14`
 - active_task: `none`
 - source_plan: `ops/plans/2026-05-08-redwright-agent-ticket-execution-cycle-plan.md`
 - source_spec: `ops/specs/specs/2026-05-08-redwright-agent-ticket-execution-spec.md`
@@ -477,9 +477,9 @@ Notes:
 
 ### Slice 13: Git Branch And Commit
 
-- status: `ready_for_review`
+- status: `merged`
 - branch: `feat/slice-13-agent-ticket-git-commit`
-- PR: `pending`
+- PR: `merged`
 - merge_target: `dev`
 - last_sync_commit: `dev`
 
@@ -511,28 +511,37 @@ Notes:
 
 ### Slice 14: Kanban Transition Integration
 
-- status: `planned`
+- status: `ready_for_review`
 - branch: `feat/slice-14-agent-ticket-kanban-transition`
 - PR: `pending`
 - merge_target: `dev`
-- last_sync_commit: `pending`
+- last_sync_commit: `dev`
 
 Tasks:
 
-- [ ] `T14.1 map existing states for execution start, review, and blocked`
-- [ ] `T14.2 move successful ticket to review`
-- [ ] `T14.3 mark unresolved ticket blocked`
-- [ ] `T14.4 keep comments and rich notifications deferred`
-- [ ] `T14.5 cover Kanban transitions in command/service tests`
+- [x] `T14.1 map existing states for execution start, review, and blocked`
+- [x] `T14.2 move successful ticket to review`
+- [x] `T14.3 mark unresolved ticket blocked`
+- [x] `T14.4 keep comments and rich notifications deferred`
+- [x] `T14.5 cover Kanban transitions in command/service tests`
 
 Commits:
 
-- [ ] `feat(tickets): add agent ticket Kanban transitions`
-- [ ] `test(tickets): cover agent ticket state transitions`
+- [x] `feat(tickets): add agent ticket Kanban transitions`
+- [x] `test(tickets): cover agent ticket state transitions`
 
 Validation:
 
-- [ ] `not run`
+- [x] `bin/rails test test/services/agent_ticket_execution/command_query_handlers_test.rb`
+- [x] `bin/rails test test/controllers/api/v1/command_queries_controller_test.rb -n test_accepts_agent_ticket_execution_through_command_api`
+- [x] `ruby -c apps/web/app/services/agent_ticket_execution/kanban_transitioner.rb && ruby -c apps/web/app/services/agent_ticket_execution/command_query_handlers.rb`
+
+Notes:
+
+- Added `AgentTicketExecution::KanbanTransitioner` for command-owned ticket movement through existing board columns and `Ticket#transition_to_column!`.
+- Ticket execution now attempts start movement to `in_progress` and terminal movement to `review` or `blocked`.
+- Missing optional board columns are reported as skipped transition details instead of failing unrelated command flows.
+- Comments and rich notifications remain deferred.
 
 ### Slice 15: Automated End-To-End Coverage
 
