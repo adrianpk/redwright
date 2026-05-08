@@ -26,7 +26,7 @@ active_slice: 1
   - [x] Preserve trace propagation and ticket context memory.
   - [x] Run focused Telegram adapter tests.
 - commits:
-  - `a68dd21 refactor(telegram): extract ticket command adapter`
+  - `a82bae6 refactor(telegram): extract ticket command adapter`
 - pr:
 - validation:
   - `ruby -Itest test/redwright/telegram_project_setup_adapter_test.rb`
