@@ -585,6 +585,13 @@ This spec is intentionally one specification, but the implementation should be d
 - inspect local commit
 - record residual issues for follow-up tickets
 
+## Implementation Closure Notes
+
+- The first implementation cycle delivered the local targeted ticket execution loop for a simple Go todo CLI ticket.
+- Automated acceptance covers command dispatch, context composition, fake fuzzy LLM responses, output application, validation retry, local commit creation, and Kanban transition.
+- Telegram behavior is covered through simulated adapter tests for `/ticket start <id>` acknowledgement and final outcome rendering.
+- Live external manual acceptance with a real Telegram bot session and browser Kanban tab is intentionally recorded as a post-merge operator check because it requires services outside the repository test environment.
+
 ## Follow-Up Candidates
 
 - automatic Docker/container setup inference
@@ -610,4 +617,3 @@ This spec is intentionally one specification, but the implementation should be d
 - Where exactly should `./rw` materialization live in current project initialization code?
 - Should the first local fake represent push, or should push be entirely skipped?
 - How much validation/debug output should be normal trace versus debug-only trace?
-
