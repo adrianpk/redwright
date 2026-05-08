@@ -51,6 +51,9 @@ module AgentTicketExecution
         section("protocol_model", project.protocol_state, "project_protocol_model"),
         section("previous_interactions", previous_interactions_payload(ticket, request), "historical_agent_llm_interaction")
       ]
+      if request["validation_feedback"].present?
+        sections << section("validation_feedback", request.fetch("validation_feedback"), "current_execution_feedback")
+      end
 
       Context.new(
         context_sections: sections,
@@ -231,7 +234,7 @@ module AgentTicketExecution
     end
 
     def user_text_payload(ticket, request)
-      {
+      payload = {
         "action" => "agent_ticket_execution",
         "ticket_id" => ticket.id,
         "ticket_title" => ticket.title,
@@ -239,6 +242,8 @@ module AgentTicketExecution
         "mode" => request.fetch("mode"),
         "branch_name" => request["branch_name"]
       }
+      payload["validation_feedback"] = request["validation_feedback"] if request["validation_feedback"].present?
+      payload
     end
 
     def diagnostics(sections)
