@@ -65,6 +65,13 @@ entry per commit.
   with a concise fast-loop preparation hint when needed.
 - Aligned ticket workflow metadata and ticket editor layout around status,
   ownership, delivery, and context hierarchy.
+- Refactored agent ticket execution architecture boundaries so Telegram ticket
+  routing, structured patch application, command-query orchestration, context
+  section composition, response presentation, and validation command selection
+  are owned by focused collaborators instead of oversized entrypoints.
+- Changed agent ticket validation command resolution to come from operational
+  setup/runtime metadata, with explicit blocking when no validation commands are
+  available.
 
 ### Fixed
 
@@ -93,6 +100,8 @@ entry per commit.
   audit artifacts that define the sandboxed single-agent ticket workflow.
 - Added release alignment operational guidance for direct `dev -> main`
   synchronization and external forge glitch handling.
+- Added and closed the agent ticket architecture correction plan, tracker, and
+  repository ticket covering the six-slice maintainability cycle.
 - Refreshed the README board screenshot and expanded the UI gallery with ticket
   edit modal captures.
 
@@ -108,6 +117,10 @@ entry per commit.
   blocked execution, diagnostics, and deterministic scenario readiness.
 - Added regression coverage for normalizing near-miss agent ticket LLM responses
   and applying structured `*** Begin Patch` output.
+- Added final hardening coverage for the refactored agent ticket architecture
+  boundaries, including Telegram command handling, structured patch application,
+  context section providers, validation command resolution, and deterministic Go
+  todo scenario reset/inspection.
 - Added coverage for ticket use case selection, document use case selection,
   formal artifact scope preservation, command-query cleanup, runtime bridge
   cleanup, and project setup behavior after removing direct ticket document
