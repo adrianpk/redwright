@@ -1,3 +1,7 @@
+require "fileutils"
+require "open3"
+require "shellwords"
+
 admin = User.find_by(email_address: "admin@redwright.local") || User.all.find(&:admin?) || User.new
 admin.email_address = "admin@redwright.local"
 admin.roles = ["admin"]
@@ -348,3 +352,303 @@ seed_demo_project_documents(project: project)
 board.labels.where.not(name: labels.keys).find_each do |label|
   label.destroy! if label.tickets.empty?
 end
+
+def write_file(path, content)
+  FileUtils.mkdir_p(File.dirname(path))
+  File.write(path, content)
+end
+
+def run_seed_command!(command, chdir:)
+  _stdout, stderr, status = Open3.capture3(command, chdir: chdir)
+  return if status.success?
+
+  raise "#{command} failed: #{stderr}"
+end
+
+def go_todo_main
+  <<~GO
+    package main
+
+    import (
+      "bufio"
+      "fmt"
+      "io"
+      "os"
+      "strings"
+    )
+
+    type Task struct {
+      Text string
+      Done bool
+    }
+
+    func main() {
+      os.Exit(run(os.Args[1:], os.Stdout, os.Stderr))
+    }
+
+    func run(args []string, stdout io.Writer, stderr io.Writer) int {
+      if len(args) == 0 {
+        fmt.Fprintln(stderr, "usage: todo <add|list> [task]")
+        return 2
+      }
+
+      tasks, err := loadTasks(todoFilePath())
+      if err != nil {
+        fmt.Fprintf(stderr, "load tasks: %v\\n", err)
+        return 1
+      }
+
+      switch args[0] {
+      case "add":
+        if len(args) < 2 || strings.TrimSpace(args[1]) == "" {
+          fmt.Fprintln(stderr, "usage: todo add <task>")
+          return 2
+        }
+        tasks = append(tasks, Task{Text: strings.TrimSpace(args[1])})
+        if err := saveTasks(todoFilePath(), tasks); err != nil {
+          fmt.Fprintf(stderr, "save tasks: %v\\n", err)
+          return 1
+        }
+        fmt.Fprintf(stdout, "added: %d\\n", len(tasks))
+        return 0
+      case "list":
+        for index, task := range tasks {
+          marker := " "
+          if task.Done {
+            marker = "x"
+          }
+          fmt.Fprintf(stdout, "%d. [%s] %s\\n", index+1, marker, task.Text)
+        }
+        return 0
+      default:
+        fmt.Fprintf(stderr, "unknown command: %s\\n", args[0])
+        return 2
+      }
+    }
+
+    func todoFilePath() string {
+      if path := os.Getenv("TODO_FILE"); path != "" {
+        return path
+      }
+      return "todo.txt"
+    }
+
+    func loadTasks(path string) ([]Task, error) {
+      file, err := os.Open(path)
+      if os.IsNotExist(err) {
+        return nil, nil
+      }
+      if err != nil {
+        return nil, err
+      }
+      defer file.Close()
+
+      var tasks []Task
+      scanner := bufio.NewScanner(file)
+      for scanner.Scan() {
+        parts := strings.SplitN(scanner.Text(), "\\t", 2)
+        if len(parts) != 2 {
+          continue
+        }
+        tasks = append(tasks, Task{Done: parts[0] == "done", Text: parts[1]})
+      }
+      return tasks, scanner.Err()
+    }
+
+    func saveTasks(path string, tasks []Task) error {
+      file, err := os.Create(path)
+      if err != nil {
+        return err
+      }
+      defer file.Close()
+
+      for _, task := range tasks {
+        status := "open"
+        if task.Done {
+          status = "done"
+        }
+        if _, err := fmt.Fprintf(file, "%s\\t%s\\n", status, task.Text); err != nil {
+          return err
+        }
+      }
+      return nil
+    }
+  GO
+end
+
+def go_todo_test
+  <<~GO
+    package main
+
+    import (
+      "bytes"
+      "path/filepath"
+      "testing"
+    )
+
+    func TestDoneCommand(t *testing.T) {
+      tests := []struct {
+        name       string
+        args       []string
+        initial    []Task
+        wantCode   int
+        wantStdout string
+        wantDone   []bool
+      }{
+        {
+          name:       "done command marks the selected task",
+          args:       []string{"done", "1"},
+          initial:    []Task{{Text: "write fixture tests"}},
+          wantCode:   0,
+          wantStdout: "done: 1\\n",
+          wantDone:   []bool{true},
+        },
+        {
+          name:       "done command preserves other tasks",
+          args:       []string{"done", "2"},
+          initial:    []Task{{Text: "first"}, {Text: "second"}},
+          wantCode:   0,
+          wantStdout: "done: 2\\n",
+          wantDone:   []bool{false, true},
+        },
+      }
+
+      for _, tt := range tests {
+        t.Run(tt.name, func(t *testing.T) {
+          path := filepath.Join(t.TempDir(), "todo.txt")
+          t.Setenv("TODO_FILE", path)
+          if err := saveTasks(path, tt.initial); err != nil {
+            t.Fatalf("seed tasks: %v", err)
+          }
+
+          var stdout bytes.Buffer
+          var stderr bytes.Buffer
+          if code := run(tt.args, &stdout, &stderr); code != tt.wantCode {
+            t.Fatalf("run returned %d, want %d; stderr=%q", code, tt.wantCode, stderr.String())
+          }
+          if got := stdout.String(); got != tt.wantStdout {
+            t.Fatalf("stdout = %q, want %q", got, tt.wantStdout)
+          }
+
+          tasks, err := loadTasks(path)
+          if err != nil {
+            t.Fatalf("load tasks: %v", err)
+          }
+          for index, wantDone := range tt.wantDone {
+            if tasks[index].Done != wantDone {
+              t.Fatalf("task %d done = %v, want %v", index+1, tasks[index].Done, wantDone)
+            }
+          }
+        })
+      }
+    }
+  GO
+end
+
+def seed_go_todo_workspace(project_root)
+  FileUtils.mkdir_p(project_root)
+  write_file(File.join(project_root, ".gitignore"), "todo.txt\ntodo.test\ncoverage.out\n")
+  write_file(File.join(project_root, "go.mod"), "module example.com/todo\n\ngo 1.22\n")
+  write_file(File.join(project_root, "main.go"), go_todo_main)
+  write_file(File.join(project_root, "main_test.go"), go_todo_test)
+  write_file(
+    File.join(project_root, "rw", "agent", "Dockerfile"),
+    <<~DOCKERFILE
+      FROM golang:1.22-alpine
+      WORKDIR /workspace
+      COPY . .
+      RUN go test ./...
+    DOCKERFILE
+  )
+  write_file(
+    File.join(project_root, "rw", "agent", "runtime-setup.json"),
+    JSON.pretty_generate(
+      "purpose" => "agent_ticket_execution",
+      "validation_commands" => ["go test ./..."],
+      "runtime" => {"name" => "go", "version" => "1.22"}
+    )
+  )
+
+  unless Dir.exist?(File.join(project_root, ".git"))
+    run_seed_command!("git init -q", chdir: project_root)
+    run_seed_command!("git config user.name redwright-seed", chdir: project_root)
+    run_seed_command!("git config user.email redwright-seed@example.local", chdir: project_root)
+  end
+  run_seed_command!("git add -A", chdir: project_root)
+  _stdout, _stderr, status = Open3.capture3("git diff --cached --quiet", chdir: project_root)
+  return if status.success?
+
+  run_seed_command!("git commit -q -m \"seed: initialize go todo cli\"", chdir: project_root)
+end
+
+def commit_seed_workspace_changes(project_root, message)
+  run_seed_command!("git add -A", chdir: project_root)
+  _stdout, _stderr, status = Open3.capture3("git diff --cached --quiet", chdir: project_root)
+  return if status.success?
+
+  run_seed_command!("git commit -q -m #{Shellwords.escape(message)}", chdir: project_root)
+end
+
+go_todo_root = Rails.root.join("..", "..", "_workspace", "Projects", "go-todo-agent").expand_path.to_s
+seed_go_todo_workspace(go_todo_root)
+
+go_project = Project.find_or_initialize_by(root_path: go_todo_root)
+go_project.assign_attributes(
+  name: "Go Todo Agent",
+  description: "Seeded Go CLI todo project for manual agent ticket execution.",
+  repo_url: "local://go-todo-agent",
+  stack_slug: "go"
+)
+go_project.save!
+
+go_language_attribute = ProjectAttribute.find_or_initialize_by(project: go_project, key: "setup_context.language_runtime")
+go_language_attribute.value = "Go 1.22"
+go_language_attribute.weight = 5
+go_language_attribute.source = "seed"
+go_language_attribute.save!
+
+go_board = Board.find_or_initialize_by(project_key: "go-todo-agent")
+go_board.project = go_project
+go_board.name = "Go Todo Agent Board"
+go_board.save!
+
+go_columns = [
+  ["backlog", "Backlog"],
+  ["in_progress", "In Progress"],
+  ["review", "Review"],
+  ["blocked", "Blocked"]
+]
+
+go_columns.each_with_index do |(key, title), index|
+  column = go_board.columns.find_or_initialize_by(key: key)
+  column.title = title
+  column.position = index
+  column.save!
+end
+
+go_ticket = go_board.tickets.find_or_initialize_by(title: "Implement done command")
+go_ticket.column = go_board.columns.find_by!(key: "backlog")
+go_ticket.description = <<~TEXT
+  Add a `done <task-number>` command to the Go todo CLI.
+
+  Acceptance criteria:
+  - `todo done 1` marks task 1 as done.
+  - Existing open tasks remain unchanged.
+  - `go test ./...` passes.
+  - Use only the Go standard library.
+TEXT
+go_ticket.priority = :high
+go_ticket.assignee = "agent-coder"
+go_ticket.kind = "task"
+go_ticket.severity = "low"
+go_ticket.scope = "runtime"
+go_ticket.source = "implementation"
+go_ticket.started_at = nil
+go_ticket.sent_to_review_at = nil
+go_ticket.review_started_at = nil
+go_ticket.review_completed_at = nil
+go_ticket.archived_at = nil
+go_ticket.save!
+
+sync_project_protocol_from_templates(go_project, catalog)
+commit_seed_workspace_changes(go_todo_root, "seed: materialize go todo protocols")
