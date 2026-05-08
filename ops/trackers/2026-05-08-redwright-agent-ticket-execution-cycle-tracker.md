@@ -3,10 +3,10 @@
 ## Metadata
 
 - cycle_id: `cycle-2026-05-08-redwright-agent-ticket-execution`
-- status: `planned`
-- state: `planning_complete`
+- status: `executing`
+- state: `slice_1_ready_for_review`
 - updated: `2026-05-08`
-- active_slice: `none`
+- active_slice: `1`
 - active_task: `none`
 - source_plan: `ops/plans/2026-05-08-redwright-agent-ticket-execution-cycle-plan.md`
 - source_spec: `ops/specs/specs/2026-05-08-redwright-agent-ticket-execution-spec.md`
@@ -15,7 +15,7 @@
 
 ### Slice 1: Existing Boundary Audit
 
-- status: `planned`
+- status: `ready_for_review`
 - branch: `feat/slice-1-agent-ticket-boundary-audit`
 - PR: `pending`
 - merge_target: `dev`
@@ -23,19 +23,88 @@
 
 Tasks:
 
-- [ ] `T1.1 audit runtime primitives for file, command, patch, and git operations`
-- [ ] `T1.2 audit Kanban state transition APIs/services for development, review, and blocked outcomes`
-- [ ] `T1.3 audit project materialization, _workspace isolation, and reset behavior`
-- [ ] `T1.4 audit LLMRequestEngine request/response extension points for ticket execution`
-- [ ] `T1.5 record gaps and implementation constraints in tracker notes`
+- [x] `T1.1 audit runtime primitives for file, command, patch, and git operations`
+- [x] `T1.2 audit Kanban state transition APIs/services for development, review, and blocked outcomes`
+- [x] `T1.3 audit project materialization, _workspace isolation, and reset behavior`
+- [x] `T1.4 audit LLMRequestEngine request/response extension points for ticket execution`
+- [x] `T1.5 record gaps and implementation constraints in tracker notes`
 
 Commits:
 
-- [ ] `docs(ops): audit agent ticket execution boundaries`
+- [x] `pending docs(ops): audit agent ticket execution boundaries`
 
 Validation:
 
-- [ ] `not run`
+- [x] `not run - docs-only audit; no runtime behavior changed`
+
+## Slice 1 Audit
+
+### Runtime Primitive Boundary
+
+- `lib/redwright/primitive_executor.rb` already supports `list_files`, `read_file`, `search`, `run`, `write_file`, `apply_patch`, `git_status`, `git_branch`, `git_commit`, `git_push`, and `git_undo`.
+- Mutating primitives are already guardable by `allowed_projects_root` plus `enforce_mutating_projects_root`.
+- Existing tests cover path escape rejection, command timeout, git status/branch, confirmation-required git commit/push, git undo behavior, and mutating-action rejection outside the allowed projects root.
+- Real primitive gap: `git_branch` supports `list`, `current`, and `switch`, but not branch creation. Slice 13 should either add a small branch-create capability or implement branch creation through the existing `run` primitive with the same sandbox boundary.
+- Real orchestration gap: no ticket-execution service currently translates rich LLM output into primitive actions and validation retries.
+
+### Kanban And Ticket Boundary
+
+- `apps/web/app/models/ticket.rb` already defines workflow statuses including `in_progress`, `reviewing`, and `blocked`.
+- Existing column mapping supports `in_progress`, `review`, `reviewing`, `approved`, `blocked`, `merged`, `done`, `solved`, and `closed`.
+- `Ticket#transition_to_column!` already sets lifecycle timestamps for in-progress, review, approved, merged/done, solved, and closed transitions.
+- `BoardWorkflow::CommandQueryHandlers` already registers `CreateTicket`, `UpdateTicket`, `MoveTicket`, `AddTicketComment`, `StartTicketExecution`, `PickNextTicket`, `GetBoard`, and `GetTicketsByProject`.
+- `MoveTicket` can move a ticket to a target column by `column_id` or `column_key`.
+- `PickNextTicket` currently uses `Ticket.pick_next_for`, which prefers assigned tickets when an assignee is provided and otherwise falls back to all active tickets.
+- Real policy gap: the spec's liberal pickup rule must exclude tickets self-assigned to the user/admin, but current `pick_next_for` has no user/admin exclusion policy.
+- Real transition gap: existing `StartTicketExecution` records runtime correlation but does not own success-to-review or failure-to-blocked transitions.
+
+### Runtime Bridge Boundary
+
+- `RuntimeBridge::TicketExecutionBridge` already builds a Rails-to-runtime request from a ticket, project context, runtime context, and runtime container readiness.
+- The bridge checks `RuntimeContainers::ExecutionReadiness` before contacting the local runtime socket.
+- Successful bridge calls record `execution_id`, `workstream_id`, `task_id`, and runtime state on the ticket through `record_runtime_execution!`.
+- Existing command API coverage verifies `StartTicketExecution` and captures the socket payload.
+- Real behavior gap: the bridge starts a runtime task but does not perform the full agent ticket execution loop described by the spec.
+- Real integration decision: future slices can either extend this bridge into the first execution loop coordinator or introduce a higher-level ticket execution service that calls the bridge only when needed.
+
+### Project Workspace And Materialization Boundary
+
+- `ProjectSetup::LocalWorkspaceMaterializer` already materializes local projects under `_workspace/Projects` by default, using Rails test tmp roots in test mode.
+- It writes `.redwright/manifest.yml`, `README.md`, `.redwright/setup-notes.md`, scaffold files when applicable, and materialized protocol files such as `AGENTS.md` and `.agents/*`.
+- Existing tests cover local workspace materialization, idempotent replay, protocol materialization, and Go CLI scaffold generation.
+- The Go CLI scaffold currently records `go.mod`, `main.go`, and `main_test.go`; validation command is `go test ./...`.
+- Real naming/shape gap: the spec proposes `./rw`, while current materialization uses `.redwright`. Later slices must decide whether to add `./rw`, reuse `.redwright`, or bridge both without breaking existing materialization.
+- Real fixture gap: existing Go CLI scaffold is project setup oriented, not the todo-list ticket execution fixture with table-driven tests required by Slice 2.
+
+### Runtime Containers Boundary
+
+- `ProjectRuntimeContainer` already models runtime container profile, readiness, validation state, commands, repository mount, environment, secret placeholders, generated files, assumptions, risks, and provenance.
+- `RuntimeContainers::ExecutionReadiness` already blocks sandbox-required ticket execution when runtime containers are missing, blocked, stale, or not ready.
+- `RuntimeContainers::GoCliGenerator` already produces a Go CLI runtime container profile with `golang:<version>`, `go mod download`, `go test ./...`, `go vet ./...`, `go build ./...`, and `gofmt -w .`.
+- Real scope alignment gap: the first spec prefers a provided operational Dockerfile or equivalent setup for ticket execution; existing runtime containers can represent generated files but are not yet wired as the direct `./rw` operational setup source for the new loop.
+
+### LLM Request Boundary
+
+- `Redwright::LLM::RequestEngine` already supports `generate_structured_message` with model, model role, provider, action, system prompt, user text, output contract, context sections, and trace metadata.
+- `Redwright::LLM::ContextSection` already records name, content, authority, metadata, and byte size.
+- `Redwright::LLM::TraceRecorder` already records request and response metadata, including project, ticket, session, source channel, actor, context summary, context bytes, context sections, parsed fields, action, role, provider, and model.
+- Existing Rails quiz provider code demonstrates using `LLMRequestEngine` with action-specific output contracts and context sections.
+- Real contract gap: no `ticket_execution` action/output contract exists yet for files, commands, affected files, warnings, blocking reasons, or post-actions.
+- Real previous-context gap: request/response tracing exists, but no first-cycle ticket execution store/retriever currently injects a raw recent agent-LLM conversation tail into retry requests.
+
+### Command Query Boundary
+
+- `CommandQuery::ApplicationDispatcher` already registers board, project setup, runtime container, document, use case, protocol, and quiz handlers.
+- `/api/v1/commands` already dispatches command/query envelopes and returns normalized result bodies.
+- Real command gap: there is no transport-neutral command for the spec's full ticket execution loop, targeted-ticket override, liberal pickup mode, pause/stop request, or terminal success/blocked outcome.
+
+### Slice 1 Conclusion
+
+- The required low-level primitives mostly exist.
+- Kanban, ticket, workspace materialization, runtime container readiness, and LLM request boundaries exist.
+- The main missing capability is orchestration: selecting an eligible ticket, preparing the sandbox/worktree, composing ticket-specific LLM context, applying structured LLM output, validating, retrying, committing, and transitioning the ticket.
+- The largest early design decision is whether to reuse `.redwright`, introduce `./rw`, or bridge both for the first operational setup surface.
+- Slice 2 can proceed without runtime behavior changes by adding a resettable `_workspace` fixture for the Go todo-list ticket scenario.
 
 ### Slice 2: Test Workspace Fixture Infrastructure
 
@@ -429,3 +498,4 @@ Validation:
 ## Event Log
 
 - `2026-05-08` state=`planning_complete` note=`created spec, cycle plan, and tracker from closed dump and quiz artifacts; cycle planned with 16 slices under the requested 20-slice maximum`
+- `2026-05-08` state=`slice_1_ready_for_review` note=`completed docs-only boundary audit for runtime primitives, Kanban/tickets, runtime bridge, workspace materialization, runtime containers, LLM request engine, and command-query gaps`
