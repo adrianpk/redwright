@@ -92,15 +92,37 @@ module AgentTicketExecution
       assert_equal "ticket_not_development_ready", result.errors.first.fetch(:code)
     end
 
+    test "passes resolved workspace context to injected executor" do
+      with_agent_ticket_execution_workspace do |fixture|
+        dispatcher = CommandQuery::Dispatcher.new
+        CommandQueryHandlers.new(
+          executor: FakeTerminalExecutor.new,
+          workspace_boundary: WorkspaceBoundary.new(allowed_projects_root: fixture.projects_root)
+        ).register(dispatcher)
+
+        result = dispatcher.call(command("ExecuteAgentTicket", {
+          ticket_id: fixture.ticket.id,
+          branch_name: "feature/todo-done"
+        }, request_id: "req-agent-workspace"))
+
+        assert result.ok?, result.errors.inspect
+        assert_equal fixture.project_path, result.data.dig("execution", "workspace", "workspace_path")
+        assert_equal "feature/todo-done", result.data.dig("execution", "workspace", "branch_name")
+        assert_equal fixture.project_path, FakeTerminalExecutor.last_workspace.workspace_path
+      end
+    end
+
     private
 
     class FakeTerminalExecutor
       class << self
         attr_accessor :last_request
+        attr_accessor :last_workspace
       end
 
-      def call(request:, ticket:)
+      def call(request:, ticket:, workspace: nil)
         self.class.last_request = request
+        self.class.last_workspace = workspace
         {
           "state" => "completed",
           "acknowledgement" => {

@@ -4,9 +4,9 @@
 
 - cycle_id: `cycle-2026-05-08-redwright-agent-ticket-execution`
 - status: `executing`
-- state: `slice_6_ready_for_review`
+- state: `slice_7_ready_for_review`
 - updated: `2026-05-08`
-- active_slice: `6`
+- active_slice: `7`
 - active_task: `none`
 - source_plan: `ops/plans/2026-05-08-redwright-agent-ticket-execution-cycle-plan.md`
 - source_spec: `ops/specs/specs/2026-05-08-redwright-agent-ticket-execution-spec.md`
@@ -241,9 +241,9 @@ Notes:
 
 ### Slice 6: Ticket Eligibility And Selection
 
-- status: `ready_for_review`
+- status: `merged`
 - branch: `feat/slice-6-agent-ticket-selection`
-- PR: `pending`
+- PR: `merged`
 - merge_target: `dev`
 - last_sync_commit: `dev`
 
@@ -274,28 +274,36 @@ Notes:
 
 ### Slice 7: Sandbox Workspace Execution Boundary
 
-- status: `planned`
+- status: `ready_for_review`
 - branch: `feat/slice-7-agent-ticket-sandbox-boundary`
 - PR: `pending`
 - merge_target: `dev`
-- last_sync_commit: `pending`
+- last_sync_commit: `dev`
 
 Tasks:
 
-- [ ] `T7.1 resolve project workspace for selected ticket`
-- [ ] `T7.2 prepare ticket-specific working branch state`
-- [ ] `T7.3 enforce mutating primitive boundary against sandbox/worktree root`
-- [ ] `T7.4 reject accidental harness-root mutation`
-- [ ] `T7.5 cover allowed and rejected execution roots`
+- [x] `T7.1 resolve project workspace for selected ticket`
+- [x] `T7.2 prepare ticket-specific working branch state`
+- [x] `T7.3 enforce mutating primitive boundary against sandbox/worktree root`
+- [x] `T7.4 reject accidental harness-root mutation`
+- [x] `T7.5 cover allowed and rejected execution roots`
 
 Commits:
 
-- [ ] `feat(runtime): constrain agent ticket workspace execution`
-- [ ] `test(runtime): cover agent ticket workspace guardrails`
+- [x] `feat(runtime): constrain agent ticket workspace execution`
+- [x] `test(runtime): cover agent ticket workspace guardrails`
 
 Validation:
 
-- [ ] `not run`
+- [x] `bin/rails test test/services/agent_ticket_execution/workspace_boundary_test.rb test/services/agent_ticket_execution/command_query_handlers_test.rb`
+
+Notes:
+
+- Added `AgentTicketExecution::WorkspaceBoundary` to resolve ticket project workspaces.
+- The boundary returns deterministic ticket branch names while leaving actual branch creation for the later Git/commit slice.
+- Resolved workspaces provide a `Redwright::PrimitiveExecutor` constrained to the ticket workspace root.
+- Mutating primitive calls against the harness root are rejected by the bounded executor.
+- `ExecuteAgentTicket` can now receive resolved workspace context through an injected workspace boundary.
 
 ### Slice 8: Ticket Execution Context Composition
 
