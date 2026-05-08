@@ -95,6 +95,31 @@ module AgentTicketExecution
       end
     end
 
+    test "adds git details to completed command executor outcome" do
+      with_agent_ticket_execution_workspace do |fixture|
+        workspace = WorkspaceBoundary.new(allowed_projects_root: fixture.projects_root).resolve(
+          ticket: fixture.ticket,
+          branch_name: "feature/todo-done"
+        )
+        llm = FakeRequester.new([proposed_main_payload(done_command_main)])
+        executor = ValidationExecutor.new(
+          validation_loop: loop_for(llm, max_attempts: 1),
+          git_finalizer: GitFinalizer.new
+        )
+
+        execution = executor.call(
+          request: request_payload(fixture.ticket).merge("request_id" => "req-validation", "branch_name" => "feature/todo-done"),
+          ticket: fixture.ticket,
+          workspace: workspace
+        )
+
+        assert_equal "completed", execution.fetch("state")
+        assert_equal "committed", execution.dig("details", "git", "code")
+        assert_equal "feature/todo-done", execution.dig("details", "git", "branch_name")
+        assert_match(/\A[a-f0-9]+\z/, execution.dig("details", "git", "commit_sha"))
+      end
+    end
+
     private
 
     def loop_for(llm, max_attempts: ValidationLoop::DEFAULT_MAX_ATTEMPTS, previous_interaction_store: nil)

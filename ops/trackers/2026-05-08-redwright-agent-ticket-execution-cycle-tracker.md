@@ -4,9 +4,9 @@
 
 - cycle_id: `cycle-2026-05-08-redwright-agent-ticket-execution`
 - status: `executing`
-- state: `slice_12_ready_for_review`
+- state: `slice_13_ready_for_review`
 - updated: `2026-05-08`
-- active_slice: `12`
+- active_slice: `13`
 - active_task: `none`
 - source_plan: `ops/plans/2026-05-08-redwright-agent-ticket-execution-cycle-plan.md`
 - source_spec: `ops/specs/specs/2026-05-08-redwright-agent-ticket-execution-spec.md`
@@ -443,9 +443,9 @@ Notes:
 
 ### Slice 12: Validation Loop
 
-- status: `ready_for_review`
+- status: `merged`
 - branch: `feat/slice-12-agent-ticket-validation-loop`
-- PR: `pending`
+- PR: `merged`
 - merge_target: `dev`
 - last_sync_commit: `dev`
 
@@ -477,28 +477,37 @@ Notes:
 
 ### Slice 13: Git Branch And Commit
 
-- status: `planned`
+- status: `ready_for_review`
 - branch: `feat/slice-13-agent-ticket-git-commit`
 - PR: `pending`
 - merge_target: `dev`
-- last_sync_commit: `pending`
+- last_sync_commit: `dev`
 
 Tasks:
 
-- [ ] `T13.1 create or select ticket-specific branch using protocol-derived naming`
-- [ ] `T13.2 prevent RedWright authorship/self-promotion markers`
-- [ ] `T13.3 create local commit after validation success`
-- [ ] `T13.4 enforce commit message protocol`
-- [ ] `T13.5 cover branch and commit behavior in local Git tests`
+- [x] `T13.1 create or select ticket-specific branch using protocol-derived naming`
+- [x] `T13.2 prevent RedWright authorship/self-promotion markers`
+- [x] `T13.3 create local commit after validation success`
+- [x] `T13.4 enforce commit message protocol`
+- [x] `T13.5 cover branch and commit behavior in local Git tests`
 
 Commits:
 
-- [ ] `feat(git): add agent ticket branch and commit`
-- [ ] `test(git): cover agent ticket commit workflow`
+- [x] `feat(git): add agent ticket branch and commit`
+- [x] `test(git): cover agent ticket commit workflow`
 
 Validation:
 
-- [ ] `not run`
+- [x] `bin/rails test test/services/agent_ticket_execution/git_finalizer_test.rb test/services/agent_ticket_execution/validation_loop_test.rb`
+- [x] `ruby -c apps/web/app/services/agent_ticket_execution/git_finalizer.rb && ruby -c apps/web/app/services/agent_ticket_execution/validation_executor.rb`
+- [x] `git --no-pager diff --no-ext-diff --check`
+
+Notes:
+
+- Added `AgentTicketExecution::GitFinalizer` to create or select a ticket branch and create a local commit after successful validation.
+- Integrated optional Git finalization into `ValidationExecutor` while keeping push out of scope.
+- Commit messages use a conventional commit shape without RedWright authorship markers.
+- Branch and commit message guardrails reject RedWright self-promotion markers.
 
 ### Slice 14: Kanban Transition Integration
 
