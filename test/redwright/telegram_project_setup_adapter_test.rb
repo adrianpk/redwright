@@ -424,19 +424,26 @@ class TelegramProjectSetupAdapterTest < Minitest::Test
           "state" => "completed",
           "next_prompt" => nil
         },
-        "StartTicketExecution" => {
+        "ExecuteAgentTicket" => {
           "status" => "ok",
-          "summary" => "Ticket execution started.",
+          "summary" => "Agent ticket execution completed.",
           "data" => {
-            "ticket_id" => 42,
-            "project_id" => 70,
-            "ticket" => {
-              "id" => 42,
-              "title" => "Implement bridge",
-              "runtime_execution" => {
-                "status" => "started",
-                "execution_id" => "runtime-exec-42"
-              }
+            "execution" => {
+              "mode" => "targeted",
+              "state" => "completed",
+              "ticket_id" => 42,
+              "project_id" => 70,
+              "acknowledgement" => {
+                "status" => "accepted",
+                "message" => "Agent ticket execution accepted.",
+                "ticket_id" => 42,
+                "mode" => "targeted"
+              },
+              "terminal_outcome" => {
+                "status" => "ready_for_review",
+                "ticket_id" => 42
+              },
+              "details" => {}
             }
           }
         }
@@ -475,14 +482,16 @@ class TelegramProjectSetupAdapterTest < Minitest::Test
     assert listed.handled?
     assert picked.handled?
     assert started.handled?
-    assert_equal(%w[StartProjectSetup GetTicketsByProject PickNextTicket StartTicketExecution], client.calls.map { |call| call[:name] })
+    assert_equal(%w[StartProjectSetup GetTicketsByProject PickNextTicket ExecuteAgentTicket], client.calls.map { |call| call[:name] })
     assert_equal(70, client.calls[1][:payload].fetch("project_id"))
     assert_equal(70, client.calls[2][:payload].fetch("project_id"))
     assert_equal("42", client.calls[3][:payload].fetch("ticket_id"))
     assert_match("- 42: Implement bridge [backlog]", listed.message)
     assert_match("Next ticket: Implement bridge (42)", picked.message)
-    assert_match("Ticket execution started.", started.message)
-    assert_match("Execution: runtime-exec-42", started.message)
+    assert_equal(2, started.message_list.size)
+    assert_match("Agent ticket execution accepted.", started.message_list.first)
+    assert_match("Agent ticket execution finished.", started.message_list.last)
+    assert_match("Outcome: ready_for_review", started.message_list.last)
   end
 
   private

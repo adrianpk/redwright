@@ -4,9 +4,9 @@
 
 - cycle_id: `cycle-2026-05-08-redwright-agent-ticket-execution`
 - status: `executing`
-- state: `slice_4_ready_for_review`
+- state: `slice_5_ready_for_review`
 - updated: `2026-05-08`
-- active_slice: `4`
+- active_slice: `5`
 - active_task: `none`
 - source_plan: `ops/plans/2026-05-08-redwright-agent-ticket-execution-cycle-plan.md`
 - source_spec: `ops/specs/specs/2026-05-08-redwright-agent-ticket-execution-spec.md`
@@ -174,9 +174,9 @@ Notes:
 
 ### Slice 4: Ticket Execution Command Boundary
 
-- status: `ready_for_review`
+- status: `merged`
 - branch: `feat/slice-4-agent-ticket-command`
-- PR: `pending`
+- PR: `#362 closed_admin_dev_contains_commits`
 - merge_target: `dev`
 - last_sync_commit: `dev`
 
@@ -208,28 +208,36 @@ Notes:
 
 ### Slice 5: Telegram Invocation And Async UX
 
-- status: `planned`
+- status: `ready_for_review`
 - branch: `feat/slice-5-agent-ticket-telegram`
 - PR: `pending`
 - merge_target: `dev`
-- last_sync_commit: `pending`
+- last_sync_commit: `dev`
 
 Tasks:
 
-- [ ] `T5.1 add initial Telegram command route for agent ticket execution`
-- [ ] `T5.2 send quick acknowledgement before async execution`
-- [ ] `T5.3 dispatch the transport-neutral command`
-- [ ] `T5.4 send final success or blocked message`
-- [ ] `T5.5 cover Telegram acknowledgement and final response behavior`
+- [x] `T5.1 add initial Telegram command route for agent ticket execution`
+- [x] `T5.2 send quick acknowledgement before async execution`
+- [x] `T5.3 dispatch the transport-neutral command`
+- [x] `T5.4 send final success or blocked message`
+- [x] `T5.5 cover Telegram acknowledgement and final response behavior`
 
 Commits:
 
-- [ ] `feat(telegram): add agent ticket execution command`
-- [ ] `test(telegram): cover agent ticket execution feedback`
+- [x] `feat(telegram): add agent ticket execution command`
+- [x] `test(telegram): cover agent ticket execution feedback`
 
 Validation:
 
-- [ ] `not run`
+- [x] `ruby -Itest test/redwright/telegram_project_setup_adapter_test.rb -n test_routes_ticket_commands_through_rails_api_after_project_context_is_known`
+- [x] `ruby -Itest test/redwright/telegram_runtime_handler_test.rb -n test_handle_routes_ticket_start_to_rails_agent_execution_with_ack_and_final_messages`
+
+Notes:
+
+- `/ticket start <id>` now dispatches Rails `ExecuteAgentTicket` instead of the older runtime-start command.
+- Telegram delivery can send multiple messages from one Rails adapter result, enabling immediate acknowledgement plus terminal outcome messages when returned by the command.
+- Ticket execution responses render the normalized acknowledgement and terminal outcome shape from Slice 4.
+- Existing ticket list and pick behavior remain unchanged.
 
 ### Slice 6: Ticket Eligibility And Selection
 

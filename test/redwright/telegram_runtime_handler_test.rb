@@ -134,6 +134,38 @@ class TelegramRuntimeHandlerTest < Minitest::Test
     end
   end
 
+  class ScriptedProjectSetupClient
+    attr_reader :calls
+
+    def initialize(command_bodies: {}, query_bodies: {})
+      @command_bodies = command_bodies
+      @query_bodies = query_bodies
+      @calls = []
+    end
+
+    def command(name:, payload:, actor_identifier:, request_id:)
+      @calls << {
+        type: "command",
+        name: name,
+        payload: payload,
+        actor_identifier: actor_identifier,
+        request_id: request_id
+      }
+      FakeApiResponse.new(body: @command_bodies.fetch(name))
+    end
+
+    def query(name:, payload:, actor_identifier:, request_id:)
+      @calls << {
+        type: "query",
+        name: name,
+        payload: payload,
+        actor_identifier: actor_identifier,
+        request_id: request_id
+      }
+      FakeApiResponse.new(body: @query_bodies.fetch(name))
+    end
+  end
+
   def teardown
     Redwright::Trace.reset_configuration!
   end
@@ -1287,6 +1319,69 @@ class TelegramRuntimeHandlerTest < Minitest::Test
         refute(File.directory?(File.join(bootstrap.projects_root, "happy-cli")))
       end
     end
+  end
+
+  def test_handle_routes_ticket_start_to_rails_agent_execution_with_ack_and_final_messages
+    fake_flow = Object.new
+    fake_flow.define_singleton_method(:process) do |**_kwargs|
+      raise "flow should not run for Rails-backed agent ticket execution"
+    end
+    setup_client = ScriptedProjectSetupClient.new(
+      command_bodies: {
+        "StartProjectSetup" => {
+          "status" => "ok",
+          "summary" => "Project created; setup completed.",
+          "session_id" => 50,
+          "project_id" => 70,
+          "state" => "completed"
+        },
+        "ExecuteAgentTicket" => {
+          "status" => "ok",
+          "summary" => "Agent ticket execution completed.",
+          "data" => {
+            "execution" => {
+              "mode" => "targeted",
+              "state" => "completed",
+              "ticket_id" => 42,
+              "project_id" => 70,
+              "acknowledgement" => {
+                "status" => "accepted",
+                "message" => "Agent ticket execution accepted.",
+                "ticket_id" => 42,
+                "mode" => "targeted"
+              },
+              "terminal_outcome" => {
+                "status" => "ready_for_review",
+                "ticket_id" => 42
+              },
+              "details" => {}
+            }
+          }
+        }
+      }
+    )
+    project_setup_adapter = Redwright::TelegramProjectSetupAdapter.new(client: setup_client)
+    client = FakeTelegramClient.new([])
+    out = StringIO.new
+    handler = Redwright::TelegramRuntimeHandler.new(
+      flow: fake_flow,
+      telegram_client: client,
+      out: out,
+      err: StringIO.new,
+      blocked_retry_attempts: 1,
+      project_setup_adapter: project_setup_adapter
+    )
+
+    handler.handle(Redwright::TelegramEvent.new(update_id: 10, chat_id: 46, user_id: 77, username: "tester", text: "/project new happy-cli"))
+    handler.handle(Redwright::TelegramEvent.new(update_id: 11, chat_id: 46, user_id: 77, username: "tester", text: "/ticket start 42"))
+
+    assert_equal(%w[StartProjectSetup ExecuteAgentTicket], setup_client.calls.map { |call| call[:name] })
+    assert_equal("42", setup_client.calls.last[:payload].fetch("ticket_id"))
+    assert_equal(3, client.messages.size)
+    assert_match("Agent ticket execution accepted.", client.messages[-2][:text])
+    assert_match("Agent ticket execution finished.", client.messages[-1][:text])
+    assert_match("Outcome: ready_for_review", client.messages[-1][:text])
+    assert_match("telegram rails_project_setup chat=46 command=ticket_start", out.string)
   end
 
   def test_handle_routes_quoted_project_new_with_description_to_rails_api_before_runtime_flow
