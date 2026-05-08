@@ -4,9 +4,9 @@
 
 - cycle_id: `cycle-2026-05-08-redwright-agent-ticket-execution`
 - status: `executing`
-- state: `slice_8_ready_for_review`
+- state: `slice_9_ready_for_review`
 - updated: `2026-05-08`
-- active_slice: `8`
+- active_slice: `9`
 - active_task: `none`
 - source_plan: `ops/plans/2026-05-08-redwright-agent-ticket-execution-cycle-plan.md`
 - source_spec: `ops/specs/specs/2026-05-08-redwright-agent-ticket-execution-spec.md`
@@ -307,9 +307,9 @@ Notes:
 
 ### Slice 8: Ticket Execution Context Composition
 
-- status: `ready_for_review`
+- status: `merged`
 - branch: `feat/slice-8-agent-ticket-context`
-- PR: `pending`
+- PR: `merged`
 - merge_target: `dev`
 - last_sync_commit: `dev`
 
@@ -341,28 +341,37 @@ Notes:
 
 ### Slice 9: Previous Interaction Context
 
-- status: `planned`
+- status: `ready_for_review`
 - branch: `feat/slice-9-agent-ticket-previous-context`
 - PR: `pending`
 - merge_target: `dev`
-- last_sync_commit: `pending`
+- last_sync_commit: `dev`
 
 Tasks:
 
-- [ ] `T9.1 identify current previous-interaction storage boundary`
-- [ ] `T9.2 persist or collect recent raw agent-LLM messages for a ticket execution run`
-- [ ] `T9.3 inject a substantial recent tail into retry requests`
-- [ ] `T9.4 avoid human chat context confusion`
-- [ ] `T9.5 cover retry request context with tests`
+- [x] `T9.1 identify current previous-interaction storage boundary`
+- [x] `T9.2 persist or collect recent raw agent-LLM messages for a ticket execution run`
+- [x] `T9.3 inject a substantial recent tail into retry requests`
+- [x] `T9.4 avoid human chat context confusion`
+- [x] `T9.5 cover retry request context with tests`
 
 Commits:
 
-- [ ] `feat(llm): add agent ticket previous interaction context`
-- [ ] `test(llm): cover agent ticket previous context`
+- [x] `feat(llm): add agent ticket previous interaction context`
+- [x] `test(llm): cover agent ticket previous context`
 
 Validation:
 
-- [ ] `not run`
+- [x] `bin/rails test test/services/agent_ticket_execution/previous_interaction_store_test.rb test/services/agent_ticket_execution/context_composer_test.rb test/services/agent_ticket_execution/command_query_handlers_test.rb`
+- [x] `bin/rails test test/controllers/api/v1/command_queries_controller_test.rb -i test_accepts_agent_ticket_execution_through_command_api`
+- [x] `git --no-pager diff --no-ext-diff --check`
+
+Notes:
+
+- Added transient filesystem storage for raw agent-LLM ticket execution records under a scoped tmp root.
+- Previous interaction records are scoped by ticket, session, and agent rather than by human chat context.
+- `ContextComposer` now includes a `previous_interactions` section labeled as historical agent-LLM evidence.
+- Densification and selective retrieval remain deferred.
 
 ### Slice 10: Ticket Execution LLM Contract
 
