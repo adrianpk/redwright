@@ -433,7 +433,7 @@ class TelegramProjectSetupAdapterTest < Minitest::Test
               "state" => "completed",
               "ticket_id" => 42,
               "ticket_ref" => "RW-42",
-              "human_key" => "RW-42",
+              "ticket_key" => "RW-42",
               "project_id" => 70,
               "acknowledgement" => {
                 "status" => "accepted",
@@ -458,7 +458,7 @@ class TelegramProjectSetupAdapterTest < Minitest::Test
           "summary" => "Project tickets retrieved.",
           "data" => {
             "tickets" => [
-              { "id" => 42, "human_key" => "RW-42", "display_key" => "RW-42", "title" => "Implement bridge", "column_key" => "backlog" }
+              { "id" => 42, "ticket_key" => "RW-42", "display_key" => "RW-42", "title" => "Implement bridge", "column_key" => "backlog" }
             ]
           }
         },
@@ -469,7 +469,7 @@ class TelegramProjectSetupAdapterTest < Minitest::Test
             "ticket_id" => 42,
             "ticket" => {
               "id" => 42,
-              "human_key" => "RW-42",
+              "ticket_key" => "RW-42",
               "display_key" => "RW-42",
               "title" => "Implement bridge",
               "column_key" => "backlog"

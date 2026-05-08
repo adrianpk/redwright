@@ -17,7 +17,7 @@ module AgentTicketExecution
       assert_equal "targeted", execution.fetch("mode")
       assert_equal "accepted", execution.fetch("state")
       assert_equal ticket.id, execution.fetch("ticket_id")
-      assert_equal ticket.human_key, execution.fetch("human_key")
+      assert_equal ticket.ticket_key, execution.fetch("ticket_key")
       assert_equal ticket.display_key, execution.fetch("ticket_ref")
       assert_equal board.project_id, execution.fetch("project_id")
       assert_equal board.id, execution.fetch("board_id")
@@ -26,20 +26,20 @@ module AgentTicketExecution
       assert_equal "agent_ticket_execution_accepted", result.effects.first.fetch("type")
     end
 
-    test "executes targeted ticket command by human key" do
-      board = create_board(project_key: "agent-command-human-key-#{SecureRandom.hex(4)}")
+    test "executes targeted ticket command by ticket key" do
+      board = create_board(project_key: "agent-command-ticket-key-#{SecureRandom.hex(4)}")
       backlog = board.columns.create!(key: "backlog", title: "Backlog", position: 0)
-      ticket = board.tickets.create!(column: backlog, title: "Human key implementation")
+      ticket = board.tickets.create!(column: backlog, title: "Ticket key implementation")
 
       result = CommandQuery::ApplicationDispatcher.build.call(command("ExecuteAgentTicket", {
-        ticket_ref: ticket.human_key
-      }, request_id: "req-agent-human-key"))
+        ticket_ref: ticket.ticket_key
+      }, request_id: "req-agent-ticket-key"))
 
       assert result.ok?, result.errors.inspect
       execution = result.data.fetch("execution")
       assert_equal ticket.id, execution.fetch("ticket_id")
-      assert_equal ticket.human_key, execution.fetch("ticket_ref")
-      assert_equal ticket.human_key, execution.fetch("human_key")
+      assert_equal ticket.ticket_key, execution.fetch("ticket_ref")
+      assert_equal ticket.ticket_key, execution.fetch("ticket_key")
     end
 
     test "accepts liberal pickup command without Telegram coupling" do

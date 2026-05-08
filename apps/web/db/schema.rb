@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_08_162000) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_08_172000) do
   create_table "boards", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "name", null: false
@@ -347,7 +347,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_08_162000) do
     t.text "commits"
     t.datetime "created_at", null: false
     t.text "description"
-    t.string "human_key"
     t.string "kind"
     t.datetime "merge_started_at"
     t.datetime "merged_at"
@@ -374,6 +373,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_08_162000) do
     t.string "severity"
     t.string "source"
     t.datetime "started_at"
+    t.string "ticket_key"
     t.string "title", null: false
     t.datetime "updated_at", null: false
     t.integer "use_case_id"
@@ -385,12 +385,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_08_162000) do
     t.index ["board_id"], name: "index_tickets_on_board_id"
     t.index ["column_id", "created_at"], name: "index_tickets_on_column_id_and_created_at"
     t.index ["column_id"], name: "index_tickets_on_column_id"
-    t.index ["human_key"], name: "index_tickets_on_human_key", unique: true
     t.index ["kind"], name: "index_tickets_on_kind"
     t.index ["runtime_execution_id"], name: "index_tickets_on_runtime_execution_id"
     t.index ["runtime_execution_status", "updated_at"], name: "index_tickets_on_runtime_execution_status_and_updated_at"
     t.index ["scope"], name: "index_tickets_on_scope"
     t.index ["severity"], name: "index_tickets_on_severity"
+    t.index ["ticket_key"], name: "index_tickets_on_ticket_key", unique: true
     t.index ["use_case_id"], name: "index_tickets_on_use_case_id"
     t.index ["workflow_status"], name: "index_tickets_on_workflow_status"
   end

@@ -241,7 +241,7 @@ module AgentTicketExecution
           "state" => execution.fetch("state"),
           "ticket_id" => ticket&.id || request.fetch("ticket_id"),
           "ticket_ref" => ticket&.display_key || request.fetch("ticket_ref"),
-          "human_key" => ticket&.human_key,
+          "ticket_key" => ticket&.ticket_key,
           "project_id" => ticket&.project_id || board&.project_id || request.fetch("project_id"),
           "board_id" => ticket&.board_id || board&.id || request.fetch("board_id"),
           "assignee" => request.fetch("assignee"),
@@ -261,7 +261,7 @@ module AgentTicketExecution
           "mode" => request.fetch("mode"),
           "ticket_id" => ticket&.id || request.fetch("ticket_id"),
           "ticket_ref" => ticket&.display_key || request.fetch("ticket_ref"),
-          "human_key" => ticket&.human_key,
+          "ticket_key" => ticket&.ticket_key,
           "project_id" => ticket&.project_id || board&.project_id || request.fetch("project_id"),
           "board_id" => ticket&.board_id || board&.id || request.fetch("board_id")
         }
@@ -330,7 +330,7 @@ module AgentTicketExecution
           "request_id" => request.fetch("request_id"),
           "ticket_id" => ticket&.id || request.fetch("ticket_id"),
           "ticket_ref" => ticket&.display_key || request.fetch("ticket_ref"),
-          "human_key" => ticket&.human_key,
+          "ticket_key" => ticket&.ticket_key,
           "mode" => request.fetch("mode")
         },
         "terminal_outcome" => nil,

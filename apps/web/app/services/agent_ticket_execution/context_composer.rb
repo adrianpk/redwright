@@ -79,7 +79,7 @@ module AgentTicketExecution
     def ticket_payload(ticket, request)
       {
         "id" => ticket.id,
-        "human_key" => ticket.human_key,
+        "ticket_key" => ticket.ticket_key,
         "display_key" => ticket.display_key,
         "title" => ticket.title,
         "description" => ticket.description,

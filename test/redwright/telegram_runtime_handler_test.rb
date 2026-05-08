@@ -1344,7 +1344,7 @@ class TelegramRuntimeHandlerTest < Minitest::Test
               "state" => "completed",
               "ticket_id" => 42,
               "ticket_ref" => "RW-42",
-              "human_key" => "RW-42",
+              "ticket_key" => "RW-42",
               "project_id" => 70,
               "acknowledgement" => {
                 "status" => "accepted",

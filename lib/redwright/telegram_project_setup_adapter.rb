@@ -443,7 +443,7 @@ module Redwright
       execution = body.dig("data", "execution") || {}
       acknowledgement = execution["acknowledgement"] || {}
       terminal = execution["terminal_outcome"]
-      ticket_ref = execution["ticket_ref"] || acknowledgement["ticket_ref"] || execution["human_key"] || acknowledgement["human_key"]
+      ticket_ref = execution["ticket_ref"] || acknowledgement["ticket_ref"] || execution["ticket_key"] || acknowledgement["ticket_key"]
       ticket_id = execution["ticket_id"] || acknowledgement["ticket_id"]
       ack = [
         acknowledgement["message"].to_s.empty? ? "Agent ticket execution accepted." : acknowledgement["message"],
@@ -455,7 +455,7 @@ module Redwright
 
       final = [
         "Agent ticket execution finished.",
-        "Ticket: #{terminal['ticket_ref'] || terminal['human_key'] || terminal['ticket_id'] || ticket_ref || ticket_id || 'pending'}",
+        "Ticket: #{terminal['ticket_ref'] || terminal['ticket_key'] || terminal['ticket_id'] || ticket_ref || ticket_id || 'pending'}",
         "Outcome: #{terminal['status'] || execution['state'] || 'unknown'}",
         "Trace: #{trace_id}"
       ].join("\n")
@@ -523,7 +523,7 @@ module Redwright
     end
 
     def ticket_ref_for(ticket)
-      ticket["display_key"] || ticket["human_key"] || ticket["ticket_ref"] || ticket["id"] || "pending"
+      ticket["display_key"] || ticket["ticket_key"] || ticket["ticket_ref"] || ticket["id"] || "pending"
     end
 
     def remember_quiz_context(chat_id:, use_case_name:, body:)
