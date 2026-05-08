@@ -4,9 +4,9 @@
 
 - cycle_id: `cycle-2026-05-08-redwright-agent-ticket-execution`
 - status: `executing`
-- state: `slice_1_ready_for_review`
+- state: `slice_2_ready_for_review`
 - updated: `2026-05-08`
-- active_slice: `1`
+- active_slice: `2`
 - active_task: `none`
 - source_plan: `ops/plans/2026-05-08-redwright-agent-ticket-execution-cycle-plan.md`
 - source_spec: `ops/specs/specs/2026-05-08-redwright-agent-ticket-execution-spec.md`
@@ -15,11 +15,11 @@
 
 ### Slice 1: Existing Boundary Audit
 
-- status: `ready_for_review`
+- status: `merged`
 - branch: `feat/slice-1-agent-ticket-boundary-audit`
-- PR: `pending`
+- PR: `merged`
 - merge_target: `dev`
-- last_sync_commit: `pending`
+- last_sync_commit: `dev`
 
 Tasks:
 
@@ -31,7 +31,7 @@ Tasks:
 
 Commits:
 
-- [x] `pending docs(ops): audit agent ticket execution boundaries`
+- [x] `docs(ops): audit agent ticket execution boundaries`
 
 Validation:
 
@@ -108,28 +108,34 @@ Validation:
 
 ### Slice 2: Test Workspace Fixture Infrastructure
 
-- status: `planned`
+- status: `ready_for_review`
 - branch: `feat/slice-2-agent-ticket-workspace-fixture`
 - PR: `pending`
 - merge_target: `dev`
-- last_sync_commit: `pending`
+- last_sync_commit: `dev`
 
 Tasks:
 
-- [ ] `T2.1 add resettable _workspace test setup for agent ticket execution`
-- [ ] `T2.2 generate a small Go CLI todo-list project using only the standard library`
-- [ ] `T2.3 initialize local Git repository and generated .gitignore`
-- [ ] `T2.4 add table-driven tests for the first feature ticket behavior`
-- [ ] `T2.5 cover setup and teardown behavior with automated tests`
+- [x] `T2.1 add resettable _workspace test setup for agent ticket execution`
+- [x] `T2.2 generate a small Go CLI todo-list project using only the standard library`
+- [x] `T2.3 initialize local Git repository and generated .gitignore`
+- [x] `T2.4 add table-driven tests for the first feature ticket behavior`
+- [x] `T2.5 cover setup and teardown behavior with automated tests`
 
 Commits:
 
-- [ ] `test(runtime): add agent ticket workspace fixture`
-- [ ] `test(runtime): cover agent ticket fixture lifecycle`
+- [x] `test(runtime): add agent ticket workspace fixture`
+- [x] `test(runtime): cover agent ticket fixture lifecycle`
 
 Validation:
 
-- [ ] `not run`
+- [x] `bin/rails test test/support/agent_ticket_execution_workspace_fixture_test.rb`
+
+Notes:
+
+- Added test support for a resettable Go todo CLI fixture under `_workspace/testing/Projects` so automated tests do not collide with manual project workspaces.
+- The fixture creates a local-only Git repository, generated `.gitignore`, stdlib-only Go source, and table-driven tests for the first `done <task-number>` ticket.
+- The Rails fixture tests assert workspace creation, local Git isolation, reset behavior, and teardown without requiring a remote Git server or live LLM.
 
 ### Slice 3: Project Operational Setup
 
