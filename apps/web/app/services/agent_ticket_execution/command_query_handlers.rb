@@ -9,9 +9,10 @@ module AgentTicketExecution
       new.register(dispatcher)
     end
 
-    def initialize(executor: nil, selection_policy: nil)
+    def initialize(executor: nil, selection_policy: nil, workspace_boundary: nil)
       @executor = executor || AcceptedExecutor.new
       @selection_policy = selection_policy
+      @workspace_boundary = workspace_boundary
     end
 
     def register(dispatcher)
@@ -28,10 +29,13 @@ module AgentTicketExecution
       return selection_error_result(selection, request_id: request_id) unless selection.ok?
 
       ticket = selection.ticket
-      execution = normalize_execution(executor.call(request: request, ticket: ticket))
+      workspace = resolve_workspace(request: request, ticket: ticket)
+      return workspace_error_result(workspace, request_id: request_id) if workspace && !workspace.ok?
+
+      execution = normalize_execution(executor.call(request: request, ticket: ticket, workspace: workspace))
       CommandQuery::Result.ok(
         request_id: request_id,
-        data: execution_data(request: request, ticket: ticket, board: board, execution: execution),
+        data: execution_data(request: request, ticket: ticket, board: board, workspace: workspace, execution: execution),
         effects: execution_effects(request: request, ticket: ticket, board: board, execution: execution)
       )
     end
@@ -40,6 +44,7 @@ module AgentTicketExecution
 
     attr_reader :executor
     attr_reader :selection_policy
+    attr_reader :workspace_boundary
 
     def build_request(payload:, context:, request_id:)
       ticket_id = value_from(payload, "ticket_id").presence
@@ -58,6 +63,7 @@ module AgentTicketExecution
         "board_id" => value_from(payload, "board_id")&.to_i,
         "assignee" => value_from(payload, "assignee").to_s.presence,
         "admin_assignee" => value_from(payload, "admin_assignee").to_s.presence,
+        "branch_name" => value_from(payload, "branch_name").to_s.presence,
         "actor_identifier" => actor_identifier_from(context),
         "source_channel" => value_from(context, "source_channel").to_s.presence || "unknown",
         "loop" => {
@@ -86,6 +92,13 @@ module AgentTicketExecution
       TicketSelectionPolicy.new(admin_assignee: request.fetch("admin_assignee"))
     end
 
+    def resolve_workspace(request:, ticket:)
+      boundary = workspace_boundary
+      return nil unless boundary
+
+      boundary.resolve(ticket: ticket, branch_name: value_from(request, "branch_name"))
+    end
+
     def normalize_execution(raw)
       execution = raw.is_a?(Hash) ? raw : {}
       state = execution.fetch("state", "accepted").to_s
@@ -98,7 +111,7 @@ module AgentTicketExecution
       }
     end
 
-    def execution_data(request:, ticket:, board:, execution:)
+    def execution_data(request:, ticket:, board:, workspace:, execution:)
       {
         "summary" => summary_for(execution),
         "execution" => {
@@ -109,6 +122,7 @@ module AgentTicketExecution
           "project_id" => ticket&.project_id || board&.project_id || request.fetch("project_id"),
           "board_id" => ticket&.board_id || board&.id || request.fetch("board_id"),
           "assignee" => request.fetch("assignee"),
+          "workspace" => workspace&.context,
           "acknowledgement" => execution.fetch("acknowledgement"),
           "terminal_outcome" => execution.fetch("terminal_outcome"),
           "details" => execution.fetch("details")
@@ -170,10 +184,18 @@ module AgentTicketExecution
         message: selection.message
       )
     end
+
+    def workspace_error_result(workspace, request_id:)
+      CommandQuery::Result.error(
+        request_id: request_id,
+        code: workspace.code,
+        message: workspace.message
+      )
+    end
   end
 
   class AcceptedExecutor
-    def call(request:, ticket:)
+    def call(request:, ticket:, workspace: nil)
       {
         "state" => "accepted",
         "acknowledgement" => {
@@ -186,7 +208,8 @@ module AgentTicketExecution
         "terminal_outcome" => nil,
         "details" => {
           "async" => true,
-          "executor" => "accepted_boundary"
+          "executor" => "accepted_boundary",
+          "workspace_path" => workspace&.workspace_path
         }
       }
     end
