@@ -1,7 +1,7 @@
 ---
 id: TKT-20260508194604
 title: Correct agent ticket execution architecture risks
-status: in_progress
+status: solved
 kind: cleanup
 severity: high
 priority: high
@@ -11,13 +11,19 @@ source: chat
 reported_at: 2026-05-08T19:46:04Z
 ready_at: 2026-05-08T19:46:04Z
 started_at: 2026-05-08T19:46:04Z
-reviewed_at:
-closed_at:
-resolution:
+reviewed_at: 2026-05-08T20:46:12Z
+closed_at: 2026-05-08T20:46:12Z
+resolution: fixed
 owner:
-branch: refactor/slice-1-telegram-ticket-command-adapter
-pr:
-commits: []
+branch: test/slice-6-agent-ticket-architecture-e2e
+pr: https://codeberg.org/adrianpk/redwright/pulls/387
+commits:
+  - a82bae6
+  - 9a77a94
+  - e6a3b85
+  - 7b9e488
+  - 0d1cdd8
+  - c83d22e
 ---
 
 ## Context
@@ -90,4 +96,14 @@ The current implementation has several growth hot spots:
   transition still work.
 
 ## Outcome
-Pending implementation.
+Resolved through the six-slice architecture correction cycle.
+
+- Extracted Telegram ticket command handling from the larger Telegram adapter.
+- Extracted structured patch application from the primitive executor.
+- Split agent ticket command-query request building, orchestration, and response
+  presentation.
+- Introduced context section providers for agent ticket LLM context composition.
+- Moved validation command resolution into operational setup/runtime metadata.
+- Completed final hardening across focused runtime tests, Rails agent ticket
+  execution tests, ticket checks, and deterministic Go todo scenario reset and
+  inspection.
