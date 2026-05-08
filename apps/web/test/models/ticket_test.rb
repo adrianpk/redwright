@@ -16,6 +16,21 @@ class TicketTest < ActiveSupport::TestCase
     assert_not_nil ticket.ready_at
   end
 
+  test "assigns and resolves human ticket keys independently from row ids" do
+    board = create_board(project_key: "factory-human-key")
+    backlog = board.columns.create!(key: "backlog", title: "Backlog", position: 0)
+
+    first = board.tickets.create!(column: backlog, title: "First keyed ticket")
+    second = board.tickets.create!(column: backlog, title: "Second keyed ticket")
+
+    assert_match(/\ARW-\d+\z/, first.human_key)
+    assert_match(/\ARW-\d+\z/, second.human_key)
+    assert_not_equal first.human_key, second.human_key
+    assert_equal first, Ticket.resolve_ref(first.human_key.downcase)
+    assert_equal second, Ticket.resolve_ref(second.id.to_s)
+    assert_equal first.human_key, first.display_key
+  end
+
   test "transition_to_column stamps review and merge phase times" do
     board = create_board(project_key: "factory")
     backlog = board.columns.create!(key: "backlog", title: "Backlog", position: 0)

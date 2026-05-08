@@ -158,18 +158,19 @@ module AgentTicketExecution
     attr_reader :kanban_transitioner
 
     def build_request(payload:, context:, request_id:)
-      ticket_id = value_from(payload, "ticket_id").presence
-      mode = value_from(payload, "mode").presence || (ticket_id.present? ? "targeted" : "pickup")
+      ticket_ref = value_from(payload, "ticket_ref", "ticket_id").presence
+      mode = value_from(payload, "mode").presence || (ticket_ref.present? ? "targeted" : "pickup")
       mode = mode.to_s
       return {"error" => "mode must be one of: #{MODES.join(", ")}"} unless MODES.include?(mode)
-      return {"error" => "ticket_id is required for targeted execution"} if mode == "targeted" && ticket_id.blank?
+      return {"error" => "ticket_ref is required for targeted execution"} if mode == "targeted" && ticket_ref.blank?
       return {"error" => "project_id or board_id is required for pickup execution"} if mode == "pickup" && value_from(payload, "project_id", "board_id").blank?
 
       {
         "command" => COMMAND_NAME,
         "request_id" => request_id.to_s,
         "mode" => mode,
-        "ticket_id" => ticket_id&.to_i,
+        "ticket_ref" => ticket_ref.to_s.presence,
+        "ticket_id" => ticket_ref.to_s.match?(/\A\d+\z/) ? ticket_ref.to_i : nil,
         "project_id" => value_from(payload, "project_id")&.to_i,
         "board_id" => value_from(payload, "board_id")&.to_i,
         "assignee" => value_from(payload, "assignee").to_s.presence,
@@ -189,7 +190,7 @@ module AgentTicketExecution
     def select_ticket(request:, board:)
       policy = selection_policy_for(request)
       if request.fetch("mode") == "targeted"
-        return policy.select_targeted(ticket: Ticket.find_by(id: request.fetch("ticket_id")))
+        return policy.select_targeted(ticket: Ticket.resolve_ref(request.fetch("ticket_ref")))
       end
 
       policy.pick(
@@ -239,6 +240,8 @@ module AgentTicketExecution
           "mode" => request.fetch("mode"),
           "state" => execution.fetch("state"),
           "ticket_id" => ticket&.id || request.fetch("ticket_id"),
+          "ticket_ref" => ticket&.display_key || request.fetch("ticket_ref"),
+          "human_key" => ticket&.human_key,
           "project_id" => ticket&.project_id || board&.project_id || request.fetch("project_id"),
           "board_id" => ticket&.board_id || board&.id || request.fetch("board_id"),
           "assignee" => request.fetch("assignee"),
@@ -257,6 +260,8 @@ module AgentTicketExecution
           "type" => "agent_ticket_execution_#{execution.fetch("state")}",
           "mode" => request.fetch("mode"),
           "ticket_id" => ticket&.id || request.fetch("ticket_id"),
+          "ticket_ref" => ticket&.display_key || request.fetch("ticket_ref"),
+          "human_key" => ticket&.human_key,
           "project_id" => ticket&.project_id || board&.project_id || request.fetch("project_id"),
           "board_id" => ticket&.board_id || board&.id || request.fetch("board_id")
         }
@@ -324,6 +329,8 @@ module AgentTicketExecution
           "message" => "Agent ticket execution accepted.",
           "request_id" => request.fetch("request_id"),
           "ticket_id" => ticket&.id || request.fetch("ticket_id"),
+          "ticket_ref" => ticket&.display_key || request.fetch("ticket_ref"),
+          "human_key" => ticket&.human_key,
           "mode" => request.fetch("mode")
         },
         "terminal_outcome" => nil,

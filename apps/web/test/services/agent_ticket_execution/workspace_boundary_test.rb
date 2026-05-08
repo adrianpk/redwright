@@ -8,7 +8,7 @@ module AgentTicketExecution
 
         assert result.ok?
         assert_equal fixture.project_path, result.workspace_path
-        assert_equal "agent-ticket-#{fixture.ticket.id}", result.branch_name
+        assert_equal "agent-ticket-#{fixture.ticket.display_key.parameterize}", result.branch_name
         assert_equal fixture.project_path, result.context.fetch("workspace_path")
 
         write = result.primitive_executor.execute(

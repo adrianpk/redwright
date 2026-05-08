@@ -69,7 +69,8 @@ module AgentTicketExecution
     private
 
     def branch_name_for(ticket, request, workspace)
-      request["branch_name"].presence || workspace.branch_name.presence || "ticket-#{ticket.id}"
+      suffix = ticket.display_key.parameterize.presence || ticket.id
+      request["branch_name"].presence || workspace.branch_name.presence || "ticket-#{suffix}"
     end
 
     def commit_message_for(ticket)

@@ -195,6 +195,8 @@ module BoardWorkflow
           "board_id" => board.id,
           "project_id" => board.project_id,
           "ticket_id" => ticket&.id,
+          "ticket_ref" => ticket&.display_key,
+          "human_key" => ticket&.human_key,
           "ticket" => ticket ? ticket_data(ticket) : nil
         },
         effects: []
@@ -250,6 +252,8 @@ module BoardWorkflow
       {
         "summary" => summary,
         "ticket_id" => ticket.id,
+        "ticket_ref" => ticket.display_key,
+        "human_key" => ticket.human_key,
         "board_id" => ticket.board_id,
         "project_id" => ticket.project_id,
         "ticket" => ticket_data(ticket)
@@ -277,6 +281,8 @@ module BoardWorkflow
     def ticket_data(ticket)
       {
         "id" => ticket.id,
+        "human_key" => ticket.human_key,
+        "display_key" => ticket.display_key,
         "board_id" => ticket.board_id,
         "project_id" => ticket.project_id,
         "column_id" => ticket.column_id,
@@ -451,10 +457,10 @@ module BoardWorkflow
       Board.find_by(id: board_id)
     end
 
-    def find_ticket(ticket_id)
-      return nil if ticket_id.blank?
+    def find_ticket(ticket_ref)
+      return nil if ticket_ref.blank?
 
-      Ticket.find_by(id: ticket_id)
+      Ticket.resolve_ref(ticket_ref)
     end
 
     def find_document(document_id)

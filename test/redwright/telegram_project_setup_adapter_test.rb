@@ -432,16 +432,20 @@ class TelegramProjectSetupAdapterTest < Minitest::Test
               "mode" => "targeted",
               "state" => "completed",
               "ticket_id" => 42,
+              "ticket_ref" => "RW-42",
+              "human_key" => "RW-42",
               "project_id" => 70,
               "acknowledgement" => {
                 "status" => "accepted",
                 "message" => "Agent ticket execution accepted.",
                 "ticket_id" => 42,
+                "ticket_ref" => "RW-42",
                 "mode" => "targeted"
               },
               "terminal_outcome" => {
                 "status" => "ready_for_review",
-                "ticket_id" => 42
+                "ticket_id" => 42,
+                "ticket_ref" => "RW-42"
               },
               "details" => {}
             }
@@ -454,7 +458,7 @@ class TelegramProjectSetupAdapterTest < Minitest::Test
           "summary" => "Project tickets retrieved.",
           "data" => {
             "tickets" => [
-              { "id" => 42, "title" => "Implement bridge", "column_key" => "backlog" }
+              { "id" => 42, "human_key" => "RW-42", "display_key" => "RW-42", "title" => "Implement bridge", "column_key" => "backlog" }
             ]
           }
         },
@@ -465,6 +469,8 @@ class TelegramProjectSetupAdapterTest < Minitest::Test
             "ticket_id" => 42,
             "ticket" => {
               "id" => 42,
+              "human_key" => "RW-42",
+              "display_key" => "RW-42",
               "title" => "Implement bridge",
               "column_key" => "backlog"
             }
@@ -477,7 +483,7 @@ class TelegramProjectSetupAdapterTest < Minitest::Test
     adapter.handle(event(1, "/project new happy-cli"), trace_id: "trc-test")
     listed = adapter.handle(event(2, "/ticket list"), trace_id: "trc-test")
     picked = adapter.handle(event(3, "/ticket pick"), trace_id: "trc-test")
-    started = adapter.handle(event(4, "/ticket start 42"), trace_id: "trc-test")
+    started = adapter.handle(event(4, "/ticket start RW-42"), trace_id: "trc-test")
 
     assert listed.handled?
     assert picked.handled?
@@ -485,11 +491,12 @@ class TelegramProjectSetupAdapterTest < Minitest::Test
     assert_equal(%w[StartProjectSetup GetTicketsByProject PickNextTicket ExecuteAgentTicket], client.calls.map { |call| call[:name] })
     assert_equal(70, client.calls[1][:payload].fetch("project_id"))
     assert_equal(70, client.calls[2][:payload].fetch("project_id"))
-    assert_equal("42", client.calls[3][:payload].fetch("ticket_id"))
-    assert_match("- 42: Implement bridge [backlog]", listed.message)
-    assert_match("Next ticket: Implement bridge (42)", picked.message)
+    assert_equal("RW-42", client.calls[3][:payload].fetch("ticket_ref"))
+    assert_match("- RW-42: Implement bridge [backlog]", listed.message)
+    assert_match("Next ticket: Implement bridge (RW-42)", picked.message)
     assert_equal(2, started.message_list.size)
     assert_match("Agent ticket execution accepted.", started.message_list.first)
+    assert_match("Ticket: RW-42", started.message_list.first)
     assert_match("Agent ticket execution finished.", started.message_list.last)
     assert_match("Outcome: ready_for_review", started.message_list.last)
   end

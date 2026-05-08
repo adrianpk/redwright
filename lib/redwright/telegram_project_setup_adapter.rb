@@ -242,7 +242,7 @@ module Redwright
         request_id: request_id_for(event, "pick-ticket")
       )
       body = response.body
-      ticket_id = body["ticket_id"] || body.dig("data", "ticket_id")
+      ticket_id = body["ticket_ref"] || body["ticket_id"] || body.dig("data", "ticket_ref") || body.dig("data", "ticket_id")
       @ticket_ids_by_chat[event.chat_id] = ticket_id if ticket_id
 
       Result.new(
@@ -256,7 +256,7 @@ module Redwright
     def start_ticket_execution(event:, ticket_id:, trace_id:)
       response = client.command(
         name: "ExecuteAgentTicket",
-        payload: {"ticket_id" => ticket_id},
+        payload: {"ticket_ref" => ticket_id},
         actor_identifier: actor_identifier_for(event),
         request_id: request_id_for(event, "execute-agent-ticket")
       )
@@ -382,7 +382,7 @@ module Redwright
     def render_ticket_list(body:, trace_id:)
       tickets = body.dig("data", "tickets") || []
       lines = tickets.first(20).map do |ticket|
-        "- #{ticket['id']}: #{ticket['title']} [#{ticket['column_key']}]"
+        "- #{ticket_ref_for(ticket)}: #{ticket['title']} [#{ticket['column_key']}]"
       end
       body_text = lines.empty? ? "No tickets found." : lines.join("\n")
       [
@@ -403,7 +403,7 @@ module Redwright
       end
 
       [
-        "Next ticket: #{ticket['title']} (#{ticket['id']})",
+        "Next ticket: #{ticket['title']} (#{ticket_ref_for(ticket)})",
         "Column: #{ticket['column_key']}",
         "Trace: #{trace_id}"
       ].join("\n")
@@ -422,7 +422,7 @@ module Redwright
       runtime = ticket["runtime_execution"] || {}
       [
         summary_from(body),
-        "Ticket: #{ticket['title']} (#{ticket['id']})",
+        "Ticket: #{ticket['title']} (#{ticket_ref_for(ticket)})",
         "Runtime: #{runtime['status'] || 'unknown'}",
         "Execution: #{runtime['execution_id'] || 'none'}",
         "Trace: #{trace_id}"
@@ -443,10 +443,11 @@ module Redwright
       execution = body.dig("data", "execution") || {}
       acknowledgement = execution["acknowledgement"] || {}
       terminal = execution["terminal_outcome"]
+      ticket_ref = execution["ticket_ref"] || acknowledgement["ticket_ref"] || execution["human_key"] || acknowledgement["human_key"]
       ticket_id = execution["ticket_id"] || acknowledgement["ticket_id"]
       ack = [
         acknowledgement["message"].to_s.empty? ? "Agent ticket execution accepted." : acknowledgement["message"],
-        "Ticket: #{ticket_id || 'pending'}",
+        "Ticket: #{ticket_ref || ticket_id || 'pending'}",
         "Mode: #{execution['mode'] || acknowledgement['mode'] || 'targeted'}",
         "Trace: #{trace_id}"
       ].join("\n")
@@ -454,7 +455,7 @@ module Redwright
 
       final = [
         "Agent ticket execution finished.",
-        "Ticket: #{terminal['ticket_id'] || ticket_id || 'pending'}",
+        "Ticket: #{terminal['ticket_ref'] || terminal['human_key'] || terminal['ticket_id'] || ticket_ref || ticket_id || 'pending'}",
         "Outcome: #{terminal['status'] || execution['state'] || 'unknown'}",
         "Trace: #{trace_id}"
       ].join("\n")
@@ -516,9 +517,13 @@ module Redwright
 
     def remember_ticket_context(chat_id:, body:)
       project_id = body["project_id"] || body.dig("data", "project_id") || body.dig("data", "execution", "project_id")
-      ticket_id = body["ticket_id"] || body.dig("data", "ticket_id") || body.dig("data", "execution", "ticket_id")
+      ticket_id = body["ticket_ref"] || body["ticket_id"] || body.dig("data", "ticket_ref") || body.dig("data", "ticket_id") || body.dig("data", "execution", "ticket_ref") || body.dig("data", "execution", "ticket_id")
       @project_ids_by_chat[chat_id] = project_id if project_id
       @ticket_ids_by_chat[chat_id] = ticket_id if ticket_id
+    end
+
+    def ticket_ref_for(ticket)
+      ticket["display_key"] || ticket["human_key"] || ticket["ticket_ref"] || ticket["id"] || "pending"
     end
 
     def remember_quiz_context(chat_id:, use_case_name:, body:)

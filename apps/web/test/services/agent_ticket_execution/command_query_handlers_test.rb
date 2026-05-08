@@ -17,11 +17,29 @@ module AgentTicketExecution
       assert_equal "targeted", execution.fetch("mode")
       assert_equal "accepted", execution.fetch("state")
       assert_equal ticket.id, execution.fetch("ticket_id")
+      assert_equal ticket.human_key, execution.fetch("human_key")
+      assert_equal ticket.display_key, execution.fetch("ticket_ref")
       assert_equal board.project_id, execution.fetch("project_id")
       assert_equal board.id, execution.fetch("board_id")
       assert_nil execution.fetch("terminal_outcome")
       assert_equal "accepted", execution.dig("acknowledgement", "status")
       assert_equal "agent_ticket_execution_accepted", result.effects.first.fetch("type")
+    end
+
+    test "executes targeted ticket command by human key" do
+      board = create_board(project_key: "agent-command-human-key-#{SecureRandom.hex(4)}")
+      backlog = board.columns.create!(key: "backlog", title: "Backlog", position: 0)
+      ticket = board.tickets.create!(column: backlog, title: "Human key implementation")
+
+      result = CommandQuery::ApplicationDispatcher.build.call(command("ExecuteAgentTicket", {
+        ticket_ref: ticket.human_key
+      }, request_id: "req-agent-human-key"))
+
+      assert result.ok?, result.errors.inspect
+      execution = result.data.fetch("execution")
+      assert_equal ticket.id, execution.fetch("ticket_id")
+      assert_equal ticket.human_key, execution.fetch("ticket_ref")
+      assert_equal ticket.human_key, execution.fetch("human_key")
     end
 
     test "accepts liberal pickup command without Telegram coupling" do
@@ -138,7 +156,7 @@ module AgentTicketExecution
 
       assert result.error?
       assert_equal "invalid_payload", result.errors.first.fetch(:code)
-      assert_equal "ticket_id is required for targeted execution", result.errors.first.fetch(:message)
+      assert_equal "ticket_ref is required for targeted execution", result.errors.first.fetch(:message)
     end
 
     test "rejects ineligible targeted tickets" do

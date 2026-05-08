@@ -1,6 +1,6 @@
 <article class="ticket-card" id="<%= dom_id(ticket) %>" draggable="true" data-ticket-id="<%= ticket.id %>" data-edit-url="<%= edit_ticket_path(ticket) %>">
   <header>
-    <h3><%= ticket.title %></h3>
+    <h3><%= ticket.display_key %> <%= ticket.title %></h3>
     <span class="priority <%= ticket.priority %>"><%= ticket.priority %></span>
   </header>
   <% if ticket.description.present? %>

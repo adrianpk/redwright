@@ -79,6 +79,8 @@ module AgentTicketExecution
     def ticket_payload(ticket, request)
       {
         "id" => ticket.id,
+        "human_key" => ticket.human_key,
+        "display_key" => ticket.display_key,
         "title" => ticket.title,
         "description" => ticket.description,
         "assignee" => ticket.assignee,
@@ -90,6 +92,7 @@ module AgentTicketExecution
         "source" => ticket.source,
         "request" => {
           "mode" => request.fetch("mode"),
+          "ticket_ref" => request["ticket_ref"],
           "branch_name" => request["branch_name"],
           "source_channel" => request["source_channel"],
           "actor_identifier" => request["actor_identifier"]

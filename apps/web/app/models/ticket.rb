@@ -20,6 +20,8 @@ class Ticket < ApplicationRecord
     "closed" => "closed"
   }.freeze
   RUNTIME_EXECUTION_STATUSES = %w[started failed].freeze
+  HUMAN_KEY_PREFIX = "RW".freeze
+  HUMAN_KEY_PATTERN = /\A[A-Z][A-Z0-9]*-\d+\z/
 
   belongs_to :board
   belongs_to :column
@@ -35,8 +37,12 @@ class Ticket < ApplicationRecord
   enum :priority, { low: 0, medium: 1, high: 2 }, default: :medium
 
   before_validation :assign_workflow_defaults
+  before_validation :normalize_human_key
+  after_create :assign_human_key_after_create
 
   validates :title, presence: true
+  validates :human_key, uniqueness: true, allow_blank: true
+  validates :human_key, format: { with: HUMAN_KEY_PATTERN }, allow_blank: true
   validates :workflow_status, inclusion: { in: WORKFLOW_STATUSES }, allow_blank: true
   validates :kind, inclusion: { in: WORKFLOW_KINDS }, allow_blank: true
   validates :severity, inclusion: { in: WORKFLOW_SEVERITIES }, allow_blank: true
@@ -120,6 +126,26 @@ class Ticket < ApplicationRecord
     pool.ordered_for_board.first
   end
 
+  def self.resolve_ref(ref)
+    value = ref.to_s.strip
+    return nil if value.blank?
+
+    return find_by(id: value) if value.match?(/\A\d+\z/)
+
+    find_by(human_key: value.upcase)
+  end
+
+  def self.next_human_key
+    suffixes = where.not(human_key: [nil, ""]).pluck(:human_key).filter_map do |key|
+      key.to_s.match(/\ARW-(\d+)\z/)&.[](1)&.to_i
+    end
+    "#{HUMAN_KEY_PREFIX}-#{suffixes.max.to_i + 1}"
+  end
+
+  def display_key
+    human_key.presence || "##{id}"
+  end
+
   def archive!
     update!(archived_at: Time.current)
   end
@@ -175,6 +201,18 @@ class Ticket < ApplicationRecord
     self.commits = [] if commits.blank?
     self.ready_at ||= created_at || Time.current if workflow_status == "ready"
     self.closed_at ||= Time.current if workflow_status.in?(%w[solved closed]) && closed_at.blank?
+  end
+
+  def normalize_human_key
+    self.human_key = human_key.to_s.strip.upcase.presence
+  end
+
+  def assign_human_key_after_create
+    return if human_key.present?
+
+    update_column(:human_key, self.class.next_human_key)
+  rescue ActiveRecord::RecordNotUnique
+    update_column(:human_key, self.class.next_human_key)
   end
 
   def resolution_matches_terminal_status

@@ -1343,16 +1343,20 @@ class TelegramRuntimeHandlerTest < Minitest::Test
               "mode" => "targeted",
               "state" => "completed",
               "ticket_id" => 42,
+              "ticket_ref" => "RW-42",
+              "human_key" => "RW-42",
               "project_id" => 70,
               "acknowledgement" => {
                 "status" => "accepted",
                 "message" => "Agent ticket execution accepted.",
                 "ticket_id" => 42,
+                "ticket_ref" => "RW-42",
                 "mode" => "targeted"
               },
               "terminal_outcome" => {
                 "status" => "ready_for_review",
-                "ticket_id" => 42
+                "ticket_id" => 42,
+                "ticket_ref" => "RW-42"
               },
               "details" => {}
             }
@@ -1373,10 +1377,10 @@ class TelegramRuntimeHandlerTest < Minitest::Test
     )
 
     handler.handle(Redwright::TelegramEvent.new(update_id: 10, chat_id: 46, user_id: 77, username: "tester", text: "/project new happy-cli"))
-    handler.handle(Redwright::TelegramEvent.new(update_id: 11, chat_id: 46, user_id: 77, username: "tester", text: "/ticket start 42"))
+    handler.handle(Redwright::TelegramEvent.new(update_id: 11, chat_id: 46, user_id: 77, username: "tester", text: "/ticket start RW-42"))
 
     assert_equal(%w[StartProjectSetup ExecuteAgentTicket], setup_client.calls.map { |call| call[:name] })
-    assert_equal("42", setup_client.calls.last[:payload].fetch("ticket_id"))
+    assert_equal("RW-42", setup_client.calls.last[:payload].fetch("ticket_ref"))
     assert_equal(3, client.messages.size)
     assert_match("Agent ticket execution accepted.", client.messages[-2][:text])
     assert_match("Agent ticket execution finished.", client.messages[-1][:text])

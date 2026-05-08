@@ -67,7 +67,8 @@ module AgentTicketExecution
     end
 
     def default_branch_name(ticket)
-      "#{DEFAULT_BRANCH_PREFIX}-#{ticket.id}"
+      suffix = ticket.display_key.parameterize.presence || ticket.id
+      "#{DEFAULT_BRANCH_PREFIX}-#{suffix}"
     end
 
     def normalize_path(path)

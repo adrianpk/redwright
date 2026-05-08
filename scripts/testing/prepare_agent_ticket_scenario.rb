@@ -8,7 +8,7 @@ require "shellwords"
 REPO_ROOT = Rails.root.join("..", "..").expand_path
 TESTING_ROOT = REPO_ROOT.join("_workspace", "testing")
 REFERENCE_ROOT = TESTING_ROOT.join("reference", "go-todo-agent")
-PROJECTS_ROOT = TESTING_ROOT.join("Projects")
+PROJECTS_ROOT = REPO_ROOT.join("_workspace", "Projects")
 PROJECT_ROOT = PROJECTS_ROOT.join("go-todo-agent")
 PROJECT_NAME = "Go Todo Agent"
 PROJECT_KEY = "go-todo-agent"
@@ -296,7 +296,7 @@ def initialize_reference_workspace!
 end
 
 def reset_workspace_from_reference!
-  FileUtils.rm_rf(PROJECTS_ROOT)
+  FileUtils.rm_rf(PROJECT_ROOT)
   FileUtils.mkdir_p(PROJECTS_ROOT)
   FileUtils.cp_r(REFERENCE_ROOT, PROJECT_ROOT)
 end
@@ -388,6 +388,7 @@ puts "Agent ticket scenario reset."
 puts "project_id=#{project.id}"
 puts "board_id=#{board.id}"
 puts "ticket_id=#{ticket.id}"
+puts "ticket_ref=#{ticket.display_key}"
 puts "reference=#{REFERENCE_ROOT}"
 puts "workspace=#{PROJECT_ROOT}"
-puts "telegram=/ticket start #{ticket.id}"
+puts "telegram=/ticket start #{ticket.display_key}"
