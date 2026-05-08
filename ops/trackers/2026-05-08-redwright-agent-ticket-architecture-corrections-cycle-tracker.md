@@ -1,18 +1,18 @@
 ---
 id: redwright-agent-ticket-architecture-corrections-cycle-tracker-2026-05-08
 title: RedWright Agent Ticket Architecture Corrections Cycle Tracker
-state: slice_1_merged
+state: slice_2_ready_for_review
 created_at: 2026-05-08T19:46:04Z
 plan: ops/plans/2026-05-08-redwright-agent-ticket-architecture-corrections-cycle-plan.md
 ticket: TKT-20260508194604
-active_slice: 1
+active_slice: 2
 ---
 
 # RedWright Agent Ticket Architecture Corrections Cycle Tracker
 
 ## Cycle Status
-- state: `slice_1_merged`
-- active_slice: `1`
+- state: `slice_2_ready_for_review`
+- active_slice: `2`
 - max_slices: `6`
 - current_branch: `dev`
 
@@ -34,15 +34,18 @@ active_slice: 1
 
 ## Slice 2: Extract Structured Patch Application
 - branch: `refactor/slice-2-structured-patch-applier`
-- status: `pending`
+- status: `ready_for_review`
 - tasks:
-  - [ ] Extract structured patch parsing/application from `PrimitiveExecutor`.
-  - [ ] Keep `PrimitiveExecutor` as primitive dispatcher and IO boundary.
-  - [ ] Add focused structured patch tests for supported and rejected cases.
-  - [ ] Preserve current agent ticket output application behavior.
+  - [x] Extract structured patch parsing/application from `PrimitiveExecutor`.
+  - [x] Keep `PrimitiveExecutor` as primitive dispatcher and IO boundary.
+  - [x] Add focused structured patch tests for supported and rejected cases.
+  - [x] Preserve current agent ticket output application behavior.
 - commits: []
 - pr:
-- validation: []
+- validation:
+  - `ruby -Itest test/redwright/structured_patch_applier_test.rb`
+  - `ruby -Itest test/redwright/primitive_executor_test.rb`
+  - `cd apps/web && bin/rails test test/services/agent_ticket_execution/output_applier_test.rb`
 
 ## Slice 3: Split Agent Ticket Command-Query Workflow Responsibilities
 - branch: `refactor/slice-3-agent-ticket-command-query-runner`
@@ -104,3 +107,5 @@ active_slice: 1
 - `2026-05-08` state=`executing_slice` note=`started Slice 1 on refactor/slice-1-telegram-ticket-command-adapter and extracted Telegram ticket command handling into a dedicated adapter`
 - `2026-05-08` state=`slice_1_ready_for_review` note=`extracted Telegram ticket command handling into Redwright::TelegramTicketCommandAdapter while preserving adapter and runtime handler tests`
 - `2026-05-08` state=`slice_1_merged` note=`merged PR #382 into dev`
+- `2026-05-08` state=`executing_slice` note=`started Slice 2 on refactor/slice-2-structured-patch-applier and extracted structured patch parsing/application into Redwright::StructuredPatchApplier`
+- `2026-05-08` state=`slice_2_ready_for_review` note=`kept PrimitiveExecutor as dispatcher, added focused structured patch tests, and preserved agent ticket output application behavior`
