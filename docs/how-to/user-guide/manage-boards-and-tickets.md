@@ -30,41 +30,66 @@ Optional fields:
 - priority
 - assignee
 - status column
-- linked documents
+- use case
+- comments
 
 3. Move a ticket.
 
 Move tickets between board columns in the web app. The board updates affected columns.
 
+Common execution columns are:
+
+- backlog
+- in progress
+- review
+- blocked
+- done
+
 4. Archive or delete tickets.
 
 Archive and delete operations require admin authorization.
 
-5. Pick or start tickets from Telegram.
+5. Start tickets from Telegram.
 
 ```text
 /ticket list
 /ticket pick
-/ticket start <ticket-id>
+/ticket start <ticket-key>
 ```
 
-6. Let ticket execution resolve readiness.
+Use the human-readable ticket key shown on the board, for example `RW-10`.
+Do not use the database row id as the operator-facing ticket reference.
 
-When starting ticket execution, RedWright resolves required project context and runtime container readiness before claiming work started.
+6. Let ticket execution resolve readiness and completion.
+
+When starting ticket execution, RedWright resolves required project context,
+workspace boundaries, operational setup, validation commands, and runtime
+container readiness before claiming work started.
+
+If execution succeeds, RedWright commits the agent changes and moves the ticket
+to review. If execution cannot continue, RedWright moves the ticket to blocked
+with a structured reason.
 
 ## Verify
 
 - New tickets appear in the selected board column.
 - Priority and assignee values are visible on the ticket.
-- Linked documents remain attached after save.
-- Telegram ticket commands return either ticket details or a structured reason when work cannot start.
+- Ticket keys such as `RW-10` are visible for external invocation.
+- Use case scope and comments remain attached after save.
+- Telegram ticket commands return an acknowledgement, followed later by a final
+  execution result.
+- Completed agent ticket execution creates a branch/commit and moves the ticket
+  to review.
 
 ## Troubleshooting
 
 - If assignment fails in the web app, switch to an admin user.
-- If no ticket is picked, check assignment, priority, and board visibility.
+- If no ticket is picked, check assignment, priority, status, and board visibility.
 - If ticket execution does not start, inspect the returned readiness or context problem.
-- If a ticket needs more project context, attach related documents or update the project protocol before retrying.
+- If a ticket is blocked with `validation_commands_missing`, add validation
+  commands to the operational setup or runtime container metadata.
+- If a ticket needs more project context, update the project protocol, use case,
+  documents, or ticket description before retrying.
 
 ## Related Docs
 

@@ -50,6 +50,24 @@ Notes:
 
 These map to planner hints (semantic routing), not direct primitive execution.
 
+## Ticket Commands
+
+- `/ticket list`
+- `/ticket pick`
+- `/ticket start <ticket-key>`
+
+Notes:
+
+- `ticket-key` is the human-readable ticket key shown on the board, such as
+  `RW-10`.
+- `/ticket start` runs asynchronously: Telegram receives an initial
+  acknowledgement, and RedWright sends a final completed or blocked result when
+  execution ends.
+- A completed agent ticket run moves the ticket to review after validation and
+  commit.
+- A blocked agent ticket run moves the ticket to blocked with a structured
+  reason.
+
 ## Trace Commands
 
 - `/trace on`

@@ -47,6 +47,7 @@ Each page uses the same structure:
 
 ## Related Docs
 
+- [Documentation Index](../../index.md)
 - [What Is RedWright?](../../explanation/what-is-redwright.md)
 - [Run RedWright](../run-redwright.md)
 - [Application Semantics v1](../../reference/application-semantics-v1.md)

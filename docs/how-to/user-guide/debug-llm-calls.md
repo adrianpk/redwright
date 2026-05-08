@@ -42,7 +42,7 @@ Telegram examples:
 or:
 
 ```text
-continue with the next ticket
+/ticket start RW-10
 ```
 
 4. Inspect the trace file.
@@ -86,11 +86,35 @@ For Telegram, expected metadata includes:
 - `project_ref` when project context is available
 - `project_root` when project context is available
 
+For agent ticket execution, inspect the request payload for these context
+sections:
+
+- `ticket`
+- `project`
+- `repository_tree`
+- `relevant_files`
+- `tests`
+- `operational_setup`
+- `protocol_files`
+- `protocol_model`
+- `previous_interactions`
+- `validation_feedback` on retry attempts
+
+Responses are normalized before application when they are close to the expected
+contract. For example, recoverable aliases such as `ready`, `changes`, and
+`commands[].cmd` can be normalized into the agent ticket execution response
+contract and recorded in diagnostics.
+
 ## Troubleshooting
 
 - If `.log/llm.ndjson` does not exist, confirm tracing is enabled and restart the runtime.
 - If the file exists but no new lines are written, confirm the interaction actually reached an LLM path.
 - If payload fields are missing, confirm `include_payloads` and the specific field toggle are both enabled.
+- If an agent ticket blocks with an invalid LLM response, inspect the response
+  diagnostics to see whether contract validation failed before output
+  application.
+- If a retry attempt behaves unexpectedly, inspect `previous_interactions` and
+  `validation_feedback` in the request payload.
 - If the file grows too large, lower `max_bytes` or `keep_files`.
 - If sensitive data was captured, stop the runtime and remove local trace files.
 
