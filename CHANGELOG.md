@@ -10,9 +10,31 @@ entry per commit.
 
 ### Added
 
+- Added repository dump workflow artifacts and the repository dump skill,
+  including raw and curated dump capture paths.
 - Added quiz fast/deep operation with mode switching, processing feedback,
   candidate question buffering, fast-loop refill behavior, and traceable
   fast/deep generation decisions.
+- Added the agent ticket execution cycle, including dump and quiz captures,
+  formal spec, plan, tracker, boundary audit, and sliced delivery artifacts.
+- Added deterministic agent ticket workspace fixtures and reset/inspection
+  tooling for the Go todo CLI manual scenario.
+- Added agent operational setup discovery, including `.rw/agent` runtime setup
+  context and separation from production Dockerfile concerns.
+- Added the agent ticket execution command path, with runtime command handling,
+  Telegram triggering, async acknowledgement/final feedback, and targeted
+  ticket execution by external ticket key.
+- Added ticket selection policy support for development-ready tickets and
+  human-readable ticket invocation keys such as `RW-10`.
+- Added agent ticket LLM context composition with project, ticket, repository
+  tree, relevant files, tests, operational setup, protocols, and previous
+  interaction sections.
+- Added the executable LLM response contract, output application, validation
+  loop, branch creation, commit workflow, and Kanban transitions for agent
+  ticket completion.
+- Added LLM diagnostics for agent ticket execution, including trace-linked
+  context request visibility, validation payloads, and response contract
+  normalization diagnostics.
 - Added use case scoped ticket and document workflows, including use case
   selectors for tickets and documents, use case CRUD, metrics, safe deletion,
   and use case command-query handlers.
@@ -23,6 +45,16 @@ entry per commit.
 
 ### Changed
 
+- Formalized the release alignment playbook for `dev -> main` PR handling.
+- Changed agent ticket execution to run asynchronously from Telegram so manual
+  commands receive immediate acknowledgement and later completion feedback.
+- Changed agent workspaces to use hidden `.rw` operational setup directories
+  instead of visible `rw` directories inside generated projects.
+- Changed external ticket references to use human-readable ticket keys rather
+  than database row ids for operator-facing invocation.
+- Strengthened the agent ticket LLM prompt contract and added defensive
+  normalization for recoverable near misses such as `ready`, `changes`, and
+  `commands[].cmd`.
 - Refactored ticket formal context ownership so tickets use optional Use Case
   scope instead of direct formal document attachments.
 - Preserved use case scope when promoting drafts into specs and expanded scope
@@ -33,6 +65,17 @@ entry per commit.
   with a concise fast-loop preparation hint when needed.
 - Aligned ticket workflow metadata and ticket editor layout around status,
   ownership, delivery, and context hierarchy.
+
+### Fixed
+
+- Fixed agent ticket execution workspace guardrails so deterministic dev
+  scenarios can execute inside the allowed projects root.
+- Fixed agent ticket context requests so the LLM receives the rich execution
+  context instead of only the minimal ticket payload.
+- Fixed Telegram ticket execution timeout behavior by decoupling long-running
+  agent work from the synchronous command response.
+- Fixed recoverable LLM response contract drift so useful patches are applied
+  instead of being blocked solely because of near-miss field names.
 
 ### Removed
 
@@ -46,6 +89,10 @@ entry per commit.
   question tree cycle.
 - Added specs, plans, trackers, and quiz captures for the ticket use case formal
   context refactor cycle.
+- Added the agent ticket execution dump, quiz, spec, plan, tracker, and boundary
+  audit artifacts that define the sandboxed single-agent ticket workflow.
+- Added release alignment operational guidance for direct `dev -> main`
+  synchronization and external forge glitch handling.
 - Refreshed the README board screenshot and expanded the UI gallery with ticket
   edit modal captures.
 
@@ -53,6 +100,14 @@ entry per commit.
 
 - Added coverage for quiz fast/deep mode behavior, candidate lifecycle, fast
   progression, tagging semantics, and processing feedback.
+- Added coverage for agent ticket workspace fixture lifecycle, operational
+  setup context, ticket execution command handling, Telegram feedback, ticket
+  selection eligibility, workspace guardrails, LLM context sections, previous
+  interaction context, LLM response contracts, output application, validation
+  retries, Git branch/commit workflow, Kanban transitions, end-to-end execution,
+  blocked execution, diagnostics, and deterministic scenario readiness.
+- Added regression coverage for normalizing near-miss agent ticket LLM responses
+  and applying structured `*** Begin Patch` output.
 - Added coverage for ticket use case selection, document use case selection,
   formal artifact scope preservation, command-query cleanup, runtime bridge
   cleanup, and project setup behavior after removing direct ticket document
