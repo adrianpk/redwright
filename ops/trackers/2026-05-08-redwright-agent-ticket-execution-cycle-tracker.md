@@ -4,9 +4,9 @@
 
 - cycle_id: `cycle-2026-05-08-redwright-agent-ticket-execution`
 - status: `executing`
-- state: `slice_9_ready_for_review`
+- state: `slice_10_ready_for_review`
 - updated: `2026-05-08`
-- active_slice: `9`
+- active_slice: `10`
 - active_task: `none`
 - source_plan: `ops/plans/2026-05-08-redwright-agent-ticket-execution-cycle-plan.md`
 - source_spec: `ops/specs/specs/2026-05-08-redwright-agent-ticket-execution-spec.md`
@@ -341,9 +341,9 @@ Notes:
 
 ### Slice 9: Previous Interaction Context
 
-- status: `ready_for_review`
+- status: `merged`
 - branch: `feat/slice-9-agent-ticket-previous-context`
-- PR: `pending`
+- PR: `merged`
 - merge_target: `dev`
 - last_sync_commit: `dev`
 
@@ -375,28 +375,37 @@ Notes:
 
 ### Slice 10: Ticket Execution LLM Contract
 
-- status: `planned`
+- status: `ready_for_review`
 - branch: `feat/slice-10-agent-ticket-llm-contract`
 - PR: `pending`
 - merge_target: `dev`
-- last_sync_commit: `pending`
+- last_sync_commit: `dev`
 
 Tasks:
 
-- [ ] `T10.1 define ticket execution LLM request action/operation`
-- [ ] `T10.2 define response fields for files, commands, actions, warnings, and blocking reasons`
-- [ ] `T10.3 keep provider calls behind LLMRequestEngine`
-- [ ] `T10.4 preserve rolling trace recording`
-- [ ] `T10.5 cover successful, corrective, and blocked response shapes`
+- [x] `T10.1 define ticket execution LLM request action/operation`
+- [x] `T10.2 define response fields for files, commands, actions, warnings, and blocking reasons`
+- [x] `T10.3 keep provider calls behind LLMRequestEngine`
+- [x] `T10.4 preserve rolling trace recording`
+- [x] `T10.5 cover successful, corrective, and blocked response shapes`
 
 Commits:
 
-- [ ] `feat(llm): add agent ticket execution contract`
-- [ ] `test(llm): cover agent ticket execution responses`
+- [x] `feat(llm): add agent ticket execution contract`
+- [x] `test(llm): cover agent ticket execution responses`
 
 Validation:
 
-- [ ] `not run`
+- [x] `bin/rails test test/services/agent_ticket_execution/llm_contract_test.rb test/services/agent_ticket_execution/llm_requester_test.rb test/services/agent_ticket_execution/context_composer_test.rb`
+- [x] `ruby -c apps/web/app/services/agent_ticket_execution/llm_contract.rb && ruby -c apps/web/app/services/agent_ticket_execution/llm_requester.rb`
+- [x] `git --no-pager diff --no-ext-diff --check`
+
+Notes:
+
+- Added `AgentTicketExecution::LlmContract` for the ticket execution action, output contract, and response validation.
+- Added `AgentTicketExecution::LlmRequester` to route ticket execution provider calls through `LLMRequestEngine`.
+- The requester records request and response trace metadata when a trace recorder is supplied.
+- Response validation covers proposed changes, corrective retry responses, and blocked responses.
 
 ### Slice 11: Harness Application Of LLM Output
 
