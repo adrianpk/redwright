@@ -9,8 +9,9 @@ module AgentTicketExecution
       new.register(dispatcher)
     end
 
-    def initialize(executor: nil)
+    def initialize(executor: nil, selection_policy: nil)
       @executor = executor || AcceptedExecutor.new
+      @selection_policy = selection_policy
     end
 
     def register(dispatcher)
@@ -22,10 +23,11 @@ module AgentTicketExecution
       request = build_request(payload: payload, context: context, request_id: request_id)
       return invalid_payload_result(request_id: request_id, message: request.fetch("error")) if request.key?("error")
 
-      ticket = request.fetch("ticket_id").present? ? Ticket.find_by(id: request.fetch("ticket_id")) : nil
-      return missing_ticket_result(request_id: request_id) if request.fetch("mode") == "targeted" && ticket.nil?
-
       board = request.fetch("board_id").present? ? Board.find_by(id: request.fetch("board_id")) : nil
+      selection = select_ticket(request: request, board: board)
+      return selection_error_result(selection, request_id: request_id) unless selection.ok?
+
+      ticket = selection.ticket
       execution = normalize_execution(executor.call(request: request, ticket: ticket))
       CommandQuery::Result.ok(
         request_id: request_id,
@@ -37,6 +39,7 @@ module AgentTicketExecution
     private
 
     attr_reader :executor
+    attr_reader :selection_policy
 
     def build_request(payload:, context:, request_id:)
       ticket_id = value_from(payload, "ticket_id").presence
@@ -54,6 +57,7 @@ module AgentTicketExecution
         "project_id" => value_from(payload, "project_id")&.to_i,
         "board_id" => value_from(payload, "board_id")&.to_i,
         "assignee" => value_from(payload, "assignee").to_s.presence,
+        "admin_assignee" => value_from(payload, "admin_assignee").to_s.presence,
         "actor_identifier" => actor_identifier_from(context),
         "source_channel" => value_from(context, "source_channel").to_s.presence || "unknown",
         "loop" => {
@@ -61,6 +65,25 @@ module AgentTicketExecution
           "max_tickets" => integer_value(value_from(payload, "max_tickets"), default: 1)
         }
       }
+    end
+
+    def select_ticket(request:, board:)
+      policy = selection_policy_for(request)
+      if request.fetch("mode") == "targeted"
+        return policy.select_targeted(ticket: Ticket.find_by(id: request.fetch("ticket_id")))
+      end
+
+      policy.pick(
+        board: board,
+        project_id: request.fetch("project_id"),
+        assignee: request.fetch("assignee")
+      )
+    end
+
+    def selection_policy_for(request)
+      return selection_policy if selection_policy
+
+      TicketSelectionPolicy.new(admin_assignee: request.fetch("admin_assignee"))
     end
 
     def normalize_execution(raw)
@@ -140,11 +163,11 @@ module AgentTicketExecution
       )
     end
 
-    def missing_ticket_result(request_id:)
+    def selection_error_result(selection, request_id:)
       CommandQuery::Result.error(
         request_id: request_id,
-        code: "ticket_not_found",
-        message: "ticket was not found"
+        code: selection.code,
+        message: selection.message
       )
     end
   end
