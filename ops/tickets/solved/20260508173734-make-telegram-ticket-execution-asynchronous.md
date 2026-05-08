@@ -1,7 +1,7 @@
 ---
 id: TKT-20260508173734
 title: Make Telegram ticket execution asynchronous
-status: reviewing
+status: solved
 kind: bug
 severity: high
 priority: high
@@ -12,13 +12,14 @@ reported_at: 2026-05-08T17:37:34Z
 ready_at: 2026-05-08T17:37:34Z
 started_at: 2026-05-08T17:51:23Z
 reviewed_at: 2026-05-08T17:54:53Z
-closed_at:
-resolution:
+closed_at: 2026-05-08T18:10:54Z
+resolution: fixed
 owner: 
 branch: fix/ticket-20260508173734-async-ticket-execution
 pr: https://codeberg.org/adrianpk/redwright/pulls/378
 commits:
   - 1dc0d12
+  - 9871a3e
 ---
 
 ## Context
@@ -74,4 +75,4 @@ The current error wording is also misleading: `Rails project setup API failed` i
 - Run the relevant Rails/runtime test suite for Telegram ticket execution and command query handling.
 
 ## Outcome
-Implementation is in review in PR #378.
+Resolved by PR #378.
