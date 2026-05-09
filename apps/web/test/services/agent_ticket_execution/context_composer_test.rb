@@ -24,7 +24,7 @@ module AgentTicketExecution
 
         sections = context.context_sections.index_by(&:name)
         assert_equal(
-          %w[ticket project repository_tree relevant_files tests operational_setup tree_sitter protocol_files protocol_model documents quizzes dumps previous_interactions],
+          %w[ticket project repository_tree relevant_files tests operational_setup tree_sitter protocol_files protocol_model documents quizzes dumps llm_based_context previous_interactions],
           sections.keys
         )
         assert_equal "ticket_record", sections.fetch("ticket").authority
@@ -35,6 +35,7 @@ module AgentTicketExecution
         assert_equal "project_documents", sections.fetch("documents").authority
         assert_equal "project_quiz_model", sections.fetch("quizzes").authority
         assert_equal "repository_dump_artifacts", sections.fetch("dumps").authority
+        assert_equal "llm_derived_summary", sections.fetch("llm_based_context").authority
         assert_equal "historical_conversation", sections.fetch("previous_interactions").authority
         assert_includes sections.fetch("ticket").content.fetch("description"), "done <task-number>"
         assert_includes sections.fetch("repository_tree").content.fetch("entries").map { |entry| entry.fetch("path") }, "main.go"
@@ -58,6 +59,10 @@ module AgentTicketExecution
         assert_includes sections.fetch("documents").content.fetch("omitted_documents").map { |document| document.fetch("title") }, "Implementation Draft"
         assert_equal "quizzes", sections.fetch("quizzes").metadata.fetch("context_layer")
         assert_equal "dumps", sections.fetch("dumps").metadata.fetch("context_layer")
+        assert_equal "llm_based", sections.fetch("llm_based_context").metadata.fetch("context_layer")
+        assert_equal "derived_from_agent_llm_interactions", sections.fetch("llm_based_context").metadata.fetch("authority")
+        assert_includes sections.fetch("llm_based_context").content.fetch("prior_attempt_summaries").first.fetch("derived_summary"), "failure=first attempt missed invalid index handling"
+        assert_equal false, sections.fetch("llm_based_context").metadata.fetch("freshness").fetch("stale")
         assert_equal "conversation", sections.fetch("previous_interactions").metadata.fetch("context_layer")
         assert_equal false, sections.fetch("previous_interactions").content.fetch("human_chat_included")
         assert_equal 1, sections.fetch("previous_interactions").content.fetch("records").length
@@ -70,6 +75,31 @@ module AgentTicketExecution
         assert_equal "test", context.trace_metadata.fetch(:source_channel)
         assert_equal "agent-test", context.trace_metadata.fetch(:actor_identifier)
         assert_equal context.context_sections, context.llm_request_inputs.fetch(:context_sections)
+      end
+    end
+
+    test "keeps llm derived context distinct from primary artifacts" do
+      with_agent_ticket_execution_workspace do |fixture|
+        store = write_previous_interactions(fixture.ticket)
+
+        workspace = WorkspaceBoundary.new(allowed_projects_root: fixture.projects_root).resolve(ticket: fixture.ticket)
+        context = ContextComposer.new(previous_interaction_store: store).compose(
+          ticket: fixture.ticket,
+          request: request_payload(branch_name: "feature/todo-done").merge("context_policy" => "diagnosis_default"),
+          workspace: workspace
+        )
+
+        derived_context = context.context_sections.index_by(&:name).fetch("llm_based_context")
+        summary = derived_context.content.fetch("prior_attempt_summaries").first
+
+        assert_equal "llm_based", derived_context.metadata.fetch("context_layer")
+        assert_equal "previous_interaction_store", derived_context.metadata.fetch("selection_source")
+        assert_equal "agent_llm_previous_interaction", summary.fetch("source")
+        assert_equal fixture.ticket.id, summary.fetch("ticket_id")
+        assert_equal "retry", summary.fetch("outcome")
+        assert_equal %w[ticket relevant_files tests], summary.fetch("context_section_names")
+        refute_includes summary.keys, "request_payload"
+        refute_includes summary.keys, "response_payload"
       end
     end
 
