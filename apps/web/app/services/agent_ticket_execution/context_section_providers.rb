@@ -22,6 +22,11 @@ module AgentTicketExecution
       %r{\AAGENTS\.md\z},
       %r{\A\.agents/}
     ].freeze
+    DOCUMENT_OPS_FILE_PATTERNS = [
+      %r{\Aops/specs/specs/[^/]+\.md\z},
+      %r{\Aops/plans/[^/]+\.md\z},
+      %r{\Aops/trackers/[^/]+\.md\z}
+    ].freeze
 
     Context = Struct.new(:ticket, :project, :request, :workspace_path, keyword_init: true)
 
@@ -325,6 +330,207 @@ module AgentTicketExecution
         return "matched_layer:#{layer}" if selected_layers.include?(layer)
 
         "matched_path:#{document.fetch("path", "")}"
+      end
+    end
+
+    class Documents < Base
+      MAX_DOCUMENTS = 12
+      MAX_DOCUMENT_BYTES = 16_000
+      ARTIFACT_TYPES_BY_POLICY = {
+        "implementation_default" => %w[spec plan_tracker],
+        "modification_default" => %w[spec plan_tracker],
+        "diagnosis_default" => %w[spec plan_tracker],
+        "evaluation_default" => %w[spec plan_tracker],
+        "operation_default" => %w[plan_tracker],
+        "planning_default" => Document::TYPES,
+        "documentation_default" => Document::TYPES,
+        "exploration_default" => Document::TYPES
+      }.freeze
+
+      def sections(context)
+        inventory = DocumentContextInventory.new(context: context)
+        selector = DocumentContextSelector.new(
+          documents: inventory.documents,
+          context_policy: context.request["context_policy"] || "implementation_default"
+        )
+
+        [document_section(selector)]
+      end
+
+      private
+
+      def document_section(selector)
+        selected_documents = selector.selected_documents
+        omitted_documents = selector.omitted_documents
+        section = section(
+          "documents",
+          {
+            "sources" => selector.sources,
+            "documents" => selected_documents.map { |document| payload(document) },
+            "omitted_documents" => omitted_documents.map { |document| omitted_payload(document) }
+          },
+          "project_documents"
+        )
+        section.metadata.merge!(
+          "context_layer" => "docs",
+          "selection_source" => "document_context_inventory",
+          "selected_documents" => selected_documents.map { |document| trace_payload(document) },
+          "omitted_documents" => omitted_documents.map { |document| trace_payload(document) }
+        )
+        section
+      end
+
+      def payload(document)
+        trace_payload(document).merge(
+          "body" => truncate(document.fetch("body", "").to_s),
+          "truncated" => document.fetch("body", "").to_s.bytesize > MAX_DOCUMENT_BYTES
+        )
+      end
+
+      def omitted_payload(document)
+        trace_payload(document)
+      end
+
+      def trace_payload(document)
+        {
+          "source" => document.fetch("source"),
+          "id" => document["id"],
+          "project_id" => document["project_id"],
+          "use_case_id" => document["use_case_id"],
+          "artifact_type" => document.fetch("artifact_type"),
+          "title" => document.fetch("title"),
+          "path" => document["path"],
+          "selection_reason" => document.fetch("selection_reason", nil),
+          "omission_reason" => document.fetch("omission_reason", nil)
+        }.compact
+      end
+
+      def truncate(value)
+        value.bytesize > MAX_DOCUMENT_BYTES ? value.byteslice(0, MAX_DOCUMENT_BYTES) : value
+      end
+    end
+
+    class DocumentContextInventory
+      def initialize(context:)
+        @context = context
+      end
+
+      def documents
+        persisted_documents + repository_ops_documents
+      end
+
+      private
+
+      attr_reader :context
+
+      def persisted_documents
+        context.project.documents.order(updated_at: :desc, created_at: :desc).limit(Documents::MAX_DOCUMENTS * 2).map do |document|
+          {
+            "source" => "persisted_document",
+            "id" => document.id,
+            "project_id" => document.project_id,
+            "use_case_id" => document.use_case_id,
+            "artifact_type" => document.artifact_type,
+            "title" => document.title,
+            "body" => document.body.to_s,
+            "updated_at" => document.updated_at
+          }
+        end
+      end
+
+      def repository_ops_documents
+        root = repository_root
+        return [] unless root && File.directory?(root)
+
+        Dir.glob(File.join(root, "ops", "**", "*.md")).filter_map do |path|
+          relative = path.delete_prefix("#{root}/")
+          next unless DOCUMENT_OPS_FILE_PATTERNS.any? { |pattern| pattern.match?(relative) }
+
+          {
+            "source" => "repository_ops_artifact",
+            "artifact_type" => artifact_type_for_path(relative),
+            "title" => File.basename(path, ".md"),
+            "path" => relative,
+            "body" => read_file(path),
+            "updated_at" => File.mtime(path)
+          }
+        end.sort_by { |document| document.fetch("path") }.first(Documents::MAX_DOCUMENTS)
+      end
+
+      def repository_root
+        root = Rails.root.join("..", "..").expand_path.to_s
+        return root if File.directory?(File.join(root, "ops"))
+
+        workspace = context.workspace_path.to_s
+        return workspace if File.directory?(File.join(workspace, "ops"))
+
+        nil
+      end
+
+      def artifact_type_for_path(relative_path)
+        case relative_path
+        when %r{\Aops/specs/}
+          "spec"
+        when %r{\Aops/plans/}, %r{\Aops/trackers/}
+          "plan_tracker"
+        else
+          "draft"
+        end
+      end
+
+      def read_file(path)
+        File.binread(path, Documents::MAX_DOCUMENT_BYTES)
+      rescue StandardError => e
+        "[unreadable: #{e.class.name}]"
+      end
+    end
+
+    class DocumentContextSelector
+      attr_reader :documents, :context_policy
+
+      def initialize(documents:, context_policy:)
+        @documents = documents
+        @context_policy = context_policy.to_s
+      end
+
+      def selected_documents
+        @selected_documents ||= documents.filter_map do |document|
+          next unless selected_document?(document)
+
+          document.merge("selection_reason" => selection_reason(document))
+        end.first(Documents::MAX_DOCUMENTS)
+      end
+
+      def omitted_documents
+        @omitted_documents ||= documents.filter_map do |document|
+          next if selected_document?(document)
+
+          document.merge("omission_reason" => omission_reason(document))
+        end
+      end
+
+      def sources
+        documents.map { |document| document.fetch("source") }.uniq.sort
+      end
+
+      private
+
+      def selected_document?(document)
+        return true if context_policy == Redwright::LLM::ContextPolicy::FULL_CONTEXT_FALLBACK
+
+        selected_artifact_types.include?(document.fetch("artifact_type").to_s)
+      end
+
+      def selected_artifact_types
+        Documents::ARTIFACT_TYPES_BY_POLICY.fetch(context_policy, Document::TYPES)
+      end
+
+      def selection_reason(document)
+        "matched_artifact_type:#{document.fetch("artifact_type")}"
+      end
+
+      def omission_reason(document)
+        "unselected_artifact_type:#{document.fetch("artifact_type")}"
       end
     end
 
