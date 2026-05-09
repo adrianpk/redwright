@@ -4,10 +4,10 @@
 
 - cycle_id: `2026-05-09-redwright-llm-context-shaping`
 - status: `in_progress`
-- state: `executing_slice`
+- state: `slice_ready_for_review`
 - updated: `2026-05-09`
-- active_slice: `2`
-- active_task: `T2.3`
+- active_slice: `none`
+- active_task: `none`
 - plan: `ops/plans/2026-05-09-redwright-llm-context-shaping-cycle-plan.md`
 - spec: `ops/specs/specs/2026-05-09-redwright-agent-ticket-llm-context-shaping-spec.md`
 
@@ -40,7 +40,7 @@ Validation:
 
 ### Slice 2: Define Core Context Policy Types
 
-- status: `in_progress`
+- status: `ready_for_review`
 - branch: `fix/slice-2-context-policy-types`
 - PR: `tbd`
 - merge_target: `dev`
@@ -54,9 +54,9 @@ Tasks:
 
 Commits:
 
-- [x] `tbd feat(llm): add context policy constants`
-- [x] `tbd feat(llm): add execution profile type`
-- [x] `tbd feat(llm): validate execution profile fallback`
+- [x] `e72dd53 feat(llm): add context policy constants`
+- [x] `7af6c86 feat(llm): add execution profile type`
+- [x] `311d4cf feat(llm): validate execution profile fallback`
 
 Validation:
 
