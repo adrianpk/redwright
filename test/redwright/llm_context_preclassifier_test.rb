@@ -60,6 +60,24 @@ class LlmContextPreclassifierTest < Minitest::Test
     assert_equal "low", result.profile.confidence
   end
 
+  def test_returns_valid_profiles_for_all_work_families
+    Redwright::LLM::ContextPolicy::WORK_FAMILIES.each do |family|
+      client = FakeClient.new(content: profile_payload(family: family, confidence: "medium"))
+      preclassifier = Redwright::LLM::ContextPreclassifier.new(llm_client: client, model: "test/model")
+
+      result = preclassifier.classify(
+        action: "#{family}_action",
+        model_role: "non_coding",
+        user_text: "Classify this #{family} request."
+      )
+
+      assert_predicate result, :ok?
+      assert_equal family, result.profile.primary_work_family
+      assert_equal "#{family}_default", result.profile.context_policy
+      assert_equal "medium", result.profile.confidence
+    end
+  end
+
   private
 
   def profile_payload(family:, confidence:)
