@@ -4,7 +4,7 @@
 
 - cycle_id: `2026-05-09-redwright-llm-context-shaping`
 - status: `in_progress`
-- state: `slice_ready_for_review`
+- state: `next_slice`
 - updated: `2026-05-09`
 - active_slice: `none`
 - active_task: `none`
@@ -90,11 +90,11 @@ Validation:
 
 ### Slice 4: Map Existing LLM Actions To Policies
 
-- status: `ready_for_review`
+- status: `completed`
 - branch: `fix/slice-4-llm-action-policy-map`
-- PR: `tbd`
+- PR: `#393`
 - merge_target: `dev`
-- last_sync_commit: `ef95874`
+- last_sync_commit: `04b1096`
 
 Tasks:
 
