@@ -4,7 +4,7 @@
 
 - cycle_id: `2026-05-09-redwright-llm-context-shaping`
 - status: `in_progress`
-- state: `next_slice`
+- state: `slice_ready_for_review`
 - updated: `2026-05-09`
 - active_slice: `none`
 - active_task: `none`
@@ -456,26 +456,30 @@ Validation:
 
 ### Slice 18: Policy Matrix Completion And Tuning Baseline
 
-- status: `pending`
+- status: `ready_for_review`
 - branch: `fix/slice-18-policy-matrix`
 - PR: `tbd`
 - merge_target: `dev`
-- last_sync_commit: `tbd`
+- last_sync_commit: `f159cab`
 
 Tasks:
 
-- [ ] `T18.1 Define the policy matrix across all eight families and all injectable context types.`
-- [ ] `T18.2 Add representative tests for each family.`
-- [ ] `T18.3 Add fallback and omission-reason tests.`
+- [x] `T18.1 Define the policy matrix across all eight families and all injectable context types.`
+- [x] `T18.2 Add representative tests for each family.`
+- [x] `T18.3 Add fallback and omission-reason tests.`
 
 Commits:
 
-- [ ] `tbd feat(llm): complete context policy matrix`
+- [x] `eae0eb3 feat(llm): define context policy matrix`
+- [x] `bcf0458 test(llm): cover context policy families`
+- [x] `f159cab test(llm): cover policy omissions and fallback`
 
 Validation:
 
-- [ ] `Each family has explicit context behavior.`
-- [ ] `Each context type is included, omitted, or conditionally selected by at least one tested policy.`
+- [x] `Each family has explicit context behavior.`
+- [x] `Each context type is included, omitted, or conditionally selected by at least one tested policy.`
+- [x] `bundle exec rails test test/lib/redwright/llm/context_policy_test.rb`
+- [x] `ruby test/redwright/llm_request_engine_test.rb`
 
 ### Slice 19: End-To-End Context Shaping Validation
 
