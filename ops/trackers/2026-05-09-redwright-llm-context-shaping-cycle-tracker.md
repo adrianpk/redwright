@@ -3,10 +3,10 @@
 ## Metadata
 
 - cycle_id: `2026-05-09-redwright-llm-context-shaping`
-- status: `in_progress`
-- state: `next_slice`
+- status: `implemented_pending_review`
+- state: `awaiting_review`
 - updated: `2026-05-09`
-- active_slice: `none`
+- active_slice: `20`
 - active_task: `none`
 - plan: `ops/plans/2026-05-09-redwright-llm-context-shaping-cycle-plan.md`
 - spec: `ops/specs/specs/2026-05-09-redwright-agent-ticket-llm-context-shaping-spec.md`
@@ -512,26 +512,27 @@ Validation:
 
 ### Slice 20: Documentation And Operator Review
 
-- status: `pending`
+- status: `ready_for_review`
 - branch: `fix/slice-20-context-shaping-docs`
 - PR: `tbd`
 - merge_target: `dev`
-- last_sync_commit: `tbd`
+- last_sync_commit: `e1a3b55`
 
 Tasks:
 
-- [ ] `T20.1 Update durable reference documentation for context policy, execution profiles, and trace fields.`
-- [ ] `T20.2 Update relevant ops artifacts with completed decisions and validation evidence.`
-- [ ] `T20.3 Produce a cycle report summarizing implementation, remaining risks, and tuning guidance.`
+- [x] `T20.1 Update durable reference documentation for context policy, execution profiles, and trace fields.`
+- [x] `T20.2 Update relevant ops artifacts with completed decisions and validation evidence.`
+- [x] `T20.3 Produce a cycle report summarizing implementation, remaining risks, and tuning guidance.`
 
 Commits:
 
-- [ ] `tbd docs(llm): document context shaping model`
+- [x] `e1a3b55 docs(llm): document context shaping model`
 
 Validation:
 
-- [ ] `Docs explain the final model without depending on chat history.`
-- [ ] `Cycle report identifies tuning follow-ups.`
+- [x] `Docs explain the final model without depending on chat history.`
+- [x] `Cycle report identifies tuning follow-ups.`
+- [x] `git diff --check`
 
 ## Event Log
 
@@ -542,3 +543,4 @@ Validation:
 - `2026-05-09` state=`next_slice` note=`Slice 1 merged through PR #390 and dev synced to 99b2b16.`
 - `2026-05-09` state=`awaiting_review` note=`Slice 19 completed with end-to-end context shaping validation for ticket execution, quiz generation, and project setup.`
 - `2026-05-09` state=`next_slice` note=`Slice 19 merged through PR #408 and dev synced to 6591048.`
+- `2026-05-09` state=`awaiting_review` note=`Slice 20 completed with durable reference docs, implemented spec closure, and cycle report.`
