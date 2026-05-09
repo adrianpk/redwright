@@ -4,10 +4,10 @@
 
 - cycle_id: `2026-05-09-redwright-llm-context-shaping`
 - status: `in_progress`
-- state: `executing_slice`
+- state: `slice_ready_for_review`
 - updated: `2026-05-09`
-- active_slice: `4`
-- active_task: `T4.4`
+- active_slice: `none`
+- active_task: `none`
 - plan: `ops/plans/2026-05-09-redwright-llm-context-shaping-cycle-plan.md`
 - spec: `ops/specs/specs/2026-05-09-redwright-agent-ticket-llm-context-shaping-spec.md`
 
@@ -90,7 +90,7 @@ Validation:
 
 ### Slice 4: Map Existing LLM Actions To Policies
 
-- status: `in_progress`
+- status: `ready_for_review`
 - branch: `fix/slice-4-llm-action-policy-map`
 - PR: `tbd`
 - merge_target: `dev`
@@ -105,10 +105,10 @@ Tasks:
 
 Commits:
 
-- [x] `tbd feat(llm): map ticket execution action policy`
-- [x] `tbd feat(llm): map quiz action policies`
-- [x] `tbd feat(llm): map project setup action policy`
-- [x] `tbd feat(llm): map legacy action policies`
+- [x] `3de3ff2 feat(llm): map ticket execution action policy`
+- [x] `9bb17ea feat(llm): map quiz action policies`
+- [x] `0c0f6b feat(llm): map project setup action policy`
+- [x] `6181ff3 feat(llm): map legacy action policies`
 
 Validation:
 
