@@ -4,10 +4,10 @@
 
 - cycle_id: `2026-05-09-redwright-llm-context-shaping`
 - status: `in_progress`
-- state: `executing_slice`
+- state: `slice_ready_for_review`
 - updated: `2026-05-09`
-- active_slice: `7`
-- active_task: `T7.3`
+- active_slice: `none`
+- active_task: `none`
 - plan: `ops/plans/2026-05-09-redwright-llm-context-shaping-cycle-plan.md`
 - spec: `ops/specs/specs/2026-05-09-redwright-agent-ticket-llm-context-shaping-spec.md`
 
@@ -167,7 +167,7 @@ Validation:
 
 ### Slice 7: Add Policy Trace Metadata
 
-- status: `in_progress`
+- status: `ready_for_review`
 - branch: `fix/slice-7-context-policy-tracing`
 - PR: `tbd`
 - merge_target: `dev`
@@ -181,9 +181,9 @@ Tasks:
 
 Commits:
 
-- [x] `tbd feat(llm): add request policy diagnostics`
-- [x] `tbd feat(llm): add policy decision trace payloads`
-- [x] `tbd test(llm): cover policy trace output`
+- [x] `ad6b93c feat(llm): add request policy diagnostics`
+- [x] `058c7d9 feat(llm): add policy decision trace payloads`
+- [x] `738fff9 test(llm): cover policy trace output`
 
 Validation:
 
