@@ -7,7 +7,7 @@
 - state: `executing_slice`
 - updated: `2026-05-09`
 - active_slice: `5`
-- active_task: `T5.1`
+- active_task: `T5.2`
 - plan: `ops/plans/2026-05-09-redwright-llm-context-shaping-cycle-plan.md`
 - spec: `ops/specs/specs/2026-05-09-redwright-agent-ticket-llm-context-shaping-spec.md`
 
@@ -126,12 +126,13 @@ Validation:
 Tasks:
 
 - [x] `T5.1 Add execution_contract context section generation.`
-- [ ] `T5.2 Include work family, policy, allowed outputs, allowed actions, validation requirement, retry state, and workspace boundary where applicable.`
+- [x] `T5.2 Include work family, policy, allowed outputs, allowed actions, validation requirement, retry state, and workspace boundary where applicable.`
 - [ ] `T5.3 Keep stable agent instructions in system_prompt.`
 
 Commits:
 
 - [x] `tbd feat(llm): add execution contract section`
+- [x] `tbd feat(llm): add execution contract fields`
 
 Validation:
 
