@@ -4,10 +4,10 @@
 
 - cycle_id: `2026-05-09-redwright-llm-context-shaping`
 - status: `in_progress`
-- state: `next_slice`
+- state: `executing_slice`
 - updated: `2026-05-09`
-- active_slice: `none`
-- active_task: `none`
+- active_slice: `5`
+- active_task: `T5.1`
 - plan: `ops/plans/2026-05-09-redwright-llm-context-shaping-cycle-plan.md`
 - spec: `ops/specs/specs/2026-05-09-redwright-agent-ticket-llm-context-shaping-spec.md`
 
@@ -117,21 +117,21 @@ Validation:
 
 ### Slice 5: Add Execution Contract Context Section
 
-- status: `pending`
+- status: `in_progress`
 - branch: `fix/slice-5-execution-contract-context`
 - PR: `tbd`
 - merge_target: `dev`
-- last_sync_commit: `tbd`
+- last_sync_commit: `63cacfe`
 
 Tasks:
 
-- [ ] `T5.1 Add execution_contract context section generation.`
+- [x] `T5.1 Add execution_contract context section generation.`
 - [ ] `T5.2 Include work family, policy, allowed outputs, allowed actions, validation requirement, retry state, and workspace boundary where applicable.`
 - [ ] `T5.3 Keep stable agent instructions in system_prompt.`
 
 Commits:
 
-- [ ] `tbd feat(llm): add execution contract context`
+- [x] `tbd feat(llm): add execution contract section`
 
 Validation:
 
