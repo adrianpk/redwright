@@ -114,6 +114,7 @@ module Redwright
         output_contract: output_contract,
         context_sections: context_sections,
         context_policy: context_policy,
+        dynamic_context_policy: true,
         trace_metadata: {
           trace_id: trace_id,
           project_id: payload["project_id"] || payload.dig("project", "id"),

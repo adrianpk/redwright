@@ -98,8 +98,9 @@ module Redwright
       def execution_profile_for_policy(dynamic_context_policy:, execution_profile:, action:, model:, model_role:, user_text:, trace_metadata:)
         return execution_profile unless dynamic_context_policy
 
-        preclassifier = @context_preclassifier || ContextPreclassifier.new(llm_client: @llm_client, model: model)
-        preclassifier.classify(
+        return execution_profile unless @context_preclassifier
+
+        @context_preclassifier.classify(
           action: action,
           model_role: model_role,
           user_text: user_text,
