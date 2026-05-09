@@ -4,9 +4,9 @@
 
 - cycle_id: `2026-05-09-redwright-llm-context-shaping`
 - status: `in_progress`
-- state: `next_slice`
+- state: `awaiting_review`
 - updated: `2026-05-09`
-- active_slice: `none`
+- active_slice: `19`
 - active_task: `none`
 - plan: `ops/plans/2026-05-09-redwright-llm-context-shaping-cycle-plan.md`
 - spec: `ops/specs/specs/2026-05-09-redwright-agent-ticket-llm-context-shaping-spec.md`
@@ -483,26 +483,32 @@ Validation:
 
 ### Slice 19: End-To-End Context Shaping Validation
 
-- status: `pending`
+- status: `ready_for_review`
 - branch: `fix/slice-19-context-shaping-e2e`
 - PR: `tbd`
 - merge_target: `dev`
-- last_sync_commit: `tbd`
+- last_sync_commit: `92d636c`
 
 Tasks:
 
-- [ ] `T19.1 Add end-to-end tests for agent ticket execution context shaping.`
-- [ ] `T19.2 Add end-to-end tests for quiz/project setup context shaping.`
-- [ ] `T19.3 Add trace assertions for selected policies, layers, and fallback behavior.`
+- [x] `T19.1 Add end-to-end tests for agent ticket execution context shaping.`
+- [x] `T19.2 Add end-to-end tests for quiz/project setup context shaping.`
+- [x] `T19.3 Add trace assertions for selected policies, layers, and fallback behavior.`
 
 Commits:
 
-- [ ] `tbd test(llm): validate context shaping end to end`
+- [x] `610efb3 fix(llm): apply policy filtered context to provider prompt`
+- [x] `57733ce test(llm): validate ticket context shaping pipeline`
+- [x] `92d636c test(llm): validate quiz and setup context shaping`
 
 Validation:
 
-- [ ] `Representative LLM actions pass through the complete policy pipeline.`
-- [ ] `No live provider calls are required.`
+- [x] `Representative LLM actions pass through the complete policy pipeline.`
+- [x] `No live provider calls are required.`
+- [x] `bundle exec rails test test/services/agent_ticket_execution/llm_requester_test.rb test/services/quiz_loops/question_provider_test.rb`
+- [x] `ruby test/redwright/project_setup_prompt_renderer_test.rb`
+- [x] `ruby test/redwright/llm_request_engine_test.rb`
+- [x] `git diff --check`
 
 ### Slice 20: Documentation And Operator Review
 
@@ -534,3 +540,4 @@ Validation:
 - `2026-05-09` state=`executing_slice` note=`T1.2 context layers per action captured in ops/artifacts/2026-05-09-llm-context-action-audit.md.`
 - `2026-05-09` state=`awaiting_review` note=`Slice 1 completed; context capability status documented and branch ready for review.`
 - `2026-05-09` state=`next_slice` note=`Slice 1 merged through PR #390 and dev synced to 99b2b16.`
+- `2026-05-09` state=`awaiting_review` note=`Slice 19 completed with end-to-end context shaping validation for ticket execution, quiz generation, and project setup.`
