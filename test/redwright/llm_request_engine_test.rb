@@ -6,6 +6,7 @@ require "minitest/autorun"
 $LOAD_PATH.unshift(File.expand_path("../../lib", __dir__))
 require "redwright/llm/request_engine"
 require "redwright/llm/context_section"
+require "redwright/llm/context_policy"
 
 class LlmRequestEngineTest < Minitest::Test
   Completion = Struct.new(:content, :finish_reason, keyword_init: true)
@@ -218,5 +219,23 @@ class LlmRequestEngineTest < Minitest::Test
     assert_equal "llm_unavailable", response.status
     assert_equal [], client.calls
     assert_includes response.warnings, "LLM client is not configured"
+  end
+
+  def test_generate_structured_message_accepts_optional_context_policy_arguments
+    client = FakeClient.new(content: JSON.generate({"message" => "Question?"}))
+    engine = Redwright::LLM::RequestEngine.new(llm_client: client)
+
+    response = engine.generate_structured_message(
+      model: "example/model",
+      model_role: "non_coding",
+      provider: "example",
+      action: "project_setup_prompt_render",
+      system_prompt: "Return JSON.",
+      user_text: "{}",
+      context_sections: [],
+      context_policy: "planning_default"
+    )
+
+    assert_predicate response, :ok?
   end
 end

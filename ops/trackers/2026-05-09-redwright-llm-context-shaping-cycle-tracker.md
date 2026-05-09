@@ -4,10 +4,10 @@
 
 - cycle_id: `2026-05-09-redwright-llm-context-shaping`
 - status: `in_progress`
-- state: `next_slice`
+- state: `executing_slice`
 - updated: `2026-05-09`
-- active_slice: `none`
-- active_task: `none`
+- active_slice: `6`
+- active_task: `T6.1`
 - plan: `ops/plans/2026-05-09-redwright-llm-context-shaping-cycle-plan.md`
 - spec: `ops/specs/specs/2026-05-09-redwright-agent-ticket-llm-context-shaping-spec.md`
 
@@ -142,21 +142,21 @@ Validation:
 
 ### Slice 6: Integrate Policy Resolution In LLMRequestEngine
 
-- status: `pending`
+- status: `in_progress`
 - branch: `fix/slice-6-request-engine-policy-resolution`
 - PR: `tbd`
 - merge_target: `dev`
-- last_sync_commit: `tbd`
+- last_sync_commit: `5d67b0f`
 
 Tasks:
 
-- [ ] `T6.1 Add optional context policy arguments to request-engine calls.`
+- [x] `T6.1 Add optional context policy arguments to request-engine calls.`
 - [ ] `T6.2 Apply policy selection to supplied context sections.`
 - [ ] `T6.3 Preserve existing behavior for calls that do not opt in yet.`
 
 Commits:
 
-- [ ] `tbd feat(llm): apply context policies in request engine`
+- [x] `tbd feat(llm): add request engine policy arguments`
 
 Validation:
 

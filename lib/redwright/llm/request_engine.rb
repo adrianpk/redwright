@@ -3,6 +3,7 @@
 require "json"
 
 require_relative "context_section"
+require_relative "context_policy"
 require_relative "redactor"
 
 module Redwright
@@ -42,9 +43,12 @@ module Redwright
         user_text:,
         output_contract: DEFAULT_OUTPUT_CONTRACT,
         context_sections: [],
+        context_policy: nil,
+        execution_profile: nil,
         trace_metadata: {}
       )
-        return failure_response("llm_unavailable", "LLM client is not configured", provider: provider, model: model, model_role: model_role, action: action, context_sections: context_sections, trace_metadata: trace_metadata) unless llm_configured?
+        selected_context_sections = context_sections_for_policy(context_sections, context_policy: context_policy, execution_profile: execution_profile)
+        return failure_response("llm_unavailable", "LLM client is not configured", provider: provider, model: model, model_role: model_role, action: action, context_sections: selected_context_sections, trace_metadata: trace_metadata) unless llm_configured?
 
         safe_system_prompt = Redactor.redact_text(system_prompt)
         safe_user_text = Redactor.redact_text(user_text)
@@ -60,20 +64,48 @@ module Redwright
           model: model,
           model_role: model_role,
           action: action,
-          context_sections: context_sections,
+          context_sections: selected_context_sections,
           trace_metadata: trace_metadata,
           redacted: safe_system_prompt != system_prompt.to_s || safe_user_text != user_text.to_s
         )
       rescue JSON::ParserError => e
-        failure_response("invalid_response", "Provider response was not valid JSON", provider: provider, model: model, model_role: model_role, action: action, context_sections: context_sections, trace_metadata: trace_metadata, error: e)
+        failure_response("invalid_response", "Provider response was not valid JSON", provider: provider, model: model, model_role: model_role, action: action, context_sections: selected_context_sections || context_sections, trace_metadata: trace_metadata, error: e)
       rescue StandardError => e
-        failure_response("provider_error", "Provider request failed", provider: provider, model: model, model_role: model_role, action: action, context_sections: context_sections, trace_metadata: trace_metadata, error: e)
+        failure_response("provider_error", "Provider request failed", provider: provider, model: model, model_role: model_role, action: action, context_sections: selected_context_sections || context_sections, trace_metadata: trace_metadata, error: e)
       end
 
       private
 
       def llm_configured?
         @llm_client&.configured?
+      end
+
+      def context_sections_for_policy(context_sections, context_policy:, execution_profile:)
+        policy_name = context_policy_name(context_policy: context_policy, execution_profile: execution_profile)
+        return context_sections unless policy_name
+
+        policy = ContextPolicy.fetch_policy(policy_name)
+        return context_sections unless policy
+        return context_sections if policy.fallback?
+
+        Array(context_sections).select do |section|
+          policy.included_layers.include?(context_layer_name(section))
+        end
+      end
+
+      def context_policy_name(context_policy:, execution_profile:)
+        return execution_profile.context_policy if execution_profile&.respond_to?(:context_policy)
+        return context_policy.name if context_policy&.respond_to?(:name)
+
+        context_policy&.to_s
+      end
+
+      def context_layer_name(section)
+        metadata = section.respond_to?(:metadata) ? section.metadata : nil
+        layer = metadata[:context_layer] || metadata["context_layer"] if metadata.respond_to?(:[])
+        return layer.to_s if layer
+
+        section.respond_to?(:name) ? section.name.to_s : section.to_s
       end
 
       def normalize_completion(completion:, output_contract:, provider:, model:, model_role:, action:, context_sections:, trace_metadata:, redacted: false)
