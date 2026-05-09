@@ -84,4 +84,21 @@ class RedwrightLLMContextPolicyTest < ActiveSupport::TestCase
     assert_equal "planning", Redwright::LLM::ContextPolicy.family_for_action("project_setup_prompt_render")
     assert_equal "planning_default", Redwright::LLM::ContextPolicy.policy_name_for_action("project_setup_prompt_render")
   end
+
+  test "maps legacy Telegram runtime interpretation actions" do
+    assert_equal "planning", Redwright::LLM::ContextPolicy.family_for_action("intent_interpret")
+    assert_equal "planning", Redwright::LLM::ContextPolicy.family_for_action("intent_interpret_with_current_context")
+    assert_equal "planning", Redwright::LLM::ContextPolicy.family_for_action("intent_interpret_with_gap_answer")
+    assert_equal "diagnosis", Redwright::LLM::ContextPolicy.family_for_action("intent_refine_with_errors")
+  end
+
+  test "maps direct legacy LLM actions" do
+    assert_equal "planning_default", Redwright::LLM::ContextPolicy.policy_name_for_action("alignment_question_generation")
+    assert_equal "operation_default", Redwright::LLM::ContextPolicy.policy_name_for_action("runtime_container_generation")
+  end
+
+  test "unmapped actions are explicit nil mappings" do
+    assert_nil Redwright::LLM::ContextPolicy.family_for_action("unknown_action")
+    assert_nil Redwright::LLM::ContextPolicy.policy_name_for_action("unknown_action")
+  end
 end

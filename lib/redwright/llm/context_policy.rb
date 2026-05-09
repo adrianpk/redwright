@@ -90,7 +90,13 @@ module Redwright
         "agent_ticket_execution" => "implementation",
         "quiz_question_generation" => "exploration",
         "quiz_fast_question_generation" => "exploration",
-        "project_setup_prompt_render" => "planning"
+        "project_setup_prompt_render" => "planning",
+        "intent_interpret" => "planning",
+        "intent_interpret_with_current_context" => "planning",
+        "intent_interpret_with_gap_answer" => "planning",
+        "intent_refine_with_errors" => "diagnosis",
+        "alignment_question_generation" => "planning",
+        "runtime_container_generation" => "operation"
       }.freeze
 
       ACTION_POLICY_BY_ACTION = ACTION_FAMILY_BY_ACTION.transform_values do |family|

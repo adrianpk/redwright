@@ -7,7 +7,7 @@
 - state: `executing_slice`
 - updated: `2026-05-09`
 - active_slice: `4`
-- active_task: `T4.3`
+- active_task: `T4.4`
 - plan: `ops/plans/2026-05-09-redwright-llm-context-shaping-cycle-plan.md`
 - spec: `ops/specs/specs/2026-05-09-redwright-agent-ticket-llm-context-shaping-spec.md`
 
@@ -101,18 +101,19 @@ Tasks:
 - [x] `T4.1 Map agent ticket execution actions to implementation or diagnosis policies as appropriate.`
 - [x] `T4.2 Map quiz generation actions to planning, exploration, or documentation policies as appropriate.`
 - [x] `T4.3 Map project setup prompt rendering to an appropriate policy.`
-- [ ] `T4.4 Map legacy Telegram/runtime interpretation traces where still active.`
+- [x] `T4.4 Map legacy Telegram/runtime interpretation traces where still active.`
 
 Commits:
 
 - [x] `tbd feat(llm): map ticket execution action policy`
 - [x] `tbd feat(llm): map quiz action policies`
 - [x] `tbd feat(llm): map project setup action policy`
+- [x] `tbd feat(llm): map legacy action policies`
 
 Validation:
 
-- [ ] `Every known action from Slice 1 has a default policy mapping.`
-- [ ] `Unmapped action behavior is explicit and fails safely.`
+- [x] `Every known action from Slice 1 has a default policy mapping.`
+- [x] `Unmapped action behavior is explicit and fails safely.`
 
 ### Slice 5: Add Execution Contract Context Section
 
