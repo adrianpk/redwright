@@ -4,7 +4,7 @@
 
 - cycle_id: `2026-05-09-redwright-llm-context-shaping`
 - status: `in_progress`
-- state: `next_slice`
+- state: `slice_ready_for_review`
 - updated: `2026-05-09`
 - active_slice: `none`
 - active_task: `none`
@@ -324,26 +324,29 @@ Validation:
 
 ### Slice 13: Quiz Context Capability For General Requests
 
-- status: `pending`
+- status: `ready_for_review`
 - branch: `fix/slice-13-quiz-context`
 - PR: `tbd`
 - merge_target: `dev`
-- last_sync_commit: `tbd`
+- last_sync_commit: `39ea944`
 
 Tasks:
 
-- [ ] `T13.1 Add quiz context provider for project/use-case scoped quiz material.`
-- [ ] `T13.2 Integrate quiz context with context policies.`
-- [ ] `T13.3 Add tests for quiz inclusion and omission.`
+- [x] `T13.1 Add quiz context provider for project/use-case scoped quiz material.`
+- [x] `T13.2 Integrate quiz context with context policies.`
+- [x] `T13.3 Add tests for quiz inclusion and omission.`
 
 Commits:
 
-- [ ] `tbd feat(llm): add selectable quiz context`
+- [x] `a4536be feat(llm): add quiz context inventory`
+- [x] `d745a97 feat(llm): integrate quiz context policies`
+- [x] `39ea944 test(llm): cover quiz context selection`
 
 Validation:
 
-- [ ] `Quiz context can be injected into non-quiz LLM requests.`
-- [ ] `Policy traces identify selected quiz context.`
+- [x] `Quiz context can be injected into non-quiz LLM requests.`
+- [x] `Policy traces identify selected quiz context.`
+- [x] `bundle exec rails test test/services/agent_ticket_execution/context_composer_test.rb test/services/agent_ticket_execution/llm_requester_test.rb`
 
 ### Slice 14: Dump Context Capability
 
