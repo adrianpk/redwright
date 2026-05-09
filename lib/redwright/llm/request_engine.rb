@@ -65,7 +65,7 @@ module Redwright
         return failure_response("llm_unavailable", "LLM client is not configured", provider: provider, model: model, model_role: model_role, action: action, context_sections: selected_context_sections, trace_metadata: trace_metadata, policy_decision: policy_decision) unless llm_configured?
 
         safe_system_prompt = Redactor.redact_text(system_prompt)
-        safe_user_text = Redactor.redact_text(user_text)
+        safe_user_text = Redactor.redact_text(user_text_for_provider(user_text, selected_context_sections))
         completion = @llm_client.complete_json(
           model: model,
           system_prompt: safe_system_prompt,
@@ -175,6 +175,32 @@ module Redwright
         return layer.to_s if layer
 
         section.respond_to?(:name) ? section.name.to_s : section.to_s
+      end
+
+      def user_text_for_provider(user_text, selected_context_sections)
+        parsed = JSON.parse(user_text.to_s)
+        return JSON.generate(parsed.merge("context_sections" => provider_context_sections(selected_context_sections))) if parsed.is_a?(Hash) && parsed.key?("context_sections")
+
+        user_text.to_s
+      rescue JSON::ParserError
+        user_text.to_s
+      end
+
+      def provider_context_sections(context_sections)
+        names = context_section_names(context_sections)
+        Array(context_sections).map do |section|
+          payload = section.respond_to?(:to_h) ? section.to_h : {"name" => section.to_s}
+          if section.respond_to?(:name) && section.name.to_s == "protocol_model" && names.include?("protocol_files")
+            payload.merge(
+              "content_omitted" => true,
+              "omission_reason" => "duplicated_by_protocol_files"
+            )
+          elsif section.respond_to?(:content)
+            payload.merge("content" => section.content)
+          else
+            payload
+          end
+        end
       end
 
       def normalize_completion(completion:, output_contract:, provider:, model:, model_role:, action:, context_sections:, trace_metadata:, policy_decision:, redacted: false)
