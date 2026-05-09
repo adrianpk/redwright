@@ -4,7 +4,7 @@
 
 - cycle_id: `2026-05-09-redwright-llm-context-shaping`
 - status: `in_progress`
-- state: `slice_ready_for_review`
+- state: `next_slice`
 - updated: `2026-05-09`
 - active_slice: `none`
 - active_task: `none`
@@ -219,11 +219,11 @@ Validation:
 
 ### Slice 9: Add LLM Preclassifier Stage
 
-- status: `ready_for_review`
+- status: `completed`
 - branch: `fix/slice-9-llm-preclassifier`
-- PR: `tbd`
+- PR: `#398`
 - merge_target: `dev`
-- last_sync_commit: `ada4915`
+- last_sync_commit: `fccc6df`
 
 Tasks:
 
