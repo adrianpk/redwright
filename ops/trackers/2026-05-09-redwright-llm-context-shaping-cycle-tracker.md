@@ -7,7 +7,7 @@
 - state: `executing_slice`
 - updated: `2026-05-09`
 - active_slice: `2`
-- active_task: `T2.1`
+- active_task: `T2.2`
 - plan: `ops/plans/2026-05-09-redwright-llm-context-shaping-cycle-plan.md`
 - spec: `ops/specs/specs/2026-05-09-redwright-agent-ticket-llm-context-shaping-spec.md`
 
@@ -49,12 +49,13 @@ Validation:
 Tasks:
 
 - [x] `T2.1 Add explicit work family and confidence-band constants.`
-- [ ] `T2.2 Add a normalized execution profile value object or equivalent simple Ruby structure.`
+- [x] `T2.2 Add a normalized execution profile value object or equivalent simple Ruby structure.`
 - [ ] `T2.3 Add validation for required profile fields and low-confidence fallback behavior.`
 
 Commits:
 
 - [x] `tbd feat(llm): add context policy constants`
+- [x] `tbd feat(llm): add execution profile type`
 
 Validation:
 
