@@ -61,6 +61,7 @@ module AgentTicketExecution
         assert_equal "dumps", sections.fetch("dumps").metadata.fetch("context_layer")
         assert_equal "llm_based", sections.fetch("llm_based_context").metadata.fetch("context_layer")
         assert_equal "derived_from_agent_llm_interactions", sections.fetch("llm_based_context").metadata.fetch("authority")
+        assert_equal "previous_interaction_created_at", sections.fetch("llm_based_context").metadata.fetch("freshness_source")
         assert_includes sections.fetch("llm_based_context").content.fetch("prior_attempt_summaries").first.fetch("derived_summary"), "failure=first attempt missed invalid index handling"
         assert_equal false, sections.fetch("llm_based_context").metadata.fetch("freshness").fetch("stale")
         assert_equal "conversation", sections.fetch("previous_interactions").metadata.fetch("context_layer")

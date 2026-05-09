@@ -1082,6 +1082,7 @@ module AgentTicketExecution
           "context_layer" => "llm_based",
           "selection_source" => "previous_interaction_store",
           "authority" => "derived_from_agent_llm_interactions",
+          "freshness_source" => "previous_interaction_created_at",
           "freshness" => selector.freshness_metadata(summaries),
           "selected_sources" => summaries.map { |summary| source_trace(summary) }
         )
