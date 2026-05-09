@@ -56,6 +56,7 @@ module AgentTicketExecution
         ContextSectionProviders::Protocols.new,
         ContextSectionProviders::Documents.new,
         ContextSectionProviders::Quizzes.new,
+        ContextSectionProviders::Dumps.new,
         ContextSectionProviders::PreviousInteractions.new(
           store: previous_interaction_store,
           limit: previous_interaction_limit
