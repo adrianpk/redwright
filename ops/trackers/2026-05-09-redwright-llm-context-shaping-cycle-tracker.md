@@ -4,7 +4,7 @@
 
 - cycle_id: `2026-05-09-redwright-llm-context-shaping`
 - status: `in_progress`
-- state: `next_slice`
+- state: `slice_ready_for_review`
 - updated: `2026-05-09`
 - active_slice: `none`
 - active_task: `none`
@@ -402,26 +402,31 @@ Validation:
 
 ### Slice 16: Tree-Sitter Semantic Context Capability
 
-- status: `pending`
+- status: `ready_for_review`
 - branch: `fix/slice-16-treesitter-context`
 - PR: `tbd`
 - merge_target: `dev`
-- last_sync_commit: `tbd`
+- last_sync_commit: `b645a04`
 
 Tasks:
 
-- [ ] `T16.1 Select the first supported language set based on current projects and tests.`
-- [ ] `T16.2 Add semantic code structure extraction for selected files.`
-- [ ] `T16.3 Integrate semantic context with policies that need code structure.`
+- [x] `T16.1 Select the first supported language set based on current projects and tests.`
+- [x] `T16.2 Add semantic code structure extraction for selected files.`
+- [x] `T16.3 Integrate semantic context with policies that need code structure.`
 
 Commits:
 
-- [ ] `tbd feat(llm): add semantic code context`
+- [x] `df856a0 feat(llm): define semantic code language support`
+- [x] `113da9b feat(llm): extract semantic code context`
+- [x] `4ae6bce test(llm): cover semantic code context`
+- [x] `b645a04 feat(llm): broaden semantic language coverage`
 
 Validation:
 
-- [ ] `Tree-Sitter context is operational for the selected first language set.`
-- [ ] `Semantic context is traceable.`
+- [x] `Tree-Sitter context is operational for the selected first language set.`
+- [x] `Semantic context is traceable.`
+- [x] `bundle exec rails test test/services/agent_ticket_execution/context_composer_test.rb test/services/agent_ticket_execution/llm_requester_test.rb`
+- [x] `ruby test/redwright/tree_sitter_structural_extractor_test.rb`
 
 ### Slice 17: LLM-Based Derived Context Capability
 
