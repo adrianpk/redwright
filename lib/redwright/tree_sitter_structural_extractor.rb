@@ -6,7 +6,26 @@ module Redwright
       ".rb" => :ruby,
       ".go" => :go,
       ".js" => :javascript,
-      ".ts" => :typescript
+      ".jsx" => :javascript,
+      ".ts" => :typescript,
+      ".tsx" => :typescript,
+      ".py" => :python,
+      ".rs" => :rust,
+      ".zig" => :zig,
+      ".ex" => :elixir,
+      ".exs" => :elixir,
+      ".gleam" => :gleam,
+      ".java" => :java,
+      ".kt" => :kotlin,
+      ".kts" => :kotlin,
+      ".cs" => :csharp,
+      ".c" => :c,
+      ".h" => :c,
+      ".cc" => :cpp,
+      ".cpp" => :cpp,
+      ".cxx" => :cpp,
+      ".hpp" => :cpp,
+      ".php" => :php
     }.freeze
 
     def extract(project_path:, rel_path:, max_symbols: 32)
@@ -40,6 +59,20 @@ module Redwright
         [/^\s*import\s+"([^"]+)"/, /^\s*"([^"]+)"\s*$/]
       when :javascript, :typescript
         [/^\s*import\s+.+?\s+from\s+["']([^"']+)["']/, /^\s*import\s+["']([^"']+)["']/]
+      when :python
+        [/^\s*import\s+([A-Za-z0-9_.]+)/, /^\s*from\s+([A-Za-z0-9_.]+)\s+import\s+/]
+      when :rust
+        [/^\s*use\s+([^;]+);/]
+      when :elixir
+        [/^\s*(?:alias|import|require|use)\s+([A-Za-z0-9_.]+)/]
+      when :gleam
+        [/^\s*import\s+([a-zA-Z0-9_\/.]+)/]
+      when :java, :kotlin
+        [/^\s*import\s+([^;]+);?/]
+      when :c, :cpp
+        [/^\s*#include\s+[<"]([^>"]+)[>"]/]
+      when :php
+        [/^\s*use\s+([^;]+);/]
       else
         []
       end
@@ -57,6 +90,22 @@ module Redwright
         [/^\s*func\s*(?:\([^)]*\)\s*)?([A-Za-z0-9_]+)\s*\(/]
       when :javascript, :typescript
         [/^\s*function\s+([A-Za-z0-9_]+)\s*\(/, /^\s*(?:const|let|var)\s+([A-Za-z0-9_]+)\s*=\s*\(/, /^\s*class\s+([A-Za-z0-9_]+)/]
+      when :python
+        [/^\s*def\s+([A-Za-z0-9_]+)\s*\(/, /^\s*class\s+([A-Za-z0-9_]+)/]
+      when :rust
+        [/^\s*(?:pub\s+)?fn\s+([A-Za-z0-9_]+)\s*\(/]
+      when :zig
+        [/^\s*(?:pub\s+)?fn\s+([A-Za-z0-9_]+)\s*\(/]
+      when :elixir
+        [/^\s*def(?:p)?\s+([a-zA-Z0-9_!?]+)\s*(?:\(|do:)/, /^\s*defmodule\s+([A-Za-z0-9_.]+)/]
+      when :gleam
+        [/^\s*pub\s+fn\s+([a-zA-Z0-9_]+)\s*\(/, /^\s*fn\s+([a-zA-Z0-9_]+)\s*\(/]
+      when :java, :kotlin, :csharp
+        [/^\s*(?:public|private|protected|internal|static|final|override|suspend|\s)+\s*[A-Za-z0-9_<>,\[\]?]+\s+([A-Za-z0-9_]+)\s*\(/, /^\s*(?:public\s+)?(?:class|interface|enum|record)\s+([A-Za-z0-9_]+)/]
+      when :c, :cpp
+        [/^\s*(?:[A-Za-z_][A-Za-z0-9_:<>\*&\s]+)\s+([A-Za-z_][A-Za-z0-9_:]*)\s*\([^;]*\)\s*(?:\{|;)?\s*$/]
+      when :php
+        [/^\s*function\s+([A-Za-z0-9_]+)\s*\(/, /^\s*class\s+([A-Za-z0-9_]+)/]
       else
         []
       end
@@ -74,6 +123,22 @@ module Redwright
         [/^\s*type\s+([A-Za-z0-9_]+)\s+(?:struct|interface|\w+)/]
       when :typescript
         [/^\s*type\s+([A-Za-z0-9_]+)\s*=\s*/, /^\s*interface\s+([A-Za-z0-9_]+)/]
+      when :python
+        [/^\s*class\s+([A-Za-z0-9_]+)/]
+      when :rust
+        [/^\s*(?:pub\s+)?(?:struct|enum|trait)\s+([A-Za-z0-9_]+)/]
+      when :zig
+        [/^\s*const\s+([A-Za-z0-9_]+)\s*=\s*(?:struct|enum|union)/]
+      when :elixir
+        [/^\s*defmodule\s+([A-Za-z0-9_.]+)/]
+      when :gleam
+        [/^\s*pub\s+type\s+([A-Za-z0-9_]+)/, /^\s*type\s+([A-Za-z0-9_]+)/]
+      when :java, :kotlin, :csharp
+        [/^\s*(?:public\s+)?(?:class|interface|enum|record|data\s+class)\s+([A-Za-z0-9_]+)/]
+      when :c, :cpp
+        [/^\s*(?:typedef\s+)?(?:struct|class|enum)\s+([A-Za-z0-9_]+)/]
+      when :php
+        [/^\s*(?:final\s+)?(?:class|interface|trait|enum)\s+([A-Za-z0-9_]+)/]
       else
         []
       end
