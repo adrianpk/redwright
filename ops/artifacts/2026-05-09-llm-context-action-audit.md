@@ -431,3 +431,67 @@ Structured `RequestEngine` users already pass context sections, but the shape is
 Direct LLM client users still need either migration to `RequestEngine` or explicit legacy mapping before context shaping can be complete.
 
 Context tracing exists, but it traces what was sent rather than why it was selected or omitted.
+
+## T1.3 Context Capability Status
+
+### Capability Matrix
+
+| Capability | Status | Current source | Current injection path | Gap to target model |
+| --- | --- | --- | --- | --- |
+| `execution_contract` | missing | none | none | Add structured high-authority context section for variable execution behavior. |
+| `agent` | partial | system prompts, model roles, actions | system prompt/action metadata, not a context layer | Keep stable behavior in system prompts; add `execution_contract` instead of broad agent context. |
+| `project` | operational/partial | project records, setup context, manifests, quiz input | ticket execution, quiz loops, project setup, Telegram intent context | Normalize project layer shape and require it by default across policy-enabled actions. |
+| `prompt` | operational | caller-specific request payloads and user text | downstream caller `user_text` | Preserve prompt ownership downstream; prevent preclassifier from rewriting prompts. |
+| `ticket` | operational in ticket execution | `Ticket` Active Record model | `ticket` context section | Not available as a general layer for non-ticket actions; policy should use it when action has a ticket. |
+| `concrete_files` | operational/partial | workspace filesystem | `relevant_files` and `tests` in ticket execution | Replace broad filename/extension heuristics with policy-selected concrete files and trace selection reasons. |
+| `file_tree` | operational/partial | workspace filesystem | `repository_tree` in ticket execution; workspace snapshots in legacy context | Make file tree policy-selectable with no/light/targeted/full bounded modes. |
+| `treesitter` | partial/missing for target path | `IterationContextPacketBuilder`, `TreeSitterStructuralExtractor` area | not injected into agent ticket execution or `RequestEngine` context sections | Add policy-selectable semantic code context capability for selected files/languages. |
+| `llm_based_context` | partial | previous interactions, validation feedback, iteration packet derived fields | `previous_interactions`, `validation_feedback`; not a general layer | Define derived summaries/rankings/prior-attempt summaries with authority/freshness metadata. |
+| `docs` | partial/conceptual | Rails `Document`, repository ops artifacts | not generally injected into ticket execution policy | Add selectable documents universe distinct from Protocols. |
+| `quizzes` | operational in quiz flow, missing as general context | `Quiz`, `QuizEntry`, curated quiz artifacts | used by quiz generation only | Expose quiz context to non-quiz requests by project/use-case/ticket relevance. |
+| `dumps` | missing | curated dump artifacts under `ops/conv/dump` | none | Implement dump discovery and relevance selection. |
+| `previous_conversation` | partial | agent-LLM interaction store, Telegram/runtime chat stores | agent-LLM loop only in ticket execution | Include relevant human-RedWright conversation from TUI/Telegram where available. |
+| `protocols` | operational/partial | `ProjectProtocol`, `ProjectProtocolDocument`, protocol templates | `protocol_files`, `protocol_model` in ticket execution | Add policy-specific selection from modeled protocol documents and trace selected/omitted documents. |
+| `operational_setup` | operational in ticket execution | `.rw/agent` files and runtime container state | `operational_setup` context section | Keep as operation/implementation context; make policy-controlled. |
+| `validation_feedback` | operational in ticket retry loop | validation/application failures | `validation_feedback` context section | Add summarization or derived correction packet later under LLM-based context. |
+
+### Request-Engine Integration Status
+
+| Area | Uses `Redwright::LLM::RequestEngine` | Context sections | Trace recorder | Policy ready |
+| --- | --- | --- | --- | --- |
+| Agent ticket execution | yes | yes | yes | no |
+| Quiz question generation | yes | yes | yes | no |
+| Project setup prompt rendering | yes | yes | yes | no |
+| Telegram runtime intent interpretation | no | no, named trace sections only | direct `Trace` calls | no |
+| Alignment question engine | no | no | no shared request trace | no |
+| Runtime container suggestion provider | no | no | no shared request trace | no |
+
+### Capability Implications For Later Slices
+
+Slice 1 confirms the implementation plan must include both policy work and capability enablement work.
+
+Policy work alone is insufficient because several required context types are missing or only available in legacy/non-policy paths:
+
+- `execution_contract` does not exist.
+- `treesitter` exists only adjacent to older iteration packet construction and is not integrated into current request-engine contexts.
+- `docs` are not a general selectable context layer.
+- `quizzes` are used by quiz generation but not by other request families.
+- `dumps` are not injectable.
+- `previous_conversation` does not yet include human-RedWright conversation.
+- direct LLM client paths need migration or explicit legacy mapping.
+
+### Slice 1 Validation
+
+Validation performed:
+
+- inspected current request-engine call sites
+- inspected direct LLM client call sites
+- inspected existing context section providers
+- inspected protocol model and materialization boundaries
+- verified this slice only adds ops artifacts and tracker updates
+
+No runtime code changed in Slice 1.
+
+## Slice 1 Conclusion
+
+Slice 1 confirms the 20-slice plan is justified. RedWright has a strong structured request foundation, but the context-shaping cycle requires explicit action mapping, policy implementation, capability enablement, and traceability before the system can prune context reliably.
