@@ -4,7 +4,7 @@
 
 - cycle_id: `2026-05-09-redwright-llm-context-shaping`
 - status: `in_progress`
-- state: `slice_ready_for_review`
+- state: `next_slice`
 - updated: `2026-05-09`
 - active_slice: `none`
 - active_task: `none`
@@ -376,9 +376,9 @@ Validation:
 
 ### Slice 15: Previous Human And Agent Conversation Context
 
-- status: `ready_for_review`
+- status: `completed`
 - branch: `fix/slice-15-conversation-context`
-- PR: `tbd`
+- PR: `#404`
 - merge_target: `dev`
 - last_sync_commit: `da854d3`
 
