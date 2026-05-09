@@ -49,6 +49,7 @@ module AgentTicketExecution
         output_contract: LlmContract.output_contract,
         context_sections: context_sections,
         context_policy: context_policy,
+        dynamic_context_policy: true,
         trace_metadata: trace_metadata
       )
       contract_result = response.ok? ? contract.validate(response.semantic_payload) : nil

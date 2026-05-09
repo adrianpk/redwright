@@ -33,6 +33,22 @@ class LlmRequestEngineTest < Minitest::Test
     end
   end
 
+  class FakePreclassifier
+    Result = Struct.new(:profile, keyword_init: true)
+
+    attr_reader :calls
+
+    def initialize(profile)
+      @profile = profile
+      @calls = []
+    end
+
+    def classify(**kwargs)
+      calls << kwargs
+      Result.new(profile: @profile)
+    end
+  end
+
   def test_generate_structured_message_returns_normalized_success_response
     client = FakeClient.new(content: JSON.generate({"message" => "What type of project is this?", "kind" => "setup_prompt"}))
     engine = Redwright::LLM::RequestEngine.new(llm_client: client)
@@ -316,5 +332,41 @@ class LlmRequestEngineTest < Minitest::Test
     policy = response.diagnostics.fetch(:context_policy)
     assert_nil policy.fetch(:policy_name)
     assert_equal false, policy.fetch(:fallback)
+  end
+
+  def test_generate_structured_message_uses_dynamic_execution_profile_without_rewriting_prompt
+    client = FakeClient.new(content: JSON.generate({"message" => "Question?"}))
+    profile = Redwright::LLM::ExecutionProfile.from_hash(
+      primary_work_family: "implementation",
+      confidence: "high",
+      requires_code_changes: true,
+      requires_command_execution: true,
+      requires_validation: true,
+      should_ask_clarification: false,
+      reasoning_summary: "Implement the ticket."
+    )
+    preclassifier = FakePreclassifier.new(profile)
+    engine = Redwright::LLM::RequestEngine.new(llm_client: client, context_preclassifier: preclassifier)
+
+    response = engine.generate_structured_message(
+      model: "example/model",
+      model_role: "coding",
+      provider: "example",
+      action: "agent_ticket_execution",
+      system_prompt: "Return JSON.",
+      user_text: "Implement this ticket.",
+      context_sections: [
+        Redwright::LLM::ContextSection.new(name: "project", content: "Project", authority: "project_context"),
+        Redwright::LLM::ContextSection.new(name: "quizzes", content: "Quiz", authority: "quiz_context")
+      ],
+      context_policy: "implementation_default",
+      dynamic_context_policy: true
+    )
+
+    assert_predicate response, :ok?
+    assert_equal "Implement this ticket.", preclassifier.calls.first.fetch(:user_text)
+    assert_equal "Implement this ticket.", client.calls.first.fetch(:user_text)
+    assert_equal ["project"], response.diagnostics.fetch(:context_sections)
+    assert_equal "implementation_default", response.diagnostics.fetch(:context_policy).fetch(:policy_name)
   end
 end

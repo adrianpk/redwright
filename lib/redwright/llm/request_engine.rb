@@ -4,6 +4,7 @@ require "json"
 
 require_relative "context_section"
 require_relative "context_policy"
+require_relative "context_preclassifier"
 require_relative "redactor"
 
 module Redwright
@@ -30,8 +31,9 @@ module Redwright
         "required_fields" => ["message"]
       }.freeze
 
-      def initialize(llm_client:)
+      def initialize(llm_client:, context_preclassifier: nil)
         @llm_client = llm_client
+        @context_preclassifier = context_preclassifier
       end
 
       def generate_structured_message(
@@ -45,9 +47,20 @@ module Redwright
         context_sections: [],
         context_policy: nil,
         execution_profile: nil,
+        dynamic_context_policy: false,
         trace_metadata: {}
       )
-        policy_decision = context_policy_decision(context_sections, context_policy: context_policy, execution_profile: execution_profile)
+        resolved_profile = execution_profile_for_policy(
+          dynamic_context_policy: dynamic_context_policy,
+          execution_profile: execution_profile,
+          action: action,
+          model: model,
+          model_role: model_role,
+          user_text: user_text,
+          trace_metadata: trace_metadata
+        )
+        resolved_context_policy = context_policy
+        policy_decision = context_policy_decision(context_sections, context_policy: resolved_context_policy, execution_profile: resolved_profile)
         selected_context_sections = policy_decision.fetch(:selected_context_sections)
         return failure_response("llm_unavailable", "LLM client is not configured", provider: provider, model: model, model_role: model_role, action: action, context_sections: selected_context_sections, trace_metadata: trace_metadata, policy_decision: policy_decision) unless llm_configured?
 
@@ -80,6 +93,18 @@ module Redwright
 
       def llm_configured?
         @llm_client&.configured?
+      end
+
+      def execution_profile_for_policy(dynamic_context_policy:, execution_profile:, action:, model:, model_role:, user_text:, trace_metadata:)
+        return execution_profile unless dynamic_context_policy
+
+        preclassifier = @context_preclassifier || ContextPreclassifier.new(llm_client: @llm_client, model: model)
+        preclassifier.classify(
+          action: action,
+          model_role: model_role,
+          user_text: user_text,
+          trace_metadata: trace_metadata
+        ).profile
       end
 
       def context_policy_decision(context_sections, context_policy:, execution_profile:)

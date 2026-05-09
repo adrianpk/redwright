@@ -28,6 +28,7 @@ module AgentTicketExecution
         assert result.ok?, result.warnings.inspect
         assert_equal LlmContract::ACTION, engine.calls.first.fetch(:action)
         assert_equal "implementation_default", engine.calls.first.fetch(:context_policy)
+        assert_equal true, engine.calls.first.fetch(:dynamic_context_policy)
         assert_equal LlmContract.output_contract, engine.calls.first.fetch(:output_contract)
         assert_equal execution_context.context_sections, engine.calls.first.fetch(:context_sections)
         provider_prompt = JSON.parse(engine.calls.first.fetch(:user_text))
