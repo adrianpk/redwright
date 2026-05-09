@@ -53,6 +53,7 @@ module AgentTicketExecution
         ContextSectionProviders::TicketProject.new,
         ContextSectionProviders::Repository.new,
         ContextSectionProviders::OperationalSetupSection.new,
+        ContextSectionProviders::TreeSitterContext.new,
         ContextSectionProviders::Protocols.new,
         ContextSectionProviders::Documents.new,
         ContextSectionProviders::Quizzes.new,

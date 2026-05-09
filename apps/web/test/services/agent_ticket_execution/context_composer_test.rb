@@ -24,13 +24,14 @@ module AgentTicketExecution
 
         sections = context.context_sections.index_by(&:name)
         assert_equal(
-          %w[ticket project repository_tree relevant_files tests operational_setup protocol_files protocol_model documents quizzes dumps previous_interactions],
+          %w[ticket project repository_tree relevant_files tests operational_setup tree_sitter protocol_files protocol_model documents quizzes dumps previous_interactions],
           sections.keys
         )
         assert_equal "ticket_record", sections.fetch("ticket").authority
         assert_equal "workspace_filesystem", sections.fetch("relevant_files").authority
         assert_equal "project_protocol_model", sections.fetch("protocol_model").authority
         assert_equal "project_protocol_model", sections.fetch("protocol_files").authority
+        assert_equal "workspace_semantic_parser", sections.fetch("tree_sitter").authority
         assert_equal "project_documents", sections.fetch("documents").authority
         assert_equal "project_quiz_model", sections.fetch("quizzes").authority
         assert_equal "repository_dump_artifacts", sections.fetch("dumps").authority
@@ -44,6 +45,10 @@ module AgentTicketExecution
         refute_includes sections.fetch("relevant_files").content.map { |file| file.fetch("path") }, ".agents/CONVENTIONS.md"
         assert_includes sections.fetch("tests").content.map { |file| file.fetch("path") }, "main_test.go"
         assert_equal "available", sections.fetch("operational_setup").content.fetch("status")
+        assert_equal "tree_sitter", sections.fetch("tree_sitter").metadata.fetch("context_layer")
+        assert_includes sections.fetch("tree_sitter").content.fetch("files").map { |file| file.fetch("language") }, "go"
+        assert sections.fetch("tree_sitter").content.fetch("symbols").any? { |symbol| symbol.fetch(:path) == "main.go" && symbol.fetch(:name) == "run" }
+        assert sections.fetch("tree_sitter").content.fetch("symbols").any? { |symbol| symbol.fetch(:path) == "main.go" && symbol.fetch(:kind) == "type" && symbol.fetch(:name) == "Task" }
         assert_includes sections.fetch("protocol_files").content.map { |file| file.fetch("path") }, "AGENTS.md"
         assert_includes sections.fetch("protocol_files").content.map { |file| file.fetch("path") }, ".agents/CONVENTIONS.md"
         assert_includes sections.fetch("protocol_files").content.first.fetch("content"), "Use Conventional Commits"
