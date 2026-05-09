@@ -59,4 +59,23 @@ class RedwrightLLMExecutionContractSectionTest < ActiveSupport::TestCase
     assert_equal 3, section.content.fetch(:max_attempts)
     assert_equal "/workspace/app", section.content.fetch(:workspace_boundary).fetch("workspace_path")
   end
+
+  test "keeps stable agent instructions out of the execution contract" do
+    section = Redwright::LLM::ExecutionContractSection.build(
+      content: {
+        primary_work_family: "planning",
+        system_prompt: "You are a stable agent instruction.",
+        agent_instructions: "Keep this in the system prompt.",
+        stable_agent_instructions: "Do not inject this as context.",
+        agent: "Do not create a broad agent context section."
+      }
+    )
+
+    assert_equal "execution_contract", section.name
+    assert_equal "planning", section.content.fetch(:primary_work_family)
+    refute section.content.key?(:system_prompt)
+    refute section.content.key?(:agent_instructions)
+    refute section.content.key?(:stable_agent_instructions)
+    refute section.content.key?(:agent)
+  end
 end

@@ -7,6 +7,12 @@ module Redwright
     class ExecutionContractSection
       NAME = "execution_contract"
       AUTHORITY = "execution_contract"
+      STABLE_INSTRUCTION_KEYS = %i[
+        agent
+        agent_instructions
+        stable_agent_instructions
+        system_prompt
+      ].freeze
 
       def self.build(**kwargs)
         new(**kwargs).to_context_section
@@ -66,7 +72,7 @@ module Redwright
           workspace_boundary: workspace_boundary_content
         ).compact
 
-        base.merge(@content)
+        base.merge(variable_content)
       end
 
       def profile_content
@@ -84,6 +90,12 @@ module Redwright
         return workspace_boundary.context if workspace_boundary.respond_to?(:context)
 
         workspace_boundary
+      end
+
+      def variable_content
+        @content.reject do |key, _value|
+          STABLE_INSTRUCTION_KEYS.include?(key.to_sym)
+        end
       end
     end
   end
