@@ -4,7 +4,7 @@
 
 - cycle_id: `2026-05-09-redwright-llm-context-shaping`
 - status: `in_progress`
-- state: `slice_ready_for_review`
+- state: `next_slice`
 - updated: `2026-05-09`
 - active_slice: `none`
 - active_task: `none`
@@ -142,11 +142,11 @@ Validation:
 
 ### Slice 6: Integrate Policy Resolution In LLMRequestEngine
 
-- status: `ready_for_review`
+- status: `completed`
 - branch: `fix/slice-6-request-engine-policy-resolution`
-- PR: `tbd`
+- PR: `#395`
 - merge_target: `dev`
-- last_sync_commit: `5d67b0f`
+- last_sync_commit: `d67407e`
 
 Tasks:
 
