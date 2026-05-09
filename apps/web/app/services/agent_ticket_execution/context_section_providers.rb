@@ -27,6 +27,12 @@ module AgentTicketExecution
       %r{\Aops/plans/[^/]+\.md\z},
       %r{\Aops/trackers/[^/]+\.md\z}
     ].freeze
+    QUIZ_INCLUDED_POLICIES = %w[
+      planning_default
+      documentation_default
+      exploration_default
+      full_context_fallback
+    ].freeze
 
     Context = Struct.new(:ticket, :project, :request, :workspace_path, keyword_init: true)
 
@@ -545,6 +551,218 @@ module AgentTicketExecution
         return "unmatched_use_case:#{document.fetch("use_case_id")}" unless matched_use_case_scope?(document)
 
         "unselected_artifact_type:#{document.fetch("artifact_type")}"
+      end
+    end
+
+    class Quizzes < Base
+      MAX_QUIZZES = 6
+      MAX_ENTRIES = 12
+
+      def sections(context)
+        inventory = QuizContextInventory.new(context: context)
+        selector = QuizContextSelector.new(
+          quizzes: inventory.quizzes,
+          entries: inventory.entries,
+          ticket: context.ticket,
+          context_policy: context.request["context_policy"] || "implementation_default"
+        )
+
+        [quiz_section(selector)]
+      end
+
+      private
+
+      def quiz_section(selector)
+        selected_quizzes = selector.selected_quizzes
+        selected_entries = selector.selected_entries
+        omitted_quizzes = selector.omitted_quizzes
+        omitted_entries = selector.omitted_entries
+        section = section(
+          "quizzes",
+          {
+            "quizzes" => selected_quizzes.map { |quiz| quiz_payload(quiz) },
+            "entries" => selected_entries.map { |entry| entry_payload(entry) },
+            "omitted_quizzes" => omitted_quizzes.map { |quiz| quiz_trace_payload(quiz) },
+            "omitted_entries" => omitted_entries.map { |entry| entry_trace_payload(entry) }
+          },
+          "project_quiz_model"
+        )
+        section.metadata.merge!(
+          "context_layer" => "quizzes",
+          "selection_source" => "quiz_context_inventory",
+          "selected_quizzes" => selected_quizzes.map { |quiz| quiz_trace_payload(quiz) },
+          "selected_entries" => selected_entries.map { |entry| entry_trace_payload(entry) },
+          "omitted_quizzes" => omitted_quizzes.map { |quiz| quiz_trace_payload(quiz) },
+          "omitted_entries" => omitted_entries.map { |entry| entry_trace_payload(entry) }
+        )
+        section
+      end
+
+      def quiz_payload(quiz)
+        quiz_trace_payload(quiz).merge(
+          "current_question" => quiz["current_question"],
+          "current_tags" => quiz.fetch("current_tags", []),
+          "current_prompt_intent" => quiz.fetch("current_prompt_intent", {}),
+          "candidate_questions" => quiz.fetch("candidate_questions", [])
+        )
+      end
+
+      def entry_payload(entry)
+        entry_trace_payload(entry).merge(
+          "question" => entry.fetch("question"),
+          "answer" => entry.fetch("answer"),
+          "tags" => entry.fetch("tags", [])
+        )
+      end
+
+      def quiz_trace_payload(quiz)
+        {
+          "id" => quiz.fetch("id"),
+          "project_id" => quiz.fetch("project_id"),
+          "use_case_id" => quiz["use_case_id"],
+          "name" => quiz.fetch("name"),
+          "status" => quiz.fetch("status"),
+          "mode" => quiz.fetch("mode"),
+          "selection_reason" => quiz["selection_reason"],
+          "omission_reason" => quiz["omission_reason"]
+        }.compact
+      end
+
+      def entry_trace_payload(entry)
+        {
+          "id" => entry.fetch("id"),
+          "quiz_id" => entry.fetch("quiz_id"),
+          "project_id" => entry.fetch("project_id"),
+          "use_case_id" => entry["use_case_id"],
+          "status" => entry.fetch("status"),
+          "selection_reason" => entry["selection_reason"],
+          "omission_reason" => entry["omission_reason"]
+        }.compact
+      end
+    end
+
+    class QuizContextInventory
+      def initialize(context:)
+        @context = context
+      end
+
+      def quizzes
+        context.project.quizzes.order(updated_at: :desc, created_at: :desc).limit(Quizzes::MAX_QUIZZES * 2).map do |quiz|
+          {
+            "id" => quiz.id,
+            "project_id" => quiz.project_id,
+            "use_case_id" => quiz.use_case_id,
+            "name" => quiz.name,
+            "status" => quiz.status,
+            "mode" => quiz.mode,
+            "current_question" => quiz.current_question,
+            "current_tags" => quiz.current_tags,
+            "current_prompt_intent" => quiz.current_prompt_intent,
+            "candidate_questions" => quiz.candidate_questions
+          }
+        end
+      end
+
+      def entries
+        context.project.quiz_entries.includes(:tags).order(created_at: :desc, id: :desc).limit(Quizzes::MAX_ENTRIES * 2).map do |entry|
+          {
+            "id" => entry.id,
+            "quiz_id" => entry.quiz_id,
+            "project_id" => entry.project_id,
+            "use_case_id" => entry.use_case_id,
+            "status" => entry.status,
+            "question" => entry.question,
+            "answer" => entry.answer,
+            "tags" => entry.tags.map(&:name).sort
+          }
+        end
+      end
+
+      private
+
+      attr_reader :context
+    end
+
+    class QuizContextSelector
+      attr_reader :quizzes, :entries, :ticket, :context_policy
+
+      def initialize(quizzes:, entries:, ticket:, context_policy:)
+        @quizzes = quizzes
+        @entries = entries
+        @ticket = ticket
+        @context_policy = context_policy.to_s
+      end
+
+      def selected_quizzes
+        @selected_quizzes ||= quizzes.filter_map do |quiz|
+          next unless selected_quiz?(quiz)
+
+          quiz.merge("selection_reason" => selection_reason(quiz))
+        end.first(Quizzes::MAX_QUIZZES)
+      end
+
+      def omitted_quizzes
+        @omitted_quizzes ||= quizzes.filter_map do |quiz|
+          next if selected_quiz?(quiz)
+
+          quiz.merge("omission_reason" => omission_reason(quiz))
+        end
+      end
+
+      def selected_entries
+        @selected_entries ||= entries.filter_map do |entry|
+          next unless selected_entry?(entry)
+
+          entry.merge("selection_reason" => selection_reason(entry))
+        end.first(Quizzes::MAX_ENTRIES)
+      end
+
+      def omitted_entries
+        @omitted_entries ||= entries.filter_map do |entry|
+          next if selected_entry?(entry)
+
+          entry.merge("omission_reason" => omission_reason(entry))
+        end
+      end
+
+      private
+
+      def selected_quiz?(quiz)
+        return false unless context_policy_allows_quizzes?
+        return false unless matched_use_case_scope?(quiz)
+
+        quiz.fetch("status") == "active"
+      end
+
+      def selected_entry?(entry)
+        return false unless context_policy_allows_quizzes?
+        return false unless matched_use_case_scope?(entry)
+
+        entry.fetch("status") == "answered"
+      end
+
+      def context_policy_allows_quizzes?
+        QUIZ_INCLUDED_POLICIES.include?(context_policy)
+      end
+
+      def matched_use_case_scope?(record)
+        use_case_id = record["use_case_id"]
+        return true if use_case_id.blank?
+
+        ticket.use_case_id.present? && use_case_id == ticket.use_case_id
+      end
+
+      def selection_reason(record)
+        return "matched_use_case:#{record.fetch("use_case_id")}:#{context_policy}" if record["use_case_id"].present?
+
+        "matched_project:#{context_policy}"
+      end
+
+      def omission_reason(record)
+        return "policy_excludes_quizzes:#{context_policy}" unless context_policy_allows_quizzes?
+        return "unmatched_use_case:#{record.fetch("use_case_id")}" unless matched_use_case_scope?(record)
+
+        "unselected_status:#{record.fetch("status")}"
       end
     end
 
