@@ -100,6 +100,21 @@ sections:
 - `previous_interactions`
 - `validation_feedback` on retry attempts
 
+For context-shaped requests, inspect `policy_decision` on request and response
+trace records. Expected fields include:
+
+- `policy_name`
+- `work_family`
+- `confidence`
+- `fallback`
+- `included_layers`
+- `included_context_sections`
+- `omitted_context_sections`
+- `omission_reasons`
+
+Omission reasons use the format
+`context_layer_not_in_policy:<layer>:<policy>`.
+
 Responses are normalized before application when they are close to the expected
 contract. For example, recoverable aliases such as `ready`, `changes`, and
 `commands[].cmd` can be normalized into the agent ticket execution response
@@ -113,6 +128,9 @@ contract and recorded in diagnostics.
 - If an agent ticket blocks with an invalid LLM response, inspect the response
   diagnostics to see whether contract validation failed before output
   application.
+- If expected context is missing from a provider request, inspect
+  `policy_decision.omitted_context_sections` and `omission_reasons` before
+  changing the context composer.
 - If a retry attempt behaves unexpectedly, inspect `previous_interactions` and
   `validation_feedback` in the request payload.
 - If the file grows too large, lower `max_bytes` or `keep_files`.
@@ -120,5 +138,6 @@ contract and recorded in diagnostics.
 
 ## Related Docs
 
+- [LLM Context Shaping](../../reference/llm-context-shaping.md)
 - [LLM Rolling Trace File Specification](../../../ops/specs/specs/2026-05-03-redwright-llm-rolling-trace-file-spec.md)
 - [Use Telegram](use-telegram.md)

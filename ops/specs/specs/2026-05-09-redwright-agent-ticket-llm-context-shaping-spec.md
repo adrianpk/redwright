@@ -3,7 +3,7 @@
 ## Metadata
 
 - id: `spec-2026-05-09-redwright-agent-ticket-llm-context-shaping`
-- status: `draft`
+- status: `implemented`
 - owner: `adrianpk`
 - created: `2026-05-09`
 - updated: `2026-05-09`
@@ -565,12 +565,32 @@ The cycle is complete when:
 11. integration tests verify final traces and request context
 12. preclassifier tests use table-driven fake responses
 
-## Open Questions
+## Implementation Closure
 
-- What exact Ruby shape should the policy definitions use?
-- What exact field names should the execution profile use?
-- Which existing actions should enable dynamic preclassification immediately versus use static default policies first?
-- What exact source should provide human conversation context across TUI and Telegram?
-- What is the smallest viable dumps context implementation?
-- Which Tree-sitter language support is needed first?
-- How should LLM-based context be stored and invalidated?
+The implementation completed the requested context-shaping cycle through the 20-slice delivery plan.
+
+Final durable references:
+
+- `docs/reference/llm-context-shaping.md`
+- `ops/artifacts/2026-05-09-redwright-llm-context-shaping-cycle-report.md`
+
+Key implemented decisions:
+
+- The preclassifier remains a context-policy selector only.
+- `Redwright::LLM::RequestEngine` owns policy application.
+- Policies are explicit Ruby constants in `Redwright::LLM::ContextPolicy`.
+- Low confidence resolves to `full_context_fallback`.
+- All known context layers are represented in the policy matrix.
+- Protocol context is selected from modeled project protocol state.
+- Provider payloads receive policy-filtered context sections.
+- Policy decisions are recorded in request/response diagnostics and traces.
+
+## Resolved Questions
+
+- Policy definitions use explicit Ruby constants and a small `Policy` value object in `Redwright::LLM::ContextPolicy`.
+- Execution profiles use the fields defined by `Redwright::LLM::ExecutionProfile::REQUIRED_FIELDS`.
+- Existing migrated actions use mapped static policies and opt into dynamic policy resolution through `RequestEngine`.
+- Human and agent conversation evidence enters through the previous-interaction and conversation context providers.
+- Dumps enter through repository dump artifact selection as a policy-selectable context layer.
+- Tree-sitter style context starts with broad source-extension support and can be refined from trace evidence.
+- LLM-based context starts from derived recent interaction summaries and remains lower authority than primary artifacts.
