@@ -79,4 +79,9 @@ class RedwrightLLMContextPolicyTest < ActiveSupport::TestCase
     assert_equal "exploration", Redwright::LLM::ContextPolicy.family_for_action("quiz_fast_question_generation")
     assert_equal "exploration_default", Redwright::LLM::ContextPolicy.policy_name_for_action("quiz_fast_question_generation")
   end
+
+  test "maps project setup prompt rendering to planning policy" do
+    assert_equal "planning", Redwright::LLM::ContextPolicy.family_for_action("project_setup_prompt_render")
+    assert_equal "planning_default", Redwright::LLM::ContextPolicy.policy_name_for_action("project_setup_prompt_render")
+  end
 end
