@@ -4,10 +4,10 @@
 
 - cycle_id: `2026-05-09-redwright-llm-context-shaping`
 - status: `in_progress`
-- state: `executing_slice`
+- state: `slice_ready_for_review`
 - updated: `2026-05-09`
-- active_slice: `10`
-- active_task: `T10.4`
+- active_slice: `none`
+- active_task: `none`
 - plan: `ops/plans/2026-05-09-redwright-llm-context-shaping-cycle-plan.md`
 - spec: `ops/specs/specs/2026-05-09-redwright-agent-ticket-llm-context-shaping-spec.md`
 
@@ -246,7 +246,7 @@ Validation:
 
 ### Slice 10: Enable Dynamic Policy Selection Across Actions
 
-- status: `in_progress`
+- status: `ready_for_review`
 - branch: `fix/slice-10-dynamic-policy-selection`
 - PR: `tbd`
 - merge_target: `dev`
@@ -261,10 +261,10 @@ Tasks:
 
 Commits:
 
-- [x] `tbd feat(llm): enable dynamic ticket context policy`
-- [x] `tbd feat(llm): enable dynamic quiz context policies`
-- [x] `tbd feat(llm): enable dynamic project setup context policy`
-- [x] `tbd test(llm): cover static policy fallback`
+- [x] `28fa08c feat(llm): enable dynamic ticket context policy`
+- [x] `047c397 feat(llm): enable dynamic quiz context policies`
+- [x] `bd11fcb feat(llm): enable dynamic project setup context policy`
+- [x] `6778c5a test(llm): cover static policy fallback`
 
 Validation:
 
