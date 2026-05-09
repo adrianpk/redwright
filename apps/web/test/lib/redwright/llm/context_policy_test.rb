@@ -58,4 +58,13 @@ class RedwrightLLMContextPolicyTest < ActiveSupport::TestCase
       assert_empty policy.included_layers - Redwright::LLM::ContextPolicy::ALL_CONTEXT_LAYERS
     end
   end
+
+  test "full context fallback is an explicit registry policy" do
+    policy = Redwright::LLM::ContextPolicy.fallback_policy
+
+    assert_equal "full_context_fallback", policy.name
+    assert_nil policy.work_family
+    assert_equal Redwright::LLM::ContextPolicy::ALL_CONTEXT_LAYERS, policy.included_layers
+    assert policy.fallback?
+  end
 end

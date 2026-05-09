@@ -77,7 +77,7 @@ module Redwright
         FULL_CONTEXT_FALLBACK => Policy.new(
           name: FULL_CONTEXT_FALLBACK,
           work_family: nil,
-          included_layers: [],
+          included_layers: ALL_CONTEXT_LAYERS,
           fallback: true
         )
       ).freeze
@@ -110,6 +110,10 @@ module Redwright
 
       def fetch_policy(policy_name)
         POLICY_REGISTRY[policy_name.to_s]
+      end
+
+      def fallback_policy
+        fetch_policy(FULL_CONTEXT_FALLBACK)
       end
 
       def policy_for(family:, confidence:)

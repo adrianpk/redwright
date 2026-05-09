@@ -7,7 +7,7 @@
 - state: `executing_slice`
 - updated: `2026-05-09`
 - active_slice: `3`
-- active_task: `T3.2`
+- active_task: `T3.3`
 - plan: `ops/plans/2026-05-09-redwright-llm-context-shaping-cycle-plan.md`
 - spec: `ops/specs/specs/2026-05-09-redwright-agent-ticket-llm-context-shaping-spec.md`
 
@@ -75,17 +75,18 @@ Tasks:
 
 - [x] `T3.1 Add a simple Ruby policy registry used by LLMRequestEngine.`
 - [x] `T3.2 Define default policies for all initial work families.`
-- [ ] `T3.3 Define full_context_fallback as an explicit policy.`
+- [x] `T3.3 Define full_context_fallback as an explicit policy.`
 
 Commits:
 
 - [x] `tbd feat(llm): add context policy registry`
 - [x] `tbd feat(llm): define default context policies`
+- [x] `tbd feat(llm): define full context fallback policy`
 
 Validation:
 
-- [ ] `Every initial family maps to a policy.`
-- [ ] `full_context_fallback is tested like any other policy.`
+- [x] `Every initial family maps to a policy.`
+- [x] `full_context_fallback is tested like any other policy.`
 
 ### Slice 4: Map Existing LLM Actions To Policies
 
