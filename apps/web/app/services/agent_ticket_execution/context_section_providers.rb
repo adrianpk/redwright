@@ -214,6 +214,90 @@ module AgentTicketExecution
       end
     end
 
+    class TreeSitterContext < Base
+      MAX_FILES = 24
+      MAX_SYMBOLS_PER_FILE = 32
+
+      def sections(context)
+        inventory = TreeSitterContextInventory.new(context: context)
+        files = inventory.files
+        symbols = extract_symbols(context.workspace_path, files)
+        section = section(
+          "tree_sitter",
+          {
+            "parser_mode" => "preferred_tree_sitter",
+            "supported_extensions" => TREE_SITTER_SUPPORTED_EXTENSIONS,
+            "files" => files,
+            "symbols" => symbols
+          },
+          "workspace_semantic_parser"
+        )
+        section.metadata.merge!(
+          "context_layer" => "tree_sitter",
+          "selection_source" => "tree_sitter_context_inventory",
+          "parser_mode" => "preferred_tree_sitter",
+          "supported_extensions" => TREE_SITTER_SUPPORTED_EXTENSIONS,
+          "selected_files" => files,
+          "symbols_count" => symbols.length
+        )
+        [section]
+      end
+
+      private
+
+      def extract_symbols(workspace_path, files)
+        extractor = Redwright::TreeSitterStructuralExtractor.new
+        files.flat_map do |file|
+          extractor.extract(
+            project_path: workspace_path,
+            rel_path: file.fetch("path"),
+            max_symbols: MAX_SYMBOLS_PER_FILE
+          )
+        end.sort_by { |symbol| [symbol.fetch(:path).to_s, symbol.fetch(:line).to_i, symbol.fetch(:kind).to_s, symbol.fetch(:name).to_s] }
+      end
+    end
+
+    class TreeSitterContextInventory
+      def initialize(context:)
+        @context = context
+      end
+
+      def files
+        root = context.workspace_path.to_s
+        return [] unless File.directory?(root)
+
+        Dir.glob(File.join(root, "**", "*"), File::FNM_DOTMATCH).filter_map do |path|
+          next unless File.file?(path)
+
+          relative = path.delete_prefix("#{root}/")
+          next if skipped_path?(relative)
+          next unless TREE_SITTER_SUPPORTED_EXTENSIONS.include?(File.extname(relative))
+
+          {"path" => relative, "language" => language_for(relative), "bytes" => File.size(path)}
+        end.sort_by { |file| file.fetch("path") }.first(TreeSitterContext::MAX_FILES)
+      end
+
+      private
+
+      attr_reader :context
+
+      def skipped_path?(relative_path)
+        relative_path.split(File::SEPARATOR).any? { |part| SKIPPED_DIRECTORIES.include?(part) } ||
+          PROTOCOL_FILE_PATTERNS.any? { |pattern| pattern.match?(relative_path) }
+      end
+
+      def language_for(path)
+        case File.extname(path)
+        when ".go"
+          "go"
+        when ".rb"
+          "ruby"
+        else
+          "unknown"
+        end
+      end
+    end
+
     class Protocols < Base
       def sections(context)
         selector = ProtocolDocumentSelector.new(
