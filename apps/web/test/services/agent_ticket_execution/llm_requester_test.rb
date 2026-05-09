@@ -52,6 +52,48 @@ module AgentTicketExecution
       end
     end
 
+    test "applies context policy through request engine before provider call" do
+      with_agent_ticket_execution_workspace do |fixture|
+        workspace = WorkspaceBoundary.new(allowed_projects_root: fixture.projects_root).resolve(ticket: fixture.ticket)
+        execution_context = ContextComposer.new.compose(
+          ticket: fixture.ticket,
+          request: request_payload(fixture.ticket),
+          workspace: workspace
+        )
+        client = FakeLlmClient.new(
+          "status" => "proposed_changes",
+          "summary" => "Add the done command.",
+          "files" => [{"path" => "main.go", "operation" => "modify"}],
+          "commands" => [{"command" => "go test ./...", "purpose" => "validate"}]
+        )
+        engine = Redwright::LLM::RequestEngine.new(llm_client: client)
+        recorder = FakeTraceRecorder.new
+
+        result = LlmRequester.new(
+          request_engine: engine,
+          model: "test/model",
+          provider: "test",
+          trace_recorder: recorder
+        ).call(execution_context: execution_context)
+
+        provider_prompt = JSON.parse(client.calls.first.fetch(:user_text))
+        provider_section_names = provider_prompt.fetch("context_sections").map { |section| section.fetch("name") }
+        response_policy = recorder.responses.first.fetch(:policy_decision)
+
+        assert result.ok?, result.warnings.inspect
+        assert_includes provider_section_names, "project"
+        assert_includes provider_section_names, "tree_sitter"
+        assert_includes provider_section_names, "protocol_files"
+        refute_includes provider_section_names, "quizzes"
+        refute_includes provider_section_names, "dumps"
+        refute_includes provider_section_names, "llm_based_context"
+        assert_equal "implementation_default", response_policy.fetch(:policy_name)
+        assert_includes response_policy.fetch(:included_context_sections), "tree_sitter"
+        assert_includes response_policy.fetch(:omitted_context_sections), "quizzes"
+        assert_equal "context_layer_not_in_policy:quizzes:implementation_default", response_policy.fetch(:omission_reasons).fetch("quizzes")
+      end
+    end
+
     test "returns normalized near-miss contract payload and records diagnostics" do
       with_agent_ticket_execution_workspace do |fixture|
         workspace = WorkspaceBoundary.new(allowed_projects_root: fixture.projects_root).resolve(ticket: fixture.ticket)
@@ -155,6 +197,26 @@ module AgentTicketExecution
           raw_response_ref: @payload.to_json,
           diagnostics: {context_bytes: 123}
         )
+      end
+    end
+
+    class FakeLlmClient
+      Completion = Struct.new(:content, :finish_reason, keyword_init: true)
+
+      attr_reader :calls
+
+      def initialize(payload)
+        @payload = payload
+        @calls = []
+      end
+
+      def configured?
+        true
+      end
+
+      def complete_json(model:, system_prompt:, user_text:)
+        calls << {model: model, system_prompt: system_prompt, user_text: user_text}
+        Completion.new(content: JSON.generate(@payload), finish_reason: "stop")
       end
     end
 
