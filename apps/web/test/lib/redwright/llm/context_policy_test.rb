@@ -59,6 +59,32 @@ class RedwrightLLMContextPolicyTest < ActiveSupport::TestCase
     end
   end
 
+  test "policy matrix accounts for every family and context layer" do
+    matrix = Redwright::LLM::ContextPolicy.context_layer_policy_matrix
+
+    assert_equal Redwright::LLM::ContextPolicy::ALL_CONTEXT_LAYERS, matrix.keys
+    matrix.each_value do |family_behaviors|
+      assert_equal(
+        Redwright::LLM::ContextPolicy::WORK_FAMILIES + [Redwright::LLM::ContextPolicy::FULL_CONTEXT_FALLBACK],
+        family_behaviors.keys
+      )
+      assert_empty family_behaviors.values - %w[included omitted]
+    end
+  end
+
+  test "policy matrix captures expected tuning baseline" do
+    assert_equal "included", Redwright::LLM::ContextPolicy.layer_behavior(layer: "tree_sitter", family: "implementation")
+    assert_equal "included", Redwright::LLM::ContextPolicy.layer_behavior(layer: "llm_based", family: "diagnosis")
+    assert_equal "included", Redwright::LLM::ContextPolicy.layer_behavior(layer: "quizzes", family: "planning")
+    assert_equal "included", Redwright::LLM::ContextPolicy.layer_behavior(layer: "dumps", family: "documentation")
+    assert_equal "omitted", Redwright::LLM::ContextPolicy.layer_behavior(layer: "quizzes", family: "implementation")
+    assert_equal "omitted", Redwright::LLM::ContextPolicy.layer_behavior(layer: "tree_sitter", family: "planning")
+    assert_equal "included", Redwright::LLM::ContextPolicy.layer_behavior(
+      layer: "dumps",
+      family: Redwright::LLM::ContextPolicy::FULL_CONTEXT_FALLBACK
+    )
+  end
+
   test "full context fallback is an explicit registry policy" do
     policy = Redwright::LLM::ContextPolicy.fallback_policy
 
