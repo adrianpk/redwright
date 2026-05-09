@@ -4,7 +4,7 @@
 
 - cycle_id: `2026-05-09-redwright-llm-context-shaping`
 - status: `in_progress`
-- state: `slice_ready_for_review`
+- state: `next_slice`
 - updated: `2026-05-09`
 - active_slice: `none`
 - active_task: `none`
@@ -350,9 +350,9 @@ Validation:
 
 ### Slice 14: Dump Context Capability
 
-- status: `ready_for_review`
+- status: `completed`
 - branch: `fix/slice-14-dump-context`
-- PR: `tbd`
+- PR: `#403`
 - merge_target: `dev`
 - last_sync_commit: `30d7d1a`
 
