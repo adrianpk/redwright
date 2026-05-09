@@ -24,7 +24,7 @@ module AgentTicketExecution
 
         sections = context.context_sections.index_by(&:name)
         assert_equal(
-          %w[ticket project repository_tree relevant_files tests operational_setup protocol_files protocol_model documents quizzes previous_interactions],
+          %w[ticket project repository_tree relevant_files tests operational_setup protocol_files protocol_model documents quizzes dumps previous_interactions],
           sections.keys
         )
         assert_equal "ticket_record", sections.fetch("ticket").authority
@@ -33,6 +33,7 @@ module AgentTicketExecution
         assert_equal "project_protocol_model", sections.fetch("protocol_files").authority
         assert_equal "project_documents", sections.fetch("documents").authority
         assert_equal "project_quiz_model", sections.fetch("quizzes").authority
+        assert_equal "repository_dump_artifacts", sections.fetch("dumps").authority
         assert_equal "historical_agent_llm_interaction", sections.fetch("previous_interactions").authority
         assert_includes sections.fetch("ticket").content.fetch("description"), "done <task-number>"
         assert_includes sections.fetch("repository_tree").content.fetch("entries").map { |entry| entry.fetch("path") }, "main.go"
@@ -51,6 +52,7 @@ module AgentTicketExecution
         assert_includes sections.fetch("documents").content.fetch("documents").map { |document| document.fetch("title") }, "Implementation Plan"
         assert_includes sections.fetch("documents").content.fetch("omitted_documents").map { |document| document.fetch("title") }, "Implementation Draft"
         assert_equal "quizzes", sections.fetch("quizzes").metadata.fetch("context_layer")
+        assert_equal "dumps", sections.fetch("dumps").metadata.fetch("context_layer")
         assert_equal false, sections.fetch("previous_interactions").content.fetch("human_chat_included")
         assert_equal 1, sections.fetch("previous_interactions").content.fetch("records").length
 
@@ -194,6 +196,42 @@ module AgentTicketExecution
       end
     end
 
+    test "selects curated dump context by policy and topic relevance" do
+      with_agent_ticket_execution_workspace do |fixture|
+        write_dump_artifacts(fixture.project_path)
+        fixture.ticket.update!(
+          title: "Improve LLM context shaping",
+          description: "Use curated context shaping dumps while planning the request context."
+        )
+
+        workspace = WorkspaceBoundary.new(allowed_projects_root: fixture.projects_root).resolve(ticket: fixture.ticket)
+        planning_context = ContextComposer.new.compose(
+          ticket: fixture.ticket,
+          request: request_payload(branch_name: "feature/todo-done").merge("context_policy" => "planning_default"),
+          workspace: workspace
+        )
+        implementation_context = ContextComposer.new.compose(
+          ticket: fixture.ticket,
+          request: request_payload(branch_name: "feature/todo-done").merge("context_policy" => "implementation_default"),
+          workspace: workspace
+        )
+
+        planning_dumps = planning_context.context_sections.index_by(&:name).fetch("dumps")
+        implementation_dumps = implementation_context.context_sections.index_by(&:name).fetch("dumps")
+        selected_paths = planning_dumps.content.fetch("dumps").map { |dump| dump.fetch("path") }
+        omitted_paths = planning_dumps.content.fetch("omitted_dumps").map { |dump| dump.fetch("path") }
+
+        assert_includes selected_paths, "ops/conv/dump/2026-05-09-redwright-agent-ticket-llm-context-shaping-dump.md"
+        refute_includes selected_paths, "ops/conv/dump/2026-05-09-redwright-agent-ticket-llm-context-shaping-dump-raw.md"
+        assert_includes omitted_paths, "ops/conv/dump/2026-05-09-unrelated-deployment-dump.md"
+        assert_equal "dump_context_inventory", planning_dumps.metadata.fetch("selection_source")
+        assert_equal "matched_ticket_topic:llm", planning_dumps.metadata.fetch("selected_dumps").first.fetch("selection_reason")
+        assert_equal "no_topic_match", planning_dumps.metadata.fetch("omitted_dumps").find { |dump| dump.fetch("path") == "ops/conv/dump/2026-05-09-unrelated-deployment-dump.md" }.fetch("omission_reason")
+        assert_empty implementation_dumps.content.fetch("dumps")
+        assert_equal "policy_excludes_dumps:implementation_default", implementation_dumps.metadata.fetch("omitted_dumps").first.fetch("omission_reason")
+      end
+    end
+
     private
 
     def request_payload(branch_name:)
@@ -247,6 +285,23 @@ module AgentTicketExecution
         context_section_names: %w[ticket relevant_files tests]
       )
       store
+    end
+
+    def write_dump_artifacts(project_path)
+      dump_dir = File.join(project_path, "ops", "conv", "dump")
+      FileUtils.mkdir_p(dump_dir)
+      File.write(
+        File.join(dump_dir, "2026-05-09-redwright-agent-ticket-llm-context-shaping-dump.md"),
+        "# LLM Context Shaping Dump\n\nCurated notes about LLM context shaping and request planning.\n"
+      )
+      File.write(
+        File.join(dump_dir, "2026-05-09-redwright-agent-ticket-llm-context-shaping-dump-raw.md"),
+        "# Raw Dump\n\nThis raw dump must not be selected.\n"
+      )
+      File.write(
+        File.join(dump_dir, "2026-05-09-unrelated-deployment-dump.md"),
+        "# Deployment Dump\n\nCurated notes about deployment automation.\n"
+      )
     end
   end
 end

@@ -952,7 +952,7 @@ module AgentTicketExecution
       end
 
       def dump_terms(dump)
-        tokenize([dump.fetch("topic"), dump.fetch("title"), dump.fetch("path"), dump.fetch("body")].join(" "))
+        tokenize([dump.fetch("topic"), dump.fetch("title"), dump.fetch("path")].join(" "))
       end
 
       def tokenize(value)
