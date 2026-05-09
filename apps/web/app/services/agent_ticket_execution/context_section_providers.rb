@@ -39,6 +39,9 @@ module AgentTicketExecution
       exploration_default
       full_context_fallback
     ].freeze
+    CONVERSATION_INCLUDED_POLICIES = Redwright::LLM::ContextPolicy::POLICY_REGISTRY.values.select do |policy|
+      policy.included_layers.include?("conversation")
+    end.map(&:name).freeze
 
     Context = Struct.new(:ticket, :project, :request, :workspace_path, keyword_init: true)
 
@@ -981,17 +984,38 @@ module AgentTicketExecution
       end
 
       def sections(context)
-        [
-          section(
-            "previous_interactions",
-            {
-              "scope" => "agent_llm_loop",
-              "human_chat_included" => false,
-              "records" => previous_interaction_records(context.ticket, context.request)
-            },
-            "historical_agent_llm_interaction"
-          )
-        ]
+        agent_records = previous_interaction_records(context.ticket, context.request)
+        conversation_selector = ConversationContextSelector.new(
+          context: context,
+          limit: limit,
+          context_policy: context.request["context_policy"] || "implementation_default",
+          agent_interaction_store_configured: store.present?
+        )
+        selected_comments = conversation_selector.selected_comments
+        omitted_comments = conversation_selector.omitted_comments
+        section = section(
+          "previous_interactions",
+          {
+            "scope" => "agent_ticket_execution_conversation",
+            "human_chat_included" => selected_comments.any? { |comment| comment.fetch("author_type") == "user" },
+            "records" => agent_records,
+            "agent_llm_records" => agent_records,
+            "ticket_comments" => selected_comments.map { |comment| comment_payload(comment) },
+            "omitted_ticket_comments" => omitted_comments.map { |comment| comment_trace_payload(comment) },
+            "storage_inventory" => conversation_selector.storage_inventory
+          },
+          "historical_conversation"
+        )
+        section.metadata.merge!(
+          "context_layer" => "conversation",
+          "selection_source" => "conversation_context_inventory",
+          "agent_llm_records" => agent_records.length,
+          "selected_ticket_comments" => selected_comments.map { |comment| comment_trace_payload(comment) },
+          "omitted_ticket_comments" => omitted_comments.map { |comment| comment_trace_payload(comment) },
+          "storage_inventory" => conversation_selector.storage_inventory
+        )
+
+        [section]
       end
 
       private
@@ -1003,6 +1027,154 @@ module AgentTicketExecution
 
         store.recent(ticket: ticket, request: request, limit: limit)
       end
+
+      def comment_payload(comment)
+        comment_trace_payload(comment).merge(
+          "body" => comment.fetch("body"),
+          "mentions" => comment.fetch("mentions")
+        )
+      end
+
+      def comment_trace_payload(comment)
+        {
+          "id" => comment.fetch("id"),
+          "ticket_id" => comment.fetch("ticket_id"),
+          "use_case_id" => comment["use_case_id"],
+          "author_type" => comment.fetch("author_type"),
+          "author_label" => comment.fetch("author_label"),
+          "author_handle" => comment["author_handle"],
+          "created_at" => comment.fetch("created_at"),
+          "selection_reason" => comment["selection_reason"],
+          "omission_reason" => comment["omission_reason"]
+        }.compact
+      end
+    end
+
+    class ConversationContextSelector
+      attr_reader :context, :limit, :context_policy, :agent_interaction_store_configured
+
+      def initialize(context:, limit:, context_policy:, agent_interaction_store_configured:)
+        @context = context
+        @limit = limit
+        @context_policy = context_policy.to_s
+        @agent_interaction_store_configured = agent_interaction_store_configured
+      end
+
+      def selected_comments
+        @selected_comments ||= comment_records.filter_map do |comment|
+          next unless selected_comment?(comment)
+
+          comment.merge("selection_reason" => selection_reason(comment))
+        end.first(limit)
+      end
+
+      def omitted_comments
+        @omitted_comments ||= comment_records.filter_map do |comment|
+          next if selected_comment?(comment)
+
+          comment.merge("omission_reason" => omission_reason(comment))
+        end
+      end
+
+      def storage_inventory
+        {
+          "ticket_comments" => {
+            "status" => "operational",
+            "scope" => "project_ticket_comments",
+            "records" => comment_records.length
+          },
+          "telegram_chat_context" => {
+            "status" => "context_pointer_only",
+            "scope" => "chat_to_project_workstream_mapping"
+          },
+          "tui_runtime_messages" => {
+            "status" => "transient_queue",
+            "scope" => "in_memory_turn_events"
+          },
+          "agent_llm_interactions" => {
+            "status" => agent_interaction_store_configured ? "operational" : "not_configured",
+            "scope" => "ticket_session_jsonl"
+          }
+        }
+      end
+
+      private
+
+      def comment_records
+        @comment_records ||= TicketComment
+          .joins(ticket: :board)
+          .where(boards: {project_id: context.project.id})
+          .includes(:mentions, :ticket)
+          .order(created_at: :desc, id: :desc)
+          .limit(limit * 4)
+          .map { |comment| record_for(comment) }
+      end
+
+      def selected_comment?(comment)
+        return false unless context_policy_allows_conversation?
+
+        same_ticket?(comment) || same_use_case?(comment) || relevant_project_topic?(comment)
+      end
+
+      def context_policy_allows_conversation?
+        CONVERSATION_INCLUDED_POLICIES.include?(context_policy)
+      end
+
+      def same_ticket?(comment)
+        comment.fetch("ticket_id") == context.ticket.id
+      end
+
+      def same_use_case?(comment)
+        context.ticket.use_case_id.present? && comment["use_case_id"] == context.ticket.use_case_id
+      end
+
+      def relevant_project_topic?(comment)
+        project_terms.any? { |term| tokenize(comment.fetch("body")).include?(term) }
+      end
+
+      def selection_reason(comment)
+        return "matched_ticket:#{comment.fetch("ticket_id")}" if same_ticket?(comment)
+        return "matched_use_case:#{comment.fetch("use_case_id")}" if same_use_case?(comment)
+
+        term = project_terms.find { |candidate| tokenize(comment.fetch("body")).include?(candidate) }
+        "matched_project_topic:#{term}"
+      end
+
+      def omission_reason(_comment)
+        return "policy_excludes_conversation:#{context_policy}" unless context_policy_allows_conversation?
+
+        "no_conversation_scope_match"
+      end
+
+      def project_terms
+        @project_terms ||= tokenize([context.project.name, context.project.description, context.ticket.title, context.ticket.description].compact.join(" "))
+      end
+
+      def tokenize(value)
+        value.to_s.downcase.scan(/[a-z0-9][a-z0-9-]{2,}/).uniq
+      end
+
+      def record_for(comment)
+        {
+          "id" => comment.id,
+          "ticket_id" => comment.ticket_id,
+          "use_case_id" => comment.ticket.use_case_id,
+          "author_type" => comment.author_type,
+          "author_label" => comment.author_label,
+          "author_handle" => comment.author_handle,
+          "body" => comment.body,
+          "mentions" => comment.mentions.map do |mention|
+            {
+              "handle" => mention.handle,
+              "target_type" => mention.target_type,
+              "target_id" => mention.target_id,
+              "display_label" => mention.display_label
+            }.compact
+          end,
+          "created_at" => comment.created_at&.iso8601
+        }
+      end
+
     end
 
     class ValidationFeedback < Base
