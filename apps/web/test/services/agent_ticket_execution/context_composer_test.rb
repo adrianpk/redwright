@@ -32,11 +32,14 @@ module AgentTicketExecution
         assert_includes sections.fetch("ticket").content.fetch("description"), "done <task-number>"
         assert_includes sections.fetch("repository_tree").content.fetch("entries").map { |entry| entry.fetch("path") }, "main.go"
         refute_includes sections.fetch("repository_tree").content.fetch("entries").map { |entry| entry.fetch("path") }, "AGENTS.md"
+        refute_includes sections.fetch("repository_tree").content.fetch("entries").map { |entry| entry.fetch("path") }, ".agents/CONVENTIONS.md"
         assert_includes sections.fetch("relevant_files").content.map { |file| file.fetch("path") }, "main.go"
         refute_includes sections.fetch("relevant_files").content.map { |file| file.fetch("path") }, "AGENTS.md"
+        refute_includes sections.fetch("relevant_files").content.map { |file| file.fetch("path") }, ".agents/CONVENTIONS.md"
         assert_includes sections.fetch("tests").content.map { |file| file.fetch("path") }, "main_test.go"
         assert_equal "available", sections.fetch("operational_setup").content.fetch("status")
         assert_includes sections.fetch("protocol_files").content.map { |file| file.fetch("path") }, "AGENTS.md"
+        assert_includes sections.fetch("protocol_files").content.map { |file| file.fetch("path") }, ".agents/CONVENTIONS.md"
         assert_includes sections.fetch("protocol_files").content.first.fetch("content"), "Use Conventional Commits"
         assert_equal false, sections.fetch("previous_interactions").content.fetch("human_chat_included")
         assert_equal 1, sections.fetch("previous_interactions").content.fetch("records").length
@@ -121,6 +124,15 @@ module AgentTicketExecution
         layer: "behavioral",
         position: 0,
         body: "Use Conventional Commits and run go test ./....",
+        provenance: {"source" => "test"}
+      )
+      protocol.documents.create!(
+        key: "conventions",
+        path: ".agents/CONVENTIONS.md",
+        title: "Conventions",
+        layer: "behavioral",
+        position: 1,
+        body: "Keep generated protocol files out of repository filesystem context.",
         provenance: {"source" => "test"}
       )
       ProjectProtocols::FilesystemMaterializer.new(project: project, workspace_path: project_path).call
