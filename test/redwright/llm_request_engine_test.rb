@@ -393,4 +393,85 @@ class LlmRequestEngineTest < Minitest::Test
     assert_equal ["project"], response.diagnostics.fetch(:context_sections)
     assert_equal "implementation_default", response.diagnostics.fetch(:context_policy).fetch(:policy_name)
   end
+
+  def test_generate_structured_message_applies_policy_matrix_for_each_family
+    Redwright::LLM::ContextPolicy::WORK_FAMILIES.each do |family|
+      client = FakeClient.new(content: JSON.generate({"message" => "Question?"}))
+      engine = Redwright::LLM::RequestEngine.new(llm_client: client)
+      policy_name = Redwright::LLM::ContextPolicy.default_policy_for(family)
+      policy = Redwright::LLM::ContextPolicy.fetch_policy(policy_name)
+
+      response = engine.generate_structured_message(
+        model: "example/model",
+        model_role: "coding",
+        provider: "example",
+        action: "agent_ticket_execution",
+        system_prompt: "Return JSON.",
+        user_text: "{}",
+        context_sections: matrix_context_sections,
+        context_policy: policy_name
+      )
+
+      assert_predicate response, :ok?
+      diagnostics = response.diagnostics.fetch(:context_policy)
+      assert_equal policy_name, diagnostics.fetch(:policy_name)
+      assert_equal family, diagnostics.fetch(:work_family)
+      assert_equal policy.included_layers, diagnostics.fetch(:included_layers)
+      assert_equal policy.included_layers.sort, diagnostics.fetch(:included_context_sections).sort
+      assert_equal(
+        (Redwright::LLM::ContextPolicy::ALL_CONTEXT_LAYERS - policy.included_layers).sort,
+        diagnostics.fetch(:omitted_context_sections).sort
+      )
+    end
+  end
+
+  def test_generate_structured_message_reports_omissions_and_fallback_for_full_matrix
+    client = FakeClient.new(content: JSON.generate({"message" => "Question?"}))
+    engine = Redwright::LLM::RequestEngine.new(llm_client: client)
+
+    response = engine.generate_structured_message(
+      model: "example/model",
+      model_role: "coding",
+      provider: "example",
+      action: "agent_ticket_execution",
+      system_prompt: "Return JSON.",
+      user_text: "{}",
+      context_sections: matrix_context_sections,
+      context_policy: "implementation_default"
+    )
+
+    diagnostics = response.diagnostics.fetch(:context_policy)
+    assert_equal "context_layer_not_in_policy:quizzes:implementation_default", diagnostics.fetch(:omission_reasons).fetch("quizzes")
+    assert_equal "context_layer_not_in_policy:dumps:implementation_default", diagnostics.fetch(:omission_reasons).fetch("dumps")
+    assert_equal "context_layer_not_in_policy:llm_based:implementation_default", diagnostics.fetch(:omission_reasons).fetch("llm_based")
+
+    fallback_response = engine.generate_structured_message(
+      model: "example/model",
+      model_role: "coding",
+      provider: "example",
+      action: "agent_ticket_execution",
+      system_prompt: "Return JSON.",
+      user_text: "{}",
+      context_sections: matrix_context_sections,
+      context_policy: Redwright::LLM::ContextPolicy::FULL_CONTEXT_FALLBACK
+    )
+
+    fallback_diagnostics = fallback_response.diagnostics.fetch(:context_policy)
+    assert_equal Redwright::LLM::ContextPolicy::ALL_CONTEXT_LAYERS.sort, fallback_diagnostics.fetch(:included_context_sections).sort
+    assert_empty fallback_diagnostics.fetch(:omitted_context_sections)
+    assert_empty fallback_diagnostics.fetch(:omission_reasons)
+  end
+
+  private
+
+  def matrix_context_sections
+    Redwright::LLM::ContextPolicy::ALL_CONTEXT_LAYERS.map do |layer|
+      Redwright::LLM::ContextSection.new(
+        name: layer,
+        content: "#{layer} context",
+        authority: "test",
+        metadata: {"context_layer" => layer}
+      )
+    end
+  end
 end
