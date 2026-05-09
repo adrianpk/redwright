@@ -33,6 +33,12 @@ module AgentTicketExecution
       exploration_default
       full_context_fallback
     ].freeze
+    DUMP_INCLUDED_POLICIES = %w[
+      planning_default
+      documentation_default
+      exploration_default
+      full_context_fallback
+    ].freeze
 
     Context = Struct.new(:ticket, :project, :request, :workspace_path, keyword_init: true)
 
@@ -763,6 +769,208 @@ module AgentTicketExecution
         return "unmatched_use_case:#{record.fetch("use_case_id")}" unless matched_use_case_scope?(record)
 
         "unselected_status:#{record.fetch("status")}"
+      end
+    end
+
+    class Dumps < Base
+      MAX_DUMPS = 8
+      MAX_DUMP_BYTES = 20_000
+
+      def sections(context)
+        inventory = DumpContextInventory.new(context: context)
+        selector = DumpContextSelector.new(
+          dumps: inventory.dumps,
+          ticket: context.ticket,
+          project: context.project,
+          context_policy: context.request["context_policy"] || "implementation_default"
+        )
+
+        [dump_section(selector)]
+      end
+
+      private
+
+      def dump_section(selector)
+        selected_dumps = selector.selected_dumps
+        omitted_dumps = selector.omitted_dumps
+        section = section(
+          "dumps",
+          {
+            "dumps" => selected_dumps.map { |dump| payload(dump) },
+            "omitted_dumps" => omitted_dumps.map { |dump| trace_payload(dump) }
+          },
+          "repository_dump_artifacts"
+        )
+        section.metadata.merge!(
+          "context_layer" => "dumps",
+          "selection_source" => "dump_context_inventory",
+          "selected_dumps" => selected_dumps.map { |dump| trace_payload(dump) },
+          "omitted_dumps" => omitted_dumps.map { |dump| trace_payload(dump) }
+        )
+        section
+      end
+
+      def payload(dump)
+        trace_payload(dump).merge(
+          "body" => truncate(dump.fetch("body", "").to_s),
+          "truncated" => dump.fetch("body", "").to_s.bytesize > MAX_DUMP_BYTES
+        )
+      end
+
+      def trace_payload(dump)
+        {
+          "source" => dump.fetch("source"),
+          "title" => dump.fetch("title"),
+          "topic" => dump.fetch("topic"),
+          "path" => dump.fetch("path"),
+          "selection_reason" => dump["selection_reason"],
+          "omission_reason" => dump["omission_reason"]
+        }.compact
+      end
+
+      def truncate(value)
+        value.bytesize > MAX_DUMP_BYTES ? value.byteslice(0, MAX_DUMP_BYTES) : value
+      end
+    end
+
+    class DumpContextInventory
+      def initialize(context:)
+        @context = context
+      end
+
+      def dumps
+        root = repository_root
+        return [] unless root
+
+        Dir.glob(File.join(root, "ops", "conv", "dump", "*-dump.md")).filter_map do |path|
+          relative = path.delete_prefix("#{root}/")
+          next if relative.end_with?("-dump-raw.md")
+
+          {
+            "source" => "repository_dump_artifact",
+            "title" => title_for(path),
+            "topic" => topic_for(path),
+            "path" => relative,
+            "body" => read_file(path),
+            "updated_at" => File.mtime(path)
+          }
+        end.sort_by { |dump| dump.fetch("path") }.first(Dumps::MAX_DUMPS * 2)
+      end
+
+      private
+
+      attr_reader :context
+
+      def repository_root
+        workspace = context.workspace_path.to_s
+        return workspace if File.directory?(File.join(workspace, "ops", "conv", "dump"))
+
+        root = Rails.root.join("..", "..").expand_path.to_s
+        return root if File.directory?(File.join(root, "ops", "conv", "dump"))
+
+        nil
+      end
+
+      def title_for(path)
+        first_heading = File.foreach(path).find { |line| line.start_with?("# ") }
+        first_heading ? first_heading.delete_prefix("# ").strip : File.basename(path, ".md")
+      rescue StandardError
+        File.basename(path, ".md")
+      end
+
+      def topic_for(path)
+        File.basename(path, "-dump.md").sub(/\A\d{4}-\d{2}-\d{2}-/, "")
+      end
+
+      def read_file(path)
+        File.binread(path, Dumps::MAX_DUMP_BYTES)
+      rescue StandardError => e
+        "[unreadable: #{e.class.name}]"
+      end
+    end
+
+    class DumpContextSelector
+      attr_reader :dumps, :ticket, :project, :context_policy
+
+      def initialize(dumps:, ticket:, project:, context_policy:)
+        @dumps = dumps
+        @ticket = ticket
+        @project = project
+        @context_policy = context_policy.to_s
+      end
+
+      def selected_dumps
+        @selected_dumps ||= dumps.filter_map do |dump|
+          next unless selected_dump?(dump)
+
+          dump.merge("selection_reason" => selection_reason(dump))
+        end.first(Dumps::MAX_DUMPS)
+      end
+
+      def omitted_dumps
+        @omitted_dumps ||= dumps.filter_map do |dump|
+          next if selected_dump?(dump)
+
+          dump.merge("omission_reason" => omission_reason(dump))
+        end
+      end
+
+      private
+
+      def selected_dump?(dump)
+        return false unless context_policy_allows_dumps?
+
+        relevant_to_ticket?(dump) || relevant_to_project?(dump)
+      end
+
+      def context_policy_allows_dumps?
+        DUMP_INCLUDED_POLICIES.include?(context_policy)
+      end
+
+      def relevant_to_ticket?(dump)
+        ticket_terms.any? { |term| dump_terms(dump).include?(term) }
+      end
+
+      def relevant_to_project?(dump)
+        project_terms.any? { |term| dump_terms(dump).include?(term) }
+      end
+
+      def ticket_terms
+        @ticket_terms ||= tokenize(
+          [
+            ticket.title,
+            ticket.description,
+            ticket.scope,
+            ticket.kind,
+            ticket.use_case&.name
+          ].compact.join(" ")
+        )
+      end
+
+      def project_terms
+        @project_terms ||= tokenize([project.name, project.description, project.stack_slug].compact.join(" "))
+      end
+
+      def dump_terms(dump)
+        tokenize([dump.fetch("topic"), dump.fetch("title"), dump.fetch("path"), dump.fetch("body")].join(" "))
+      end
+
+      def tokenize(value)
+        value.to_s.downcase.scan(/[a-z0-9][a-z0-9-]{2,}/).uniq
+      end
+
+      def selection_reason(dump)
+        matching_ticket_term = ticket_terms.find { |term| dump_terms(dump).include?(term) }
+        return "matched_ticket_topic:#{matching_ticket_term}" if matching_ticket_term
+
+        matching_project_term = project_terms.find { |term| dump_terms(dump).include?(term) }
+        "matched_project_topic:#{matching_project_term}"
+      end
+
+      def omission_reason(dump)
+        return "policy_excludes_dumps:#{context_policy}" unless context_policy_allows_dumps?
+
+        "no_topic_match"
       end
     end
 
