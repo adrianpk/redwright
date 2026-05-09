@@ -43,7 +43,12 @@ class LlmTraceRecorderTest < Minitest::Test
         source_channel: "project_setup",
         system_prompt: "system",
         user_text: "{}",
-        context_sections: ["setup_summary"]
+        context_sections: ["setup_summary"],
+        policy_decision: {
+          policy_name: "planning_default",
+          included_context_sections: ["setup_summary"],
+          omitted_context_sections: []
+        }
       )
       recorder.record_response(
         status: "ok",
@@ -60,6 +65,11 @@ class LlmTraceRecorderTest < Minitest::Test
         payload_bytes: 12,
         warnings: ["Provider response was empty"],
         diagnostics: {response_failure: "empty_content"},
+        policy_decision: {
+          policy_name: "planning_default",
+          included_context_sections: ["setup_summary"],
+          omitted_context_sections: []
+        },
         project_id: 77,
         session_id: 41,
         source_channel: "project_setup"
@@ -73,10 +83,12 @@ class LlmTraceRecorderTest < Minitest::Test
       assert_equal "project_setup_prompt_render", request.fetch("action")
       assert_equal "non_coding", request.fetch("model_role")
       assert_equal ["setup_summary"], request.fetch("context_sections")
+      assert_equal "planning_default", request.fetch("policy_decision").fetch("policy_name")
       assert_equal "ok", response.fetch("status")
       assert_equal "Question?", response.fetch("parsed_message")
       assert_equal ["Provider response was empty"], response.fetch("warnings")
       assert_equal "empty_content", response.fetch("diagnostics").fetch("response_failure")
+      assert_equal "planning_default", response.fetch("policy_decision").fetch("policy_name")
     end
   end
 

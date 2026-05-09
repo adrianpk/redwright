@@ -30,7 +30,8 @@ module Redwright
         actor_identifier: nil,
         context_summary: nil,
         context_bytes: nil,
-        context_sections: nil
+        context_sections: nil,
+        policy_decision: nil
       )
         @trace.llm_request(
           role: model_role,
@@ -53,7 +54,8 @@ module Redwright
           actor_identifier: actor_identifier,
           context_summary: context_summary,
           context_bytes: context_bytes,
-          context_sections: context_sections
+          context_sections: context_sections,
+          policy_decision: policy_decision
         )
       end
 
@@ -85,7 +87,8 @@ module Redwright
         resolved_model: nil,
         payload_bytes: nil,
         warnings: nil,
-        diagnostics: nil
+        diagnostics: nil,
+        policy_decision: nil
       )
         @trace.llm_response(
           status: status,
@@ -115,7 +118,8 @@ module Redwright
           resolved_model: resolved_model,
           payload_bytes: payload_bytes,
           warnings: warnings,
-          diagnostics: diagnostics
+          diagnostics: diagnostics,
+          policy_decision: policy_decision
         )
       end
     end

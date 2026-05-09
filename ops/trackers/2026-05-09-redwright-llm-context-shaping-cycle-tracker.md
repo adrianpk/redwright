@@ -7,7 +7,7 @@
 - state: `executing_slice`
 - updated: `2026-05-09`
 - active_slice: `7`
-- active_task: `T7.1`
+- active_task: `T7.2`
 - plan: `ops/plans/2026-05-09-redwright-llm-context-shaping-cycle-plan.md`
 - spec: `ops/specs/specs/2026-05-09-redwright-agent-ticket-llm-context-shaping-spec.md`
 
@@ -176,12 +176,13 @@ Validation:
 Tasks:
 
 - [x] `T7.1 Extend request diagnostics with policy fields.`
-- [ ] `T7.2 Extend trace recorder payloads to include policy decision metadata.`
+- [x] `T7.2 Extend trace recorder payloads to include policy decision metadata.`
 - [ ] `T7.3 Add tests for policy trace output.`
 
 Commits:
 
 - [x] `tbd feat(llm): add request policy diagnostics`
+- [x] `tbd feat(llm): add policy decision trace payloads`
 
 Validation:
 

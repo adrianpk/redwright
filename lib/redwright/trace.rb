@@ -60,7 +60,8 @@ module Redwright
       actor_identifier: nil,
       context_summary: nil,
       context_bytes: nil,
-      context_sections: nil
+      context_sections: nil,
+      policy_decision: nil
     )
       llm_call_id ||= generate_llm_call_id
       return unless llm_foreground_enabled? || llm_file_enabled?
@@ -77,7 +78,7 @@ module Redwright
           action: action,
           payload_bytes: payload_bytes,
           system_prompt: system_prompt,
-          user_text: user_text
+        user_text: user_text
         }.compact)
       end
       write_llm_file_event(
@@ -102,7 +103,8 @@ module Redwright
         user_text: include_user_text? ? user_text : nil,
         context_summary: context_summary,
         context_bytes: context_bytes,
-        context_sections: context_sections
+        context_sections: context_sections,
+        policy_decision: policy_decision
       )
       llm_call_id
     end
@@ -135,7 +137,8 @@ module Redwright
       resolved_model: nil,
       payload_bytes: nil,
       warnings: nil,
-      diagnostics: nil
+      diagnostics: nil,
+      policy_decision: nil
     )
       llm_call_id ||= generate_llm_call_id
       return unless llm_foreground_enabled? || llm_file_enabled?
@@ -184,7 +187,8 @@ module Redwright
         decision_source: decision_source,
         error: error,
         warnings: warnings,
-        diagnostics: diagnostics
+        diagnostics: diagnostics,
+        policy_decision: policy_decision
       )
       llm_call_id
     end
