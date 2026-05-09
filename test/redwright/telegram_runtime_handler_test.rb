@@ -3551,6 +3551,18 @@ class TelegramRuntimeHandlerTest < Minitest::Test
     assert_equal({ mode: "structured", source: "default" }, handler.send(:select_change_mode, event_text: "do work", decision: default_decision))
   end
 
+  def test_maps_runtime_intent_trace_actions_to_static_policy_decisions
+    handler = build_private_method_handler
+
+    planning = handler.send(:policy_decision_for_action, "intent_interpret")
+    diagnosis = handler.send(:policy_decision_for_action, "intent_refine_with_errors")
+
+    assert_equal "planning_default", planning.fetch(:policy_name)
+    assert_equal "planning", planning.fetch(:work_family)
+    assert_equal "diagnosis_default", diagnosis.fetch(:policy_name)
+    assert_equal "diagnosis", diagnosis.fetch(:work_family)
+  end
+
   private
 
   def build_private_method_handler(show_operational_telemetry: false, clarification_policy: nil)

@@ -3,6 +3,7 @@
 require "json"
 
 require_relative "trace"
+require_relative "llm/context_policy"
 require_relative "runtime_result_envelope"
 require_relative "llm_intent_interpreter"
 require_relative "telegram_context_resolver"
@@ -538,6 +539,7 @@ module Redwright
     end
 
     def interpret_with_trace(action:, text:, model:, project_context:, architecture_context:, workspace_context:, trace_metadata: {})
+      policy_decision = policy_decision_for_action(action)
       llm_call_id = Trace.llm_request(
         role: @model_role,
         provider: @model_provider,
@@ -560,7 +562,8 @@ module Redwright
         actor_identifier: trace_metadata[:actor_identifier],
         context_summary: trace_metadata[:context_summary],
         context_bytes: trace_metadata[:context_bytes],
-        context_sections: trace_metadata[:context_sections]
+        context_sections: trace_metadata[:context_sections],
+        policy_decision: policy_decision
       )
       started_at = Process.clock_gettime(Process::CLOCK_MONOTONIC)
       decision = interpret_with_context(
@@ -593,9 +596,23 @@ module Redwright
         model: @model_name,
         model_alias: @model_name.to_s.include?("/") ? @model_name : nil,
         resolved_model: @model_name.to_s.include?("/") ? model : nil,
-        payload_bytes: text.to_s.bytesize
+        payload_bytes: text.to_s.bytesize,
+        policy_decision: policy_decision
       )
       decision
+    end
+
+    def policy_decision_for_action(action)
+      policy_name = LLM::ContextPolicy.policy_name_for_action(action)
+      policy = LLM::ContextPolicy.fetch_policy(policy_name)
+      return nil unless policy
+
+      {
+        policy_name: policy.name,
+        work_family: policy.work_family,
+        fallback: policy.fallback?,
+        included_layers: policy.included_layers
+      }
     end
 
     def trace_system_prompt_for_interpreter(project_context:, architecture_context:, workspace_context:)

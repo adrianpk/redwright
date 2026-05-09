@@ -7,7 +7,7 @@
 - state: `executing_slice`
 - updated: `2026-05-09`
 - active_slice: `8`
-- active_task: `T8.3`
+- active_task: `T8.4`
 - plan: `ops/plans/2026-05-09-redwright-llm-context-shaping-cycle-plan.md`
 - spec: `ops/specs/specs/2026-05-09-redwright-agent-ticket-llm-context-shaping-spec.md`
 
@@ -203,18 +203,19 @@ Tasks:
 - [x] `T8.1 Integrate static policies into agent ticket execution.`
 - [x] `T8.2 Integrate static policies into quiz generation.`
 - [x] `T8.3 Integrate static policies into project setup prompt rendering.`
-- [ ] `T8.4 Integrate static policies into active legacy runtime interpretation paths where applicable.`
+- [x] `T8.4 Integrate static policies into active legacy runtime interpretation paths where applicable.`
 
 Commits:
 
 - [x] `tbd feat(llm): apply ticket execution context policy`
 - [x] `tbd feat(llm): apply quiz context policies`
 - [x] `tbd feat(llm): apply project setup context policy`
+- [x] `tbd feat(llm): trace runtime intent context policies`
 
 Validation:
 
-- [ ] `All existing actions use a mapped default policy or documented fallback.`
-- [ ] `Action output contracts remain unchanged.`
+- [x] `All existing actions use a mapped default policy or documented fallback.`
+- [x] `Action output contracts remain unchanged.`
 
 ### Slice 9: Add LLM Preclassifier Stage
 
