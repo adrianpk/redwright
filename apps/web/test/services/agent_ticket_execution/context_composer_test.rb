@@ -107,9 +107,15 @@ module AgentTicketExecution
 
     test "selects document context separately from protocols" do
       with_agent_ticket_execution_workspace do |fixture|
+        use_case = create_use_case(project: fixture.project, name: "Feature")
+        other_use_case = create_use_case(project: fixture.project, name: "Other")
+        fixture.ticket.update!(use_case: use_case)
         draft = create_document(project: fixture.project, title: "Feature Draft", body: "Draft body")
-        create_document(project: fixture.project, artifact_type: "spec", title: "Feature Spec", body: "Spec body", source_draft: draft, editable: false)
+        scoped_draft = create_document(project: fixture.project, use_case: use_case, title: "Scoped Feature Draft", body: "Scoped draft body")
+        create_document(project: fixture.project, use_case: use_case, artifact_type: "spec", title: "Feature Spec", body: "Spec body", source_draft: scoped_draft, editable: false)
         create_document(project: fixture.project, artifact_type: "plan_tracker", title: "Feature Plan", body: "Plan body", editable: false)
+        other_draft = create_document(project: fixture.project, use_case: other_use_case, title: "Other Draft", body: "Other draft body")
+        create_document(project: fixture.project, use_case: other_use_case, artifact_type: "spec", title: "Other Spec", body: "Other spec body", source_draft: other_draft, editable: false)
         write_project_protocols(fixture.project, fixture.project_path)
 
         workspace = WorkspaceBoundary.new(allowed_projects_root: fixture.projects_root).resolve(ticket: fixture.ticket)
@@ -128,11 +134,13 @@ module AgentTicketExecution
         assert_includes selected_titles, "Feature Spec"
         assert_includes selected_titles, "Feature Plan"
         assert_includes omitted_titles, "Feature Draft"
+        assert_includes omitted_titles, "Other Spec"
         refute_includes selected_titles, "AGENTS"
         assert_includes protocol_files.content.map { |document| document.fetch("title") }, "AGENTS"
         assert_equal "document_context_inventory", documents.metadata.fetch("selection_source")
-        assert_equal "matched_artifact_type:spec", documents.metadata.fetch("selected_documents").find { |document| document.fetch("title") == "Feature Spec" }.fetch("selection_reason")
+        assert_equal "matched_use_case:#{use_case.id}:spec", documents.metadata.fetch("selected_documents").find { |document| document.fetch("title") == "Feature Spec" }.fetch("selection_reason")
         assert_equal "unselected_artifact_type:draft", documents.metadata.fetch("omitted_documents").find { |document| document.fetch("title") == "Feature Draft" }.fetch("omission_reason")
+        assert_equal "unmatched_use_case:#{other_use_case.id}", documents.metadata.fetch("omitted_documents").find { |document| document.fetch("title") == "Other Spec" }.fetch("omission_reason")
       end
     end
 

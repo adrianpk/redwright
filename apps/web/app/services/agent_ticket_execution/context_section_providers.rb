@@ -351,6 +351,7 @@ module AgentTicketExecution
         inventory = DocumentContextInventory.new(context: context)
         selector = DocumentContextSelector.new(
           documents: inventory.documents,
+          ticket: context.ticket,
           context_policy: context.request["context_policy"] || "implementation_default"
         )
 
@@ -486,10 +487,11 @@ module AgentTicketExecution
     end
 
     class DocumentContextSelector
-      attr_reader :documents, :context_policy
+      attr_reader :documents, :ticket, :context_policy
 
-      def initialize(documents:, context_policy:)
+      def initialize(documents:, ticket:, context_policy:)
         @documents = documents
+        @ticket = ticket
         @context_policy = context_policy.to_s
       end
 
@@ -517,8 +519,16 @@ module AgentTicketExecution
 
       def selected_document?(document)
         return true if context_policy == Redwright::LLM::ContextPolicy::FULL_CONTEXT_FALLBACK
+        return false unless matched_use_case_scope?(document)
 
         selected_artifact_types.include?(document.fetch("artifact_type").to_s)
+      end
+
+      def matched_use_case_scope?(document)
+        use_case_id = document["use_case_id"]
+        return true if use_case_id.blank?
+
+        ticket.use_case_id.present? && use_case_id == ticket.use_case_id
       end
 
       def selected_artifact_types
@@ -526,10 +536,14 @@ module AgentTicketExecution
       end
 
       def selection_reason(document)
+        return "matched_use_case:#{document.fetch("use_case_id")}:#{document.fetch("artifact_type")}" if document["use_case_id"].present?
+
         "matched_artifact_type:#{document.fetch("artifact_type")}"
       end
 
       def omission_reason(document)
+        return "unmatched_use_case:#{document.fetch("use_case_id")}" unless matched_use_case_scope?(document)
+
         "unselected_artifact_type:#{document.fetch("artifact_type")}"
       end
     end
