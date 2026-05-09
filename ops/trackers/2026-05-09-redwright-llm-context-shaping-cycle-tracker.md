@@ -7,7 +7,7 @@
 - state: `executing_slice`
 - updated: `2026-05-09`
 - active_slice: `10`
-- active_task: `T10.3`
+- active_task: `T10.4`
 - plan: `ops/plans/2026-05-09-redwright-llm-context-shaping-cycle-plan.md`
 - spec: `ops/specs/specs/2026-05-09-redwright-agent-ticket-llm-context-shaping-spec.md`
 
@@ -257,18 +257,19 @@ Tasks:
 - [x] `T10.1 Enable dynamic policy selection for agent ticket execution.`
 - [x] `T10.2 Enable dynamic policy selection for quiz generation where useful.`
 - [x] `T10.3 Enable dynamic policy selection for project setup prompt rendering where useful.`
-- [ ] `T10.4 Keep static action mapping as fallback.`
+- [x] `T10.4 Keep static action mapping as fallback.`
 
 Commits:
 
 - [x] `tbd feat(llm): enable dynamic ticket context policy`
 - [x] `tbd feat(llm): enable dynamic quiz context policies`
 - [x] `tbd feat(llm): enable dynamic project setup context policy`
+- [x] `tbd test(llm): cover static policy fallback`
 
 Validation:
 
-- [ ] `All relevant actions can use dynamic context policy selection.`
-- [ ] `Prompt text is not rewritten by the preclassifier.`
+- [x] `All relevant actions can use dynamic context policy selection.`
+- [x] `Prompt text is not rewritten by the preclassifier.`
 
 ### Slice 11: Protocol Context Selection From Modeled State
 

@@ -369,4 +369,28 @@ class LlmRequestEngineTest < Minitest::Test
     assert_equal ["project"], response.diagnostics.fetch(:context_sections)
     assert_equal "implementation_default", response.diagnostics.fetch(:context_policy).fetch(:policy_name)
   end
+
+  def test_generate_structured_message_keeps_static_policy_fallback_when_dynamic_preclassifier_is_absent
+    client = FakeClient.new(content: JSON.generate({"message" => "Question?"}))
+    engine = Redwright::LLM::RequestEngine.new(llm_client: client)
+
+    response = engine.generate_structured_message(
+      model: "example/model",
+      model_role: "coding",
+      provider: "example",
+      action: "agent_ticket_execution",
+      system_prompt: "Return JSON.",
+      user_text: "Implement this ticket.",
+      context_sections: [
+        Redwright::LLM::ContextSection.new(name: "project", content: "Project", authority: "project_context"),
+        Redwright::LLM::ContextSection.new(name: "quizzes", content: "Quiz", authority: "quiz_context")
+      ],
+      context_policy: "implementation_default",
+      dynamic_context_policy: true
+    )
+
+    assert_predicate response, :ok?
+    assert_equal ["project"], response.diagnostics.fetch(:context_sections)
+    assert_equal "implementation_default", response.diagnostics.fetch(:context_policy).fetch(:policy_name)
+  end
 end
