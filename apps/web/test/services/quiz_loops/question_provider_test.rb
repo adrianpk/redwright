@@ -26,6 +26,7 @@ module QuizLoops
 
       assert result.usable?
       assert_equal ["quiz_question_generation"], engine.actions
+      assert_equal ["exploration_default"], engine.context_policies
       assert_equal "What deep question should agents clarify next?", result.question
       assert_equal QuestionProvider::DEEP_STRATEGY, result.generation_strategy
     end
@@ -38,6 +39,7 @@ module QuizLoops
 
       assert result.usable?
       assert_equal ["quiz_fast_question_generation"], engine.actions
+      assert_equal ["exploration_default"], engine.context_policies
       assert_equal "What fast question should agents answer first?", result.question
       assert_equal QuestionProvider::FAST_STRATEGY, result.generation_strategy
       assert_equal QuestionProvider::FAST_BATCH_SIZE, result.candidates.size
@@ -108,15 +110,17 @@ module QuizLoops
     end
 
     class CapturingRequestEngine
-      attr_reader :actions
+      attr_reader :actions, :context_policies
 
       def initialize(responses)
         @responses = responses
         @actions = []
+        @context_policies = []
       end
 
-      def generate_structured_message(action:, **)
+      def generate_structured_message(action:, context_policy: nil, **)
         actions << action
+        context_policies << context_policy
         responses.shift
       end
 

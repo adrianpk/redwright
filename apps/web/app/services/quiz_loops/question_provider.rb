@@ -7,6 +7,7 @@ begin
   $LOAD_PATH.unshift(repo_lib) unless $LOAD_PATH.include?(repo_lib)
   require "redwright/app_config"
   require "redwright/llm/context_section"
+  require "redwright/llm/context_policy"
   require "redwright/llm/redactor"
   require "redwright/llm/request_engine"
   require "redwright/llm/trace_recorder"
@@ -206,12 +207,14 @@ module QuizLoops
       user_text = JSON.generate(payload)
       context_sections = context_sections_for(input)
       trace_metadata = trace_metadata_for(input)
+      context_policy = context_policy_name_for(action)
       llm_call_id = record_request(
         user_text: user_text,
         context_sections: context_sections,
         trace_metadata: trace_metadata,
         action: action,
-        system_prompt: system_prompt
+        system_prompt: system_prompt,
+        context_policy: context_policy
       )
       started_at = Process.clock_gettime(Process::CLOCK_MONOTONIC)
       response = request_engine.generate_structured_message(
@@ -223,6 +226,7 @@ module QuizLoops
         user_text: user_text,
         output_contract: output_contract_for(action),
         context_sections: context_sections,
+        context_policy: context_policy,
         trace_metadata: trace_metadata
       )
       elapsed_ms = ((Process.clock_gettime(Process::CLOCK_MONOTONIC) - started_at) * 1000).to_i
@@ -290,7 +294,27 @@ module QuizLoops
       "quiz-#{SecureRandom.hex(4)}"
     end
 
-    def record_request(user_text:, context_sections:, trace_metadata:, action:, system_prompt:)
+    def context_policy_name_for(action)
+      return nil unless defined?(Redwright::LLM::ContextPolicy)
+
+      Redwright::LLM::ContextPolicy.policy_name_for_action(action)
+    end
+
+    def policy_decision_for_trace(context_policy)
+      return nil unless defined?(Redwright::LLM::ContextPolicy)
+
+      policy = Redwright::LLM::ContextPolicy.fetch_policy(context_policy)
+      return nil unless policy
+
+      {
+        policy_name: policy.name,
+        work_family: policy.work_family,
+        fallback: policy.fallback?,
+        included_layers: policy.included_layers
+      }
+    end
+
+    def record_request(user_text:, context_sections:, trace_metadata:, action:, system_prompt:, context_policy:)
       return nil unless trace_recorder
 
       safe_user_text = if defined?(Redwright::LLM::Redactor)
@@ -313,7 +337,8 @@ module QuizLoops
         source_channel: SOURCE_CHANNEL,
         context_summary: "Quiz next-question generation.",
         context_bytes: safe_user_text.bytesize,
-        context_sections: context_sections.map(&:to_h)
+        context_sections: context_sections.map(&:to_h),
+        policy_decision: policy_decision_for_trace(context_policy)
       )
     end
 
@@ -338,7 +363,8 @@ module QuizLoops
         model_role: MODEL_ROLE,
         provider: provider,
         model: model,
-        model_alias: model
+        model_alias: model,
+        policy_decision: response.respond_to?(:diagnostics) ? response.diagnostics&.fetch(:context_policy, nil) : nil
       )
     end
 
