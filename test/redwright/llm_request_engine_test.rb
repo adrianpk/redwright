@@ -282,4 +282,25 @@ class LlmRequestEngineTest < Minitest::Test
     assert_predicate response, :ok?
     assert_equal ["project", "quizzes"], response.diagnostics.fetch(:context_sections)
   end
+
+  def test_generate_structured_message_preserves_all_context_sections_without_policy
+    client = FakeClient.new(content: JSON.generate({"message" => "Question?"}))
+    engine = Redwright::LLM::RequestEngine.new(llm_client: client)
+
+    response = engine.generate_structured_message(
+      model: "example/model",
+      model_role: "non_coding",
+      provider: "example",
+      action: "agent_ticket_execution",
+      system_prompt: "Return JSON.",
+      user_text: "{}",
+      context_sections: [
+        Redwright::LLM::ContextSection.new(name: "project", content: "Project", authority: "project_context"),
+        Redwright::LLM::ContextSection.new(name: "quizzes", content: "Quiz", authority: "quiz_context")
+      ]
+    )
+
+    assert_predicate response, :ok?
+    assert_equal ["project", "quizzes"], response.diagnostics.fetch(:context_sections)
+  end
 end

@@ -7,7 +7,7 @@
 - state: `executing_slice`
 - updated: `2026-05-09`
 - active_slice: `6`
-- active_task: `T6.2`
+- active_task: `T6.3`
 - plan: `ops/plans/2026-05-09-redwright-llm-context-shaping-cycle-plan.md`
 - spec: `ops/specs/specs/2026-05-09-redwright-agent-ticket-llm-context-shaping-spec.md`
 
@@ -152,17 +152,18 @@ Tasks:
 
 - [x] `T6.1 Add optional context policy arguments to request-engine calls.`
 - [x] `T6.2 Apply policy selection to supplied context sections.`
-- [ ] `T6.3 Preserve existing behavior for calls that do not opt in yet.`
+- [x] `T6.3 Preserve existing behavior for calls that do not opt in yet.`
 
 Commits:
 
 - [x] `tbd feat(llm): add request engine policy arguments`
 - [x] `tbd feat(llm): filter request context by policy`
+- [x] `tbd feat(llm): preserve unscoped request context`
 
 Validation:
 
 - [x] `LLMRequestEngine can apply a policy to context sections.`
-- [ ] `Existing request-engine tests still pass.`
+- [x] `Existing request-engine tests still pass.`
 
 ### Slice 7: Add Policy Trace Metadata
 
