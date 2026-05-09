@@ -55,6 +55,7 @@ module AgentTicketExecution
         ContextSectionProviders::OperationalSetupSection.new,
         ContextSectionProviders::Protocols.new,
         ContextSectionProviders::Documents.new,
+        ContextSectionProviders::Quizzes.new,
         ContextSectionProviders::PreviousInteractions.new(
           store: previous_interaction_store,
           limit: previous_interaction_limit
