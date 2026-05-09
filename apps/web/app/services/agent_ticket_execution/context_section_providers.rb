@@ -1002,6 +1002,7 @@ module AgentTicketExecution
             "agent_llm_records" => agent_records,
             "ticket_comments" => selected_comments.map { |comment| comment_payload(comment) },
             "omitted_ticket_comments" => omitted_comments.map { |comment| comment_trace_payload(comment) },
+            "selection_policy" => conversation_selector.selection_policy,
             "storage_inventory" => conversation_selector.storage_inventory
           },
           "historical_conversation"
@@ -1010,6 +1011,7 @@ module AgentTicketExecution
           "context_layer" => "conversation",
           "selection_source" => "conversation_context_inventory",
           "agent_llm_records" => agent_records.length,
+          "selection_policy" => conversation_selector.selection_policy,
           "selected_ticket_comments" => selected_comments.map { |comment| comment_trace_payload(comment) },
           "omitted_ticket_comments" => omitted_comments.map { |comment| comment_trace_payload(comment) },
           "storage_inventory" => conversation_selector.storage_inventory
@@ -1095,6 +1097,16 @@ module AgentTicketExecution
             "status" => agent_interaction_store_configured ? "operational" : "not_configured",
             "scope" => "ticket_session_jsonl"
           }
+        }
+      end
+
+      def selection_policy
+        {
+          "context_policy" => context_policy,
+          "project_id" => context.project.id,
+          "ticket_id" => context.ticket.id,
+          "use_case_id" => context.ticket.use_case_id,
+          "included_when" => "same_ticket_or_same_use_case_or_relevant_project_topic"
         }
       end
 
