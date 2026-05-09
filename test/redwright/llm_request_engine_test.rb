@@ -259,6 +259,12 @@ class LlmRequestEngineTest < Minitest::Test
 
     assert_predicate response, :ok?
     assert_equal ["project"], response.diagnostics.fetch(:context_sections)
+    policy = response.diagnostics.fetch(:context_policy)
+    assert_equal "implementation_default", policy.fetch(:policy_name)
+    assert_equal "implementation", policy.fetch(:work_family)
+    assert_equal ["project"], policy.fetch(:included_context_sections)
+    assert_equal ["quizzes"], policy.fetch(:omitted_context_sections)
+    assert_equal "context_layer_not_in_policy:quizzes:implementation_default", policy.fetch(:omission_reasons).fetch("quizzes")
   end
 
   def test_generate_structured_message_uses_full_context_fallback_policy_without_filtering

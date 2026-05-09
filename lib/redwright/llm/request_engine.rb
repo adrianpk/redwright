@@ -47,8 +47,9 @@ module Redwright
         execution_profile: nil,
         trace_metadata: {}
       )
-        selected_context_sections = context_sections_for_policy(context_sections, context_policy: context_policy, execution_profile: execution_profile)
-        return failure_response("llm_unavailable", "LLM client is not configured", provider: provider, model: model, model_role: model_role, action: action, context_sections: selected_context_sections, trace_metadata: trace_metadata) unless llm_configured?
+        policy_decision = context_policy_decision(context_sections, context_policy: context_policy, execution_profile: execution_profile)
+        selected_context_sections = policy_decision.fetch(:selected_context_sections)
+        return failure_response("llm_unavailable", "LLM client is not configured", provider: provider, model: model, model_role: model_role, action: action, context_sections: selected_context_sections, trace_metadata: trace_metadata, policy_decision: policy_decision) unless llm_configured?
 
         safe_system_prompt = Redactor.redact_text(system_prompt)
         safe_user_text = Redactor.redact_text(user_text)
@@ -66,12 +67,13 @@ module Redwright
           action: action,
           context_sections: selected_context_sections,
           trace_metadata: trace_metadata,
+          policy_decision: policy_decision,
           redacted: safe_system_prompt != system_prompt.to_s || safe_user_text != user_text.to_s
         )
       rescue JSON::ParserError => e
-        failure_response("invalid_response", "Provider response was not valid JSON", provider: provider, model: model, model_role: model_role, action: action, context_sections: selected_context_sections || context_sections, trace_metadata: trace_metadata, error: e)
+        failure_response("invalid_response", "Provider response was not valid JSON", provider: provider, model: model, model_role: model_role, action: action, context_sections: selected_context_sections || context_sections, trace_metadata: trace_metadata, error: e, policy_decision: policy_decision)
       rescue StandardError => e
-        failure_response("provider_error", "Provider request failed", provider: provider, model: model, model_role: model_role, action: action, context_sections: selected_context_sections || context_sections, trace_metadata: trace_metadata, error: e)
+        failure_response("provider_error", "Provider request failed", provider: provider, model: model, model_role: model_role, action: action, context_sections: selected_context_sections || context_sections, trace_metadata: trace_metadata, error: e, policy_decision: policy_decision)
       end
 
       private
@@ -80,17 +82,21 @@ module Redwright
         @llm_client&.configured?
       end
 
-      def context_sections_for_policy(context_sections, context_policy:, execution_profile:)
+      def context_policy_decision(context_sections, context_policy:, execution_profile:)
+        all_sections = Array(context_sections)
         policy_name = context_policy_name(context_policy: context_policy, execution_profile: execution_profile)
-        return context_sections unless policy_name
+        return default_policy_decision(all_sections) unless policy_name
 
         policy = ContextPolicy.fetch_policy(policy_name)
-        return context_sections unless policy
-        return context_sections if policy.fallback?
+        return default_policy_decision(all_sections).merge(policy_name: policy_name, unknown_policy: true) unless policy
+        confidence = execution_profile.respond_to?(:confidence) ? execution_profile.confidence : nil
+        return policy_decision_for(policy, all_sections, selected_sections: all_sections, omitted_sections: [], confidence: confidence) if policy.fallback?
 
-        Array(context_sections).select do |section|
+        selected_sections = all_sections.select do |section|
           policy.included_layers.include?(context_layer_name(section))
         end
+        omitted_sections = all_sections - selected_sections
+        policy_decision_for(policy, all_sections, selected_sections: selected_sections, omitted_sections: omitted_sections, confidence: confidence)
       end
 
       def context_policy_name(context_policy:, execution_profile:)
@@ -98,6 +104,43 @@ module Redwright
         return context_policy.name if context_policy&.respond_to?(:name)
 
         context_policy&.to_s
+      end
+
+      def default_policy_decision(context_sections)
+        {
+          selected_context_sections: context_sections,
+          policy_name: nil,
+          work_family: nil,
+          confidence: nil,
+          fallback: false,
+          unknown_policy: false,
+          included_layers: [],
+          included_context_sections: context_section_names(context_sections),
+          omitted_context_sections: [],
+          omission_reasons: {}
+        }
+      end
+
+      def policy_decision_for(policy, all_sections, selected_sections:, omitted_sections:, confidence:)
+        {
+          selected_context_sections: selected_sections,
+          policy_name: policy.name,
+          work_family: policy.work_family,
+          confidence: confidence,
+          fallback: policy.fallback?,
+          unknown_policy: false,
+          included_layers: policy.included_layers,
+          included_context_sections: context_section_names(selected_sections),
+          omitted_context_sections: context_section_names(omitted_sections),
+          omission_reasons: omission_reasons(policy, omitted_sections)
+        }
+      end
+
+      def omission_reasons(policy, omitted_sections)
+        omitted_sections.each_with_object({}) do |section, reasons|
+          name = section.respond_to?(:name) ? section.name.to_s : section.to_s
+          reasons[name] = "context_layer_not_in_policy:#{context_layer_name(section)}:#{policy.name}"
+        end
       end
 
       def context_layer_name(section)
@@ -108,7 +151,7 @@ module Redwright
         section.respond_to?(:name) ? section.name.to_s : section.to_s
       end
 
-      def normalize_completion(completion:, output_contract:, provider:, model:, model_role:, action:, context_sections:, trace_metadata:, redacted: false)
+      def normalize_completion(completion:, output_contract:, provider:, model:, model_role:, action:, context_sections:, trace_metadata:, policy_decision:, redacted: false)
         content = completion.content.to_s
         if content.strip.empty?
           return failure_response(
@@ -122,7 +165,8 @@ module Redwright
             trace_metadata: trace_metadata,
             raw_response_ref: completion.content,
             diagnostic_details: {response_failure: "empty_content"},
-            redacted: redacted
+            redacted: redacted,
+            policy_decision: policy_decision
           )
         end
 
@@ -137,7 +181,8 @@ module Redwright
             trace_metadata: trace_metadata,
             raw_response_ref: content,
             diagnostic_details: {response_failure: "non_object_json", parsed_class: parsed.class.name},
-            redacted: redacted
+            redacted: redacted,
+            policy_decision: policy_decision
           )
         end
 
@@ -153,7 +198,8 @@ module Redwright
             missing_fields: missing,
             raw_response_ref: content,
             diagnostic_details: {response_failure: "missing_required_fields", missing_required_fields: missing},
-            redacted: redacted
+            redacted: redacted,
+            policy_decision: policy_decision
           )
         end
 
@@ -166,18 +212,18 @@ module Redwright
           usage: nil,
           warnings: [],
           raw_response_ref: completion.content,
-          diagnostics: diagnostics(context_sections: context_sections, trace_metadata: trace_metadata, redacted: redacted)
+          diagnostics: diagnostics(context_sections: context_sections, trace_metadata: trace_metadata, policy_decision: policy_decision, redacted: redacted)
         )
       rescue JSON::ParserError => e
-        failure_response("invalid_response", "Provider response was not valid JSON", provider: provider, model: model, model_role: model_role, action: action, context_sections: context_sections, trace_metadata: trace_metadata, error: e, raw_response_ref: content, diagnostic_details: {response_failure: "invalid_json"}, redacted: redacted)
+        failure_response("invalid_response", "Provider response was not valid JSON", provider: provider, model: model, model_role: model_role, action: action, context_sections: context_sections, trace_metadata: trace_metadata, error: e, raw_response_ref: content, diagnostic_details: {response_failure: "invalid_json"}, policy_decision: policy_decision, redacted: redacted)
       end
 
-      def invalid_shape_response(provider:, model:, model_role:, action:, context_sections:, trace_metadata:, missing_fields: [], raw_response_ref: nil, diagnostic_details: {}, redacted: false)
+      def invalid_shape_response(provider:, model:, model_role:, action:, context_sections:, trace_metadata:, missing_fields: [], raw_response_ref: nil, diagnostic_details: {}, policy_decision:, redacted: false)
         message = missing_fields.empty? ? "Provider response did not match the output contract" : "Provider response missed required fields: #{missing_fields.join(', ')}"
-        failure_response("invalid_response", message, provider: provider, model: model, model_role: model_role, action: action, context_sections: context_sections, trace_metadata: trace_metadata, raw_response_ref: raw_response_ref, diagnostic_details: diagnostic_details, redacted: redacted)
+        failure_response("invalid_response", message, provider: provider, model: model, model_role: model_role, action: action, context_sections: context_sections, trace_metadata: trace_metadata, raw_response_ref: raw_response_ref, diagnostic_details: diagnostic_details, policy_decision: policy_decision, redacted: redacted)
       end
 
-      def failure_response(status, message, provider:, model:, model_role:, action:, context_sections:, trace_metadata:, error: nil, raw_response_ref: nil, diagnostic_details: {}, redacted: false)
+      def failure_response(status, message, provider:, model:, model_role:, action:, context_sections:, trace_metadata:, error: nil, raw_response_ref: nil, diagnostic_details: {}, policy_decision: default_policy_decision(Array(context_sections)), redacted: false)
         Response.new(
           status: status,
           semantic_payload: {},
@@ -186,7 +232,7 @@ module Redwright
           usage: nil,
           warnings: [message],
           raw_response_ref: raw_response_ref || error&.message,
-          diagnostics: diagnostics(context_sections: context_sections, trace_metadata: trace_metadata, error: error, redacted: redacted, details: diagnostic_details)
+          diagnostics: diagnostics(context_sections: context_sections, trace_metadata: trace_metadata, error: error, policy_decision: policy_decision, redacted: redacted, details: diagnostic_details)
         )
       end
 
@@ -210,18 +256,24 @@ module Redwright
         }.compact
       end
 
-      def diagnostics(context_sections:, trace_metadata:, error: nil, redacted: false, details: {})
+      def diagnostics(context_sections:, trace_metadata:, error: nil, policy_decision:, redacted: false, details: {})
         data = {
           context_sections: context_section_names(context_sections),
           context_section_authorities: context_section_authorities(context_sections),
           context_bytes: context_section_bytes(context_sections),
           trace_metadata: trace_metadata || {},
+          context_policy: policy_diagnostics(policy_decision),
           redacted: redacted
         }
         data[:error_class] = error.class.name if error
         data[:error_message] = error.message if error
         details.each { |key, value| data[key.to_sym] = value } if details
         data
+      end
+
+      def policy_diagnostics(policy_decision)
+        decision = policy_decision || default_policy_decision([])
+        decision.reject { |key, _value| key == :selected_context_sections }
       end
 
       def context_section_names(context_sections)

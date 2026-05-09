@@ -4,10 +4,10 @@
 
 - cycle_id: `2026-05-09-redwright-llm-context-shaping`
 - status: `in_progress`
-- state: `next_slice`
+- state: `executing_slice`
 - updated: `2026-05-09`
-- active_slice: `none`
-- active_task: `none`
+- active_slice: `7`
+- active_task: `T7.1`
 - plan: `ops/plans/2026-05-09-redwright-llm-context-shaping-cycle-plan.md`
 - spec: `ops/specs/specs/2026-05-09-redwright-agent-ticket-llm-context-shaping-spec.md`
 
@@ -167,21 +167,21 @@ Validation:
 
 ### Slice 7: Add Policy Trace Metadata
 
-- status: `pending`
+- status: `in_progress`
 - branch: `fix/slice-7-context-policy-tracing`
 - PR: `tbd`
 - merge_target: `dev`
-- last_sync_commit: `tbd`
+- last_sync_commit: `1e009b9`
 
 Tasks:
 
-- [ ] `T7.1 Extend request diagnostics with policy fields.`
+- [x] `T7.1 Extend request diagnostics with policy fields.`
 - [ ] `T7.2 Extend trace recorder payloads to include policy decision metadata.`
 - [ ] `T7.3 Add tests for policy trace output.`
 
 Commits:
 
-- [ ] `tbd feat(llm): trace context policy decisions`
+- [x] `tbd feat(llm): add request policy diagnostics`
 
 Validation:
 
