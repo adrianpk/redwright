@@ -1,3 +1,5 @@
+require Rails.root.join("..", "..", "lib", "redwright", "llm", "context_policy").expand_path.to_s
+
 module AgentTicketExecution
   module ContextSectionProviders
     MAX_FILE_BYTES = 32_000
@@ -192,26 +194,129 @@ module AgentTicketExecution
 
     class Protocols < Base
       def sections(context)
+        selector = ProtocolDocumentSelector.new(
+          protocol_state: context.project.protocol_state,
+          context_policy: context.request["context_policy"] || "implementation_default"
+        )
+        selected_documents = selector.selected_documents
+
         [
-          section("protocol_files", protocol_file_payload(context.project), "project_protocol_model"),
-          section("protocol_model", context.project.protocol_state, "project_protocol_model")
+          protocol_section("protocol_files", protocol_file_payload(selected_documents), selector.selection_metadata),
+          protocol_section("protocol_model", protocol_model_payload(context.project.protocol_state, selected_documents), selector.selection_metadata)
         ]
       end
 
       private
 
-      def protocol_file_payload(project)
-        project.protocol_state.fetch("documents", []).filter_map do |document|
+      def protocol_file_payload(documents)
+        documents.filter_map do |document|
           path = document.fetch("path", nil)
           next if path.blank?
 
           {
+            "key" => document.fetch("key", nil),
             "path" => path,
             "title" => document.fetch("title", path),
+            "layer" => document.fetch("layer", nil),
+            "position" => document.fetch("position", nil),
+            "provenance" => document.fetch("provenance", {}),
             "content" => document.fetch("body", "").to_s,
             "truncated" => false
           }
         end
+      end
+
+      def protocol_model_payload(protocol_state, selected_documents)
+        protocol_state.merge(
+          "documents" => selected_documents,
+          "selection_source" => "project_protocol_model"
+        )
+      end
+
+      def protocol_section(name, content, selection_metadata)
+        section = section(name, content, "project_protocol_model")
+        section.metadata.merge!(
+          "context_layer" => "protocols",
+          "selection_source" => "project_protocol_model",
+          "selected_protocol_documents" => selection_metadata
+        )
+        section
+      end
+    end
+
+    class ProtocolDocumentSelector
+      DEFAULT_KEYS_BY_POLICY = {
+        "implementation_default" => %w[agents_root conventions linting architecture playbooks],
+        "modification_default" => %w[agents_root conventions linting architecture playbooks],
+        "diagnosis_default" => %w[agents_root conventions linting architecture playbooks],
+        "evaluation_default" => %w[agents_root conventions linting architecture playbooks],
+        "operation_default" => %w[agents_root playbooks],
+        "planning_default" => %w[agents_root architecture playbooks],
+        "documentation_default" => %w[agents_root conventions architecture documentation playbooks],
+        "exploration_default" => %w[agents_root architecture playbooks]
+      }.freeze
+
+      def initialize(protocol_state:, context_policy:)
+        @protocol_state = protocol_state || {}
+        @context_policy = context_policy.to_s
+      end
+
+      def selected_documents
+        @selected_documents ||= documents.select { |document| selected_document?(document) }.sort_by { |document| [document.fetch("position", 0).to_i, document.fetch("id", 0).to_i] }
+      end
+
+      def selection_metadata
+        selected_documents.map do |document|
+          {
+            "key" => document.fetch("key", nil),
+            "path" => document.fetch("path", nil),
+            "title" => document.fetch("title", nil),
+            "layer" => document.fetch("layer", nil),
+            "position" => document.fetch("position", nil),
+            "provenance" => document.fetch("provenance", {}),
+            "selection_reason" => selection_reason(document)
+          }
+        end
+      end
+
+      private
+
+      attr_reader :protocol_state, :context_policy
+
+      def documents
+        Array(protocol_state.fetch("documents", []))
+      end
+
+      def selected_document?(document)
+        return true if context_policy == Redwright::LLM::ContextPolicy::FULL_CONTEXT_FALLBACK
+
+        selected_keys.include?(document.fetch("key", "").to_s) ||
+          selected_layers.include?(document.fetch("layer", "").to_s) ||
+          selected_path?(document.fetch("path", "").to_s)
+      end
+
+      def selected_keys
+        DEFAULT_KEYS_BY_POLICY.fetch(context_policy, [])
+      end
+
+      def selected_layers
+        return %w[behavioral stack] if context_policy.end_with?("_default")
+
+        []
+      end
+
+      def selected_path?(path)
+        path == "AGENTS.md" || path.start_with?(".agents/")
+      end
+
+      def selection_reason(document)
+        key = document.fetch("key", "").to_s
+        return "matched_key:#{key}" if selected_keys.include?(key)
+
+        layer = document.fetch("layer", "").to_s
+        return "matched_layer:#{layer}" if selected_layers.include?(layer)
+
+        "matched_path:#{document.fetch("path", "")}"
       end
     end
 

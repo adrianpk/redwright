@@ -4,10 +4,10 @@
 
 - cycle_id: `2026-05-09-redwright-llm-context-shaping`
 - status: `in_progress`
-- state: `next_slice`
+- state: `executing_slice`
 - updated: `2026-05-09`
-- active_slice: `none`
-- active_task: `none`
+- active_slice: `11`
+- active_task: `T11.1`
 - plan: `ops/plans/2026-05-09-redwright-llm-context-shaping-cycle-plan.md`
 - spec: `ops/specs/specs/2026-05-09-redwright-agent-ticket-llm-context-shaping-spec.md`
 
@@ -273,21 +273,21 @@ Validation:
 
 ### Slice 11: Protocol Context Selection From Modeled State
 
-- status: `pending`
+- status: `in_progress`
 - branch: `fix/slice-11-modeled-protocol-selection`
 - PR: `tbd`
 - merge_target: `dev`
-- last_sync_commit: `tbd`
+- last_sync_commit: `9ba3e13`
 
 Tasks:
 
-- [ ] `T11.1 Add protocol-document selection by modeled attributes such as key, layer, title, path, position, and provenance.`
+- [x] `T11.1 Add protocol-document selection by modeled attributes such as key, layer, title, path, position, and provenance.`
 - [ ] `T11.2 Add policy-specific protocol selection tests.`
 - [ ] `T11.3 Preserve generated protocol file exclusion from normal repository scanning.`
 
 Commits:
 
-- [ ] `tbd feat(protocols): select modeled protocol context by policy`
+- [x] `tbd feat(protocols): select modeled protocol documents`
 
 Validation:
 
