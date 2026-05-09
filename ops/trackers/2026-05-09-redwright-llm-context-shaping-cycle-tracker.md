@@ -7,7 +7,7 @@
 - state: `executing_slice`
 - updated: `2026-05-09`
 - active_slice: `9`
-- active_task: `T9.3`
+- active_task: `T9.4`
 - plan: `ops/plans/2026-05-09-redwright-llm-context-shaping-cycle-plan.md`
 - spec: `ops/specs/specs/2026-05-09-redwright-agent-ticket-llm-context-shaping-spec.md`
 
@@ -230,18 +230,19 @@ Tasks:
 - [x] `T9.1 Add preclassifier request contract and output validation.`
 - [x] `T9.2 Add table-driven fake response tests for all families.`
 - [x] `T9.3 Ensure low confidence selects full_context_fallback.`
-- [ ] `T9.4 Ensure preclassifier does not alter the downstream prompt.`
+- [x] `T9.4 Ensure preclassifier does not alter the downstream prompt.`
 
 Commits:
 
 - [x] `tbd feat(llm): add context preclassifier`
 - [x] `tbd test(llm): cover preclassifier work families`
 - [x] `tbd test(llm): cover low confidence preclassification`
+- [x] `tbd test(llm): cover preclassifier prompt preservation`
 
 Validation:
 
-- [ ] `The preclassifier returns one primary family and context_policy.`
-- [ ] `Invalid classifier output fails safely to fallback.`
+- [x] `The preclassifier returns one primary family and context_policy.`
+- [x] `Invalid classifier output fails safely to fallback.`
 
 ### Slice 10: Enable Dynamic Policy Selection Across Actions
 

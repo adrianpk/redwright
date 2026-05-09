@@ -94,6 +94,22 @@ class LlmContextPreclassifierTest < Minitest::Test
     assert_equal "low", result.profile.confidence
   end
 
+  def test_preclassifier_does_not_mutate_downstream_prompt
+    client = FakeClient.new(content: profile_payload(family: "documentation", confidence: "high"))
+    preclassifier = Redwright::LLM::ContextPreclassifier.new(llm_client: client, model: "test/model")
+    downstream_prompt = +"Update the README punctuation."
+
+    result = preclassifier.classify(
+      action: "documentation_action",
+      model_role: "non_coding",
+      user_text: downstream_prompt
+    )
+
+    assert_predicate result, :ok?
+    assert_equal "Update the README punctuation.", downstream_prompt
+    assert_equal "Update the README punctuation.", client.calls.first.fetch(:user_text).fetch("request_text")
+  end
+
   private
 
   def profile_payload(family:, confidence:)
