@@ -4,7 +4,7 @@
 
 - cycle_id: `2026-05-09-redwright-llm-context-shaping`
 - status: `in_progress`
-- state: `next_slice`
+- state: `slice_ready_for_review`
 - updated: `2026-05-09`
 - active_slice: `none`
 - active_task: `none`
@@ -350,26 +350,29 @@ Validation:
 
 ### Slice 14: Dump Context Capability
 
-- status: `pending`
+- status: `ready_for_review`
 - branch: `fix/slice-14-dump-context`
 - PR: `tbd`
 - merge_target: `dev`
-- last_sync_commit: `tbd`
+- last_sync_commit: `30d7d1a`
 
 Tasks:
 
-- [ ] `T14.1 Add dump artifact discovery for curated dumps.`
-- [ ] `T14.2 Add project/use-case/topic relevance selection for dumps.`
-- [ ] `T14.3 Add trace metadata for selected and omitted dumps.`
+- [x] `T14.1 Add dump artifact discovery for curated dumps.`
+- [x] `T14.2 Add project/use-case/topic relevance selection for dumps.`
+- [x] `T14.3 Add trace metadata for selected and omitted dumps.`
 
 Commits:
 
-- [ ] `tbd feat(llm): add selectable dump context`
+- [x] `321fab9 feat(llm): add dump context inventory`
+- [x] `0b786a9 feat(llm): integrate dump context policies`
+- [x] `30d7d1a test(llm): cover dump context selection`
 
 Validation:
 
-- [ ] `Curated dumps can be selected as LLM context.`
-- [ ] `Dump context is policy-controlled.`
+- [x] `Curated dumps can be selected as LLM context.`
+- [x] `Dump context is policy-controlled.`
+- [x] `bundle exec rails test test/services/agent_ticket_execution/context_composer_test.rb test/services/agent_ticket_execution/llm_requester_test.rb`
 
 ### Slice 15: Previous Human And Agent Conversation Context
 
