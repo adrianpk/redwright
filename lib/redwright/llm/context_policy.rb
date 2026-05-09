@@ -86,6 +86,14 @@ module Redwright
         [family, "#{family}_default"]
       end.freeze
 
+      ACTION_FAMILY_BY_ACTION = {
+        "agent_ticket_execution" => "implementation"
+      }.freeze
+
+      ACTION_POLICY_BY_ACTION = ACTION_FAMILY_BY_ACTION.transform_values do |family|
+        DEFAULT_POLICY_BY_FAMILY.fetch(family)
+      end.freeze
+
       module_function
 
       def valid_work_family?(value)
@@ -114,6 +122,14 @@ module Redwright
 
       def fallback_policy
         fetch_policy(FULL_CONTEXT_FALLBACK)
+      end
+
+      def family_for_action(action)
+        ACTION_FAMILY_BY_ACTION[action.to_s]
+      end
+
+      def policy_name_for_action(action)
+        ACTION_POLICY_BY_ACTION[action.to_s]
       end
 
       def policy_for(family:, confidence:)

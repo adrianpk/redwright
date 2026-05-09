@@ -4,10 +4,10 @@
 
 - cycle_id: `2026-05-09-redwright-llm-context-shaping`
 - status: `in_progress`
-- state: `next_slice`
+- state: `executing_slice`
 - updated: `2026-05-09`
-- active_slice: `none`
-- active_task: `none`
+- active_slice: `4`
+- active_task: `T4.1`
 - plan: `ops/plans/2026-05-09-redwright-llm-context-shaping-cycle-plan.md`
 - spec: `ops/specs/specs/2026-05-09-redwright-agent-ticket-llm-context-shaping-spec.md`
 
@@ -90,22 +90,22 @@ Validation:
 
 ### Slice 4: Map Existing LLM Actions To Policies
 
-- status: `pending`
+- status: `in_progress`
 - branch: `fix/slice-4-llm-action-policy-map`
 - PR: `tbd`
 - merge_target: `dev`
-- last_sync_commit: `tbd`
+- last_sync_commit: `ef95874`
 
 Tasks:
 
-- [ ] `T4.1 Map agent ticket execution actions to implementation or diagnosis policies as appropriate.`
+- [x] `T4.1 Map agent ticket execution actions to implementation or diagnosis policies as appropriate.`
 - [ ] `T4.2 Map quiz generation actions to planning, exploration, or documentation policies as appropriate.`
 - [ ] `T4.3 Map project setup prompt rendering to an appropriate policy.`
 - [ ] `T4.4 Map legacy Telegram/runtime interpretation traces where still active.`
 
 Commits:
 
-- [ ] `tbd feat(llm): map actions to context policies`
+- [x] `tbd feat(llm): map ticket execution action policy`
 
 Validation:
 

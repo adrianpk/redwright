@@ -67,4 +67,9 @@ class RedwrightLLMContextPolicyTest < ActiveSupport::TestCase
     assert_equal Redwright::LLM::ContextPolicy::ALL_CONTEXT_LAYERS, policy.included_layers
     assert policy.fallback?
   end
+
+  test "maps agent ticket execution to implementation policy" do
+    assert_equal "implementation", Redwright::LLM::ContextPolicy.family_for_action("agent_ticket_execution")
+    assert_equal "implementation_default", Redwright::LLM::ContextPolicy.policy_name_for_action("agent_ticket_execution")
+  end
 end
