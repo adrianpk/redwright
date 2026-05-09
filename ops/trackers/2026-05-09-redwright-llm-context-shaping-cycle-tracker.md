@@ -4,7 +4,7 @@
 
 - cycle_id: `2026-05-09-redwright-llm-context-shaping`
 - status: `in_progress`
-- state: `slice_ready_for_review`
+- state: `next_slice`
 - updated: `2026-05-09`
 - active_slice: `none`
 - active_task: `none`
@@ -246,11 +246,11 @@ Validation:
 
 ### Slice 10: Enable Dynamic Policy Selection Across Actions
 
-- status: `ready_for_review`
+- status: `completed`
 - branch: `fix/slice-10-dynamic-policy-selection`
-- PR: `tbd`
+- PR: `#399`
 - merge_target: `dev`
-- last_sync_commit: `1f97766`
+- last_sync_commit: `1b63218`
 
 Tasks:
 
