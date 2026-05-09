@@ -227,6 +227,7 @@ module QuizLoops
         output_contract: output_contract_for(action),
         context_sections: context_sections,
         context_policy: context_policy,
+        dynamic_context_policy: true,
         trace_metadata: trace_metadata
       )
       elapsed_ms = ((Process.clock_gettime(Process::CLOCK_MONOTONIC) - started_at) * 1000).to_i

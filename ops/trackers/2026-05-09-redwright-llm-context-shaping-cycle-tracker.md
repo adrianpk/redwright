@@ -7,7 +7,7 @@
 - state: `executing_slice`
 - updated: `2026-05-09`
 - active_slice: `10`
-- active_task: `T10.1`
+- active_task: `T10.2`
 - plan: `ops/plans/2026-05-09-redwright-llm-context-shaping-cycle-plan.md`
 - spec: `ops/specs/specs/2026-05-09-redwright-agent-ticket-llm-context-shaping-spec.md`
 
@@ -255,13 +255,14 @@ Validation:
 Tasks:
 
 - [x] `T10.1 Enable dynamic policy selection for agent ticket execution.`
-- [ ] `T10.2 Enable dynamic policy selection for quiz generation where useful.`
+- [x] `T10.2 Enable dynamic policy selection for quiz generation where useful.`
 - [ ] `T10.3 Enable dynamic policy selection for project setup prompt rendering where useful.`
 - [ ] `T10.4 Keep static action mapping as fallback.`
 
 Commits:
 
 - [x] `tbd feat(llm): enable dynamic ticket context policy`
+- [x] `tbd feat(llm): enable dynamic quiz context policies`
 
 Validation:
 
