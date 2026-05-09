@@ -4,10 +4,10 @@
 
 - cycle_id: `2026-05-09-redwright-llm-context-shaping`
 - status: `in_progress`
-- state: `executing_slice`
+- state: `slice_ready_for_review`
 - updated: `2026-05-09`
-- active_slice: `8`
-- active_task: `T8.4`
+- active_slice: `none`
+- active_task: `none`
 - plan: `ops/plans/2026-05-09-redwright-llm-context-shaping-cycle-plan.md`
 - spec: `ops/specs/specs/2026-05-09-redwright-agent-ticket-llm-context-shaping-spec.md`
 
@@ -192,7 +192,7 @@ Validation:
 
 ### Slice 8: Implement Static Policy Application Across Existing Actions
 
-- status: `in_progress`
+- status: `ready_for_review`
 - branch: `fix/slice-8-static-policy-integration`
 - PR: `tbd`
 - merge_target: `dev`
@@ -207,10 +207,10 @@ Tasks:
 
 Commits:
 
-- [x] `tbd feat(llm): apply ticket execution context policy`
-- [x] `tbd feat(llm): apply quiz context policies`
-- [x] `tbd feat(llm): apply project setup context policy`
-- [x] `tbd feat(llm): trace runtime intent context policies`
+- [x] `c7e720e feat(llm): apply ticket execution context policy`
+- [x] `a3fd4bd feat(llm): apply quiz context policies`
+- [x] `35a6535 feat(llm): apply project setup context policy`
+- [x] `451ad90 feat(llm): trace runtime intent context policies`
 
 Validation:
 
