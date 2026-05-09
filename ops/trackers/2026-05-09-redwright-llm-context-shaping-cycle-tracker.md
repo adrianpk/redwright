@@ -4,7 +4,7 @@
 
 - cycle_id: `2026-05-09-redwright-llm-context-shaping`
 - status: `in_progress`
-- state: `slice_ready_for_review`
+- state: `next_slice`
 - updated: `2026-05-09`
 - active_slice: `none`
 - active_task: `none`
@@ -167,11 +167,11 @@ Validation:
 
 ### Slice 7: Add Policy Trace Metadata
 
-- status: `ready_for_review`
+- status: `completed`
 - branch: `fix/slice-7-context-policy-tracing`
-- PR: `tbd`
+- PR: `#396`
 - merge_target: `dev`
-- last_sync_commit: `1e009b9`
+- last_sync_commit: `cbf0354`
 
 Tasks:
 
