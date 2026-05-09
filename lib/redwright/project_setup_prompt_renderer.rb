@@ -3,6 +3,7 @@
 require "json"
 
 require_relative "llm/context_section"
+require_relative "llm/context_policy"
 require_relative "llm/redactor"
 require_relative "llm/request_engine"
 require_relative "llm/trace_recorder"
@@ -83,6 +84,7 @@ module Redwright
       )
       llm_payload = LLM::Redactor.redact_text(llm_payload)
       context_sections = context_sections_for(payload: payload, intent: intent, user_text: user_text)
+      context_policy = context_policy_name
       llm_call_id = @trace_recorder.record_request(
         model_role: "non_coding",
         provider: provider_name,
@@ -98,7 +100,8 @@ module Redwright
         source_channel: "project_setup",
         context_summary: payload["summary"].to_s,
         context_bytes: JSON.generate(payload["setup_context"] || {}).bytesize,
-        context_sections: context_sections.map(&:to_h)
+        context_sections: context_sections.map(&:to_h),
+        policy_decision: policy_decision_for_trace(context_policy)
       )
       started_at = Process.clock_gettime(Process::CLOCK_MONOTONIC)
       response = @request_engine.generate_structured_message(
@@ -110,6 +113,7 @@ module Redwright
         user_text: llm_payload,
         output_contract: output_contract,
         context_sections: context_sections,
+        context_policy: context_policy,
         trace_metadata: {
           trace_id: trace_id,
           project_id: payload["project_id"] || payload.dig("project", "id"),
@@ -140,7 +144,9 @@ module Redwright
         provider: provider_name,
         model: @model,
         model_alias: @model,
-        payload_bytes: llm_payload.bytesize
+        payload_bytes: llm_payload.bytesize,
+        diagnostics: response.diagnostics,
+        policy_decision: response.diagnostics[:context_policy]
       )
       return fallback_prompt(payload: payload, intent: intent) unless slot_valid
 
@@ -164,9 +170,26 @@ module Redwright
         provider: provider_name,
         model: @model,
         model_alias: @model,
-        payload_bytes: llm_payload.bytesize
+        payload_bytes: llm_payload.bytesize,
+        policy_decision: policy_decision_for_trace(context_policy)
       )
       fallback_prompt(payload: payload, intent: intent)
+    end
+
+    def context_policy_name
+      LLM::ContextPolicy.policy_name_for_action("project_setup_prompt_render")
+    end
+
+    def policy_decision_for_trace(context_policy)
+      policy = LLM::ContextPolicy.fetch_policy(context_policy)
+      return nil unless policy
+
+      {
+        policy_name: policy.name,
+        work_family: policy.work_family,
+        fallback: policy.fallback?,
+        included_layers: policy.included_layers
+      }
     end
 
     def render_error(payload:, trace_id:)

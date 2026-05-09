@@ -218,11 +218,13 @@ class ProjectSetupPromptRendererTest < Minitest::Test
     assert_equal 1, trace_recorder.requests.length
     assert_equal 1, trace_recorder.responses.length
     assert_equal "project_setup_prompt_render", trace_recorder.requests.first.fetch(:action)
+    assert_equal "planning_default", trace_recorder.requests.first.fetch(:policy_decision).fetch(:policy_name)
     assert_equal "non_coding", trace_recorder.requests.first.fetch(:model_role)
     context_sections = trace_recorder.requests.first.fetch(:context_sections)
     assert_equal ["setup_summary", "next_prompt_intent", "setup_context", "user_text"], context_sections.map { |section| section.fetch("name") }
     assert_equal "current_user_request", context_sections.last.fetch("authority")
     assert_equal "ok", trace_recorder.responses.first.fetch(:status)
+    assert_equal "planning_default", trace_recorder.responses.first.fetch(:policy_decision).fetch(:policy_name)
     assert_equal "llm", trace_recorder.responses.first.fetch(:decision_source)
   end
 
