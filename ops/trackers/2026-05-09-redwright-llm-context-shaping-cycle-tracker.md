@@ -4,7 +4,7 @@
 
 - cycle_id: `2026-05-09-redwright-llm-context-shaping`
 - status: `in_progress`
-- state: `next_slice`
+- state: `slice_ready_for_review`
 - updated: `2026-05-09`
 - active_slice: `none`
 - active_task: `none`
@@ -430,26 +430,29 @@ Validation:
 
 ### Slice 17: LLM-Based Derived Context Capability
 
-- status: `pending`
+- status: `ready_for_review`
 - branch: `fix/slice-17-derived-llm-context`
 - PR: `tbd`
 - merge_target: `dev`
-- last_sync_commit: `tbd`
+- last_sync_commit: `98eaa78`
 
 Tasks:
 
-- [ ] `T17.1 Define LLM-derived context sources and storage boundaries.`
-- [ ] `T17.2 Add prior-attempt summary generation or retrieval where already available.`
-- [ ] `T17.3 Add authority and freshness metadata for LLM-derived context.`
+- [x] `T17.1 Define LLM-derived context sources and storage boundaries.`
+- [x] `T17.2 Add prior-attempt summary generation or retrieval where already available.`
+- [x] `T17.3 Add authority and freshness metadata for LLM-derived context.`
 
 Commits:
 
-- [ ] `tbd feat(llm): add derived context layer`
+- [x] `78ab3a6 feat(llm): add derived context sources`
+- [x] `ca7d0c5 feat(llm): summarize prior attempts`
+- [x] `98eaa78 feat(llm): trace derived context freshness`
 
 Validation:
 
-- [ ] `LLM-derived context is distinct from primary artifacts.`
-- [ ] `Authority and freshness metadata are present.`
+- [x] `LLM-derived context is distinct from primary artifacts.`
+- [x] `Authority and freshness metadata are present.`
+- [x] `bundle exec rails test test/services/agent_ticket_execution/context_composer_test.rb test/services/agent_ticket_execution/llm_requester_test.rb`
 
 ### Slice 18: Policy Matrix Completion And Tuning Baseline
 
