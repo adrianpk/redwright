@@ -287,6 +287,11 @@ class LlmRequestEngineTest < Minitest::Test
 
     assert_predicate response, :ok?
     assert_equal ["project", "quizzes"], response.diagnostics.fetch(:context_sections)
+    policy = response.diagnostics.fetch(:context_policy)
+    assert_equal "full_context_fallback", policy.fetch(:policy_name)
+    assert_equal true, policy.fetch(:fallback)
+    assert_equal ["project", "quizzes"], policy.fetch(:included_context_sections)
+    assert_equal [], policy.fetch(:omitted_context_sections)
   end
 
   def test_generate_structured_message_preserves_all_context_sections_without_policy
@@ -308,5 +313,8 @@ class LlmRequestEngineTest < Minitest::Test
 
     assert_predicate response, :ok?
     assert_equal ["project", "quizzes"], response.diagnostics.fetch(:context_sections)
+    policy = response.diagnostics.fetch(:context_policy)
+    assert_nil policy.fetch(:policy_name)
+    assert_equal false, policy.fetch(:fallback)
   end
 end

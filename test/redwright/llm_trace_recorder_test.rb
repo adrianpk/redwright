@@ -92,6 +92,48 @@ class LlmTraceRecorderTest < Minitest::Test
     end
   end
 
+  def test_records_omitted_policy_sections_in_trace_payload
+    Dir.mktmpdir("redwright-llm-trace-recorder-") do |dir|
+      Redwright::Trace.configure(
+        tracing: Redwright::TracingConfig.new(
+          llm_file: Redwright::LlmFileTraceConfig.new(
+            enabled: true,
+            path: File.join(dir, "llm.ndjson"),
+            max_bytes: 10_485_760,
+            keep_files: 5,
+            include_payloads: false,
+            include_system_prompt: false,
+            include_user_text: false,
+            include_raw_output: false
+          )
+        )
+      )
+      recorder = Redwright::LLM::TraceRecorder.new
+
+      recorder.record_request(
+        model_role: "coding",
+        provider: "openrouter",
+        model: "openrouter/auto",
+        action: "agent_ticket_execution",
+        payload_bytes: 12,
+        policy_decision: {
+          policy_name: "implementation_default",
+          work_family: "implementation",
+          included_context_sections: ["project"],
+          omitted_context_sections: ["quizzes"],
+          omission_reasons: {"quizzes" => "context_layer_not_in_policy:quizzes:implementation_default"}
+        }
+      )
+
+      request = JSON.parse(File.read(File.join(dir, "llm.ndjson")))
+      policy = request.fetch("policy_decision")
+      assert_equal "implementation_default", policy.fetch("policy_name")
+      assert_equal ["project"], policy.fetch("included_context_sections")
+      assert_equal ["quizzes"], policy.fetch("omitted_context_sections")
+      assert_equal "context_layer_not_in_policy:quizzes:implementation_default", policy.fetch("omission_reasons").fetch("quizzes")
+    end
+  end
+
   def test_trace_write_failures_do_not_raise_through_recorder
     Redwright::Trace.configure(
       tracing: Redwright::TracingConfig.new(
