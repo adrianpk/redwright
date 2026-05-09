@@ -8,6 +8,17 @@ entry per commit.
 
 ## [Unreleased]
 
+No unreleased changes yet.
+
+## [0.1.0-alpha.1] - 2026-05-09
+
+Initial alpha release for RedWright's internal development baseline.
+
+This is not an operational or stable product release. It records the current
+pre-operational system capability, including the first validated ticket
+execution milestone where RedWright implemented functionality from a ticket,
+passed validation, created local Git evidence, and moved the ticket to review.
+
 ### Added
 
 - Added repository dump workflow artifacts and the repository dump skill,
