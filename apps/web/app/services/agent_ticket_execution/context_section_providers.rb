@@ -1,4 +1,5 @@
 require Rails.root.join("..", "..", "lib", "redwright", "llm", "context_policy").expand_path.to_s
+require Rails.root.join("..", "..", "lib", "redwright", "tree_sitter_structural_extractor").expand_path.to_s
 
 module AgentTicketExecution
   module ContextSectionProviders
@@ -42,6 +43,7 @@ module AgentTicketExecution
     CONVERSATION_INCLUDED_POLICIES = Redwright::LLM::ContextPolicy::POLICY_REGISTRY.values.select do |policy|
       policy.included_layers.include?("conversation")
     end.map(&:name).freeze
+    TREE_SITTER_SUPPORTED_EXTENSIONS = %w[.go .rb].freeze
 
     Context = Struct.new(:ticket, :project, :request, :workspace_path, keyword_init: true)
 
