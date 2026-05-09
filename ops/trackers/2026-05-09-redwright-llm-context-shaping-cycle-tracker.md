@@ -7,7 +7,7 @@
 - state: `executing_slice`
 - updated: `2026-05-09`
 - active_slice: `11`
-- active_task: `T11.1`
+- active_task: `T11.2`
 - plan: `ops/plans/2026-05-09-redwright-llm-context-shaping-cycle-plan.md`
 - spec: `ops/specs/specs/2026-05-09-redwright-agent-ticket-llm-context-shaping-spec.md`
 
@@ -282,12 +282,13 @@ Validation:
 Tasks:
 
 - [x] `T11.1 Add protocol-document selection by modeled attributes such as key, layer, title, path, position, and provenance.`
-- [ ] `T11.2 Add policy-specific protocol selection tests.`
+- [x] `T11.2 Add policy-specific protocol selection tests.`
 - [ ] `T11.3 Preserve generated protocol file exclusion from normal repository scanning.`
 
 Commits:
 
 - [x] `tbd feat(protocols): select modeled protocol documents`
+- [x] `tbd test(protocols): cover policy protocol selection`
 
 Validation:
 

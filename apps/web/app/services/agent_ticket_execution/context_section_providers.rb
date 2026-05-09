@@ -255,6 +255,16 @@ module AgentTicketExecution
         "documentation_default" => %w[agents_root conventions architecture documentation playbooks],
         "exploration_default" => %w[agents_root architecture playbooks]
       }.freeze
+      DEFAULT_LAYERS_BY_POLICY = {
+        "implementation_default" => %w[behavioral stack],
+        "modification_default" => %w[behavioral stack],
+        "diagnosis_default" => %w[behavioral stack],
+        "evaluation_default" => %w[behavioral stack],
+        "operation_default" => %w[behavioral],
+        "planning_default" => %w[behavioral],
+        "documentation_default" => %w[behavioral],
+        "exploration_default" => %w[behavioral]
+      }.freeze
 
       def initialize(protocol_state:, context_policy:)
         @protocol_state = protocol_state || {}
@@ -300,13 +310,11 @@ module AgentTicketExecution
       end
 
       def selected_layers
-        return %w[behavioral stack] if context_policy.end_with?("_default")
-
-        []
+        DEFAULT_LAYERS_BY_POLICY.fetch(context_policy, [])
       end
 
       def selected_path?(path)
-        path == "AGENTS.md" || path.start_with?(".agents/")
+        path == "AGENTS.md"
       end
 
       def selection_reason(document)

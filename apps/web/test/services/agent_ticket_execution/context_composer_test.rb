@@ -51,6 +51,49 @@ module AgentTicketExecution
       end
     end
 
+    test "selects protocol documents from modeled state by policy attributes" do
+      with_agent_ticket_execution_workspace do |fixture|
+        protocol = fixture.project.create_protocol!(status: "draft")
+        protocol.documents.create!(
+          key: "agents_root",
+          path: "AGENTS.md",
+          title: "AGENTS",
+          layer: "behavioral",
+          position: 0,
+          body: "Root instructions.",
+          provenance: {"source" => "test"}
+        )
+        protocol.documents.create!(
+          key: "runtime_stack",
+          path: ".agents/RUNTIME.md",
+          title: "Runtime",
+          layer: "stack",
+          position: 1,
+          body: "Runtime stack instructions.",
+          provenance: {"source" => "test"}
+        )
+
+        workspace = WorkspaceBoundary.new(allowed_projects_root: fixture.projects_root).resolve(ticket: fixture.ticket)
+        implementation_context = ContextComposer.new.compose(
+          ticket: fixture.ticket,
+          request: request_payload(branch_name: "feature/todo-done").merge("context_policy" => "implementation_default"),
+          workspace: workspace
+        )
+        planning_context = ContextComposer.new.compose(
+          ticket: fixture.ticket,
+          request: request_payload(branch_name: "feature/todo-done").merge("context_policy" => "planning_default"),
+          workspace: workspace
+        )
+
+        implementation_protocols = implementation_context.context_sections.index_by(&:name).fetch("protocol_files")
+        planning_protocols = planning_context.context_sections.index_by(&:name).fetch("protocol_files")
+        assert_equal %w[AGENTS.md .agents/RUNTIME.md], implementation_protocols.content.map { |document| document.fetch("path") }
+        assert_equal ["AGENTS.md"], planning_protocols.content.map { |document| document.fetch("path") }
+        assert_equal "protocols", implementation_protocols.metadata.fetch("context_layer")
+        assert_equal "test", implementation_protocols.metadata.fetch("selected_protocol_documents").last.fetch("provenance").fetch("source")
+      end
+    end
+
     private
 
     def request_payload(branch_name:)
