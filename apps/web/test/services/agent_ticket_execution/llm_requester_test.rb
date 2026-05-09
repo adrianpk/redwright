@@ -81,15 +81,28 @@ module AgentTicketExecution
         response_policy = recorder.responses.first.fetch(:policy_decision)
 
         assert result.ok?, result.warnings.inspect
+        assert_includes provider_section_names, "ticket"
         assert_includes provider_section_names, "project"
+        assert_includes provider_section_names, "repository_tree"
+        assert_includes provider_section_names, "relevant_files"
+        assert_includes provider_section_names, "tests"
+        assert_includes provider_section_names, "operational_setup"
         assert_includes provider_section_names, "tree_sitter"
         assert_includes provider_section_names, "protocol_files"
         refute_includes provider_section_names, "quizzes"
         refute_includes provider_section_names, "dumps"
         refute_includes provider_section_names, "llm_based_context"
         assert_equal "implementation_default", response_policy.fetch(:policy_name)
+        assert_includes response_policy.fetch(:included_context_sections), "ticket"
+        assert_includes response_policy.fetch(:included_context_sections), "repository_tree"
+        assert_includes response_policy.fetch(:included_context_sections), "relevant_files"
+        assert_includes response_policy.fetch(:included_context_sections), "tests"
+        assert_includes response_policy.fetch(:included_context_sections), "operational_setup"
         assert_includes response_policy.fetch(:included_context_sections), "tree_sitter"
         assert_includes response_policy.fetch(:omitted_context_sections), "quizzes"
+        refute_includes response_policy.fetch(:omitted_context_sections), "ticket"
+        refute_includes response_policy.fetch(:omitted_context_sections), "relevant_files"
+        refute_includes response_policy.fetch(:omitted_context_sections), "tests"
         assert_equal "context_layer_not_in_policy:quizzes:implementation_default", response_policy.fetch(:omission_reasons).fetch("quizzes")
       end
     end

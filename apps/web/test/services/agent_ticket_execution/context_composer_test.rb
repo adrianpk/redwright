@@ -46,6 +46,12 @@ module AgentTicketExecution
         refute_includes sections.fetch("relevant_files").content.map { |file| file.fetch("path") }, ".agents/CONVENTIONS.md"
         assert_includes sections.fetch("tests").content.map { |file| file.fetch("path") }, "main_test.go"
         assert_equal "available", sections.fetch("operational_setup").content.fetch("status")
+        assert_equal "prompt", sections.fetch("ticket").metadata.fetch("context_layer")
+        assert_equal "project", sections.fetch("project").metadata.fetch("context_layer")
+        assert_equal "file_tree", sections.fetch("repository_tree").metadata.fetch("context_layer")
+        assert_equal "concrete_files", sections.fetch("relevant_files").metadata.fetch("context_layer")
+        assert_equal "concrete_files", sections.fetch("tests").metadata.fetch("context_layer")
+        assert_equal "agent", sections.fetch("operational_setup").metadata.fetch("context_layer")
         assert_equal "tree_sitter", sections.fetch("tree_sitter").metadata.fetch("context_layer")
         assert_includes sections.fetch("tree_sitter").content.fetch("files").map { |file| file.fetch("language") }, "go"
         assert sections.fetch("tree_sitter").content.fetch("symbols").any? { |symbol| symbol.fetch(:path) == "main.go" && symbol.fetch(:name) == "run" }
@@ -76,6 +82,28 @@ module AgentTicketExecution
         assert_equal "test", context.trace_metadata.fetch(:source_channel)
         assert_equal "agent-test", context.trace_metadata.fetch(:actor_identifier)
         assert_equal context.context_sections, context.llm_request_inputs.fetch(:context_sections)
+      end
+    end
+
+    test "marks validation feedback as prompt context for retry policy selection" do
+      with_agent_ticket_execution_workspace do |fixture|
+        workspace = WorkspaceBoundary.new(allowed_projects_root: fixture.projects_root).resolve(ticket: fixture.ticket)
+        context = ContextComposer.new.compose(
+          ticket: fixture.ticket,
+          request: request_payload(branch_name: "feature/todo-done").merge(
+            "validation_feedback" => {
+              "stage" => "validation",
+              "result" => "failed",
+              "output" => "go test ./... failed"
+            }
+          ),
+          workspace: workspace
+        )
+
+        feedback = context.context_sections.index_by(&:name).fetch("validation_feedback")
+
+        assert_equal "current_execution_feedback", feedback.authority
+        assert_equal "prompt", feedback.metadata.fetch("context_layer")
       end
     end
 

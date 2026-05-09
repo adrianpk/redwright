@@ -73,10 +73,12 @@ module AgentTicketExecution
 
     class TicketProject < Base
       def sections(context)
-        [
-          section("ticket", ticket_payload(context.ticket, context.request), "ticket_record"),
-          section("project", project_payload(context.project), "project_record")
-        ]
+        ticket = section("ticket", ticket_payload(context.ticket, context.request), "ticket_record")
+        project = section("project", project_payload(context.project), "project_record")
+        ticket.metadata["context_layer"] = "prompt"
+        project.metadata["context_layer"] = "project"
+
+        [ticket, project]
       end
 
       private
@@ -128,12 +130,14 @@ module AgentTicketExecution
     class Repository < Base
       def sections(context)
         files = repository_files(context.workspace_path)
+        repository_tree = section("repository_tree", repository_tree_payload(files), "workspace_filesystem")
+        relevant_files = section("relevant_files", file_payload(context.workspace_path, relevant_files(files)), "workspace_filesystem")
+        tests = section("tests", file_payload(context.workspace_path, test_files(files)), "workspace_filesystem")
+        repository_tree.metadata["context_layer"] = "file_tree"
+        relevant_files.metadata["context_layer"] = "concrete_files"
+        tests.metadata["context_layer"] = "concrete_files"
 
-        [
-          section("repository_tree", repository_tree_payload(files), "workspace_filesystem"),
-          section("relevant_files", file_payload(context.workspace_path, relevant_files(files)), "workspace_filesystem"),
-          section("tests", file_payload(context.workspace_path, test_files(files)), "workspace_filesystem")
-        ]
+        [repository_tree, relevant_files, tests]
       end
 
       private
@@ -204,13 +208,14 @@ module AgentTicketExecution
 
     class OperationalSetupSection < Base
       def sections(context)
-        [
-          section(
-            "operational_setup",
-            OperationalSetup.new(project: context.project).discover(workspace_path: context.workspace_path),
-            "project_operational_setup"
-          )
-        ]
+        section = section(
+          "operational_setup",
+          OperationalSetup.new(project: context.project).discover(workspace_path: context.workspace_path),
+          "project_operational_setup"
+        )
+        section.metadata["context_layer"] = "agent"
+
+        [section]
       end
     end
 
@@ -1384,13 +1389,14 @@ module AgentTicketExecution
       def sections(context)
         return [] unless context.request["validation_feedback"].present?
 
-        [
-          section(
-            "validation_feedback",
-            context.request.fetch("validation_feedback"),
-            "current_execution_feedback"
-          )
-        ]
+        section = section(
+          "validation_feedback",
+          context.request.fetch("validation_feedback"),
+          "current_execution_feedback"
+        )
+        section.metadata["context_layer"] = "prompt"
+
+        [section]
       end
     end
   end
