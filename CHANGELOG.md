@@ -21,53 +21,37 @@ passed validation, created local Git evidence, and moved the ticket to review.
 
 ### Added
 
-- Added repository dump workflow artifacts and the repository dump skill,
-  including raw and curated dump capture paths.
-- Added quiz fast/deep operation with mode switching, processing feedback,
-  candidate question buffering, fast-loop refill behavior, and traceable
-  fast/deep generation decisions.
-- Added the agent ticket execution cycle, including dump and quiz captures,
-  formal spec, plan, tracker, boundary audit, and sliced delivery artifacts.
-- Added deterministic agent ticket workspace fixtures and reset/inspection
-  tooling for the Go todo CLI manual scenario.
-- Added agent operational setup discovery, including `.rw/agent` runtime setup
-  context and separation from production Dockerfile concerns.
-- Added the agent ticket execution command path, with runtime command handling,
-  Telegram triggering, async acknowledgement/final feedback, and targeted
-  ticket execution by external ticket key.
-- Added ticket selection policy support for development-ready tickets and
-  human-readable ticket invocation keys such as `RW-10`.
-- Added agent ticket LLM context composition with project, ticket, repository
-  tree, relevant files, tests, operational setup, protocols, and previous
-  interaction sections.
-- Added the executable LLM response contract, output application, validation
-  loop, branch creation, commit workflow, and Kanban transitions for agent
-  ticket completion.
-- Added the first validated agent ticket execution path that implemented new
-  functionality from a ticket, passed validation, created local Git evidence,
-  and moved the ticket to review.
-- Added LLM diagnostics for agent ticket execution, including trace-linked
-  context request visibility, validation payloads, and response contract
-  normalization diagnostics.
-- Added task-aware LLM context shaping with explicit work families, execution
-  profiles, context policies, low-confidence full-context fallback, and action
-  policy mappings.
-- Added policy-selectable LLM context capabilities for execution contracts,
-  modeled protocols, documents, quizzes, dumps, conversation, Tree-sitter style
-  semantic code structure, and derived LLM context.
-- Added PlantUML sequence and component diagrams for agent ticket execution,
-  command-query dispatch, and RedWright/Rails component relationships.
-- Added use case scoped ticket and document workflows, including use case
-  selectors for tickets and documents, use case CRUD, metrics, safe deletion,
-  and use case command-query handlers.
+- Added agent ticket execution from Telegram and local command paths, including
+  asynchronous acknowledgement/final feedback, targeted execution by external
+  ticket key, structured LLM output application, validation retries, local Git
+  evidence, and Kanban review/blocked transitions.
+- Added the first validated agent-ticket implementation milestone: RedWright
+  implemented functionality from a ticket, passed validation, created local Git
+  evidence, and moved the ticket to review.
+- Added task-aware LLM context shaping with work families, execution profiles,
+  context policies, full-context fallback, dynamic preclassification, and
+  traceable context inclusion/omission diagnostics.
+- Added policy-selectable LLM context sources for execution contracts, modeled
+  protocols, documents, quizzes, dumps, conversation, semantic code structure,
+  derived LLM context, concrete files, file trees, tests, operational setup,
+  and validation feedback.
+- Added quiz fast/deep operation with mode switching, candidate buffering,
+  processing feedback, fast-loop refill behavior, and repeated-question
+  avoidance.
+- Added use-case scoped tickets, documents, quizzes, and quiz entries, including
+  use case management UI, safe deletion, metrics, selectors, and scoped context
+  retrieval.
 - Added ticket comments with Markdown rendering and mention metadata.
-- Added ticket editing improvements: modal maximization, markdown preview,
-  higher-priority use case placement, and folded comments in maximized mode.
-- Added UI gallery screenshots for the board and ticket edit modal states.
+- Added ticket editing improvements, including modal maximization, Markdown
+  preview, folded comments in maximized mode, and clearer workflow/context
+  fields.
+- Added project protocols as modeled state with template seeding, composition,
+  workspace materialization, and management UI.
+- Added runtime containers for generated projects, including readiness checks,
+  management UI, and ticket-execution gating.
 
 ### Changed
 
-- Formalized the release alignment playbook for `dev -> main` PR handling.
 - Changed agent ticket execution to run asynchronously from Telegram so manual
   commands receive immediate acknowledgement and later completion feedback.
 - Changed agent workspaces to use hidden `.rw` operational setup directories
@@ -119,56 +103,14 @@ passed validation, created local Git evidence, and moved the ticket to review.
 - Fixed agent ticket execution context pruning by mapping concrete legacy
   sections such as `ticket`, `repository_tree`, `relevant_files`, `tests`,
   `operational_setup`, and `validation_feedback` to normalized policy layers.
+- Fixed project setup, quiz, and ticket workflows after the introduction of
+  scoped context and request-engine-backed LLM calls.
 
 ### Removed
 
 - Removed direct `ticket_document_links`, the linked document picker, direct
   ticket document sync paths, command-query attachment paths, and runtime
   bridge document lines.
-
-### Documentation
-
-- Added specs, plans, trackers, and quiz captures for the quiz fast/deep
-  question tree cycle.
-- Added specs, plans, trackers, and quiz captures for the ticket use case formal
-  context refactor cycle.
-- Added the agent ticket execution dump, quiz, spec, plan, tracker, and boundary
-  audit artifacts that define the sandboxed single-agent ticket workflow.
-- Added release alignment operational guidance for direct `dev -> main`
-  synchronization and external forge glitch handling.
-- Added and closed the agent ticket architecture correction plan, tracker, and
-  repository ticket covering the six-slice maintainability cycle.
-- Added the LLM context shaping dump, quiz, draft, formal spec, 20-slice plan,
-  execution tracker, durable reference documentation, cycle report, and
-  follow-up draft for section name versus policy layer normalization.
-- Refreshed the README board screenshot and expanded the UI gallery with ticket
-  edit modal captures.
-
-### Tests
-
-- Added coverage for quiz fast/deep mode behavior, candidate lifecycle, fast
-  progression, tagging semantics, and processing feedback.
-- Added coverage for agent ticket workspace fixture lifecycle, operational
-  setup context, ticket execution command handling, Telegram feedback, ticket
-  selection eligibility, workspace guardrails, LLM context sections, previous
-  interaction context, LLM response contracts, output application, validation
-  retries, Git branch/commit workflow, Kanban transitions, end-to-end execution,
-  blocked execution, diagnostics, and deterministic scenario readiness.
-- Added regression coverage for normalizing near-miss agent ticket LLM responses
-  and applying structured `*** Begin Patch` output.
-- Added final hardening coverage for the refactored agent ticket architecture
-  boundaries, including Telegram command handling, structured patch application,
-  context section providers, validation command resolution, and deterministic Go
-  todo scenario reset/inspection.
-- Added tests for execution profiles, context policy registry behavior, action
-  mappings, preclassifier fallback, policy diagnostics, trace payloads,
-  modeled protocol selection, document/quiz/dump/conversation context
-  selection, semantic code extraction, derived context freshness, end-to-end
-  context shaping, and ticket execution context layer preservation.
-- Added coverage for ticket use case selection, document use case selection,
-  formal artifact scope preservation, command-query cleanup, runtime bridge
-  cleanup, and project setup behavior after removing direct ticket document
-  links.
 
 ## 2026-05-06
 
