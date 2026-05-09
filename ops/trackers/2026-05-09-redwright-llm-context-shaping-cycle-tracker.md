@@ -4,10 +4,10 @@
 
 - cycle_id: `2026-05-09-redwright-llm-context-shaping`
 - status: `in_progress`
-- state: `executing_slice`
+- state: `slice_ready_for_review`
 - updated: `2026-05-09`
-- active_slice: `9`
-- active_task: `T9.4`
+- active_slice: `none`
+- active_task: `none`
 - plan: `ops/plans/2026-05-09-redwright-llm-context-shaping-cycle-plan.md`
 - spec: `ops/specs/specs/2026-05-09-redwright-agent-ticket-llm-context-shaping-spec.md`
 
@@ -219,7 +219,7 @@ Validation:
 
 ### Slice 9: Add LLM Preclassifier Stage
 
-- status: `in_progress`
+- status: `ready_for_review`
 - branch: `fix/slice-9-llm-preclassifier`
 - PR: `tbd`
 - merge_target: `dev`
@@ -234,10 +234,10 @@ Tasks:
 
 Commits:
 
-- [x] `tbd feat(llm): add context preclassifier`
-- [x] `tbd test(llm): cover preclassifier work families`
-- [x] `tbd test(llm): cover low confidence preclassification`
-- [x] `tbd test(llm): cover preclassifier prompt preservation`
+- [x] `0496230 feat(llm): add context preclassifier`
+- [x] `2d06200 test(llm): cover preclassifier work families`
+- [x] `92b9710 test(llm): cover low confidence preclassification`
+- [x] `6991354 test(llm): cover preclassifier prompt preservation`
 
 Validation:
 
