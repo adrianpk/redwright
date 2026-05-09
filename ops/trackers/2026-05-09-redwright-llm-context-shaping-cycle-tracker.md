@@ -7,7 +7,7 @@
 - state: `executing_slice`
 - updated: `2026-05-09`
 - active_slice: `Slice 1`
-- active_task: `T1.1`
+- active_task: `T1.2`
 - plan: `ops/plans/2026-05-09-redwright-llm-context-shaping-cycle-plan.md`
 - spec: `ops/specs/specs/2026-05-09-redwright-agent-ticket-llm-context-shaping-spec.md`
 
@@ -24,12 +24,13 @@
 Tasks:
 
 - [x] `T1.1 Inventory all RedWright LLM actions and request-engine call sites.`
-- [ ] `T1.2 Inventory current context layers per action, including names, authorities, bytes, and trace behavior.`
+- [x] `T1.2 Inventory current context layers per action, including names, authorities, bytes, and trace behavior.`
 - [ ] `T1.3 Document capability status for agent, project, prompt, concrete files, file tree, Tree-sitter, LLM-based context, docs, quizzes, dumps, previous conversation, and protocols.`
 
 Commits:
 
-- [ ] `tbd docs(ops): audit LLM context action coverage`
+- [x] `1644ef1 docs(ops): audit LLM context action coverage`
+- [ ] `tbd docs(ops): audit LLM context layer coverage`
 
 Validation:
 
@@ -481,3 +482,4 @@ Validation:
 
 - `2026-05-09` state=`planning` note=`Tracker created from approved 20-slice LLM context shaping cycle plan.`
 - `2026-05-09` state=`executing_slice` note=`Slice 1 started; T1.1 action and call-site inventory captured in ops/artifacts/2026-05-09-llm-context-action-audit.md.`
+- `2026-05-09` state=`executing_slice` note=`T1.2 context layers per action captured in ops/artifacts/2026-05-09-llm-context-action-audit.md.`
