@@ -32,9 +32,20 @@ entry per commit.
 - Added the executable LLM response contract, output application, validation
   loop, branch creation, commit workflow, and Kanban transitions for agent
   ticket completion.
+- Added the first validated agent ticket execution path that implemented new
+  functionality from a ticket, passed validation, created local Git evidence,
+  and moved the ticket to review.
 - Added LLM diagnostics for agent ticket execution, including trace-linked
   context request visibility, validation payloads, and response contract
   normalization diagnostics.
+- Added task-aware LLM context shaping with explicit work families, execution
+  profiles, context policies, low-confidence full-context fallback, and action
+  policy mappings.
+- Added policy-selectable LLM context capabilities for execution contracts,
+  modeled protocols, documents, quizzes, dumps, conversation, Tree-sitter style
+  semantic code structure, and derived LLM context.
+- Added PlantUML sequence and component diagrams for agent ticket execution,
+  command-query dispatch, and RedWright/Rails component relationships.
 - Added use case scoped ticket and document workflows, including use case
   selectors for tickets and documents, use case CRUD, metrics, safe deletion,
   and use case command-query handlers.
@@ -72,6 +83,15 @@ entry per commit.
 - Changed agent ticket validation command resolution to come from operational
   setup/runtime metadata, with explicit blocking when no validation commands are
   available.
+- Changed `Redwright::LLM::RequestEngine` to apply context policies to supplied
+  context sections before provider calls while preserving unscoped legacy
+  behavior for callers without policies.
+- Changed agent ticket execution, quiz generation, project setup prompt
+  rendering, and active runtime intent paths to emit default or dynamic context
+  policy decisions.
+- Changed protocol context selection to use modeled `ProjectProtocol` and
+  `ProjectProtocolDocument` state instead of treating generated protocol files
+  as the canonical source.
 
 ### Fixed
 
@@ -83,6 +103,11 @@ entry per commit.
   agent work from the synchronous command response.
 - Fixed recoverable LLM response contract drift so useful patches are applied
   instead of being blocked solely because of near-miss field names.
+- Fixed provider prompt construction so policy-filtered context sections are
+  actually sent to the LLM instead of only appearing in diagnostics.
+- Fixed agent ticket execution context pruning by mapping concrete legacy
+  sections such as `ticket`, `repository_tree`, `relevant_files`, `tests`,
+  `operational_setup`, and `validation_feedback` to normalized policy layers.
 
 ### Removed
 
@@ -102,6 +127,9 @@ entry per commit.
   synchronization and external forge glitch handling.
 - Added and closed the agent ticket architecture correction plan, tracker, and
   repository ticket covering the six-slice maintainability cycle.
+- Added the LLM context shaping dump, quiz, draft, formal spec, 20-slice plan,
+  execution tracker, durable reference documentation, cycle report, and
+  follow-up draft for section name versus policy layer normalization.
 - Refreshed the README board screenshot and expanded the UI gallery with ticket
   edit modal captures.
 
@@ -121,6 +149,11 @@ entry per commit.
   boundaries, including Telegram command handling, structured patch application,
   context section providers, validation command resolution, and deterministic Go
   todo scenario reset/inspection.
+- Added tests for execution profiles, context policy registry behavior, action
+  mappings, preclassifier fallback, policy diagnostics, trace payloads,
+  modeled protocol selection, document/quiz/dump/conversation context
+  selection, semantic code extraction, derived context freshness, end-to-end
+  context shaping, and ticket execution context layer preservation.
 - Added coverage for ticket use case selection, document use case selection,
   formal artifact scope preservation, command-query cleanup, runtime bridge
   cleanup, and project setup behavior after removing direct ticket document
