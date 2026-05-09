@@ -4,7 +4,7 @@
 
 - cycle_id: `2026-05-09-redwright-llm-context-shaping`
 - status: `in_progress`
-- state: `slice_ready_for_review`
+- state: `next_slice`
 - updated: `2026-05-09`
 - active_slice: `none`
 - active_task: `none`
@@ -324,9 +324,9 @@ Validation:
 
 ### Slice 13: Quiz Context Capability For General Requests
 
-- status: `ready_for_review`
+- status: `completed`
 - branch: `fix/slice-13-quiz-context`
-- PR: `tbd`
+- PR: `#402`
 - merge_target: `dev`
 - last_sync_commit: `39ea944`
 
