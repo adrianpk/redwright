@@ -1056,6 +1056,117 @@ module AgentTicketExecution
       end
     end
 
+    class DerivedLlmContext < Base
+      def initialize(store:, limit:)
+        @store = store
+        @limit = limit
+      end
+
+      def sections(context)
+        selector = DerivedLlmContextSelector.new(
+          store: store,
+          limit: limit,
+          ticket: context.ticket,
+          request: context.request
+        )
+        summaries = selector.prior_attempt_summaries
+        section = section(
+          "llm_based_context",
+          {
+            "source_inventory" => selector.source_inventory,
+            "prior_attempt_summaries" => summaries
+          },
+          "llm_derived_summary"
+        )
+        section.metadata.merge!(
+          "context_layer" => "llm_based",
+          "selection_source" => "previous_interaction_store",
+          "authority" => "derived_from_agent_llm_interactions",
+          "freshness" => selector.freshness_metadata(summaries),
+          "selected_sources" => summaries.map { |summary| source_trace(summary) }
+        )
+        [section]
+      end
+
+      private
+
+      attr_reader :store, :limit
+
+      def source_trace(summary)
+        {
+          "source" => summary.fetch("source"),
+          "created_at" => summary.fetch("created_at"),
+          "outcome" => summary.fetch("outcome", nil)
+        }.compact
+      end
+    end
+
+    class DerivedLlmContextSelector
+      def initialize(store:, limit:, ticket:, request:)
+        @store = store
+        @limit = limit
+        @ticket = ticket
+        @request = request
+      end
+
+      def prior_attempt_summaries
+        @prior_attempt_summaries ||= previous_records.map do |record|
+          {
+            "source" => "agent_llm_previous_interaction",
+            "created_at" => record.fetch("created_at", nil),
+            "project_id" => record.fetch("project_id", nil),
+            "ticket_id" => record.fetch("ticket_id", nil),
+            "session_id" => record.fetch("session_id", nil),
+            "outcome" => record.fetch("outcome", nil),
+            "failure_summary" => record.fetch("failure_summary", nil),
+            "response_status" => record.dig("response_payload", "status"),
+            "response_summary" => record.dig("response_payload", "summary"),
+            "context_section_names" => Array(record.fetch("context_section_names", [])),
+            "derived_summary" => derived_summary(record)
+          }.compact
+        end
+      end
+
+      def source_inventory
+        {
+          "agent_llm_previous_interactions" => {
+            "status" => store ? "operational" : "not_configured",
+            "scope" => "ticket_session_jsonl",
+            "records" => previous_records.length
+          },
+          "provider_generated_summaries" => {
+            "status" => "not_used",
+            "scope" => "future_explicit_summary_generation"
+          }
+        }
+      end
+
+      def freshness_metadata(summaries)
+        timestamps = summaries.filter_map { |summary| summary["created_at"] }
+        {
+          "latest_created_at" => timestamps.max,
+          "records" => summaries.length,
+          "stale" => timestamps.empty?
+        }
+      end
+
+      private
+
+      attr_reader :store, :limit, :ticket, :request
+
+      def previous_records
+        @previous_records ||= store ? store.recent(ticket: ticket, request: request, limit: limit) : []
+      end
+
+      def derived_summary(record)
+        [
+          "outcome=#{record.fetch("outcome", "unknown")}",
+          ("failure=#{record["failure_summary"]}" if record["failure_summary"].present?),
+          ("response=#{record.dig("response_payload", "summary")}" if record.dig("response_payload", "summary").present?)
+        ].compact.join("; ")
+      end
+    end
+
     class PreviousInteractions < Base
       def initialize(store:, limit:)
         @store = store
