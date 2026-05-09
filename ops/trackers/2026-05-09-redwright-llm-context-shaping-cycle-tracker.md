@@ -4,10 +4,10 @@
 
 - cycle_id: `2026-05-09-redwright-llm-context-shaping`
 - status: `in_progress`
-- state: `next_slice`
+- state: `executing_slice`
 - updated: `2026-05-09`
-- active_slice: `none`
-- active_task: `none`
+- active_slice: `2`
+- active_task: `T2.1`
 - plan: `ops/plans/2026-05-09-redwright-llm-context-shaping-cycle-plan.md`
 - spec: `ops/specs/specs/2026-05-09-redwright-agent-ticket-llm-context-shaping-spec.md`
 
@@ -40,21 +40,21 @@ Validation:
 
 ### Slice 2: Define Core Context Policy Types
 
-- status: `pending`
+- status: `in_progress`
 - branch: `fix/slice-2-context-policy-types`
 - PR: `tbd`
 - merge_target: `dev`
-- last_sync_commit: `tbd`
+- last_sync_commit: `3eb1296`
 
 Tasks:
 
-- [ ] `T2.1 Add explicit work family and confidence-band constants.`
+- [x] `T2.1 Add explicit work family and confidence-band constants.`
 - [ ] `T2.2 Add a normalized execution profile value object or equivalent simple Ruby structure.`
 - [ ] `T2.3 Add validation for required profile fields and low-confidence fallback behavior.`
 
 Commits:
 
-- [ ] `tbd feat(llm): add context policy profile types`
+- [x] `tbd feat(llm): add context policy constants`
 
 Validation:
 
