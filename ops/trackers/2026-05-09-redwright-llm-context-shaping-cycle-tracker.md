@@ -7,7 +7,7 @@
 - state: `executing_slice`
 - updated: `2026-05-09`
 - active_slice: `9`
-- active_task: `T9.2`
+- active_task: `T9.3`
 - plan: `ops/plans/2026-05-09-redwright-llm-context-shaping-cycle-plan.md`
 - spec: `ops/specs/specs/2026-05-09-redwright-agent-ticket-llm-context-shaping-spec.md`
 
@@ -229,13 +229,14 @@ Tasks:
 
 - [x] `T9.1 Add preclassifier request contract and output validation.`
 - [x] `T9.2 Add table-driven fake response tests for all families.`
-- [ ] `T9.3 Ensure low confidence selects full_context_fallback.`
+- [x] `T9.3 Ensure low confidence selects full_context_fallback.`
 - [ ] `T9.4 Ensure preclassifier does not alter the downstream prompt.`
 
 Commits:
 
 - [x] `tbd feat(llm): add context preclassifier`
 - [x] `tbd test(llm): cover preclassifier work families`
+- [x] `tbd test(llm): cover low confidence preclassification`
 
 Validation:
 

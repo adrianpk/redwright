@@ -78,6 +78,22 @@ class LlmContextPreclassifierTest < Minitest::Test
     end
   end
 
+  def test_low_confidence_response_selects_full_context_fallback
+    client = FakeClient.new(content: profile_payload(family: "planning", confidence: "low"))
+    preclassifier = Redwright::LLM::ContextPreclassifier.new(llm_client: client, model: "test/model")
+
+    result = preclassifier.classify(
+      action: "project_setup_prompt_render",
+      model_role: "non_coding",
+      user_text: "Plan the next setup question."
+    )
+
+    assert_predicate result, :ok?
+    assert_equal "planning", result.profile.primary_work_family
+    assert_equal "full_context_fallback", result.profile.context_policy
+    assert_equal "low", result.profile.confidence
+  end
+
   private
 
   def profile_payload(family:, confidence:)
