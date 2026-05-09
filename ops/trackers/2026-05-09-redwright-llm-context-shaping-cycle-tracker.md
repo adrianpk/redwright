@@ -4,7 +4,7 @@
 
 - cycle_id: `2026-05-09-redwright-llm-context-shaping`
 - status: `in_progress`
-- state: `slice_ready_for_review`
+- state: `next_slice`
 - updated: `2026-05-09`
 - active_slice: `none`
 - active_task: `none`
@@ -40,11 +40,11 @@ Validation:
 
 ### Slice 2: Define Core Context Policy Types
 
-- status: `ready_for_review`
+- status: `completed`
 - branch: `fix/slice-2-context-policy-types`
-- PR: `tbd`
+- PR: `#391`
 - merge_target: `dev`
-- last_sync_commit: `3eb1296`
+- last_sync_commit: `f8d1dbc`
 
 Tasks:
 
