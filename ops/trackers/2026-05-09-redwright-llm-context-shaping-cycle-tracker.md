@@ -4,7 +4,7 @@
 
 - cycle_id: `2026-05-09-redwright-llm-context-shaping`
 - status: `in_progress`
-- state: `next_slice`
+- state: `slice_ready_for_review`
 - updated: `2026-05-09`
 - active_slice: `none`
 - active_task: `none`
@@ -376,26 +376,29 @@ Validation:
 
 ### Slice 15: Previous Human And Agent Conversation Context
 
-- status: `pending`
+- status: `ready_for_review`
 - branch: `fix/slice-15-conversation-context`
 - PR: `tbd`
 - merge_target: `dev`
-- last_sync_commit: `tbd`
+- last_sync_commit: `da854d3`
 
 Tasks:
 
-- [ ] `T15.1 Inventory existing human conversation storage for Telegram and TUI/runtime paths.`
-- [ ] `T15.2 Add conversation context selection by project, use case, ticket, and policy.`
-- [ ] `T15.3 Keep existing agent-LLM interaction replay compatible.`
+- [x] `T15.1 Inventory existing human conversation storage for Telegram and TUI/runtime paths.`
+- [x] `T15.2 Add conversation context selection by project, use case, ticket, and policy.`
+- [x] `T15.3 Keep existing agent-LLM interaction replay compatible.`
 
 Commits:
 
-- [ ] `tbd feat(llm): add human conversation context`
+- [x] `4719991 feat(llm): add conversation context inventory`
+- [x] `20cfb2c feat(llm): select conversation context by scope`
+- [x] `da854d3 test(llm): preserve conversation replay coverage`
 
 Validation:
 
-- [ ] `Previous conversation can include human and agent-LLM records.`
-- [ ] `Existing previous_interactions behavior is preserved.`
+- [x] `Previous conversation can include human and agent-LLM records.`
+- [x] `Existing previous_interactions behavior is preserved.`
+- [x] `bundle exec rails test test/services/agent_ticket_execution/context_composer_test.rb test/services/agent_ticket_execution/llm_requester_test.rb`
 
 ### Slice 16: Tree-Sitter Semantic Context Capability
 
