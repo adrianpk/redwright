@@ -24,7 +24,7 @@ module AgentTicketExecution
 
         sections = context.context_sections.index_by(&:name)
         assert_equal(
-          %w[ticket project repository_tree relevant_files tests operational_setup protocol_files protocol_model documents previous_interactions],
+          %w[ticket project repository_tree relevant_files tests operational_setup protocol_files protocol_model documents quizzes previous_interactions],
           sections.keys
         )
         assert_equal "ticket_record", sections.fetch("ticket").authority
@@ -32,6 +32,7 @@ module AgentTicketExecution
         assert_equal "project_protocol_model", sections.fetch("protocol_model").authority
         assert_equal "project_protocol_model", sections.fetch("protocol_files").authority
         assert_equal "project_documents", sections.fetch("documents").authority
+        assert_equal "project_quiz_model", sections.fetch("quizzes").authority
         assert_equal "historical_agent_llm_interaction", sections.fetch("previous_interactions").authority
         assert_includes sections.fetch("ticket").content.fetch("description"), "done <task-number>"
         assert_includes sections.fetch("repository_tree").content.fetch("entries").map { |entry| entry.fetch("path") }, "main.go"
@@ -49,6 +50,7 @@ module AgentTicketExecution
         assert_includes sections.fetch("documents").content.fetch("documents").map { |document| document.fetch("title") }, "Implementation Spec"
         assert_includes sections.fetch("documents").content.fetch("documents").map { |document| document.fetch("title") }, "Implementation Plan"
         assert_includes sections.fetch("documents").content.fetch("omitted_documents").map { |document| document.fetch("title") }, "Implementation Draft"
+        assert_equal "quizzes", sections.fetch("quizzes").metadata.fetch("context_layer")
         assert_equal false, sections.fetch("previous_interactions").content.fetch("human_chat_included")
         assert_equal 1, sections.fetch("previous_interactions").content.fetch("records").length
 
@@ -141,6 +143,54 @@ module AgentTicketExecution
         assert_equal "matched_use_case:#{use_case.id}:spec", documents.metadata.fetch("selected_documents").find { |document| document.fetch("title") == "Feature Spec" }.fetch("selection_reason")
         assert_equal "unselected_artifact_type:draft", documents.metadata.fetch("omitted_documents").find { |document| document.fetch("title") == "Feature Draft" }.fetch("omission_reason")
         assert_equal "unmatched_use_case:#{other_use_case.id}", documents.metadata.fetch("omitted_documents").find { |document| document.fetch("title") == "Other Spec" }.fetch("omission_reason")
+      end
+    end
+
+    test "selects quiz context by policy and use case" do
+      with_agent_ticket_execution_workspace do |fixture|
+        use_case = create_use_case(project: fixture.project, name: "Billing")
+        other_use_case = create_use_case(project: fixture.project, name: "Support")
+        fixture.ticket.update!(use_case: use_case)
+        project_quiz = fixture.project.find_or_create_main_quiz!
+        project_entry = project_quiz.entries.create!(question: "What is global?", answer: "Global answer.")
+        project_entry.tag_with!("global")
+        scoped_quiz = use_case.find_or_create_quiz!
+        scoped_entry = scoped_quiz.entries.create!(question: "What is billing?", answer: "Billing answer.")
+        scoped_entry.tag_with!("billing")
+        skipped_entry = scoped_quiz.entries.create!(question: "What was skipped?", status: "skipped")
+        other_quiz = other_use_case.find_or_create_quiz!
+        other_entry = other_quiz.entries.create!(question: "What is support?", answer: "Support answer.")
+
+        workspace = WorkspaceBoundary.new(allowed_projects_root: fixture.projects_root).resolve(ticket: fixture.ticket)
+        planning_context = ContextComposer.new.compose(
+          ticket: fixture.ticket,
+          request: request_payload(branch_name: "feature/todo-done").merge("context_policy" => "planning_default"),
+          workspace: workspace
+        )
+        implementation_context = ContextComposer.new.compose(
+          ticket: fixture.ticket,
+          request: request_payload(branch_name: "feature/todo-done").merge("context_policy" => "implementation_default"),
+          workspace: workspace
+        )
+
+        planning_quizzes = planning_context.context_sections.index_by(&:name).fetch("quizzes")
+        implementation_quizzes = implementation_context.context_sections.index_by(&:name).fetch("quizzes")
+        selected_entry_questions = planning_quizzes.content.fetch("entries").map { |entry| entry.fetch("question") }
+        omitted_entry_questions = planning_quizzes.content.fetch("omitted_entries").map { |entry| entry.fetch("id") }
+
+        assert_includes planning_quizzes.content.fetch("quizzes").map { |quiz| quiz.fetch("name") }, project_quiz.name
+        assert_includes planning_quizzes.content.fetch("quizzes").map { |quiz| quiz.fetch("name") }, scoped_quiz.name
+        refute_includes planning_quizzes.content.fetch("quizzes").map { |quiz| quiz.fetch("name") }, other_quiz.name
+        assert_includes selected_entry_questions, "What is global?"
+        assert_includes selected_entry_questions, "What is billing?"
+        assert_includes omitted_entry_questions, skipped_entry.id
+        assert_includes omitted_entry_questions, other_entry.id
+        assert_equal ["billing"], planning_quizzes.content.fetch("entries").find { |entry| entry.fetch("question") == "What is billing?" }.fetch("tags")
+        assert_equal "matched_use_case:#{use_case.id}:planning_default", planning_quizzes.metadata.fetch("selected_entries").find { |entry| entry.fetch("id") == scoped_entry.id }.fetch("selection_reason")
+        assert_equal "unselected_status:skipped", planning_quizzes.metadata.fetch("omitted_entries").find { |entry| entry.fetch("id") == skipped_entry.id }.fetch("omission_reason")
+        assert_equal "unmatched_use_case:#{other_use_case.id}", planning_quizzes.metadata.fetch("omitted_entries").find { |entry| entry.fetch("id") == other_entry.id }.fetch("omission_reason")
+        assert_empty implementation_quizzes.content.fetch("quizzes")
+        assert_equal "policy_excludes_quizzes:implementation_default", implementation_quizzes.metadata.fetch("omitted_entries").find { |entry| entry.fetch("id") == project_entry.id }.fetch("omission_reason")
       end
     end
 
