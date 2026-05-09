@@ -4,7 +4,7 @@
 
 - cycle_id: `2026-05-09-redwright-llm-context-shaping`
 - status: `in_progress`
-- state: `slice_ready_for_review`
+- state: `next_slice`
 - updated: `2026-05-09`
 - active_slice: `none`
 - active_task: `none`
@@ -117,11 +117,11 @@ Validation:
 
 ### Slice 5: Add Execution Contract Context Section
 
-- status: `ready_for_review`
+- status: `completed`
 - branch: `fix/slice-5-execution-contract-context`
-- PR: `tbd`
+- PR: `#394`
 - merge_target: `dev`
-- last_sync_commit: `63cacfe`
+- last_sync_commit: `1d40bd1`
 
 Tasks:
 
