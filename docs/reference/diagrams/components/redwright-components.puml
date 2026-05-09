@@ -1,0 +1,112 @@
+@startuml
+title RedWright Component Relationships
+
+skinparam componentStyle rectangle
+skinparam packageStyle rectangle
+skinparam shadowing false
+skinparam linetype ortho
+
+actor "Human user" as Human
+actor "External runtime client" as RuntimeClient
+
+package "apps/web Rails application" as RailsApp {
+  [Web UI controllers] as WebControllers
+  [API command/query controller] as ApiController
+  [CommandQuery dispatcher] as Dispatcher
+  [Module command/query handlers] as Handlers
+  database "Rails database" as RailsDb
+}
+
+package "Domain state" as DomainState {
+  [Projects] as Projects
+  [Boards, columns, tickets] as Kanban
+  [Documents and relations] as Documents
+  [Protocols and templates] as Protocols
+  [Runtime container records] as RuntimeContainersState
+  [Quiz and setup sessions] as SetupState
+}
+
+package "Application service modules" as Services {
+  [Project setup] as ProjectSetup
+  [Project initialization] as ProjectInitialization
+  [Project protocols] as ProjectProtocols
+  [Runtime containers] as RuntimeContainers
+  [Agent ticket execution] as AgentTicketExecution
+  [Runtime bridge] as RuntimeBridge
+  [Document management] as DocumentManagement
+  [Board workflow] as BoardWorkflow
+  [Quiz loops] as QuizLoops
+}
+
+package "lib/redwright runtime library" as RuntimeLib {
+  [App config and model resolver] as AppConfig
+  [LLM request engine] as LlmEngine
+  [Trace recorder] as TraceRecorder
+  [Runtime CLI and stores] as RuntimeStores
+}
+
+package "Project workspace" as Workspace {
+  folder "Project repository" as ProjectRepository
+  file ".redwright/manifest.yml" as Manifest
+  file "Generated protocol files" as ProtocolFiles
+}
+
+database "Runtime SQLite\nruntime.db" as RuntimeDb
+queue "Runtime socket\nrw.sock" as RuntimeSocket
+cloud "LLM provider" as LlmProvider
+component "Git executable" as Git
+
+Human --> WebControllers
+RuntimeClient --> ApiController
+
+WebControllers --> Dispatcher : local command/query calls
+ApiController --> Dispatcher : envelope
+Dispatcher --> Handlers : route by kind and name
+Handlers --> Services : invoke module behavior
+
+Services --> DomainState : read/write model state
+DomainState --> RailsDb : persisted by Active Record
+
+ProjectSetup --> ProjectInitialization
+ProjectSetup --> SetupState
+ProjectInitialization --> Projects
+ProjectInitialization --> Workspace
+
+ProjectProtocols --> Protocols
+ProjectProtocols --> ProtocolFiles
+DocumentManagement --> Documents
+BoardWorkflow --> Kanban
+QuizLoops --> SetupState
+
+RuntimeContainers --> RuntimeContainersState
+RuntimeContainers --> LlmEngine : suggestions when deterministic generator cannot decide
+RuntimeBridge --> RuntimeSocket : start ticket execution
+RuntimeBridge --> RuntimeContainers : readiness check
+RuntimeBridge --> RuntimeLib : runtime context
+
+AgentTicketExecution --> Kanban : select and transition tickets
+AgentTicketExecution --> RuntimeBridge : runtime-backed execution
+AgentTicketExecution --> Workspace : workspace boundary
+AgentTicketExecution --> Git : finalization
+AgentTicketExecution --> LlmEngine : validation loop
+
+RuntimeLib --> RuntimeDb
+RuntimeLib --> Manifest
+LlmEngine --> LlmProvider
+TraceRecorder --> Workspace
+
+Manifest ..> RuntimeDb : bootstrap rehydration fallback
+ProjectRepository --> ProtocolFiles
+
+note right of Dispatcher
+  Request handlers normalize transport into
+  command/query envelopes before dispatch.
+end note
+
+note bottom of RailsDb
+  Rails owns UI state, project setup data,
+  Kanban data, documents, protocols, and
+  runtime container records.
+end note
+
+@enduml

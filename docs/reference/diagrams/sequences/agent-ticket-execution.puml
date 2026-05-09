@@ -1,0 +1,74 @@
+@startuml
+title Agent Ticket Execution Sequence
+
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+
+actor "Operator or runtime client" as Client
+participant "API/UI boundary" as Boundary
+participant "CommandQuery::Dispatcher" as Dispatcher
+participant "AgentTicketExecution::CommandQueryHandlers" as Handler
+participant "AgentTicketExecution::RequestBuilder" as RequestBuilder
+participant "AgentTicketExecution::Runner" as Runner
+participant "TicketSelectionPolicy" as SelectionPolicy
+participant "WorkspaceBoundary" as WorkspaceBoundary
+participant "ContextComposer" as ContextComposer
+participant "Executor\nValidationExecutor or AcceptedExecutor" as Executor
+participant "KanbanTransitioner" as KanbanTransitioner
+participant "ResponsePresenter" as ResponsePresenter
+database "Rails database" as RailsDatabase
+participant "Project workspace" as Workspace
+participant "LLM provider" as LlmProvider
+participant "Git" as Git
+
+Client -> Boundary : start ticket execution
+Boundary -> Dispatcher : ExecuteAgentTicket command envelope
+Dispatcher -> Handler : execute_agent_ticket(payload, context, request_id)
+Handler -> RequestBuilder : build(payload, context, request_id)
+RequestBuilder --> Handler : normalized request
+
+alt invalid payload
+  Handler --> Dispatcher : Result.error(invalid_payload)
+else valid payload
+  Handler -> Runner : call(request)
+  Runner -> RailsDatabase : find board when board_id is present
+  Runner -> SelectionPolicy : targeted or priority ticket selection
+  SelectionPolicy -> RailsDatabase : resolve ticket and board state
+  SelectionPolicy --> Runner : selected ticket
+
+  Runner -> WorkspaceBoundary : resolve(ticket, branch_name)
+  WorkspaceBoundary -> Workspace : validate allowed project root
+  WorkspaceBoundary --> Runner : workspace result
+
+  Runner -> KanbanTransitioner : mark_started(ticket)
+  KanbanTransitioner -> RailsDatabase : update ticket column/status
+  KanbanTransitioner --> Runner : start transition
+
+  Runner -> ContextComposer : compose(ticket, request, workspace)
+  ContextComposer -> RailsDatabase : read ticket, comments, project context
+  ContextComposer -> Workspace : read workspace context when available
+  ContextComposer --> Runner : execution context
+
+  Runner -> Executor : call(request, ticket, workspace, execution_context)
+  alt validation executor
+    Executor -> LlmProvider : validation loop request
+    Executor -> Git : finalization when execution reaches terminal state
+  else accepted executor
+    Executor --> Runner : accepted async boundary
+  end
+  Executor --> Runner : execution hash
+
+  Runner -> KanbanTransitioner : apply_terminal_outcome(ticket, execution)
+  KanbanTransitioner -> RailsDatabase : update terminal board state
+  KanbanTransitioner --> Runner : terminal transition
+  Runner --> Handler : runner result
+
+  Handler -> ResponsePresenter : present(result, request_id)
+  ResponsePresenter --> Handler : CommandQuery::Result
+  Handler --> Dispatcher : result
+end
+
+Dispatcher --> Boundary : normalized result
+Boundary --> Client : execution acknowledgement or error
+
+@enduml

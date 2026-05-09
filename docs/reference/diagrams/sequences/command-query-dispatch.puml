@@ -1,0 +1,43 @@
+@startuml
+title Command/Query Dispatch Sequence
+
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+
+actor "Runtime client" as Client
+participant "API v1\nCommandQueriesController" as Controller
+participant "CommandQuery::Envelope" as Envelope
+participant "CommandQuery::ApplicationDispatcher" as ApplicationDispatcher
+participant "CommandQuery::Dispatcher" as Dispatcher
+collections "Registered handlers" as Handlers
+participant "CommandQuery::Result" as Result
+
+Client -> Controller : POST /api/v1/commands or /api/v1/queries
+Controller -> Controller : build envelope hash\nkind, name, payload, context, request_id
+Controller -> ApplicationDispatcher : build()
+ApplicationDispatcher -> Dispatcher : new
+ApplicationDispatcher -> Handlers : register module handlers
+ApplicationDispatcher <-- Handlers : dispatcher with command/query registries
+Controller -> Dispatcher : call(envelope_hash)
+Dispatcher -> Envelope : from_hash(envelope_hash)
+Envelope --> Dispatcher : request
+
+alt invalid envelope
+  Dispatcher -> Result : error(invalid_envelope)
+  Result --> Controller : result
+else no handler registered
+  Dispatcher -> Handlers : fetch(request.name)
+  Handlers --> Dispatcher : nil
+  Dispatcher -> Result : error(unsupported_action)
+  Result --> Controller : result
+else handler found
+  Dispatcher -> Handlers : call(payload, context, request_id)
+  Handlers --> Dispatcher : raw result or Result
+  Dispatcher -> Result : normalize handler result
+  Result --> Controller : result
+end
+
+Controller -> Controller : map result to HTTP status and body
+Controller --> Client : JSON response with request_id
+
+@enduml

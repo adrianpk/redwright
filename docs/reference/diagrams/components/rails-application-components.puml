@@ -1,0 +1,108 @@
+@startuml
+title Rails Application Component Zoom
+
+skinparam componentStyle rectangle
+skinparam packageStyle rectangle
+skinparam shadowing false
+skinparam linetype ortho
+
+package "Transport" as Transport {
+  [HTML controllers] as HtmlControllers
+  [Turbo streams] as TurboStreams
+  [API v1 CommandQueriesController] as CommandQueriesController
+}
+
+package "CommandQuery core" as CommandQueryCore {
+  [Envelope] as Envelope
+  [Dispatcher] as Dispatcher
+  [Command registry] as CommandRegistry
+  [Query registry] as QueryRegistry
+  [Result] as Result
+}
+
+package "Registered handler modules" as HandlerModules {
+  [ProjectSetup handlers] as ProjectSetupHandlers
+  [ProjectProtocols handlers] as ProjectProtocolsHandlers
+  [RuntimeContainers handlers] as RuntimeContainersHandlers
+  [AgentTicketExecution handlers] as AgentTicketExecutionHandlers
+  [UseCases handlers] as UseCasesHandlers
+  [DocumentManagement handlers] as DocumentManagementHandlers
+  [BoardWorkflow handlers] as BoardWorkflowHandlers
+  [QuizLoops handlers] as QuizLoopsHandlers
+}
+
+package "Workflow services" as WorkflowServices {
+  [Project setup state machine] as ProjectSetupStateMachine
+  [Protocol composer and materializer] as ProtocolComposer
+  [Runtime container generation and readiness] as RuntimeContainerServices
+  [Agent ticket runner] as AgentTicketRunner
+  [Runtime ticket execution bridge] as TicketExecutionBridge
+  [Document promotion] as DocumentPromotion
+  [Board workflow services] as BoardServices
+  [Quiz runtime] as QuizRuntime
+}
+
+package "Active Record models" as Models {
+  [Project] as Project
+  [Board] as Board
+  [Column] as Column
+  [Ticket] as Ticket
+  [Document] as Document
+  [ProjectProtocol] as ProjectProtocol
+  [ProjectRuntimeContainer] as ProjectRuntimeContainer
+  [Quiz] as Quiz
+  [ProjectSetupSession] as ProjectSetupSession
+}
+
+database "Rails database" as RailsDatabase
+folder "Workspace files" as WorkspaceFiles
+queue "Runtime socket" as RuntimeSocket
+cloud "LLM provider" as LlmProvider
+
+HtmlControllers --> Models : direct UI workflows
+HtmlControllers --> WorkflowServices : multi-step workflows
+HtmlControllers --> TurboStreams : board updates
+
+CommandQueriesController --> Envelope : build from params and actor context
+CommandQueriesController --> Dispatcher : dispatch
+Dispatcher --> CommandRegistry
+Dispatcher --> QueryRegistry
+Dispatcher --> Result
+
+ProjectSetupHandlers --> ProjectSetupStateMachine
+ProjectProtocolsHandlers --> ProtocolComposer
+RuntimeContainersHandlers --> RuntimeContainerServices
+AgentTicketExecutionHandlers --> AgentTicketRunner
+UseCasesHandlers --> Models
+DocumentManagementHandlers --> DocumentPromotion
+BoardWorkflowHandlers --> BoardServices
+QuizLoopsHandlers --> QuizRuntime
+
+Dispatcher --> HandlerModules : registered by ApplicationDispatcher
+HandlerModules --> Result
+
+ProjectSetupStateMachine --> Project
+ProjectSetupStateMachine --> ProjectSetupSession
+ProtocolComposer --> ProjectProtocol
+ProtocolComposer --> WorkspaceFiles
+RuntimeContainerServices --> ProjectRuntimeContainer
+RuntimeContainerServices --> LlmProvider
+AgentTicketRunner --> Ticket
+AgentTicketRunner --> Board
+AgentTicketRunner --> TicketExecutionBridge
+TicketExecutionBridge --> RuntimeSocket
+DocumentPromotion --> Document
+BoardServices --> Board
+BoardServices --> Column
+BoardServices --> Ticket
+QuizRuntime --> Quiz
+
+Models --> RailsDatabase
+
+note right of AgentTicketRunner
+  Selects a ticket, resolves workspace,
+  composes execution context, invokes an
+  executor, and applies Kanban transitions.
+end note
+
+@enduml
