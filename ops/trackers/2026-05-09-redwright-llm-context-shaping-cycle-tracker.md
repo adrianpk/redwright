@@ -3,10 +3,10 @@
 ## Metadata
 
 - cycle_id: `2026-05-09-redwright-llm-context-shaping`
-- status: `implemented_pending_review`
-- state: `awaiting_review`
+- status: `completed`
+- state: `completed`
 - updated: `2026-05-09`
-- active_slice: `20`
+- active_slice: `none`
 - active_task: `none`
 - plan: `ops/plans/2026-05-09-redwright-llm-context-shaping-cycle-plan.md`
 - spec: `ops/specs/specs/2026-05-09-redwright-agent-ticket-llm-context-shaping-spec.md`
@@ -512,9 +512,9 @@ Validation:
 
 ### Slice 20: Documentation And Operator Review
 
-- status: `ready_for_review`
+- status: `completed`
 - branch: `fix/slice-20-context-shaping-docs`
-- PR: `tbd`
+- PR: `#409`
 - merge_target: `dev`
 - last_sync_commit: `e1a3b55`
 
@@ -544,3 +544,4 @@ Validation:
 - `2026-05-09` state=`awaiting_review` note=`Slice 19 completed with end-to-end context shaping validation for ticket execution, quiz generation, and project setup.`
 - `2026-05-09` state=`next_slice` note=`Slice 19 merged through PR #408 and dev synced to 6591048.`
 - `2026-05-09` state=`awaiting_review` note=`Slice 20 completed with durable reference docs, implemented spec closure, and cycle report.`
+- `2026-05-09` state=`completed` note=`Slice 20 merged through PR #409 and dev synced to fadf9dc.`
