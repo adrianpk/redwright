@@ -4,10 +4,10 @@
 
 - cycle_id: `2026-05-09-redwright-llm-context-shaping`
 - status: `in_progress`
-- state: `executing_slice`
+- state: `slice_ready_for_review`
 - updated: `2026-05-09`
-- active_slice: `11`
-- active_task: `T11.3`
+- active_slice: `none`
+- active_task: `none`
 - plan: `ops/plans/2026-05-09-redwright-llm-context-shaping-cycle-plan.md`
 - spec: `ops/specs/specs/2026-05-09-redwright-agent-ticket-llm-context-shaping-spec.md`
 
@@ -273,7 +273,7 @@ Validation:
 
 ### Slice 11: Protocol Context Selection From Modeled State
 
-- status: `in_progress`
+- status: `ready_for_review`
 - branch: `fix/slice-11-modeled-protocol-selection`
 - PR: `tbd`
 - merge_target: `dev`
@@ -287,9 +287,9 @@ Tasks:
 
 Commits:
 
-- [x] `tbd feat(protocols): select modeled protocol documents`
-- [x] `tbd test(protocols): cover policy protocol selection`
-- [x] `tbd test(protocols): preserve generated protocol exclusion`
+- [x] `b7a2174 feat(protocols): select modeled protocol documents`
+- [x] `b80503d test(protocols): cover policy protocol selection`
+- [x] `43e5844 test(protocols): preserve generated protocol exclusion`
 
 Validation:
 
