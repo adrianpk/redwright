@@ -7,7 +7,7 @@
 - state: `executing_slice`
 - updated: `2026-05-09`
 - active_slice: `2`
-- active_task: `T2.2`
+- active_task: `T2.3`
 - plan: `ops/plans/2026-05-09-redwright-llm-context-shaping-cycle-plan.md`
 - spec: `ops/specs/specs/2026-05-09-redwright-agent-ticket-llm-context-shaping-spec.md`
 
@@ -50,17 +50,18 @@ Tasks:
 
 - [x] `T2.1 Add explicit work family and confidence-band constants.`
 - [x] `T2.2 Add a normalized execution profile value object or equivalent simple Ruby structure.`
-- [ ] `T2.3 Add validation for required profile fields and low-confidence fallback behavior.`
+- [x] `T2.3 Add validation for required profile fields and low-confidence fallback behavior.`
 
 Commits:
 
 - [x] `tbd feat(llm): add context policy constants`
 - [x] `tbd feat(llm): add execution profile type`
+- [x] `tbd feat(llm): validate execution profile fallback`
 
 Validation:
 
-- [ ] `Unit tests cover family and confidence constants.`
-- [ ] `Low confidence maps to full_context_fallback.`
+- [x] `Unit tests cover family and confidence constants.`
+- [x] `Low confidence maps to full_context_fallback.`
 
 ### Slice 3: Add Declarative Policy Registry
 

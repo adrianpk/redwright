@@ -52,4 +52,39 @@ class RedwrightLLMExecutionProfileTest < ActiveSupport::TestCase
       profile.to_h
     )
   end
+
+  test "reports missing and invalid required fields" do
+    profile = Redwright::LLM::ExecutionProfile.from_hash(
+      primary_work_family: "mixed",
+      confidence: "uncertain",
+      requires_code_changes: nil,
+      requires_command_execution: false,
+      requires_validation: true,
+      should_ask_clarification: false,
+      reasoning_summary: ""
+    )
+
+    refute profile.valid?
+    assert_includes profile.errors, "primary_work_family is invalid"
+    assert_includes profile.errors, "confidence is invalid"
+    assert_includes profile.errors, "context_policy is required"
+    assert_includes profile.errors, "reasoning_summary is required"
+    assert_includes profile.errors, "requires_code_changes must be true or false"
+  end
+
+  test "low confidence maps to full context fallback" do
+    profile = Redwright::LLM::ExecutionProfile.from_hash(
+      primary_work_family: "implementation",
+      context_policy: "implementation_default",
+      confidence: "low",
+      requires_code_changes: true,
+      requires_command_execution: true,
+      requires_validation: true,
+      should_ask_clarification: false,
+      reasoning_summary: "The classifier is not confident enough."
+    )
+
+    assert profile.valid?
+    assert_equal "full_context_fallback", profile.context_policy
+  end
 end

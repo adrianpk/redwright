@@ -5,6 +5,24 @@ require_relative "context_policy"
 module Redwright
   module LLM
     class ExecutionProfile
+      BOOLEAN_FIELDS = %i[
+        requires_code_changes
+        requires_command_execution
+        requires_validation
+        should_ask_clarification
+      ].freeze
+
+      REQUIRED_FIELDS = %i[
+        primary_work_family
+        context_policy
+        confidence
+        requires_code_changes
+        requires_command_execution
+        requires_validation
+        should_ask_clarification
+        reasoning_summary
+      ].freeze
+
       OPTIONAL_DEFAULTS = {
         runner_up_families: [],
         request_complexity: nil,
@@ -34,13 +52,13 @@ module Redwright
       end
 
       def initialize(
-        primary_work_family:,
-        confidence:,
-        requires_code_changes:,
-        requires_command_execution:,
-        requires_validation:,
-        should_ask_clarification:,
-        reasoning_summary:,
+        primary_work_family: nil,
+        confidence: nil,
+        requires_code_changes: nil,
+        requires_command_execution: nil,
+        requires_validation: nil,
+        should_ask_clarification: nil,
+        reasoning_summary: nil,
         context_policy: nil,
         runner_up_families: [],
         request_complexity: nil,
@@ -59,6 +77,27 @@ module Redwright
         @request_complexity = request_complexity&.to_s
         @expected_outputs = Array(expected_outputs).map(&:to_s)
         @policy_inputs = policy_inputs || {}
+      end
+
+      def valid?
+        errors.empty?
+      end
+
+      def errors
+        validation_errors = []
+        validation_errors << "primary_work_family is required" if primary_work_family.empty?
+        validation_errors << "primary_work_family is invalid" unless primary_work_family.empty? || ContextPolicy.valid_work_family?(primary_work_family)
+        validation_errors << "confidence is required" if confidence.empty?
+        validation_errors << "confidence is invalid" unless confidence.empty? || ContextPolicy.valid_confidence?(confidence)
+        validation_errors << "context_policy is required" if context_policy.empty?
+        validation_errors << "reasoning_summary is required" if reasoning_summary.empty?
+
+        BOOLEAN_FIELDS.each do |field|
+          value = public_send(field)
+          validation_errors << "#{field} must be true or false" unless value == true || value == false
+        end
+
+        validation_errors
       end
 
       def to_h
@@ -81,6 +120,8 @@ module Redwright
       private
 
       def resolved_context_policy(context_policy)
+        return ContextPolicy::FULL_CONTEXT_FALLBACK if confidence.to_s == "low"
+
         policy = context_policy.to_s
         return policy unless policy.empty?
 

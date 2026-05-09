@@ -31,4 +31,11 @@ class RedwrightLLMContextPolicyTest < ActiveSupport::TestCase
     refute Redwright::LLM::ContextPolicy.valid_work_family?("mixed")
     refute Redwright::LLM::ContextPolicy.valid_confidence?("uncertain")
   end
+
+  test "selects fallback policy for low confidence" do
+    assert_equal(
+      "full_context_fallback",
+      Redwright::LLM::ContextPolicy.policy_for(family: "implementation", confidence: "low")
+    )
+  end
 end
