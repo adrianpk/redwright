@@ -4,10 +4,10 @@
 
 - cycle_id: `2026-05-09-redwright-llm-context-shaping`
 - status: `in_progress`
-- state: `executing_slice`
+- state: `slice_ready_for_review`
 - updated: `2026-05-09`
-- active_slice: `3`
-- active_task: `T3.3`
+- active_slice: `none`
+- active_task: `none`
 - plan: `ops/plans/2026-05-09-redwright-llm-context-shaping-cycle-plan.md`
 - spec: `ops/specs/specs/2026-05-09-redwright-agent-ticket-llm-context-shaping-spec.md`
 
@@ -65,7 +65,7 @@ Validation:
 
 ### Slice 3: Add Declarative Policy Registry
 
-- status: `in_progress`
+- status: `ready_for_review`
 - branch: `fix/slice-3-context-policy-registry`
 - PR: `tbd`
 - merge_target: `dev`
@@ -79,9 +79,9 @@ Tasks:
 
 Commits:
 
-- [x] `tbd feat(llm): add context policy registry`
-- [x] `tbd feat(llm): define default context policies`
-- [x] `tbd feat(llm): define full context fallback policy`
+- [x] `e1a9dba feat(llm): add context policy registry`
+- [x] `b2c40d7 feat(llm): define default context policies`
+- [x] `c693c10 feat(llm): define full context fallback policy`
 
 Validation:
 
