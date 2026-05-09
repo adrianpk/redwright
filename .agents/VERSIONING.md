@@ -32,6 +32,7 @@ Examples:
 - Default and mandatory PR target for slices, tickets, and planned implementation is `dev`.
 - PRs targeting `main` are not allowed during normal delivery flow.
 - `dev -> main` is a formal alignment protocol executed only on explicit user request.
+- PR titles must keep the canonical conventional/slice naming even when the forge rejects or rate-limits similar titles. Do not permanently rename PRs to satisfy hosting limitations; retry later or create then immediately restore the canonical title.
 
 ## Alignment policy (`dev` and `main`)
 
