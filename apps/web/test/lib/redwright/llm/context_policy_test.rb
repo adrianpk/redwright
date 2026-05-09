@@ -46,7 +46,16 @@ class RedwrightLLMContextPolicyTest < ActiveSupport::TestCase
 
       assert_equal policy_name, policy.name
       assert_equal family, policy.work_family
+      refute_empty policy.included_layers
       refute policy.fallback?
+    end
+  end
+
+  test "default policy layers are known context layers" do
+    Redwright::LLM::ContextPolicy::WORK_FAMILIES.each do |family|
+      policy = Redwright::LLM::ContextPolicy.fetch_policy("#{family}_default")
+
+      assert_empty policy.included_layers - Redwright::LLM::ContextPolicy::ALL_CONTEXT_LAYERS
     end
   end
 end

@@ -39,12 +39,38 @@ module Redwright
 
       FULL_CONTEXT_FALLBACK = "full_context_fallback"
 
+      ALL_CONTEXT_LAYERS = %w[
+        agent
+        project
+        prompt
+        concrete_files
+        file_tree
+        tree_sitter
+        llm_based
+        docs
+        quizzes
+        dumps
+        conversation
+        protocols
+      ].freeze
+
+      DEFAULT_INCLUDED_LAYERS_BY_FAMILY = {
+        "exploration" => %w[agent project prompt file_tree docs protocols conversation],
+        "implementation" => %w[agent project prompt concrete_files file_tree tree_sitter docs protocols conversation],
+        "modification" => %w[agent project prompt concrete_files file_tree tree_sitter docs protocols conversation],
+        "diagnosis" => %w[agent project prompt concrete_files file_tree tree_sitter llm_based docs protocols conversation],
+        "evaluation" => %w[agent project prompt concrete_files file_tree tree_sitter docs protocols conversation],
+        "operation" => %w[agent project prompt concrete_files docs protocols conversation],
+        "planning" => %w[agent project prompt file_tree llm_based docs quizzes dumps conversation protocols],
+        "documentation" => %w[agent project prompt concrete_files file_tree docs quizzes dumps conversation protocols]
+      }.freeze
+
       POLICY_REGISTRY = WORK_FAMILIES.each_with_object({}) do |family, registry|
         policy_name = "#{family}_default"
         registry[policy_name] = Policy.new(
           name: policy_name,
           work_family: family,
-          included_layers: [],
+          included_layers: DEFAULT_INCLUDED_LAYERS_BY_FAMILY.fetch(family),
           fallback: false
         )
       end.merge(
