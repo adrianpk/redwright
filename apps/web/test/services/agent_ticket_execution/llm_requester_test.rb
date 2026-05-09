@@ -27,6 +27,7 @@ module AgentTicketExecution
 
         assert result.ok?, result.warnings.inspect
         assert_equal LlmContract::ACTION, engine.calls.first.fetch(:action)
+        assert_equal "implementation_default", engine.calls.first.fetch(:context_policy)
         assert_equal LlmContract.output_contract, engine.calls.first.fetch(:output_contract)
         assert_equal execution_context.context_sections, engine.calls.first.fetch(:context_sections)
         provider_prompt = JSON.parse(engine.calls.first.fetch(:user_text))
@@ -38,6 +39,7 @@ module AgentTicketExecution
         assert_equal "duplicated_by_protocol_files", protocol_model_section.fetch("omission_reason")
         refute_includes protocol_model_section.keys, "content"
         assert_equal LlmContract::ACTION, recorder.requests.first.fetch(:action)
+        assert_equal "implementation_default", recorder.requests.first.fetch(:policy_decision).fetch(:policy_name)
         assert_includes recorder.requests.first.fetch(:user_text), "context_sections"
         assert_equal LlmContract::ACTION, recorder.responses.first.fetch(:action)
         assert_equal fixture.ticket.id, recorder.requests.first.fetch(:ticket_id)

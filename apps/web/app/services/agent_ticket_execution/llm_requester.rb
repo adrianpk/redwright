@@ -1,4 +1,5 @@
 require Rails.root.join("..", "..", "lib", "redwright", "llm", "request_engine").expand_path.to_s
+require Rails.root.join("..", "..", "lib", "redwright", "llm", "context_policy").expand_path.to_s
 
 module AgentTicketExecution
   class LlmRequester
@@ -35,8 +36,9 @@ module AgentTicketExecution
       user_text = inputs.fetch(:user_text)
       context_sections = inputs.fetch(:context_sections)
       trace_metadata = inputs.fetch(:trace_metadata)
+      context_policy = context_policy_name
       provider_user_text = provider_user_text(user_text: user_text, context_sections: context_sections)
-      llm_call_id = record_request(user_text: provider_user_text, context_sections: context_sections, trace_metadata: trace_metadata)
+      llm_call_id = record_request(user_text: provider_user_text, context_sections: context_sections, trace_metadata: trace_metadata, context_policy: context_policy)
       response = request_engine.generate_structured_message(
         model: model,
         model_role: LlmContract::MODEL_ROLE,
@@ -46,6 +48,7 @@ module AgentTicketExecution
         user_text: provider_user_text,
         output_contract: LlmContract.output_contract,
         context_sections: context_sections,
+        context_policy: context_policy,
         trace_metadata: trace_metadata
       )
       contract_result = response.ok? ? contract.validate(response.semantic_payload) : nil
@@ -56,6 +59,22 @@ module AgentTicketExecution
     private
 
     attr_reader :request_engine, :contract, :model, :provider, :trace_recorder
+
+    def context_policy_name
+      Redwright::LLM::ContextPolicy.policy_name_for_action(LlmContract::ACTION)
+    end
+
+    def policy_decision_for_trace(context_policy)
+      policy = Redwright::LLM::ContextPolicy.fetch_policy(context_policy)
+      return nil unless policy
+
+      {
+        policy_name: policy.name,
+        work_family: policy.work_family,
+        fallback: policy.fallback?,
+        included_layers: policy.included_layers
+      }
+    end
 
     def provider_user_text(user_text:, context_sections:)
       section_names = context_sections.map { |section| section.name.to_s }
@@ -82,7 +101,7 @@ module AgentTicketExecution
       end
     end
 
-    def record_request(user_text:, context_sections:, trace_metadata:)
+    def record_request(user_text:, context_sections:, trace_metadata:, context_policy:)
       return nil unless trace_recorder
 
       trace_recorder.record_request(
@@ -103,7 +122,8 @@ module AgentTicketExecution
         actor_identifier: trace_metadata[:actor_identifier],
         context_summary: trace_metadata[:context_summary],
         context_bytes: trace_metadata[:context_bytes],
-        context_sections: context_sections.map(&:to_h)
+        context_sections: context_sections.map(&:to_h),
+        policy_decision: policy_decision_for_trace(context_policy)
       )
     end
 
@@ -140,7 +160,8 @@ module AgentTicketExecution
         model: model,
         payload_bytes: response.diagnostics[:context_bytes],
         warnings: response.warnings,
-        diagnostics: diagnostics
+        diagnostics: diagnostics,
+        policy_decision: response.diagnostics[:context_policy]
       )
     end
   end
