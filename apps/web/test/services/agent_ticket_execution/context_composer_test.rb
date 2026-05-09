@@ -34,7 +34,7 @@ module AgentTicketExecution
         assert_equal "project_documents", sections.fetch("documents").authority
         assert_equal "project_quiz_model", sections.fetch("quizzes").authority
         assert_equal "repository_dump_artifacts", sections.fetch("dumps").authority
-        assert_equal "historical_agent_llm_interaction", sections.fetch("previous_interactions").authority
+        assert_equal "historical_conversation", sections.fetch("previous_interactions").authority
         assert_includes sections.fetch("ticket").content.fetch("description"), "done <task-number>"
         assert_includes sections.fetch("repository_tree").content.fetch("entries").map { |entry| entry.fetch("path") }, "main.go"
         refute_includes sections.fetch("repository_tree").content.fetch("entries").map { |entry| entry.fetch("path") }, "AGENTS.md"
@@ -53,8 +53,10 @@ module AgentTicketExecution
         assert_includes sections.fetch("documents").content.fetch("omitted_documents").map { |document| document.fetch("title") }, "Implementation Draft"
         assert_equal "quizzes", sections.fetch("quizzes").metadata.fetch("context_layer")
         assert_equal "dumps", sections.fetch("dumps").metadata.fetch("context_layer")
+        assert_equal "conversation", sections.fetch("previous_interactions").metadata.fetch("context_layer")
         assert_equal false, sections.fetch("previous_interactions").content.fetch("human_chat_included")
         assert_equal 1, sections.fetch("previous_interactions").content.fetch("records").length
+        assert_equal 1, sections.fetch("previous_interactions").metadata.fetch("agent_llm_records")
 
         assert_equal sections.keys, context.diagnostics.fetch("section_names")
         assert_operator context.diagnostics.fetch("context_bytes"), :>, 0
@@ -63,6 +65,92 @@ module AgentTicketExecution
         assert_equal "test", context.trace_metadata.fetch(:source_channel)
         assert_equal "agent-test", context.trace_metadata.fetch(:actor_identifier)
         assert_equal context.context_sections, context.llm_request_inputs.fetch(:context_sections)
+      end
+    end
+
+    test "selects human and agent conversation context without losing agent interaction replay" do
+      with_agent_ticket_execution_workspace do |fixture|
+        use_case = create_use_case(project: fixture.project, name: "Done Workflow")
+        fixture.ticket.update!(use_case: use_case)
+        same_ticket_comment = fixture.ticket.ticket_comments.create!(
+          author_type: "user",
+          author_label: "Telegram User",
+          author_handle: "telegram:9001",
+          body: "Please keep the done command behavior explicit."
+        )
+        same_use_case_ticket = Ticket.create!(
+          board: fixture.board,
+          column: fixture.columns.fetch("backlog"),
+          use_case: use_case,
+          title: "Refine done workflow",
+          description: "Related use-case discussion.",
+          assignee: "agent-coder",
+          kind: "task",
+          severity: "low",
+          scope: "runtime",
+          source: "implementation"
+        )
+        use_case_comment = same_use_case_ticket.ticket_comments.create!(
+          author_type: "agent",
+          author_label: "Agent",
+          body: "Use the same use case constraints for done workflow changes."
+        )
+        project_ticket = Ticket.create!(
+          board: fixture.board,
+          column: fixture.columns.fetch("backlog"),
+          title: "Project topic note",
+          description: "Project-level conversation.",
+          assignee: "agent-coder",
+          kind: "task",
+          severity: "low",
+          scope: "runtime",
+          source: "implementation"
+        )
+        project_comment = project_ticket.ticket_comments.create!(
+          author_type: "user",
+          author_label: "TUI User",
+          body: "The done command context should be reused across implementation work."
+        )
+        unrelated_ticket = Ticket.create!(
+          board: fixture.board,
+          column: fixture.columns.fetch("backlog"),
+          title: "Unrelated deployment note",
+          description: "No relevant overlap.",
+          assignee: "agent-coder",
+          kind: "task",
+          severity: "low",
+          scope: "infra",
+          source: "implementation"
+        )
+        unrelated_comment = unrelated_ticket.ticket_comments.create!(
+          author_type: "user",
+          author_label: "Web User",
+          body: "Deployment credentials should stay isolated."
+        )
+        store = write_previous_interactions(fixture.ticket)
+
+        workspace = WorkspaceBoundary.new(allowed_projects_root: fixture.projects_root).resolve(ticket: fixture.ticket)
+        context = ContextComposer.new(previous_interaction_store: store).compose(
+          ticket: fixture.ticket,
+          request: request_payload(branch_name: "feature/todo-done").merge("context_policy" => "implementation_default"),
+          workspace: workspace
+        )
+
+        previous_interactions = context.context_sections.index_by(&:name).fetch("previous_interactions")
+        selected_comment_ids = previous_interactions.content.fetch("ticket_comments").map { |comment| comment.fetch("id") }
+        omitted_comment_ids = previous_interactions.content.fetch("omitted_ticket_comments").map { |comment| comment.fetch("id") }
+
+        assert_equal true, previous_interactions.content.fetch("human_chat_included")
+        assert_includes selected_comment_ids, same_ticket_comment.id
+        assert_includes selected_comment_ids, use_case_comment.id
+        assert_includes selected_comment_ids, project_comment.id
+        assert_includes omitted_comment_ids, unrelated_comment.id
+        assert_equal "matched_ticket:#{fixture.ticket.id}", previous_interactions.metadata.fetch("selected_ticket_comments").find { |comment| comment.fetch("id") == same_ticket_comment.id }.fetch("selection_reason")
+        assert_equal "matched_use_case:#{use_case.id}", previous_interactions.metadata.fetch("selected_ticket_comments").find { |comment| comment.fetch("id") == use_case_comment.id }.fetch("selection_reason")
+        assert_equal "no_conversation_scope_match", previous_interactions.metadata.fetch("omitted_ticket_comments").find { |comment| comment.fetch("id") == unrelated_comment.id }.fetch("omission_reason")
+        assert_equal "operational", previous_interactions.content.fetch("storage_inventory").fetch("ticket_comments").fetch("status")
+        assert_equal 1, previous_interactions.content.fetch("records").length
+        assert_equal previous_interactions.content.fetch("records"), previous_interactions.content.fetch("agent_llm_records")
       end
     end
 
