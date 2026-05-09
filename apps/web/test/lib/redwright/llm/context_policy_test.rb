@@ -38,4 +38,15 @@ class RedwrightLLMContextPolicyTest < ActiveSupport::TestCase
       Redwright::LLM::ContextPolicy.policy_for(family: "implementation", confidence: "low")
     )
   end
+
+  test "exposes every default policy through the registry" do
+    Redwright::LLM::ContextPolicy::WORK_FAMILIES.each do |family|
+      policy_name = Redwright::LLM::ContextPolicy.default_policy_for(family)
+      policy = Redwright::LLM::ContextPolicy.fetch_policy(policy_name)
+
+      assert_equal policy_name, policy.name
+      assert_equal family, policy.work_family
+      refute policy.fallback?
+    end
+  end
 end

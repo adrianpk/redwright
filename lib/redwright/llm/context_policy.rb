@@ -3,6 +3,27 @@
 module Redwright
   module LLM
     module ContextPolicy
+      Policy = Struct.new(
+        :name,
+        :work_family,
+        :included_layers,
+        :fallback,
+        keyword_init: true
+      ) do
+        def fallback?
+          fallback == true
+        end
+
+        def to_h
+          {
+            name: name,
+            work_family: work_family,
+            included_layers: included_layers,
+            fallback: fallback?
+          }
+        end
+      end
+
       WORK_FAMILIES = %w[
         exploration
         implementation
@@ -17,6 +38,23 @@ module Redwright
       CONFIDENCE_BANDS = %w[high medium low].freeze
 
       FULL_CONTEXT_FALLBACK = "full_context_fallback"
+
+      POLICY_REGISTRY = WORK_FAMILIES.each_with_object({}) do |family, registry|
+        policy_name = "#{family}_default"
+        registry[policy_name] = Policy.new(
+          name: policy_name,
+          work_family: family,
+          included_layers: [],
+          fallback: false
+        )
+      end.merge(
+        FULL_CONTEXT_FALLBACK => Policy.new(
+          name: FULL_CONTEXT_FALLBACK,
+          work_family: nil,
+          included_layers: [],
+          fallback: true
+        )
+      ).freeze
 
       DEFAULT_POLICY_BY_FAMILY = WORK_FAMILIES.to_h do |family|
         [family, "#{family}_default"]
@@ -34,6 +72,18 @@ module Redwright
 
       def default_policy_for(family)
         DEFAULT_POLICY_BY_FAMILY[family.to_s]
+      end
+
+      def policy_registry
+        POLICY_REGISTRY
+      end
+
+      def policy_names
+        POLICY_REGISTRY.keys
+      end
+
+      def fetch_policy(policy_name)
+        POLICY_REGISTRY[policy_name.to_s]
       end
 
       def policy_for(family:, confidence:)
