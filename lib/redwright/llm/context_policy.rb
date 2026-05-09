@@ -86,6 +86,16 @@ module Redwright
         [family, "#{family}_default"]
       end.freeze
 
+      CONTEXT_LAYER_POLICY_MATRIX = ALL_CONTEXT_LAYERS.to_h do |layer|
+        [
+          layer,
+          WORK_FAMILIES.to_h do |family|
+            included = DEFAULT_INCLUDED_LAYERS_BY_FAMILY.fetch(family).include?(layer)
+            [family, included ? "included" : "omitted"]
+          end.merge(FULL_CONTEXT_FALLBACK => "included")
+        ]
+      end.freeze
+
       ACTION_FAMILY_BY_ACTION = {
         "agent_ticket_execution" => "implementation",
         "quiz_question_generation" => "exploration",
@@ -123,6 +133,14 @@ module Redwright
 
       def policy_names
         POLICY_REGISTRY.keys
+      end
+
+      def context_layer_policy_matrix
+        CONTEXT_LAYER_POLICY_MATRIX
+      end
+
+      def layer_behavior(layer:, family:)
+        CONTEXT_LAYER_POLICY_MATRIX.dig(layer.to_s, family.to_s)
       end
 
       def fetch_policy(policy_name)
