@@ -87,7 +87,9 @@ module Redwright
       end.freeze
 
       ACTION_FAMILY_BY_ACTION = {
-        "agent_ticket_execution" => "implementation"
+        "agent_ticket_execution" => "implementation",
+        "quiz_question_generation" => "exploration",
+        "quiz_fast_question_generation" => "exploration"
       }.freeze
 
       ACTION_POLICY_BY_ACTION = ACTION_FAMILY_BY_ACTION.transform_values do |family|

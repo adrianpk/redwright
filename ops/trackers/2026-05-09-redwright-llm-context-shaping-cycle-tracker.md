@@ -7,7 +7,7 @@
 - state: `executing_slice`
 - updated: `2026-05-09`
 - active_slice: `4`
-- active_task: `T4.1`
+- active_task: `T4.2`
 - plan: `ops/plans/2026-05-09-redwright-llm-context-shaping-cycle-plan.md`
 - spec: `ops/specs/specs/2026-05-09-redwright-agent-ticket-llm-context-shaping-spec.md`
 
@@ -99,13 +99,14 @@ Validation:
 Tasks:
 
 - [x] `T4.1 Map agent ticket execution actions to implementation or diagnosis policies as appropriate.`
-- [ ] `T4.2 Map quiz generation actions to planning, exploration, or documentation policies as appropriate.`
+- [x] `T4.2 Map quiz generation actions to planning, exploration, or documentation policies as appropriate.`
 - [ ] `T4.3 Map project setup prompt rendering to an appropriate policy.`
 - [ ] `T4.4 Map legacy Telegram/runtime interpretation traces where still active.`
 
 Commits:
 
 - [x] `tbd feat(llm): map ticket execution action policy`
+- [x] `tbd feat(llm): map quiz action policies`
 
 Validation:
 

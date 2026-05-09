@@ -72,4 +72,11 @@ class RedwrightLLMContextPolicyTest < ActiveSupport::TestCase
     assert_equal "implementation", Redwright::LLM::ContextPolicy.family_for_action("agent_ticket_execution")
     assert_equal "implementation_default", Redwright::LLM::ContextPolicy.policy_name_for_action("agent_ticket_execution")
   end
+
+  test "maps quiz generation actions to exploration policy" do
+    assert_equal "exploration", Redwright::LLM::ContextPolicy.family_for_action("quiz_question_generation")
+    assert_equal "exploration_default", Redwright::LLM::ContextPolicy.policy_name_for_action("quiz_question_generation")
+    assert_equal "exploration", Redwright::LLM::ContextPolicy.family_for_action("quiz_fast_question_generation")
+    assert_equal "exploration_default", Redwright::LLM::ContextPolicy.policy_name_for_action("quiz_fast_question_generation")
+  end
 end
