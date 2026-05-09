@@ -4,7 +4,7 @@
 
 - cycle_id: `2026-05-09-redwright-llm-context-shaping`
 - status: `in_progress`
-- state: `next_slice`
+- state: `slice_ready_for_review`
 - updated: `2026-05-09`
 - active_slice: `none`
 - active_task: `none`
@@ -298,26 +298,29 @@ Validation:
 
 ### Slice 12: General Documents Context Capability
 
-- status: `pending`
+- status: `ready_for_review`
 - branch: `fix/slice-12-documents-context`
 - PR: `tbd`
 - merge_target: `dev`
-- last_sync_commit: `tbd`
+- last_sync_commit: `1fbfa33`
 
 Tasks:
 
-- [ ] `T12.1 Define document source inventory for persisted app documents and repository ops artifacts.`
-- [ ] `T12.2 Add selection by project, use case, ticket linkage, and policy family where available.`
-- [ ] `T12.3 Trace selected and omitted documents.`
+- [x] `T12.1 Define document source inventory for persisted app documents and repository ops artifacts.`
+- [x] `T12.2 Add selection by project, use case, ticket linkage, and policy family where available.`
+- [x] `T12.3 Trace selected and omitted documents.`
 
 Commits:
 
-- [ ] `tbd feat(llm): add selectable documents context`
+- [x] `4b9aa18 feat(llm): add selectable document context`
+- [x] `13511df test(llm): cover document context selection`
+- [x] `1fbfa33 feat(llm): select document context by use case`
 
 Validation:
 
-- [ ] `Documents are available as a selectable context universe.`
-- [ ] `Protocols remain distinct from documents.`
+- [x] `Documents are available as a selectable context universe.`
+- [x] `Protocols remain distinct from documents.`
+- [x] `bundle exec rails test test/services/agent_ticket_execution/context_composer_test.rb test/services/agent_ticket_execution/llm_requester_test.rb`
 
 ### Slice 13: Quiz Context Capability For General Requests
 
