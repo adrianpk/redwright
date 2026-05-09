@@ -225,6 +225,8 @@ class ProjectSetupPromptRendererTest < Minitest::Test
     assert_equal "current_user_request", context_sections.last.fetch("authority")
     assert_equal "ok", trace_recorder.responses.first.fetch(:status)
     assert_equal "planning_default", trace_recorder.responses.first.fetch(:policy_decision).fetch(:policy_name)
+    assert_equal ["setup_summary", "next_prompt_intent", "setup_context", "user_text"], trace_recorder.responses.first.fetch(:policy_decision).fetch(:included_context_sections)
+    assert_equal %w[agent project prompt file_tree llm_based docs quizzes dumps conversation protocols], trace_recorder.responses.first.fetch(:policy_decision).fetch(:included_layers)
     assert_equal "llm", trace_recorder.responses.first.fetch(:decision_source)
   end
 

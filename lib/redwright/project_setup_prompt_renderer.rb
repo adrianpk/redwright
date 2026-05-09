@@ -62,10 +62,10 @@ module Redwright
 
     def context_sections_for(payload:, intent:, user_text:)
       [
-        LLM::ContextSection.new(name: "setup_summary", content: payload["summary"].to_s, authority: "request_context"),
-        LLM::ContextSection.new(name: "next_prompt_intent", content: intent, authority: "request_context"),
-        LLM::ContextSection.new(name: "setup_context", content: payload["setup_context"] || {}, authority: "project_context"),
-        LLM::ContextSection.new(name: "user_text", content: user_text.to_s, authority: "current_user_request")
+        LLM::ContextSection.new(name: "setup_summary", content: payload["summary"].to_s, authority: "request_context", metadata: {"context_layer" => "prompt"}),
+        LLM::ContextSection.new(name: "next_prompt_intent", content: intent, authority: "request_context", metadata: {"context_layer" => "prompt"}),
+        LLM::ContextSection.new(name: "setup_context", content: payload["setup_context"] || {}, authority: "project_context", metadata: {"context_layer" => "project"}),
+        LLM::ContextSection.new(name: "user_text", content: user_text.to_s, authority: "current_user_request", metadata: {"context_layer" => "prompt"})
       ]
     end
 

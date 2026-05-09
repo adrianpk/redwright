@@ -48,6 +48,36 @@ module QuizLoops
       assert_equal "What fast question should agents answer tenth?", result.candidates.last.fetch("question")
     end
 
+    test "records quiz context policy diagnostics through request engine" do
+      llm_client = FakeLlmClient.new(
+        "What workflow should agents clarify next?",
+        "tags" => ["agent-workflow"],
+        "follow_up_depth" => 1,
+        "completion_recommended" => false
+      )
+      trace_recorder = RecordingTraceRecorder.new
+      engine = Redwright::LLM::RequestEngine.new(llm_client: llm_client)
+      provider = QuestionProvider.new(request_engine: engine, model: "test/model", provider: "test", trace_recorder: trace_recorder)
+
+      result = provider.generate(
+        input: {
+          "project" => {"id" => 10, "name" => "RedWright"},
+          "quiz" => {"id" => 20, "mode" => "deep"},
+          "recent_entries" => [{"answer" => "Focus on context shaping."}],
+          "current_question" => {"question" => "What should be refined next?"}
+        }
+      )
+
+      assert result.usable?
+      assert_equal "quiz_question_generation", trace_recorder.requests.first.fetch(:action)
+      assert_equal "exploration_default", trace_recorder.requests.first.fetch(:policy_decision).fetch(:policy_name)
+      assert_equal "exploration_default", trace_recorder.responses.first.fetch(:policy_decision).fetch(:policy_name)
+      assert_equal ["project"], trace_recorder.responses.first.fetch(:policy_decision).fetch(:included_context_sections)
+      assert_equal ["quiz", "recent_entries", "current_question"], trace_recorder.responses.first.fetch(:policy_decision).fetch(:omitted_context_sections)
+      assert_equal "context_layer_not_in_policy:quizzes:exploration_default", trace_recorder.responses.first.fetch(:policy_decision).fetch(:omission_reasons).fetch("quiz")
+      assert_equal "llm", trace_recorder.responses.first.fetch(:decision_source)
+    end
+
     test "falls back to deep generation when fast generation is unavailable" do
       engine = CapturingRequestEngine.new([
         self.class.unavailable_response("provider timeout"),
@@ -131,6 +161,53 @@ module QuizLoops
       private
 
       attr_reader :responses
+    end
+
+    Completion = Struct.new(:content, :finish_reason, keyword_init: true)
+
+    class FakeLlmClient
+      attr_reader :calls
+
+      def initialize(question, fields = {})
+        @question = question
+        @fields = fields
+        @calls = []
+      end
+
+      def configured?
+        true
+      end
+
+      def complete_json(model:, system_prompt:, user_text:)
+        calls << {
+          model: model,
+          system_prompt: system_prompt,
+          user_text: JSON.parse(user_text)
+        }
+        Completion.new(
+          content: JSON.generate({"question" => @question}.merge(@fields)),
+          finish_reason: "stop"
+        )
+      end
+    end
+
+    class RecordingTraceRecorder
+      attr_reader :requests, :responses
+
+      def initialize
+        @requests = []
+        @responses = []
+      end
+
+      def record_request(**kwargs)
+        requests << kwargs
+        "llm-test"
+      end
+
+      def record_response(**kwargs)
+        responses << kwargs
+        "llm-test"
+      end
     end
 
     TestResponse = Struct.new(:status, :semantic_payload, :rendered_text, :provider_metadata, :warnings, :raw_response_ref, keyword_init: true) do

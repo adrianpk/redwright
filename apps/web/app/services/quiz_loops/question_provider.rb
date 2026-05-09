@@ -271,10 +271,10 @@ module QuizLoops
       return [] unless defined?(Redwright::LLM::ContextSection)
 
       [
-        Redwright::LLM::ContextSection.new(name: "project", content: input["project"] || {}, authority: "project_context"),
-        Redwright::LLM::ContextSection.new(name: "quiz", content: input["quiz"] || {}, authority: "request_context"),
-        Redwright::LLM::ContextSection.new(name: "recent_entries", content: input["recent_entries"] || [], authority: "quiz_context"),
-        Redwright::LLM::ContextSection.new(name: "current_question", content: input["current_question"] || {}, authority: "request_context")
+        Redwright::LLM::ContextSection.new(name: "project", content: input["project"] || {}, authority: "project_context", metadata: {"context_layer" => "project"}),
+        Redwright::LLM::ContextSection.new(name: "quiz", content: input["quiz"] || {}, authority: "request_context", metadata: {"context_layer" => "quizzes"}),
+        Redwright::LLM::ContextSection.new(name: "recent_entries", content: input["recent_entries"] || [], authority: "quiz_context", metadata: {"context_layer" => "quizzes"}),
+        Redwright::LLM::ContextSection.new(name: "current_question", content: input["current_question"] || {}, authority: "request_context", metadata: {"context_layer" => "quizzes"})
       ]
     end
 
