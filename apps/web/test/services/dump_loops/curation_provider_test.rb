@@ -15,6 +15,21 @@ module DumpLoops
       assert_equal "polished_input", engine.output_contracts.first.fetch("rendered_text_field")
     end
 
+    test "applies configured tag limit to entry polishing" do
+      engine = CapturingRequestEngine.new([self.class.entry_response_with_tags])
+      provider = CurationProvider.new(
+        request_engine: engine,
+        configuration: Configuration.new("max_tags" => 1),
+        model: "test/model",
+        provider: "test"
+      )
+
+      result = provider.polish_entry(input: {"raw_input" => "teh dump"})
+
+      assert result.usable?
+      assert_equal ["dump-context"], result.attributes.fetch("tag_suggestions")
+    end
+
     test "curates dump from valid llm output" do
       engine = CapturingRequestEngine.new([self.class.curated_response])
       provider = CurationProvider.new(request_engine: engine, model: "test/model", provider: "test")
@@ -26,6 +41,35 @@ module DumpLoops
       assert_equal "Dump captures user-led context.", result.attributes.fetch("summary")
       assert_equal ["conversation"], result.attributes.fetch("tag_suggestions")
       assert_equal ["dump_curation"], engine.actions
+    end
+
+    test "returns deterministic fallback when entry polishing is disabled" do
+      engine = CapturingRequestEngine.new([self.class.entry_response])
+      provider = CurationProvider.new(
+        request_engine: engine,
+        configuration: Configuration.new("entry_polishing_enabled" => false)
+      )
+
+      result = provider.polish_entry(input: {"raw_input" => "rough dump"})
+
+      assert_not result.usable?
+      assert_equal "entry_polishing_disabled", result.fallback_reason
+      assert_empty engine.actions
+    end
+
+    test "returns deterministic fallback when curation is disabled" do
+      engine = CapturingRequestEngine.new([self.class.curated_response])
+      provider = CurationProvider.new(
+        request_engine: engine,
+        configuration: Configuration.new("curation_enabled" => false)
+      )
+
+      result = provider.curate_dump(input: {"dump" => {"title" => "Conversation"}, "raw_body" => "Dump context."})
+
+      assert_not result.usable?
+      assert_equal "curation_disabled", result.fallback_reason
+      assert_equal "Conversation", result.attributes.fetch("central_topic")
+      assert_empty engine.actions
     end
 
     test "returns deterministic redacted entry fallback without llm" do
@@ -90,6 +134,20 @@ module DumpLoops
             "topic_heading" => "Dump",
             "derived_thread_hints" => [],
             "tag_suggestions" => ["Dump Context"],
+            "warnings" => []
+          },
+          warnings: []
+        )
+      end
+
+      def entry_response_with_tags
+        TestResponse.new(
+          status: "ok",
+          semantic_payload: {
+            "polished_input" => "The dump.",
+            "topic_heading" => "Dump",
+            "derived_thread_hints" => [],
+            "tag_suggestions" => ["Dump Context", "Conversation"],
             "warnings" => []
           },
           warnings: []

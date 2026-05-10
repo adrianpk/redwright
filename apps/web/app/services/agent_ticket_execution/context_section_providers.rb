@@ -860,22 +860,26 @@ module AgentTicketExecution
     end
 
     class Dumps < Base
-      MAX_DUMPS = 8
-      MAX_DUMP_BYTES = 20_000
+      def initialize(configuration: DumpLoops::Configuration.current)
+        @configuration = configuration
+      end
 
       def sections(context)
-        inventory = DumpContextInventory.new(context: context)
+        inventory = DumpContextInventory.new(context: context, configuration: configuration)
         selector = DumpContextSelector.new(
           dumps: inventory.dumps,
           ticket: context.ticket,
           project: context.project,
-          context_policy: context.request["context_policy"] || "implementation_default"
+          context_policy: context.request["context_policy"] || "implementation_default",
+          configuration: configuration
         )
 
         [dump_section(selector)]
       end
 
       private
+
+      attr_reader :configuration
 
       def dump_section(selector)
         selected_dumps = selector.selected_dumps
@@ -900,7 +904,7 @@ module AgentTicketExecution
       def payload(dump)
         trace_payload(dump).merge(
           "body" => truncate(dump.fetch("body", "").to_s),
-          "truncated" => dump.fetch("body", "").to_s.bytesize > MAX_DUMP_BYTES
+          "truncated" => dump.fetch("body", "").to_s.bytesize > configuration.max_context_dump_bytes
         )
       end
 
@@ -922,23 +926,28 @@ module AgentTicketExecution
       end
 
       def truncate(value)
-        value.bytesize > MAX_DUMP_BYTES ? value.byteslice(0, MAX_DUMP_BYTES) : value
+        value.bytesize > configuration.max_context_dump_bytes ? value.byteslice(0, configuration.max_context_dump_bytes) : value
       end
     end
 
     class DumpContextInventory
-      def initialize(context:)
+      def initialize(context:, configuration:)
         @context = context
+        @configuration = configuration
       end
 
       def dumps
         root = repository_root
-        (repository_dumps(root) + database_dumps).sort_by { |dump| dump.fetch("updated_at") }.reverse.first(Dumps::MAX_DUMPS * 3)
+        (repository_dumps(root) + database_dumps).sort_by { |dump| dump.fetch("updated_at") }.reverse.first(inventory_limit)
       end
 
       private
 
-      attr_reader :context
+      attr_reader :context, :configuration
+
+      def inventory_limit
+        configuration.max_context_dumps * 3
+      end
 
       def repository_dumps(root)
         return [] unless root
@@ -962,7 +971,7 @@ module AgentTicketExecution
       end
 
       def database_dumps
-        context.project.dumps.includes(:use_case, :tags).order(updated_at: :desc, created_at: :desc).limit(Dumps::MAX_DUMPS * 3).map do |dump|
+        context.project.dumps.includes(:use_case, :tags).order(updated_at: :desc, created_at: :desc).limit(inventory_limit).map do |dump|
           {
             "source" => "database_dump",
             "id" => dump.id,
@@ -1002,7 +1011,7 @@ module AgentTicketExecution
       end
 
       def read_file(path)
-        File.binread(path, Dumps::MAX_DUMP_BYTES)
+        File.binread(path, configuration.max_context_dump_bytes)
       rescue StandardError => e
         "[unreadable: #{e.class.name}]"
       end
@@ -1011,11 +1020,12 @@ module AgentTicketExecution
     class DumpContextSelector
       attr_reader :dumps, :ticket, :project, :context_policy
 
-      def initialize(dumps:, ticket:, project:, context_policy:)
+      def initialize(dumps:, ticket:, project:, context_policy:, configuration: DumpLoops::Configuration.current)
         @dumps = dumps
         @ticket = ticket
         @project = project
         @context_policy = context_policy.to_s
+        @configuration = configuration
       end
 
       def selected_dumps
@@ -1023,7 +1033,7 @@ module AgentTicketExecution
           next unless selected_dump?(dump)
 
           dump.merge("selection_reason" => selection_reason(dump))
-        end.first(Dumps::MAX_DUMPS)
+        end.first(configuration.max_context_dumps)
       end
 
       def omitted_dumps
@@ -1035,6 +1045,8 @@ module AgentTicketExecution
       end
 
       private
+
+      attr_reader :configuration
 
       def selected_dump?(dump)
         return false unless context_policy_allows_dumps?

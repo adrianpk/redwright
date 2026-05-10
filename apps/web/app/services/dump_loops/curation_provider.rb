@@ -42,15 +42,17 @@ module DumpLoops
       end
     end
 
-    def initialize(request_engine: nil, entry_contract: EntryContract.new, curated_contract: CuratedDumpContract.new, model: "none", provider: "none")
+    def initialize(request_engine: nil, entry_contract: nil, curated_contract: nil, configuration: Configuration.current, model: "none", provider: "none")
       @request_engine = request_engine
-      @entry_contract = entry_contract
-      @curated_contract = curated_contract
+      @configuration = configuration
+      @entry_contract = entry_contract || EntryContract.new(max_tags: configuration.max_tags)
+      @curated_contract = curated_contract || CuratedDumpContract.new(max_tags: configuration.max_tags)
       @model = model.to_s
       @provider = provider.to_s
     end
 
     def polish_entry(input:)
+      return fallback_entry_result(input, reason: "entry_polishing_disabled", errors: ["Dump entry polishing is disabled"]) unless configuration.entry_polishing_enabled?
       return fallback_entry_result(input, reason: "llm_unavailable", errors: ["LLM request engine is not configured"]) unless request_engine
 
       response = generate(input, action: ENTRY_ACTION, system_prompt: ENTRY_SYSTEM_PROMPT, output_contract: entry_output_contract)
@@ -65,6 +67,7 @@ module DumpLoops
     end
 
     def curate_dump(input:)
+      return fallback_curated_result(input, reason: "curation_disabled", errors: ["Dump curation is disabled"]) unless configuration.curation_enabled?
       return fallback_curated_result(input, reason: "llm_unavailable", errors: ["LLM request engine is not configured"]) unless request_engine
 
       response = generate(input, action: CURATION_ACTION, system_prompt: CURATION_SYSTEM_PROMPT, output_contract: curated_output_contract)
@@ -80,7 +83,7 @@ module DumpLoops
 
     private
 
-    attr_reader :request_engine, :entry_contract, :curated_contract, :model, :provider
+    attr_reader :request_engine, :entry_contract, :curated_contract, :configuration, :model, :provider
 
     def generate(input, action:, system_prompt:, output_contract:)
       request_engine.generate_structured_message(
