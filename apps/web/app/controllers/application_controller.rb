@@ -4,7 +4,7 @@ class ApplicationController < ActionController::Base
   allow_browser versions: :modern
   helper_method :current_user, :navigation_project, :current_project, :available_projects,
                 :board_navigation_path, :documents_navigation_path, :use_cases_navigation_path,
-                :quizzes_navigation_path
+                :conversation_navigation_path, :quizzes_navigation_path
 
   private
 
@@ -51,6 +51,12 @@ class ApplicationController < ActionController::Base
     return projects_path unless current_project
 
     project_use_cases_path(current_project)
+  end
+
+  def conversation_navigation_path
+    return projects_path unless current_project
+
+    project_conversation_path(current_project)
   end
 
   def quizzes_navigation_path

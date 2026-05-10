@@ -72,7 +72,7 @@
             <% if current_project %>
               <%= link_to "Protocols", project_protocols_path(current_project), class: "top-nav-link" %>
               <%= link_to "Use Cases", use_cases_navigation_path, class: "top-nav-link" %>
-              <%= link_to "Quizzes", quizzes_navigation_path, class: "top-nav-link" %>
+              <%= link_to "Conv", conversation_navigation_path, class: "top-nav-link" %>
             <% end %>
             <%= link_to "Docs", documents_navigation_path, class: "top-nav-link" %>
             <% if current_user&.admin? %>

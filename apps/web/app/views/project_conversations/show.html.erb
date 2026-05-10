@@ -1,0 +1,30 @@
+<main class="document-artifacts-index">
+  <section class="documents-top-shell">
+    <div class="board-title-row">
+      <h1>Conversation</h1>
+    </div>
+    <p class="board-key">Project: <%= @project.name %></p>
+  </section>
+
+  <section class="artifact-type-nav artifact-type-nav-compact" aria-label="Conversation navigation">
+    <article class="artifact-type-card" aria-label="Dump">
+      <h2>Dump</h2>
+      <p><%= pluralize(@dump_count, "dump") %></p>
+      <div class="protocol-card-preview" aria-hidden="true">
+        <span>Draft capture</span>
+        <span>Curated context</span>
+        <span>Conversation memory</span>
+      </div>
+    </article>
+
+    <%= link_to project_quizzes_path(@project), class: "artifact-type-card" do %>
+      <h2>Quizzes</h2>
+      <p><%= pluralize(@quiz_count, "quiz") %></p>
+      <div class="protocol-card-preview" aria-hidden="true">
+        <span>Project quiz</span>
+        <span>Use case quizzes</span>
+        <span>Question loops</span>
+      </div>
+    <% end %>
+  </section>
+</main>
