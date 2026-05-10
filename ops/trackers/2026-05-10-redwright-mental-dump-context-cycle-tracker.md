@@ -134,9 +134,9 @@ Validation:
 
 - status: `completed`
 - branch: `fix/slice-5-telegram-dump-commands`
-- PR: `tbd`
+- PR: `#419`
 - merge_target: `dev`
-- last_sync_commit: `17b6125`
+- last_sync_commit: `5ec1795`
 
 Tasks:
 
@@ -151,7 +151,7 @@ Commits:
 
 - [x] `6245996 feat(telegram): add dump commands`
 - [x] `cbe8817 test(telegram): cover dump command flows`
-- [x] `17b6125 docs(ops): update dump telegram tracker`
+- [x] `5ec1795 docs(ops): update dump telegram tracker`
 
 Validation:
 
@@ -164,31 +164,34 @@ Validation:
 
 ### Slice 6: Web Dump Surface
 
-- status: `pending`
+- status: `completed`
 - branch: `fix/slice-6-web-dump-surface`
 - PR: `tbd`
 - merge_target: `dev`
-- last_sync_commit: `tbd`
+- last_sync_commit: `e2c95b8`
 
 Tasks:
 
-- [ ] `T6.1 add Dump routes and controller actions under the project Conversation area`
-- [ ] `T6.2 render dump list with project/use-case scope indicators`
-- [ ] `T6.3 render focused repeated-post capture UI`
-- [ ] `T6.4 render polished raw capture preview and curated dump view`
-- [ ] `T6.5 support continue, append, done, cancel, show, and curate controls`
-- [ ] `T6.6 add controller/system coverage for dump web flows`
+- [x] `T6.1 add Dump routes and controller actions under the project Conversation area`
+- [x] `T6.2 render dump list with project/use-case scope indicators`
+- [x] `T6.3 render focused repeated-post capture UI`
+- [x] `T6.4 render polished raw capture preview and curated dump view`
+- [x] `T6.5 support continue, append, done, cancel, show, and curate controls`
+- [x] `T6.6 add controller/system coverage for dump web flows`
 
 Commits:
 
-- [ ] `feat(web): add dump surface`
-- [ ] `test(web): cover dump web flows`
+- [x] `49ea528 feat(web): add dump surface`
+- [x] `f90d3f9 test(web): cover dump web flows`
+- [x] `e2c95b8 docs(ops): update dump web surface tracker`
 
 Validation:
 
-- [ ] `web users can start and continue dumps from Conversation`
-- [ ] `the UI favors repeated short posts over manual long-document editing`
-- [ ] `raw polished and curated views are visible when available`
+- [x] `web users can start and continue dumps from Conversation`
+- [x] `the UI favors repeated short posts over manual long-document editing`
+- [x] `raw polished and curated views are visible when available`
+- [x] `web supports done, cancel, show, and curate controls`
+- [x] `bundle exec bin/rails test test/controllers/project_dumps_controller_test.rb test/controllers/project_conversations_controller_test.rb`
 
 ### Slice 7: Dump Tags And Context Retrieval
 
@@ -258,3 +261,5 @@ Validation:
 - `2026-05-10` state=`awaiting_review` note=`Slice 4 completed with the project Conversation entrypoint, Conv top navigation, Dump and Quizzes sibling cards, preserved Quizzes routing, and focused controller coverage.`
 - `2026-05-10` state=`next_slice` note=`Slice 4 merged through PR #418 and dev synced to 6eadcb8.`
 - `2026-05-10` state=`awaiting_review` note=`Slice 5 completed with Telegram /dump commands, use-case scoped dump start, active dump message append routing, done/cancel/list/show controls, concise acknowledgements, and focused CommandQuery plus Telegram integration coverage.`
+- `2026-05-10` state=`next_slice` note=`Slice 5 merged through PR #419 and dev synced to 5ec1795.`
+- `2026-05-10` state=`awaiting_review` note=`Slice 6 completed with Conversation-linked web Dump routes, project/use-case dump list cards, repeated-post append UI, raw and curated previews, lifecycle controls, and focused controller coverage.`
