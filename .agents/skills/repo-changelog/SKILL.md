@@ -21,6 +21,13 @@ Use this skill inside RedWright repositories when creating or updating
    affect future maintenance or repository process.
 7. Do not include conversational noise, PR body edits, typo-only changes, or
    mechanical tracker churn unless they belong to a broader notable change.
+8. Default to concise release notes. For a normal feature cycle, capture the
+   user-visible feature in one or two bullets and add only directly relevant
+   fixes. Do not expand every slice, tracker, validation run, doc update, or
+   implementation mechanism into changelog entries.
+9. Treat docs, tests, and ops artifacts as supporting evidence by default, not
+   changelog entries. Mention them only when they are themselves the user-facing
+   deliverable or materially change how users operate RedWright.
 
 ## Startup
 
@@ -70,18 +77,21 @@ Include:
 - Behavior changes that affect how RedWright is used.
 - Architecture boundaries that change future implementation paths.
 - Removed or deprecated models, workflows, UI surfaces, commands, or APIs.
-- New repository workflows, skills, tickets, ops processes, or release gates.
-- Test coverage when it records a meaningful new guarantee.
-- Documentation artifacts when they capture a major spec, plan, or cycle.
+- New repository workflows, skills, tickets, ops processes, or release gates
+  only when users or maintainers must act differently.
 
 Avoid:
 
 - One bullet per commit.
+- One bullet per slice.
 - Internal variable renames.
 - PR title/body cleanup.
 - Tracker checkbox updates unless they close a notable cycle.
 - Repeated "record PR", "mark merged", or "refresh badge" entries unless they
   are part of a release/documentation change.
+- Listing validation commands, test files, internal docs, specs, plans, or
+  trackers unless the user specifically asks for a process audit or release
+  evidence pack.
 
 ## Category Guidance
 
@@ -94,6 +104,10 @@ Avoid:
 - `Documentation`: specs, drafts, plans, trackers, guides, README/gallery, ADRs,
   playbooks, and release notes.
 - `Tests`: coverage that validates a new or corrected contract.
+
+Use `Documentation` and `Tests` sparingly. A feature implementation usually
+does not need either section in the changelog just because docs and tests were
+changed.
 
 ## Release PR Summaries
 

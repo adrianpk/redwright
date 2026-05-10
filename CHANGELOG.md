@@ -10,37 +10,14 @@ entry per commit.
 
 ### Added
 
-- Added Conversation as the shared web entrypoint for Dump and Quiz.
-- Added mental Dump capture for project-level and use-case-level context,
-  including raw entry preservation, polished entry text, closed/cancelled
-  capture states, curated summaries, and deterministic LLM fallback behavior.
-- Added Telegram `/dump` commands for opening, appending, listing, showing,
-  completing, curating, and cancelling dump captures.
-- Added database-backed curated dumps to the `dumps` LLM context layer for
-  agent ticket execution, alongside repository dump artifacts.
-- Added YAML-backed Dump configuration for tag limits, selected context dump
-  count, context byte limits, entry polishing, and curation behavior.
+- Added Conversation as the shared place for Dumps and Quizzes.
+- Added Dumps so users can capture free-form project or use-case notes, curate
+  them, and reuse them as future ticket context.
 
 ### Fixed
 
-- Fixed the local dev runner so ignored workspace environment variables from
-  `_workspace/config/redwright/local.env` are loaded before Rails and the
-  Telegram daemon start. This keeps local provider API keys available when
-  using `./scripts/run-dev.sh`.
-
-### Documentation
-
-- Added user guide and reference documentation for Conversation, Dump, Quiz,
-  Telegram dump commands, web dump usage, application semantics, and LLM dump
-  context selection.
-- Added the mental dump context cycle report and closed the cycle tracker with
-  PR, commit, validation, and residual-risk status.
-
-### Tests
-
-- Added model, service, controller, integration, query, and context composer
-  coverage for the Dump domain, runtime controls, Telegram commands, web
-  surface, configuration, tag retrieval, and LLM context selection.
+- Fixed `./scripts/run-dev.sh` so local provider credentials are loaded before
+  the Telegram daemon starts.
 
 ## [0.1.0-alpha.1] - 2026-05-09
 
