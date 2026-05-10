@@ -3,8 +3,8 @@
 ## Metadata
 
 - cycle_id: `cycle-2026-05-10-redwright-mental-dump-context`
-- status: `planned`
-- state: `planning_complete`
+- status: `in_progress`
+- state: `awaiting_review`
 - updated: `2026-05-10`
 - active_slice: `none`
 - active_task: `none`
@@ -16,30 +16,31 @@
 
 ### Slice 1: Dump Domain Foundation
 
-- status: `pending`
+- status: `completed`
 - branch: `fix/slice-1-dump-domain-foundation`
 - PR: `tbd`
 - merge_target: `dev`
-- last_sync_commit: `tbd`
+- last_sync_commit: `bdc78df`
 
 Tasks:
 
-- [ ] `T1.1 add Dump model scoped to Project and optional UseCase`
-- [ ] `T1.2 add DumpEntry model storing raw_input, polished_input, position, and scope fields`
-- [ ] `T1.3 add capture and curation lifecycle constants`
-- [ ] `T1.4 implement title/slug generation for unnamed dumps`
-- [ ] `T1.5 add focused model tests for associations, scope, ordering, lifecycle, and slug behavior`
+- [x] `T1.1 add Dump model scoped to Project and optional UseCase`
+- [x] `T1.2 add DumpEntry model storing raw_input, polished_input, position, and scope fields`
+- [x] `T1.3 add capture and curation lifecycle constants`
+- [x] `T1.4 implement title/slug generation for unnamed dumps`
+- [x] `T1.5 add focused model tests for associations, scope, ordering, lifecycle, and slug behavior`
 
 Commits:
 
-- [ ] `feat(web): add dump domain models`
-- [ ] `test(web): cover dump domain constraints`
+- [x] `e8d7d26 feat(web): add dump domain models`
+- [x] `bdc78df test(web): cover dump domain constraints`
 
 Validation:
 
-- [ ] `dumps can be project-level or use-case-level`
-- [ ] `dump entries preserve submitted chunks and polished chunks`
-- [ ] `dump lifecycle distinguishes capture from curation`
+- [x] `dumps can be project-level or use-case-level`
+- [x] `dump entries preserve submitted chunks and polished chunks`
+- [x] `dump lifecycle distinguishes capture from curation`
+- [x] `bundle exec bin/rails test test/models/dump_test.rb test/models/dump_entry_test.rb`
 
 ### Slice 2: Dump LLM Contracts And Fallbacks
 
@@ -236,3 +237,4 @@ Validation:
 ## Event Log
 
 - `2026-05-10` state=`planning_complete` note=`Created mental dump context cycle plan and tracker from the approved spec request; implementation is capped at 8 slices and intentionally mirrors the Quiz cycle where appropriate.`
+- `2026-05-10` state=`awaiting_review` note=`Slice 1 completed with Dump and DumpEntry domain models, migrations, schema update, project/use-case associations, and focused model tests.`
