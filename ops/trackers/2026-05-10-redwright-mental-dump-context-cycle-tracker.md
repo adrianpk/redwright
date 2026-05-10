@@ -229,7 +229,7 @@ Validation:
 - branch: `fix/slice-8-dump-config-docs`
 - PR: `#422`
 - merge_target: `dev`
-- last_sync_commit: `PENDING_SELF_HASH`
+- last_sync_commit: `939931e`
 
 Tasks:
 
@@ -244,7 +244,7 @@ Commits:
 
 - [x] `c711044 feat(web): add dump configuration`
 - [x] `a099824 docs(user-guide): document conversation dump workflow`
-- [x] `PENDING_SELF_HASH docs(ops): close dump context cycle`
+- [x] `939931e docs(ops): close dump context cycle`
 
 Validation:
 
