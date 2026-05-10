@@ -4,10 +4,13 @@
 
 - id: `draft-2026-05-09-redwright-context-section-layer-normalization`
 - status: `draft`
+- selection_status: `open`
 - owner: `adrianpk`
 - created: `2026-05-09`
 - updated: `2026-05-09`
 - scope: `llm-context-sections/context-policy/request-engine`
+- follow_up_kind: `hardening`
+- promoted_to: `none`
 
 ## Summary
 

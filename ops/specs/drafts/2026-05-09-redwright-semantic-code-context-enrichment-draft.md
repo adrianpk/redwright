@@ -4,10 +4,13 @@
 
 - id: `draft-2026-05-09-redwright-semantic-code-context-enrichment`
 - status: `draft`
+- selection_status: `open`
 - owner: `adrianpk`
 - created: `2026-05-09`
 - updated: `2026-05-09`
 - scope: `llm-context/tree-sitter/semantic-code-context`
+- follow_up_kind: `research_and_hardening`
+- promoted_to: `none`
 
 ## Summary
 

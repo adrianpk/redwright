@@ -4,10 +4,13 @@
 
 - id: `draft-2026-05-09-redwright-agent-sandboxed-execution-backend`
 - status: `draft`
+- selection_status: `open`
 - owner: `adrianpk`
 - created: `2026-05-09`
 - updated: `2026-05-09`
 - scope: `agent-ticket-execution/runtime-containers/sandboxed-command-execution`
+- follow_up_kind: `runtime_sandboxing`
+- promoted_to: `none`
 
 ## Summary
 

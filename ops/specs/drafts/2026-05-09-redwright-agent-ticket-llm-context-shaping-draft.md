@@ -3,10 +3,15 @@
 ## Status
 
 - type: `spec-draft`
+- status: `promoted_implemented`
+- selection_status: `closed`
 - date: `2026-05-09`
 - source: current implementation review of agent ticket execution context composition
 - scope: `rails-web/agent-ticket-execution/llm-context/retry-feedback/context-selection`
-- state: `pre-dump-pre-quiz`
+- state: `promoted_to_implemented_spec`
+- promoted_to: `ops/specs/specs/2026-05-09-redwright-agent-ticket-llm-context-shaping-spec.md`
+- completed_plan: `ops/plans/2026-05-09-redwright-llm-context-shaping-cycle-plan.md`
+- completed_tracker: `ops/trackers/2026-05-09-redwright-llm-context-shaping-cycle-tracker.md`
 - dump: `../../conv/dump/2026-05-09-redwright-agent-ticket-llm-context-shaping-dump.md`
 - raw_dump: `../../conv/dump/2026-05-09-redwright-agent-ticket-llm-context-shaping-dump-raw.md`
 - quiz: `../../conv/quiz/2026-05-09-redwright-agent-ticket-llm-context-shaping-quiz.md`
