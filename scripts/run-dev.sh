@@ -5,8 +5,14 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 RAILS_API_URL="${REDWRIGHT_RAILS_API_URL:-http://localhost:3000/api/v1}"
 RAILS_BOOT_DELAY_SECONDS="${RAILS_BOOT_DELAY_SECONDS:-2}"
 WEB_PID_FILE="$ROOT_DIR/apps/web/tmp/pids/server.pid"
+LOCAL_ENV_FILE="$ROOT_DIR/_workspace/config/redwright/local.env"
 
 pids=()
+
+if [[ -f "$LOCAL_ENV_FILE" ]]; then
+  # shellcheck disable=SC1090
+  source "$LOCAL_ENV_FILE"
+fi
 
 stop_children() {
   trap - EXIT INT TERM
