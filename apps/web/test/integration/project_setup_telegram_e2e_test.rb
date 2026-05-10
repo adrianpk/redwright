@@ -318,6 +318,58 @@ class ProjectSetupTelegramE2eTest < ActiveSupport::TestCase
     assert_match "Support", listed.message
   end
 
+  test "telegram dump opens appends and completes project dump" do
+    adapter = adapter_for_chat
+    project = create_project(key: "telegram-dump-project")
+    adapter.instance_variable_get(:@project_ids_by_chat)[90_001] = project.id
+
+    opened = adapter.handle(event(1, "/dump"), trace_id: "trc-telegram-e2e")
+    appended = adapter.handle(event(2, "Capture concise dump notes."), trace_id: "trc-telegram-e2e")
+    completed = adapter.handle(event(3, "/dump done"), trace_id: "trc-telegram-e2e")
+
+    assert opened.handled?
+    assert appended.handled?
+    assert completed.handled?
+    assert_equal "dump_open", opened.command
+    assert_equal "dump_append", appended.command
+    assert_equal "dump_done", completed.command
+    assert_match "Controls: /dump done, /dump cancel", opened.message
+    assert_match "Dump entry captured.", appended.message
+    refute_match "Capture concise dump notes.", appended.message
+    assert_match "Dump capture completed and curated.", completed.message
+
+    dump = project.dumps.first
+    assert_equal "closed", dump.capture_status
+    assert_includes %w[curated needs_review], dump.curation_status
+    assert dump.curated_body.present?
+    assert_equal "Capture concise dump notes.", dump.entries.first.raw_input
+  end
+
+  test "telegram dump for use case list show and cancel are scoped" do
+    adapter = adapter_for_chat
+    project = create_project(key: "telegram-dump-use-case")
+    adapter.instance_variable_get(:@project_ids_by_chat)[90_001] = project.id
+
+    opened = adapter.handle(event(1, "/dump for Billing Flow"), trace_id: "trc-telegram-e2e")
+    cancelled = adapter.handle(event(2, "/dump cancel"), trace_id: "trc-telegram-e2e")
+    listed = adapter.handle(event(3, "/dump list"), trace_id: "trc-telegram-e2e")
+    dump = project.dumps.first
+    shown = adapter.handle(event(4, "/dump show #{dump.slug}"), trace_id: "trc-telegram-e2e")
+
+    assert opened.handled?
+    assert cancelled.handled?
+    assert listed.handled?
+    assert shown.handled?
+    assert_equal "dump_open", opened.command
+    assert_equal "dump_cancel", cancelled.command
+    assert_equal "dump_list", listed.command
+    assert_equal "dump_show", shown.command
+    assert_equal "Billing Flow", dump.use_case.name
+    assert_match "Billing Flow", listed.message
+    assert_match dump.title, shown.message
+    assert_equal "cancelled", dump.reload.status
+  end
+
   private
 
   def adapter_for_chat
