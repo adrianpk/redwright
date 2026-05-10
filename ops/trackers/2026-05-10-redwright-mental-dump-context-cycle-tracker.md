@@ -18,9 +18,9 @@
 
 - status: `completed`
 - branch: `fix/slice-1-dump-domain-foundation`
-- PR: `tbd`
+- PR: `#414`
 - merge_target: `dev`
-- last_sync_commit: `bdc78df`
+- last_sync_commit: `24ec44c`
 
 Tasks:
 
@@ -44,30 +44,31 @@ Validation:
 
 ### Slice 2: Dump LLM Contracts And Fallbacks
 
-- status: `pending`
+- status: `completed`
 - branch: `fix/slice-2-dump-llm-contracts`
 - PR: `tbd`
 - merge_target: `dev`
-- last_sync_commit: `tbd`
+- last_sync_commit: `5308730`
 
 Tasks:
 
-- [ ] `T2.1 define entry polish output contract`
-- [ ] `T2.2 define curated dump output contract`
-- [ ] `T2.3 add deterministic fallback for unavailable or invalid LLM output`
-- [ ] `T2.4 add sensitive-information guardrails for secrets and unnecessary PII`
-- [ ] `T2.5 add tests for valid output, invalid output, fallback persistence, and hidden rationale boundaries`
+- [x] `T2.1 define entry polish output contract`
+- [x] `T2.2 define curated dump output contract`
+- [x] `T2.3 add deterministic fallback for unavailable or invalid LLM output`
+- [x] `T2.4 add sensitive-information guardrails for secrets and unnecessary PII`
+- [x] `T2.5 add tests for valid output, invalid output, fallback persistence, and hidden rationale boundaries`
 
 Commits:
 
-- [ ] `feat(web): add dump curation contracts`
-- [ ] `test(web): cover dump LLM fallbacks`
+- [x] `1c78b49 feat(web): add dump curation contracts`
+- [x] `5308730 test(web): cover dump LLM fallbacks`
 
 Validation:
 
-- [ ] `submitted entries persist even if LLM processing fails`
-- [ ] `curated dump output follows the spec structure`
-- [ ] `LLM rationale is not user-facing`
+- [x] `submitted entries persist even if LLM processing fails`
+- [x] `curated dump output follows the spec structure`
+- [x] `LLM rationale is not user-facing`
+- [x] `bundle exec bin/rails test test/services/dump_loops/entry_contract_test.rb test/services/dump_loops/curated_dump_contract_test.rb test/services/dump_loops/curation_provider_test.rb`
 
 ### Slice 3: Dump Runtime And Controls
 
@@ -238,3 +239,5 @@ Validation:
 
 - `2026-05-10` state=`planning_complete` note=`Created mental dump context cycle plan and tracker from the approved spec request; implementation is capped at 8 slices and intentionally mirrors the Quiz cycle where appropriate.`
 - `2026-05-10` state=`awaiting_review` note=`Slice 1 completed with Dump and DumpEntry domain models, migrations, schema update, project/use-case associations, and focused model tests.`
+- `2026-05-10` state=`next_slice` note=`Slice 1 merged through PR #414 and dev synced to 24ec44c.`
+- `2026-05-10` state=`awaiting_review` note=`Slice 2 completed with dump entry and curated dump contracts, deterministic fallback behavior, secret redaction guardrails, and focused provider tests.`
