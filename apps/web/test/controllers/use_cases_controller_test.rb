@@ -237,7 +237,7 @@ class UseCasesControllerTest < ActionDispatch::IntegrationTest
     refute_includes response.body, "Slug can&#39;t be blank"
   end
 
-  test "top navigation places use cases between protocols and quizzes" do
+  test "top navigation places cases between protocols and conversation" do
     admin = create_admin_user!
     sign_in_as(admin)
     project = create_project(key: "use-cases-nav")
@@ -245,8 +245,8 @@ class UseCasesControllerTest < ActionDispatch::IntegrationTest
     get project_use_cases_path(project)
 
     assert_response :success
-    assert_operator response.body.index("Protocols"), :<, response.body.index("Use Cases")
-    assert_operator response.body.index("Use Cases"), :<, response.body.index("Quizzes")
+    assert_operator response.body.index("Protocols"), :<, response.body.index("Cases")
+    assert_operator response.body.index("Cases"), :<, response.body.index("Conv")
     assert_match "href=\"#{project_use_cases_path(project)}\"", response.body
   end
 end
