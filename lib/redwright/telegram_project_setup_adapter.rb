@@ -25,6 +25,7 @@ module Redwright
       @session_ids_by_chat = {}
       @project_ids_by_chat = {}
       @quiz_contexts_by_chat = {}
+      @dump_contexts_by_chat = {}
       @ticket_command_adapter = TelegramTicketCommandAdapter.new(
         client: client,
         project_ids_by_chat: @project_ids_by_chat,
@@ -38,10 +39,12 @@ module Redwright
     def handles_event?(event)
       return true if active_session_id(event.chat_id) && setup_control_command?(event.text)
       return true if active_quiz_context(event.chat_id) && quiz_control_or_answer?(event.text)
+      return true if active_dump_context(event.chat_id) && dump_control_or_message?(event.text)
 
       return true if parse_command(event.text)
       return true if ticket_command_adapter.handles_event?(event)
       return true if parse_quiz_command(event.text)
+      return true if parse_dump_command(event.text)
       return true if active_session_id(event.chat_id) && !slash?(event.text)
 
       false
@@ -50,12 +53,15 @@ module Redwright
     def handle(event, trace_id:)
       return advance_active_session(event: event, trace_id: trace_id) if active_session_id(event.chat_id) && setup_control_command?(event.text)
       return advance_active_quiz(event: event, trace_id: trace_id) if active_quiz_context(event.chat_id) && quiz_control_or_answer?(event.text)
+      return handle_active_dump(event: event, trace_id: trace_id) if active_dump_context(event.chat_id) && dump_control_or_message?(event.text)
 
       command = parse_command(event.text)
       return handle_project_command(event: event, command: command, trace_id: trace_id) if command
       return ticket_command_adapter.handle(event, trace_id: trace_id) if ticket_command_adapter.handles_event?(event)
       quiz_command = parse_quiz_command(event.text)
       return handle_quiz_command(event: event, command: quiz_command, trace_id: trace_id) if quiz_command
+      dump_command = parse_dump_command(event.text)
+      return handle_dump_command(event: event, command: dump_command, trace_id: trace_id) if dump_command
       return advance_active_session(event: event, trace_id: trace_id) if active_session_id(event.chat_id) && !slash?(event.text)
 
       Result.new(handled: false)
@@ -91,6 +97,25 @@ module Redwright
         open_quiz(event: event, use_case_name: command[:use_case_name], trace_id: trace_id)
       when "list"
         list_quizzes(event: event, trace_id: trace_id)
+      else
+        Result.new(handled: false)
+      end
+    end
+
+    def handle_dump_command(event:, command:, trace_id:)
+      case command[:command]
+      when "open"
+        open_dump(event: event, use_case_name: command[:use_case_name], trace_id: trace_id)
+      when "list"
+        list_dumps(event: event, trace_id: trace_id)
+      when "show"
+        show_dump(event: event, identifier: command[:identifier], trace_id: trace_id)
+      when "done"
+        finish_active_dump(event: event, trace_id: trace_id)
+      when "cancel"
+        cancel_active_dump(event: event, trace_id: trace_id)
+      when "curate"
+        curate_active_dump(event: event, trace_id: trace_id)
       else
         Result.new(handled: false)
       end
@@ -270,6 +295,158 @@ module Redwright
       )
     end
 
+    def open_dump(event:, use_case_name:, trace_id:)
+      project_id = active_project_id(event.chat_id)
+      return missing_project_context_result(command: "dump_open", trace_id: trace_id) unless project_id
+
+      response = client.command(
+        name: "OpenDump",
+        payload: {"project_id" => project_id, "use_case_name" => use_case_name},
+        actor_identifier: actor_identifier_for(event),
+        request_id: request_id_for(event, "open-dump")
+      )
+      body = response.body
+      remember_dump_context(chat_id: event.chat_id, use_case_name: use_case_name, body: body)
+
+      Result.new(
+        handled: true,
+        command: "dump_open",
+        message: render_dump(body: body, trace_id: trace_id),
+        api_response: body
+      )
+    end
+
+    def handle_active_dump(event:, trace_id:)
+      command = parse_dump_command(event.text)
+      return handle_dump_command(event: event, command: command, trace_id: trace_id) if command
+
+      append_active_dump(event: event, trace_id: trace_id)
+    end
+
+    def append_active_dump(event:, trace_id:)
+      context = active_dump_context(event.chat_id)
+      response = client.command(
+        name: "AppendDump",
+        payload: {
+          "project_id" => context.fetch("project_id"),
+          "dump_id" => context.fetch("dump_id"),
+          "raw_input" => event.text.to_s
+        },
+        actor_identifier: actor_identifier_for(event),
+        request_id: request_id_for(event, "append-dump")
+      )
+      body = response.body
+      remember_dump_context(chat_id: event.chat_id, use_case_name: context["use_case_name"], body: body)
+
+      Result.new(
+        handled: true,
+        command: "dump_append",
+        message: render_dump(body: body, trace_id: trace_id),
+        api_response: body
+      )
+    end
+
+    def finish_active_dump(event:, trace_id:)
+      context = active_dump_context(event.chat_id)
+      return missing_dump_context_result(command: "dump_done", trace_id: trace_id) unless context
+
+      response = client.command(
+        name: "DoneDump",
+        payload: {"project_id" => context.fetch("project_id"), "dump_id" => context.fetch("dump_id")},
+        actor_identifier: actor_identifier_for(event),
+        request_id: request_id_for(event, "done-dump")
+      )
+      body = response.body
+      remember_dump_context(chat_id: event.chat_id, use_case_name: context["use_case_name"], body: body)
+
+      Result.new(
+        handled: true,
+        command: "dump_done",
+        message: render_dump(body: body, trace_id: trace_id),
+        api_response: body
+      )
+    end
+
+    def cancel_active_dump(event:, trace_id:)
+      context = active_dump_context(event.chat_id)
+      return missing_dump_context_result(command: "dump_cancel", trace_id: trace_id) unless context
+
+      response = client.command(
+        name: "CancelDump",
+        payload: {"project_id" => context.fetch("project_id"), "dump_id" => context.fetch("dump_id")},
+        actor_identifier: actor_identifier_for(event),
+        request_id: request_id_for(event, "cancel-dump")
+      )
+      body = response.body
+      remember_dump_context(chat_id: event.chat_id, use_case_name: context["use_case_name"], body: body)
+
+      Result.new(
+        handled: true,
+        command: "dump_cancel",
+        message: render_dump(body: body, trace_id: trace_id),
+        api_response: body
+      )
+    end
+
+    def curate_active_dump(event:, trace_id:)
+      context = active_dump_context(event.chat_id)
+      return missing_dump_context_result(command: "dump_curate", trace_id: trace_id) unless context
+
+      response = client.command(
+        name: "CurateDump",
+        payload: {"project_id" => context.fetch("project_id"), "dump_id" => context.fetch("dump_id")},
+        actor_identifier: actor_identifier_for(event),
+        request_id: request_id_for(event, "curate-dump")
+      )
+      body = response.body
+      remember_dump_context(chat_id: event.chat_id, use_case_name: context["use_case_name"], body: body)
+
+      Result.new(
+        handled: true,
+        command: "dump_curate",
+        message: render_dump(body: body, trace_id: trace_id),
+        api_response: body
+      )
+    end
+
+    def list_dumps(event:, trace_id:)
+      project_id = active_project_id(event.chat_id)
+      return missing_project_context_result(command: "dump_list", trace_id: trace_id) unless project_id
+
+      response = client.query(
+        name: "ListDumps",
+        payload: {"project_id" => project_id},
+        actor_identifier: actor_identifier_for(event),
+        request_id: request_id_for(event, "list-dumps")
+      )
+
+      Result.new(
+        handled: true,
+        command: "dump_list",
+        message: render_dump_list(body: response.body, trace_id: trace_id),
+        api_response: response.body
+      )
+    end
+
+    def show_dump(event:, identifier:, trace_id:)
+      project_id = active_project_id(event.chat_id)
+      return missing_project_context_result(command: "dump_show", trace_id: trace_id) unless project_id
+
+      response = client.query(
+        name: "ShowDump",
+        payload: {"project_id" => project_id, "identifier" => identifier},
+        actor_identifier: actor_identifier_for(event),
+        request_id: request_id_for(event, "show-dump")
+      )
+
+      Result.new(
+        handled: true,
+        command: "dump_show",
+        message: render_dump(body: response.body, trace_id: trace_id),
+        api_response: response.body
+      )
+    end
+
     def render_setup_response(body:, trace_id:, user_text:)
       @prompt_renderer.render(body: body, user_text: user_text, trace_id: trace_id)
     end
@@ -353,6 +530,63 @@ module Redwright
       ].join("\n")
     end
 
+    def render_dump(body:, trace_id:)
+      data = body["data"] || {}
+      if body.fetch("status", "") == "error"
+        return [
+          "Dump error: #{summary_from(body)}",
+          *error_lines_from(body),
+          "Trace: #{trace_id}"
+        ].join("\n")
+      end
+
+      dump = data["dump"] || {}
+      status = data["status"].to_s
+      scope = dump["use_case_name"].to_s.empty? ? "project" : dump["use_case_name"]
+      entry_count = dump["entry_count"].to_i
+      case status
+      when "capturing"
+        [
+          data["summary"],
+          "Dump: #{dump['title']} (#{scope}, #{entry_count} entries)",
+          "Controls: /dump done, /dump cancel",
+          "Trace: #{trace_id}"
+        ].join("\n")
+      when "done", "cancelled", "curated"
+        [
+          data["summary"],
+          "Dump: #{dump['title']} (#{entry_count} entries, #{dump['curation_status']})",
+          "Trace: #{trace_id}"
+        ].join("\n")
+      when "shown"
+        [
+          "Dump: #{dump['title']}",
+          "Status: #{dump['status']} / #{dump['capture_status']} / #{dump['curation_status']}",
+          "Entries: #{entry_count}",
+          "Summary: #{dump['summary'].to_s.strip.empty? ? 'none' : dump['summary']}",
+          "Trace: #{trace_id}"
+        ].join("\n")
+      else
+        [
+          data["summary"],
+          "Trace: #{trace_id}"
+        ].join("\n")
+      end
+    end
+
+    def render_dump_list(body:, trace_id:)
+      dumps = body.dig("data", "dumps") || []
+      lines = dumps.first(20).map do |dump|
+        scope = dump["use_case_name"].to_s.empty? ? "project" : dump["use_case_name"]
+        "- #{dump['slug']}: #{scope} (#{dump['entry_count']} entries, #{dump['capture_status']})"
+      end
+      [
+        "Dumps:",
+        lines.empty? ? "No dumps found." : lines.join("\n"),
+        "Trace: #{trace_id}"
+      ].join("\n")
+    end
+
     def remember_context(chat_id:, body:)
       session_id = body["session_id"] || body.dig("data", "session_id")
       project_id = body["project_id"] || body.dig("data", "project_id")
@@ -378,6 +612,23 @@ module Redwright
         }
       else
         @quiz_contexts_by_chat.delete(chat_id)
+      end
+    end
+
+    def remember_dump_context(chat_id:, use_case_name:, body:)
+      data = body["data"] || {}
+      dump = data["dump"] || {}
+      project_id = dump["project_id"]
+      @project_ids_by_chat[chat_id] = project_id if project_id
+
+      if data["status"].to_s == "capturing" && dump["capture_status"].to_s == "capturing"
+        @dump_contexts_by_chat[chat_id] = {
+          "project_id" => project_id,
+          "dump_id" => dump.fetch("id"),
+          "use_case_name" => use_case_name
+        }
+      else
+        @dump_contexts_by_chat.delete(chat_id)
       end
     end
 
@@ -497,11 +748,38 @@ module Redwright
       nil
     end
 
+    def parse_dump_command(text)
+      raw = text.to_s.strip
+      return nil unless raw.start_with?("/dump")
+      return {command: "open", use_case_name: nil} if raw.match?(%r{\A/dump\s*\z}i)
+      return {command: "list"} if raw.match?(%r{\A/dump\s+list\s*\z}i)
+      return {command: "done"} if raw.match?(%r{\A/dump\s+done\s*\z}i)
+      return {command: "cancel"} if raw.match?(%r{\A/dump\s+cancel\s*\z}i)
+      return {command: "curate"} if raw.match?(%r{\A/dump\s+curate\s*\z}i)
+
+      show_match = raw.match(%r{\A/dump\s+show\s+([a-zA-Z0-9._\-]+)\s*\z}i)
+      return {command: "show", identifier: show_match[1]} if show_match
+
+      for_match = raw.match(%r{\A/dump\s+for\s+(.+?)\s*\z}i)
+      return {command: "open", use_case_name: for_match[1].strip} if for_match
+
+      nil
+    end
+
     def missing_project_context_result(command:, trace_id:)
       Result.new(
         handled: true,
         command: command,
         message: "No active Rails project for this command.\nTrace: #{trace_id}",
+        api_response: nil
+      )
+    end
+
+    def missing_dump_context_result(command:, trace_id:)
+      Result.new(
+        handled: true,
+        command: command,
+        message: "No active dump for this command.\nTrace: #{trace_id}",
         api_response: nil
       )
     end
@@ -523,6 +801,17 @@ module Redwright
 
     def active_quiz_context(chat_id)
       @quiz_contexts_by_chat[chat_id]
+    end
+
+    def dump_control_or_message?(text)
+      raw = text.to_s.strip
+      return true unless slash?(raw)
+
+      !parse_dump_command(raw).nil?
+    end
+
+    def active_dump_context(chat_id)
+      @dump_contexts_by_chat[chat_id]
     end
 
     def actor_identifier_for(event)
