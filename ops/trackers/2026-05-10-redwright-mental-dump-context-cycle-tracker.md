@@ -46,9 +46,9 @@ Validation:
 
 - status: `completed`
 - branch: `fix/slice-2-dump-llm-contracts`
-- PR: `tbd`
+- PR: `#415`
 - merge_target: `dev`
-- last_sync_commit: `5308730`
+- last_sync_commit: `59f440c`
 
 Tasks:
 
@@ -72,31 +72,33 @@ Validation:
 
 ### Slice 3: Dump Runtime And Controls
 
-- status: `pending`
+- status: `completed`
 - branch: `fix/slice-3-dump-runtime-controls`
 - PR: `tbd`
 - merge_target: `dev`
-- last_sync_commit: `tbd`
+- last_sync_commit: `45f50f5`
 
 Tasks:
 
-- [ ] `T3.1 add a port-agnostic dump loop service`
-- [ ] `T3.2 resolve or create project-level and use-case-level dumps`
-- [ ] `T3.3 append free-form chunks as ordered DumpEntry records`
-- [ ] `T3.4 implement done and cancel with distinct lifecycle behavior`
-- [ ] `T3.5 implement list, show, and curate operations`
-- [ ] `T3.6 add service tests for start, append, done, cancel, resume, list, show, and curate`
+- [x] `T3.1 add a port-agnostic dump loop service`
+- [x] `T3.2 resolve or create project-level and use-case-level dumps`
+- [x] `T3.3 append free-form chunks as ordered DumpEntry records`
+- [x] `T3.4 implement done and cancel with distinct lifecycle behavior`
+- [x] `T3.5 implement list, show, and curate operations`
+- [x] `T3.6 add service tests for start, append, done, cancel, resume, list, show, and curate`
 
 Commits:
 
-- [ ] `feat(web): add dump runtime`
-- [ ] `test(web): cover dump runtime controls`
+- [x] `e2efe14 feat(web): add dump runtime`
+- [x] `45f50f5 test(web): cover dump runtime controls`
 
 Validation:
 
-- [ ] `users can build one dump from multiple short posts`
-- [ ] `done closes capture and creates or refreshes curated output`
-- [ ] `cancel stops active capture without deleting saved entries`
+- [x] `users can build one dump from multiple short posts`
+- [x] `done closes capture and creates or refreshes curated output`
+- [x] `cancel stops active capture without deleting saved entries`
+- [x] `bundle exec bin/rails test test/services/dump_loops/runtime_test.rb`
+- [x] `bundle exec bin/rails test test/services/dump_loops/entry_contract_test.rb test/services/dump_loops/curated_dump_contract_test.rb test/services/dump_loops/curation_provider_test.rb test/services/dump_loops/runtime_test.rb`
 
 ### Slice 4: Conversation Entrypoint
 
@@ -243,3 +245,5 @@ Validation:
 - `2026-05-10` state=`awaiting_review` note=`Slice 1 completed with Dump and DumpEntry domain models, migrations, schema update, project/use-case associations, and focused model tests.`
 - `2026-05-10` state=`next_slice` note=`Slice 1 merged through PR #414 and dev synced to 24ec44c.`
 - `2026-05-10` state=`awaiting_review` note=`Slice 2 completed with dump entry and curated dump contracts, deterministic fallback behavior, secret redaction guardrails, and focused provider tests.`
+- `2026-05-10` state=`next_slice` note=`Slice 2 merged through PR #415 and follow-up PR #416; dev synced to 59f440c.`
+- `2026-05-10` state=`awaiting_review` note=`Slice 3 completed with port-agnostic dump runtime for open, append, done, cancel, list, show, and curate operations plus focused service tests.`
