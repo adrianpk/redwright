@@ -166,9 +166,9 @@ Validation:
 
 - status: `completed`
 - branch: `fix/slice-6-web-dump-surface`
-- PR: `tbd`
+- PR: `#420`
 - merge_target: `dev`
-- last_sync_commit: `e2c95b8`
+- last_sync_commit: `6c955c8`
 
 Tasks:
 
@@ -183,7 +183,7 @@ Commits:
 
 - [x] `49ea528 feat(web): add dump surface`
 - [x] `f90d3f9 test(web): cover dump web flows`
-- [x] `e2c95b8 docs(ops): update dump web surface tracker`
+- [x] `6c955c8 docs(ops): update dump web surface tracker`
 
 Validation:
 
@@ -195,30 +195,33 @@ Validation:
 
 ### Slice 7: Dump Tags And Context Retrieval
 
-- status: `pending`
+- status: `completed`
 - branch: `fix/slice-7-dump-context-retrieval`
 - PR: `tbd`
 - merge_target: `dev`
-- last_sync_commit: `tbd`
+- last_sync_commit: `03b8fd2`
 
 Tasks:
 
-- [ ] `T7.1 align Dump tagging with the existing or planned Quiz tagging model`
-- [ ] `T7.2 add query scopes or query objects for project/use-case/tag dump retrieval`
-- [ ] `T7.3 integrate curated dumps with the dumps context provider`
-- [ ] `T7.4 avoid silently injecting active uncurated dumps into unrelated ticket work`
-- [ ] `T7.5 add tests for tagging, retrieval, and context inclusion/omission`
+- [x] `T7.1 align Dump tagging with the existing or planned Quiz tagging model`
+- [x] `T7.2 add query scopes or query objects for project/use-case/tag dump retrieval`
+- [x] `T7.3 integrate curated dumps with the dumps context provider`
+- [x] `T7.4 avoid silently injecting active uncurated dumps into unrelated ticket work`
+- [x] `T7.5 add tests for tagging, retrieval, and context inclusion/omission`
 
 Commits:
 
-- [ ] `feat(llm): add product dump context retrieval`
-- [ ] `test(llm): cover dump context selection`
+- [x] `97f36d1 feat(llm): add product dump context retrieval`
+- [x] `1fecbc5 test(llm): cover dump context selection`
+- [x] `03b8fd2 docs(ops): update dump context retrieval tracker`
 
 Validation:
 
-- [ ] `curated dumps are selectable through the dumps context layer`
-- [ ] `retrieval can filter by project and use case`
-- [ ] `active uncurated dumps do not silently outrank curated context`
+- [x] `curated dumps are selectable through the dumps context layer`
+- [x] `retrieval can filter by project and use case`
+- [x] `tag retrieval is compatible with Quiz tagging`
+- [x] `active uncurated dumps do not silently outrank curated context`
+- [x] `bundle exec bin/rails test test/models/dump_test.rb test/queries/dump_context/retrieval_query_test.rb test/services/agent_ticket_execution/context_composer_test.rb`
 
 ### Slice 8: Configuration, Docs, And Closure
 
@@ -263,3 +266,5 @@ Validation:
 - `2026-05-10` state=`awaiting_review` note=`Slice 5 completed with Telegram /dump commands, use-case scoped dump start, active dump message append routing, done/cancel/list/show controls, concise acknowledgements, and focused CommandQuery plus Telegram integration coverage.`
 - `2026-05-10` state=`next_slice` note=`Slice 5 merged through PR #419 and dev synced to 5ec1795.`
 - `2026-05-10` state=`awaiting_review` note=`Slice 6 completed with Conversation-linked web Dump routes, project/use-case dump list cards, repeated-post append UI, raw and curated previews, lifecycle controls, and focused controller coverage.`
+- `2026-05-10` state=`next_slice` note=`Slice 6 merged through PR #420 and dev synced to 6c955c8.`
+- `2026-05-10` state=`awaiting_review` note=`Slice 7 completed with Dump tagging parity, project/use-case/tag retrieval query, database curated dump inclusion in the dumps context provider, explicit omission for active uncurated dumps, and focused model/query/context composer coverage.`
