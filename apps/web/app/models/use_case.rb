@@ -2,6 +2,8 @@ class UseCase < ApplicationRecord
   belongs_to :project
   has_one :quiz, dependent: :restrict_with_error
   has_many :quiz_entries, dependent: :restrict_with_error
+  has_many :dumps, dependent: :restrict_with_error
+  has_many :dump_entries, dependent: :restrict_with_error
   has_many :tickets, dependent: :restrict_with_error
   has_many :documents, dependent: :restrict_with_error
   has_many :taggings, dependent: :restrict_with_error

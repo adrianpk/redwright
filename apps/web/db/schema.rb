@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_08_172000) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_10_100100) do
   create_table "boards", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "name", null: false
@@ -59,6 +59,45 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_08_172000) do
     t.index ["project_id"], name: "index_documents_on_project_id"
     t.index ["source_draft_id"], name: "index_documents_on_source_draft_id"
     t.index ["use_case_id"], name: "index_documents_on_use_case_id"
+  end
+
+  create_table "dump_entries", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "derived_thread_hint", default: "", null: false
+    t.integer "dump_id", null: false
+    t.text "polished_input", default: "", null: false
+    t.integer "position", null: false
+    t.integer "project_id", null: false
+    t.text "raw_input", null: false
+    t.datetime "updated_at", null: false
+    t.integer "use_case_id"
+    t.index ["dump_id", "position"], name: "index_dump_entries_on_dump_id_and_position", unique: true
+    t.index ["dump_id"], name: "index_dump_entries_on_dump_id"
+    t.index ["project_id", "use_case_id", "created_at"], name: "idx_dump_entries_project_use_case_created"
+    t.index ["project_id"], name: "index_dump_entries_on_project_id"
+    t.index ["use_case_id"], name: "index_dump_entries_on_use_case_id"
+  end
+
+  create_table "dumps", force: :cascade do |t|
+    t.string "capture_status", default: "capturing", null: false
+    t.datetime "created_at", null: false
+    t.text "curated_body", default: "", null: false
+    t.string "curation_status", default: "not_curated", null: false
+    t.integer "project_id", null: false
+    t.text "raw_body", default: "", null: false
+    t.string "slug", null: false
+    t.string "status", default: "active", null: false
+    t.text "summary", default: "", null: false
+    t.string "title", null: false
+    t.datetime "updated_at", null: false
+    t.integer "use_case_id"
+    t.index ["capture_status"], name: "index_dumps_on_capture_status"
+    t.index ["curation_status"], name: "index_dumps_on_curation_status"
+    t.index ["project_id", "slug"], name: "index_dumps_on_project_id_and_slug", unique: true
+    t.index ["project_id", "status"], name: "idx_dumps_project_status"
+    t.index ["project_id", "use_case_id", "created_at"], name: "idx_dumps_project_use_case_created"
+    t.index ["project_id"], name: "index_dumps_on_project_id"
+    t.index ["use_case_id"], name: "index_dumps_on_use_case_id"
   end
 
   create_table "labels", force: :cascade do |t|
@@ -423,6 +462,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_08_172000) do
   add_foreign_key "documents", "documents", column: "source_draft_id"
   add_foreign_key "documents", "projects"
   add_foreign_key "documents", "use_cases"
+  add_foreign_key "dump_entries", "dumps"
+  add_foreign_key "dump_entries", "projects"
+  add_foreign_key "dump_entries", "use_cases"
+  add_foreign_key "dumps", "projects"
+  add_foreign_key "dumps", "use_cases"
   add_foreign_key "labels", "boards"
   add_foreign_key "project_attributes", "projects"
   add_foreign_key "project_protocol_documents", "project_protocols"
