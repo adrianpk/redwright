@@ -8,6 +8,8 @@ class Dump < ApplicationRecord
   belongs_to :project
   belongs_to :use_case, optional: true
   has_many :entries, class_name: "DumpEntry", dependent: :destroy
+  has_many :taggings, as: :taggable, dependent: :destroy
+  has_many :tags, through: :taggings
 
   before_validation :assign_default_title
   before_validation :normalize_slug
@@ -33,6 +35,16 @@ class Dump < ApplicationRecord
 
   def to_param
     slug
+  end
+
+  def tag_with!(*names)
+    names.flatten.filter_map do |name|
+      next if Tag.normalize_name(name).blank?
+
+      tag = Tag.find_or_create_normalized!(name)
+      taggings.find_or_create_by!(tag: tag)
+      tag
+    end
   end
 
   private

@@ -910,6 +910,12 @@ module AgentTicketExecution
           "title" => dump.fetch("title"),
           "topic" => dump.fetch("topic"),
           "path" => dump.fetch("path"),
+          "id" => dump["id"],
+          "project_id" => dump["project_id"],
+          "use_case_id" => dump["use_case_id"],
+          "curation_status" => dump["curation_status"],
+          "capture_status" => dump["capture_status"],
+          "tags" => dump["tags"],
           "selection_reason" => dump["selection_reason"],
           "omission_reason" => dump["omission_reason"]
         }.compact
@@ -927,6 +933,14 @@ module AgentTicketExecution
 
       def dumps
         root = repository_root
+        (repository_dumps(root) + database_dumps).sort_by { |dump| dump.fetch("updated_at") }.reverse.first(Dumps::MAX_DUMPS * 3)
+      end
+
+      private
+
+      attr_reader :context
+
+      def repository_dumps(root)
         return [] unless root
 
         Dir.glob(File.join(root, "ops", "conv", "dump", "*-dump.md")).filter_map do |path|
@@ -939,14 +953,32 @@ module AgentTicketExecution
             "topic" => topic_for(path),
             "path" => relative,
             "body" => read_file(path),
+            "curation_status" => "curated",
+            "capture_status" => "closed",
+            "tags" => [],
             "updated_at" => File.mtime(path)
           }
-        end.sort_by { |dump| dump.fetch("path") }.first(Dumps::MAX_DUMPS * 2)
+        end
       end
 
-      private
-
-      attr_reader :context
+      def database_dumps
+        context.project.dumps.includes(:use_case, :tags).order(updated_at: :desc, created_at: :desc).limit(Dumps::MAX_DUMPS * 3).map do |dump|
+          {
+            "source" => "database_dump",
+            "id" => dump.id,
+            "project_id" => dump.project_id,
+            "use_case_id" => dump.use_case_id,
+            "title" => dump.title,
+            "topic" => dump.summary.presence || dump.title,
+            "path" => "database:dumps/#{dump.slug}",
+            "body" => dump.curated_body.presence || dump.raw_body,
+            "curation_status" => dump.curation_status,
+            "capture_status" => dump.capture_status,
+            "tags" => dump.tags.map(&:name).sort,
+            "updated_at" => dump.updated_at
+          }
+        end
+      end
 
       def repository_root
         workspace = context.workspace_path.to_s
@@ -1006,6 +1038,8 @@ module AgentTicketExecution
 
       def selected_dump?(dump)
         return false unless context_policy_allows_dumps?
+        return false unless curated_dump?(dump)
+        return false unless matched_use_case_scope?(dump)
 
         relevant_to_ticket?(dump) || relevant_to_project?(dump)
       end
@@ -1020,6 +1054,17 @@ module AgentTicketExecution
 
       def relevant_to_project?(dump)
         project_terms.any? { |term| dump_terms(dump).include?(term) }
+      end
+
+      def curated_dump?(dump)
+        dump.fetch("curation_status", "curated") == "curated" && dump.fetch("capture_status", "closed") == "closed"
+      end
+
+      def matched_use_case_scope?(dump)
+        use_case_id = dump["use_case_id"]
+        return true if use_case_id.blank?
+
+        ticket.use_case_id.present? && use_case_id == ticket.use_case_id
       end
 
       def ticket_terms
@@ -1039,7 +1084,7 @@ module AgentTicketExecution
       end
 
       def dump_terms(dump)
-        tokenize([dump.fetch("topic"), dump.fetch("title"), dump.fetch("path")].join(" "))
+        tokenize([dump.fetch("topic"), dump.fetch("title"), dump.fetch("path"), Array(dump["tags"]).join(" ")].join(" "))
       end
 
       def tokenize(value)
@@ -1056,6 +1101,8 @@ module AgentTicketExecution
 
       def omission_reason(dump)
         return "policy_excludes_dumps:#{context_policy}" unless context_policy_allows_dumps?
+        return "unmatched_use_case:#{dump.fetch("use_case_id")}" unless matched_use_case_scope?(dump)
+        return "uncurated_or_active_dump" unless curated_dump?(dump)
 
         "no_topic_match"
       end
