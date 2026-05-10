@@ -105,9 +105,9 @@ Validation:
 
 - status: `completed`
 - branch: `fix/slice-4-conversation-entrypoint`
-- PR: `tbd`
+- PR: `#418`
 - merge_target: `dev`
-- last_sync_commit: `05b2bab`
+- last_sync_commit: `6eadcb8`
 
 Tasks:
 
@@ -121,7 +121,7 @@ Commits:
 
 - [x] `d9ef54b feat(web): add conversation entrypoint`
 - [x] `f121ff1 test(web): cover conversation navigation`
-- [x] `05b2bab docs(ops): update conversation entrypoint tracker`
+- [x] `6eadcb8 docs(ops): update conversation entrypoint tracker`
 
 Validation:
 
@@ -132,31 +132,35 @@ Validation:
 
 ### Slice 5: Telegram Dump Commands
 
-- status: `pending`
+- status: `completed`
 - branch: `fix/slice-5-telegram-dump-commands`
 - PR: `tbd`
 - merge_target: `dev`
-- last_sync_commit: `tbd`
+- last_sync_commit: `17b6125`
 
 Tasks:
 
-- [ ] `T5.1 add slash routing for /dump`
-- [ ] `T5.2 add slash routing for /dump for <use_case>`
-- [ ] `T5.3 add slash routing for /dump done, /dump cancel, /dump list, and /dump show`
-- [ ] `T5.4 route ordinary messages into the active dump session when appropriate`
-- [ ] `T5.5 render concise acknowledgements without echoing full dumps each turn`
-- [ ] `T5.6 add adapter-level tests for command and active-session flows`
+- [x] `T5.1 add slash routing for /dump`
+- [x] `T5.2 add slash routing for /dump for <use_case>`
+- [x] `T5.3 add slash routing for /dump done, /dump cancel, /dump list, and /dump show`
+- [x] `T5.4 route ordinary messages into the active dump session when appropriate`
+- [x] `T5.5 render concise acknowledgements without echoing full dumps each turn`
+- [x] `T5.6 add adapter-level tests for command and active-session flows`
 
 Commits:
 
-- [ ] `feat(telegram): add dump commands`
-- [ ] `test(telegram): cover dump command flows`
+- [x] `6245996 feat(telegram): add dump commands`
+- [x] `cbe8817 test(telegram): cover dump command flows`
+- [x] `17b6125 docs(ops): update dump telegram tracker`
 
 Validation:
 
-- [ ] `/dump` starts or resumes project-level dumps`
-- [ ] `/dump for <use_case>` starts or resumes use-case-level dumps`
-- [ ] `active dump messages append entries`
+- [x] `/dump` starts or resumes project-level dumps`
+- [x] `/dump for <use_case>` starts or resumes use-case-level dumps`
+- [x] `active dump messages append entries`
+- [x] `/dump done, /dump cancel, /dump list, and /dump show are routed through Telegram`
+- [x] `Telegram append acknowledgements do not echo full submitted dump text`
+- [x] `bundle exec bin/rails test test/services/dump_loops/command_query_handlers_test.rb test/integration/project_setup_telegram_e2e_test.rb`
 
 ### Slice 6: Web Dump Surface
 
@@ -252,3 +256,5 @@ Validation:
 - `2026-05-10` state=`awaiting_review` note=`Slice 3 completed with port-agnostic dump runtime for open, append, done, cancel, list, show, and curate operations plus focused service tests.`
 - `2026-05-10` state=`next_slice` note=`Slice 3 merged through PR #417 and dev synced to e3c5eb8.`
 - `2026-05-10` state=`awaiting_review` note=`Slice 4 completed with the project Conversation entrypoint, Conv top navigation, Dump and Quizzes sibling cards, preserved Quizzes routing, and focused controller coverage.`
+- `2026-05-10` state=`next_slice` note=`Slice 4 merged through PR #418 and dev synced to 6eadcb8.`
+- `2026-05-10` state=`awaiting_review` note=`Slice 5 completed with Telegram /dump commands, use-case scoped dump start, active dump message append routing, done/cancel/list/show controls, concise acknowledgements, and focused CommandQuery plus Telegram integration coverage.`
