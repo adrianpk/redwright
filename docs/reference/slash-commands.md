@@ -50,6 +50,35 @@ Notes:
 
 These map to planner hints (semantic routing), not direct primitive execution.
 
+## Conversation Commands
+
+Quiz commands:
+
+- `/quiz`
+- `/quiz for <use-case-name>`
+- `/quiz list`
+
+Dump commands:
+
+- `/dump`
+- `/dump for <use-case-name>`
+- `/dump list`
+- `/dump show <dump-slug-or-id>`
+- `/dump done`
+- `/dump curate`
+- `/dump cancel`
+
+Notes:
+
+- `/quiz` opens or continues a project quiz.
+- `/quiz for <use-case-name>` opens or continues a use-case quiz.
+- `/dump` opens or continues a project dump.
+- `/dump for <use-case-name>` opens or continues a use-case dump.
+- While a dump is active, non-command Telegram messages are appended as dump entries.
+- `/dump done` closes capture.
+- `/dump curate` creates or refreshes curated dump content for a closed dump.
+- `/dump cancel` cancels active capture.
+
 ## Ticket Commands
 
 - `/ticket list`

@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Use Telegram as the practical control channel for project setup, project context, ticket lookup, ticket execution, planning hints, and runtime control.
+Use Telegram as the practical control channel for project setup, project context, Conversation loops, ticket lookup, ticket execution, planning hints, and runtime control.
 
 ## Before You Start
 
@@ -71,7 +71,31 @@ Ticket execution is asynchronous. Telegram returns an initial acknowledgement
 quickly and sends the final completed or blocked result after RedWright finishes
 the execution loop.
 
-7. Send planning and continuation hints.
+7. Capture quiz context.
+
+```text
+/quiz
+/quiz for <use-case-name>
+/quiz list
+```
+
+Quiz captures RedWright-led project or use-case discovery.
+
+8. Capture dump context.
+
+```text
+/dump
+/dump for <use-case-name>
+/dump list
+/dump show <dump-slug-or-id>
+/dump done
+/dump curate
+/dump cancel
+```
+
+After opening a dump, send short messages as dump entries. Use `/dump done` to close capture and `/dump curate` to create the curated summary.
+
+9. Send planning and continuation hints.
 
 ```text
 /plan start
@@ -81,7 +105,7 @@ the execution loop.
 /status
 ```
 
-8. Control current task flow.
+10. Control current task flow.
 
 ```text
 /pause
@@ -97,7 +121,7 @@ Task-scoped aliases are also accepted:
 /task cancel
 ```
 
-9. Use skills when available.
+11. Use skills when available.
 
 ```text
 /skills
@@ -105,7 +129,7 @@ Task-scoped aliases are also accepted:
 /skill stop-and-apply
 ```
 
-10. Use trace commands for runtime trace handling hints.
+12. Use trace commands for runtime trace handling hints.
 
 ```text
 /trace on
@@ -122,6 +146,8 @@ For durable LLM request/response inspection, enable the rolling trace file in co
 - `/ticket pick` returns an eligible ticket when one exists.
 - `/ticket start <ticket-key>` returns an initial acknowledgement and later a
   structured execution result or readiness problem.
+- `/dump list` returns captured dumps for the active project.
+- `/dump show <dump-slug-or-id>` returns dump status and summary fields.
 - Completed ticket execution moves the ticket to review.
 - Blocked ticket execution moves the ticket to blocked and includes a reason.
 - When LLM file tracing is enabled, `.log/llm.ndjson` receives `llm_request` and `llm_response` events.
@@ -133,6 +159,7 @@ For durable LLM request/response inspection, enable the rolling trace file in co
 - If `/ticket list` says no active project context exists, run `/project where`, `/project list`, or start/switch a project first.
 - If `/ticket start` cannot find a ticket, confirm you are using the ticket key
   shown on the board rather than a database row id.
+- If `/dump done`, `/dump curate`, or `/dump cancel` returns no active dump, open a dump first with `/dump` or inspect an existing one with `/dump show`.
 - If ticket execution is blocked by runtime containers or operational setup,
   inspect the readiness ticket, runtime container state, or validation command
   metadata before retrying.
@@ -143,3 +170,4 @@ For durable LLM request/response inspection, enable the rolling trace file in co
 - [Slash Commands Reference](../../reference/slash-commands.md)
 - [Debug LLM Calls](debug-llm-calls.md)
 - [Runtime Containers In Ticket Work](runtime-containers-in-ticket-work.md)
+- [Use Conversation Dumps](use-conversation-dumps.md)

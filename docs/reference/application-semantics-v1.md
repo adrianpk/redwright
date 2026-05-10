@@ -33,6 +33,13 @@ Canonical semantic contract for all ingress surfaces.
 - `ReviewTicketPullRequest`
 - `MergeTicketPullRequest`
 - `PickNextTicket`
+- `OpenQuiz`
+- `AdvanceQuiz`
+- `OpenDump`
+- `AppendDump`
+- `DoneDump`
+- `CancelDump`
+- `CurateDump`
 
 ## Queries (v1)
 - `GetTicket`
@@ -40,6 +47,9 @@ Canonical semantic contract for all ingress surfaces.
 - `GetBoard`
 - `GetFactoryStatus`
 - `GetExecutionRun`
+- `ListQuizzes`
+- `ListDumps`
+- `ShowDump`
 
 ## Execution Context
 

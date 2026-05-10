@@ -125,6 +125,8 @@ Agent ticket execution composes policy-selectable context from:
 
 Quiz generation supplies project and quiz context sections. Project setup prompt rendering supplies setup summary, next prompt intent, setup context, and current user text sections.
 
+Dump context can come from repository conversation artifacts under `ops/conv/dump` and from database-backed Conversation dumps captured through the web app or Telegram. Agent ticket execution selects only dumps that are closed, curated, allowed by the effective context policy, and matched to the ticket or project scope. Active or uncurated dumps are omitted with an explicit diagnostic reason.
+
 Protocols are selected from modeled RedWright protocol state, not from generated repository protocol files. Generated protocol files are omitted from the general repository filesystem scan to avoid duplicate authority.
 
 ## Provider Payload Behavior

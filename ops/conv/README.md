@@ -2,6 +2,8 @@
 
 This directory stores curated and raw conversation-derived artifacts.
 
+These repository artifacts are distinct from the Rails app's Conversation surface. The app uses Conversation as the product entry point for database-backed Dump and Quiz loops; this directory stores durable repository-side conversation evidence.
+
 ## Subdirectories
 
 - `quiz/`: bounded questionnaire artifacts created through the quiz playbook.

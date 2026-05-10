@@ -8,6 +8,7 @@ Use this guide to operate RedWright from the current user-facing surfaces:
 - runtime server and foreground stack
 - Rails web app
 - Telegram commands
+- Conversation, Dump, and Quiz context loops
 - projects
 - boards and tickets
 - documents and protocols
@@ -27,6 +28,7 @@ This guide is practical. It explains what a user can do today and points to refe
 - [Configure RedWright](configure-redwright.md)
 - [Run The Local Stack](run-the-local-stack.md)
 - [Use The Web App](use-the-web-app.md)
+- [Use Conversation Dumps](use-conversation-dumps.md)
 - [Use Telegram](use-telegram.md)
 - [Manage Projects](manage-projects.md)
 - [Manage Boards And Tickets](manage-boards-and-tickets.md)

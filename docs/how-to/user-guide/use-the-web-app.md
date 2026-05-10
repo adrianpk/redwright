@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Use the Rails web app to inspect and manage projects, boards, tickets, documents, protocols, and protocol templates.
+Use the Rails web app to inspect and manage projects, boards, tickets, documents, protocols, protocol templates, and Conversation context loops.
 
 ## Before You Start
 
@@ -36,9 +36,19 @@ Project pages link to:
 
 - `Protocols`
 - `Documents`
+- `Conversation`
 - `Board`
 
-4. Use the board.
+4. Use Conversation.
+
+The Conversation area links to:
+
+- `Dump` for user-led knowledge capture
+- `Quiz` for RedWright-led questionnaire capture
+
+Closed and curated dumps can be selected as ticket execution context when the context policy and scope match.
+
+5. Use the board.
 
 The board lets you:
 
@@ -47,7 +57,7 @@ The board lets you:
 - move tickets between columns
 - archive or delete tickets when authorized
 
-5. Use documents.
+6. Use documents.
 
 The documents area separates:
 
@@ -57,17 +67,18 @@ The documents area separates:
 
 Drafts are editable. Specs and plan trackers are read-only in the current web surface.
 
-6. Use protocols.
+7. Use protocols.
 
 The project protocols area lets you inspect and edit the Markdown protocol documents attached to a project.
 
-7. Use protocol templates.
+8. Use protocol templates.
 
 The protocol templates area lets you inspect common templates and stack templates, then edit their Markdown documents for future project setup runs.
 
 ## Verify
 
 - Project pages show links to protocols, documents, and board when those resources exist.
+- Conversation shows Dump and Quiz entry cards.
 - Ticket changes update the board.
 - Protocol edits are saved and projected to the project workspace.
 - Template edits affect future project setup composition, not already copied project protocols.
@@ -83,3 +94,4 @@ The protocol templates area lets you inspect common templates and stack template
 - [Manage Projects](manage-projects.md)
 - [Manage Boards And Tickets](manage-boards-and-tickets.md)
 - [Manage Documents And Protocols](manage-documents-and-protocols.md)
+- [Use Conversation Dumps](use-conversation-dumps.md)
