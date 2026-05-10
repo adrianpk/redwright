@@ -351,6 +351,24 @@ module AgentTicketExecution
     test "selects curated dump context by policy and topic relevance" do
       with_agent_ticket_execution_workspace do |fixture|
         write_dump_artifacts(fixture.project_path)
+        use_case = create_use_case(project: fixture.project, name: "LLM Billing")
+        fixture.ticket.update!(use_case: use_case)
+        database_dump = fixture.project.dumps.create!(
+          use_case: use_case,
+          title: "Billing LLM Context Dump",
+          summary: "Curated billing LLM context.",
+          curated_body: "# Billing LLM Context\n\nUse billing-specific LLM context.",
+          curation_status: "curated",
+          capture_status: "closed",
+          status: "completed"
+        )
+        database_dump.tag_with!("billing", "llm")
+        active_dump = fixture.project.dumps.create!(
+          use_case: use_case,
+          title: "Active LLM Draft Dump",
+          raw_body: "Draft LLM context that should not be selected."
+        )
+        active_dump.tag_with!("llm")
         fixture.ticket.update!(
           title: "Improve LLM context shaping",
           description: "Use curated context shaping dumps while planning the request context."
@@ -374,11 +392,14 @@ module AgentTicketExecution
         omitted_paths = planning_dumps.content.fetch("omitted_dumps").map { |dump| dump.fetch("path") }
 
         assert_includes selected_paths, "ops/conv/dump/2026-05-09-redwright-agent-ticket-llm-context-shaping-dump.md"
+        assert_includes selected_paths, "database:dumps/#{database_dump.slug}"
         refute_includes selected_paths, "ops/conv/dump/2026-05-09-redwright-agent-ticket-llm-context-shaping-dump-raw.md"
         assert_includes omitted_paths, "ops/conv/dump/2026-05-09-unrelated-deployment-dump.md"
+        assert_includes omitted_paths, "database:dumps/#{active_dump.slug}"
         assert_equal "dump_context_inventory", planning_dumps.metadata.fetch("selection_source")
         assert_equal "matched_ticket_topic:llm", planning_dumps.metadata.fetch("selected_dumps").first.fetch("selection_reason")
         assert_equal "no_topic_match", planning_dumps.metadata.fetch("omitted_dumps").find { |dump| dump.fetch("path") == "ops/conv/dump/2026-05-09-unrelated-deployment-dump.md" }.fetch("omission_reason")
+        assert_equal "uncurated_or_active_dump", planning_dumps.metadata.fetch("omitted_dumps").find { |dump| dump.fetch("path") == "database:dumps/#{active_dump.slug}" }.fetch("omission_reason")
         assert_empty implementation_dumps.content.fetch("dumps")
         assert_equal "policy_excludes_dumps:implementation_default", implementation_dumps.metadata.fetch("omitted_dumps").first.fetch("omission_reason")
       end

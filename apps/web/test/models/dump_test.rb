@@ -67,4 +67,15 @@ class DumpTest < ActiveSupport::TestCase
     assert_equal [project_dump.id], project.dumps.project_level.pluck(:id)
     assert_equal [project_dump.id], project.dumps.curated.pluck(:id)
   end
+
+  test "tags dump with normalized reusable tags" do
+    project = create_project(key: "dump-tags")
+    dump = project.dumps.create!(title: "Tagged Dump")
+
+    tags = dump.tag_with!(" Context Quality ", "context-quality")
+
+    assert_equal ["context-quality"], tags.uniq.map(&:name)
+    assert_equal ["context-quality"], dump.tags.map(&:name)
+    assert_equal project.id, dump.taggings.first.project_id
+  end
 end
