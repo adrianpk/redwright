@@ -173,8 +173,9 @@
 - [ ] `T8.1 add configuration for dump limits, polishing behavior, and curation behavior`
 - [ ] `T8.2 document Conversation, Dump, and Quiz relationship`
 - [ ] `T8.3 document Telegram and web dump usage`
-- [ ] `T8.4 run targeted and relevant broader validation`
-- [ ] `T8.5 update tracker with final validation and residual risks`
+- [ ] `T8.4 update user guide and relevant reference docs for the new Conversation/Dump functionality`
+- [ ] `T8.5 run targeted and relevant broader validation`
+- [ ] `T8.6 update tracker with final validation and residual risks`
 - acceptance:
 - `dump limits and behavior are configurable`
 - `durable docs explain how Dump relates to Quiz and Conversation`
@@ -182,6 +183,7 @@
 - `cycle closure captures residual risks and follow-ups`
 - planned_commits:
 - `feat(web): add dump configuration`
+- `docs(user-guide): document conversation dump workflow`
 - `docs(ops): close dump context cycle`
 
 ## Global Exit Criteria
