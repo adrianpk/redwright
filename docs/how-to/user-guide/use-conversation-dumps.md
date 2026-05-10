@@ -2,12 +2,34 @@
 
 ## Purpose
 
-Use Conversation to capture project knowledge through two complementary loops:
+Use Conversation to capture project knowledge through two complementary loops.
 
-- `Dump`: user-led notes, observations, constraints, and open ideas captured in short entries.
-- `Quiz`: RedWright-led questions and answers for structured discovery.
+## Concepts
 
-Dump is for preserving what you already know. Quiz is for prompting what still needs to be discovered.
+`Conv` is the navigation entry for conversation-based context capture.
+
+Conversation contains two related tools:
+
+- `Quiz`: a RedWright-led questionnaire. Use it when you want RedWright to ask
+  structured questions and help uncover missing project or use-case context.
+- `Dump`: a user-led capture flow. Use it when you already have context in your
+  head and want to write it down as short notes without turning it into a spec,
+  ticket, or plan yet.
+
+Quiz is for discovery. Dump is for preserving what you already know.
+
+A dump starts as one or more rough entries. RedWright stores the raw text,
+polishes each entry for readability, and can later curate the completed dump
+into a summary with concepts, decisions, tradeoffs, assumptions, open questions,
+and possible downstream artifacts.
+
+Closed and curated dumps can become context for later ticket execution. Active
+or uncurated dumps are kept visible to the user but are not silently injected
+into unrelated work.
+
+Later, Conversation captures can become source material for drafts, specs,
+plans, trackers, or derived tickets. Today, they are preserved as reusable
+context and can inform ticket execution once curated.
 
 ## Before You Start
 
@@ -17,9 +39,9 @@ Dump is for preserving what you already know. Quiz is for prompting what still n
 
 ## Steps
 
-1. Open Conversation from the top navigation.
+1. Open `Conv` from the top navigation.
 
-Conversation is the entry point for both Dump and Quiz.
+`Conv` is the entry point for both Dump and Quiz.
 
 2. Open Dump.
 
