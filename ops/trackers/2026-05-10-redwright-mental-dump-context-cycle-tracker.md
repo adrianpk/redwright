@@ -74,9 +74,9 @@ Validation:
 
 - status: `completed`
 - branch: `fix/slice-3-dump-runtime-controls`
-- PR: `tbd`
+- PR: `#417`
 - merge_target: `dev`
-- last_sync_commit: `45f50f5`
+- last_sync_commit: `e3c5eb8`
 
 Tasks:
 
@@ -91,6 +91,7 @@ Commits:
 
 - [x] `e2efe14 feat(web): add dump runtime`
 - [x] `45f50f5 test(web): cover dump runtime controls`
+- [x] `e3c5eb8 docs(ops): update dump runtime tracker`
 
 Validation:
 
@@ -102,30 +103,32 @@ Validation:
 
 ### Slice 4: Conversation Entrypoint
 
-- status: `pending`
+- status: `completed`
 - branch: `fix/slice-4-conversation-entrypoint`
 - PR: `tbd`
 - merge_target: `dev`
-- last_sync_commit: `tbd`
+- last_sync_commit: `05b2bab`
 
 Tasks:
 
-- [ ] `T4.1 inspect existing web navigation and quiz routes`
-- [ ] `T4.2 add Conversation or Conv route and navigation label`
-- [ ] `T4.3 render sibling cards for Dump and Quizzes`
-- [ ] `T4.4 preserve existing Quiz behavior under the new entrypoint`
-- [ ] `T4.5 add navigation and routing tests`
+- [x] `T4.1 inspect existing web navigation and quiz routes`
+- [x] `T4.2 add Conversation or Conv route and navigation label`
+- [x] `T4.3 render sibling cards for Dump and Quizzes`
+- [x] `T4.4 preserve existing Quiz behavior under the new entrypoint`
+- [x] `T4.5 add navigation and routing tests`
 
 Commits:
 
-- [ ] `feat(web): add conversation entrypoint`
-- [ ] `test(web): cover conversation navigation`
+- [x] `d9ef54b feat(web): add conversation entrypoint`
+- [x] `f121ff1 test(web): cover conversation navigation`
+- [x] `05b2bab docs(ops): update conversation entrypoint tracker`
 
 Validation:
 
-- [ ] `web users enter Dumps and Quizzes through a shared Conversation area`
-- [ ] `Quizzes remain reachable and behavior-compatible`
-- [ ] `Dump and Quizzes remain sibling modes`
+- [x] `web users enter Dumps and Quizzes through a shared Conversation area`
+- [x] `Quizzes remain reachable and behavior-compatible`
+- [x] `Dump and Quizzes remain sibling modes`
+- [x] `bundle exec bin/rails test test/controllers/project_conversations_controller_test.rb test/controllers/project_quizzes_controller_test.rb`
 
 ### Slice 5: Telegram Dump Commands
 
@@ -247,3 +250,5 @@ Validation:
 - `2026-05-10` state=`awaiting_review` note=`Slice 2 completed with dump entry and curated dump contracts, deterministic fallback behavior, secret redaction guardrails, and focused provider tests.`
 - `2026-05-10` state=`next_slice` note=`Slice 2 merged through PR #415 and follow-up PR #416; dev synced to 59f440c.`
 - `2026-05-10` state=`awaiting_review` note=`Slice 3 completed with port-agnostic dump runtime for open, append, done, cancel, list, show, and curate operations plus focused service tests.`
+- `2026-05-10` state=`next_slice` note=`Slice 3 merged through PR #417 and dev synced to e3c5eb8.`
+- `2026-05-10` state=`awaiting_review` note=`Slice 4 completed with the project Conversation entrypoint, Conv top navigation, Dump and Quizzes sibling cards, preserved Quizzes routing, and focused controller coverage.`
