@@ -3,7 +3,7 @@
 ## Metadata
 
 - cycle_id: `cycle-2026-05-10-redwright-mental-dump-context`
-- status: `in_progress`
+- status: `implemented_pending_review`
 - state: `awaiting_review`
 - updated: `2026-05-10`
 - active_slice: `none`
@@ -197,9 +197,9 @@ Validation:
 
 - status: `completed`
 - branch: `fix/slice-7-dump-context-retrieval`
-- PR: `tbd`
+- PR: `#421`
 - merge_target: `dev`
-- last_sync_commit: `03b8fd2`
+- last_sync_commit: `e9d52dc`
 
 Tasks:
 
@@ -213,7 +213,7 @@ Commits:
 
 - [x] `97f36d1 feat(llm): add product dump context retrieval`
 - [x] `1fecbc5 test(llm): cover dump context selection`
-- [x] `03b8fd2 docs(ops): update dump context retrieval tracker`
+- [x] `e9d52dc docs(ops): update dump context retrieval tracker`
 
 Validation:
 
@@ -225,32 +225,40 @@ Validation:
 
 ### Slice 8: Configuration, Docs, And Closure
 
-- status: `pending`
+- status: `awaiting_review`
 - branch: `fix/slice-8-dump-config-docs`
-- PR: `tbd`
+- PR: `#422`
 - merge_target: `dev`
-- last_sync_commit: `tbd`
+- last_sync_commit: `PENDING_SELF_HASH`
 
 Tasks:
 
-- [ ] `T8.1 add configuration for dump limits, polishing behavior, and curation behavior`
-- [ ] `T8.2 document Conversation, Dump, and Quiz relationship`
-- [ ] `T8.3 document Telegram and web dump usage`
-- [ ] `T8.4 update user guide and relevant reference docs for the new Conversation/Dump functionality`
-- [ ] `T8.5 run targeted and relevant broader validation`
-- [ ] `T8.6 update tracker with final validation and residual risks`
+- [x] `T8.1 add configuration for dump limits, polishing behavior, and curation behavior`
+- [x] `T8.2 document Conversation, Dump, and Quiz relationship`
+- [x] `T8.3 document Telegram and web dump usage`
+- [x] `T8.4 update user guide and relevant reference docs for the new Conversation/Dump functionality`
+- [x] `T8.5 run targeted and relevant broader validation`
+- [x] `T8.6 update tracker with final validation and residual risks`
 
 Commits:
 
-- [ ] `feat(web): add dump configuration`
-- [ ] `docs(user-guide): document conversation dump workflow`
-- [ ] `docs(ops): close dump context cycle`
+- [x] `c711044 feat(web): add dump configuration`
+- [x] `a099824 docs(user-guide): document conversation dump workflow`
+- [x] `PENDING_SELF_HASH docs(ops): close dump context cycle`
 
 Validation:
 
-- [ ] `dump limits and behavior are configurable`
-- [ ] `durable docs explain how Dump relates to Quiz and Conversation`
-- [ ] `validation results are recorded`
+- [x] `dump limits and behavior are configurable`
+- [x] `durable docs explain how Dump relates to Quiz and Conversation`
+- [x] `validation results are recorded`
+- [x] `bundle exec bin/rails test test/services/dump_loops/configuration_test.rb test/services/dump_loops/curation_provider_test.rb test/services/agent_ticket_execution/context_composer_test.rb`
+- [x] `bundle exec bin/rails test test/models/dump_test.rb test/models/dump_entry_test.rb test/queries/dump_context/retrieval_query_test.rb test/services/dump_loops/configuration_test.rb test/services/dump_loops/entry_contract_test.rb test/services/dump_loops/curated_dump_contract_test.rb test/services/dump_loops/curation_provider_test.rb test/services/dump_loops/runtime_test.rb test/services/dump_loops/command_query_handlers_test.rb test/controllers/project_conversations_controller_test.rb test/controllers/project_dumps_controller_test.rb test/services/agent_ticket_execution/context_composer_test.rb test/integration/project_setup_telegram_e2e_test.rb`
+
+## Residual Risks
+
+- Dump context ranking is conservative and should be tuned from real ticket execution traces after this PR is merged.
+- Entry polishing and dump curation depend on provider availability when enabled; deterministic fallbacks preserve captured content but do not produce the same curated quality.
+- Database-backed dumps and repository dump artifacts now share the `dumps` context layer, so future ranking changes should keep source diagnostics explicit.
 
 ## Event Log
 
@@ -268,3 +276,5 @@ Validation:
 - `2026-05-10` state=`awaiting_review` note=`Slice 6 completed with Conversation-linked web Dump routes, project/use-case dump list cards, repeated-post append UI, raw and curated previews, lifecycle controls, and focused controller coverage.`
 - `2026-05-10` state=`next_slice` note=`Slice 6 merged through PR #420 and dev synced to 6c955c8.`
 - `2026-05-10` state=`awaiting_review` note=`Slice 7 completed with Dump tagging parity, project/use-case/tag retrieval query, database curated dump inclusion in the dumps context provider, explicit omission for active uncurated dumps, and focused model/query/context composer coverage.`
+- `2026-05-10` state=`next_slice` note=`Slice 7 merged through PR #421 and dev synced to e9d52dc.`
+- `2026-05-10` state=`awaiting_review` note=`Slice 8 opened PR #422 with dump configuration, user guide and reference documentation, final validation, and cycle closure tracking.`
