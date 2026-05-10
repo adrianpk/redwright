@@ -13,6 +13,14 @@ Rails.application.routes.draw do
   resources :projects, only: [ :index, :new, :create, :show ]
   resources :projects, only: [] do
     resource :conversation, controller: "project_conversations", only: [ :show ]
+    resources :dumps, controller: "project_dumps", only: [ :index, :show, :create ] do
+      member do
+        post :append
+        post :done
+        post :cancel
+        post :curate
+      end
+    end
     resources :use_cases, only: [ :index, :new, :create, :edit, :update, :destroy ], param: :slug
     resources :quizzes, controller: "project_quizzes", only: [ :index, :show ] do
       collection do

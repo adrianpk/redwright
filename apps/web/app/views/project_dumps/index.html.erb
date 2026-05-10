@@ -1,0 +1,41 @@
+<main class="document-artifacts-index">
+  <section class="documents-top-shell">
+    <div class="board-title-row">
+      <h1>Dumps</h1>
+      <div class="quiz-action-group">
+        <%= button_to "New Dump", project_dumps_path(@project), method: :post, class: "ticket-action" %>
+        <% if @available_use_cases.any? %>
+          <details class="quiz-new-use-case-menu">
+            <summary class="ticket-action quiz-new-use-case-trigger">For Use Case</summary>
+            <div class="quiz-new-use-case-dropdown">
+              <% @available_use_cases.each do |use_case| %>
+                <%= button_to use_case.name,
+                              project_dumps_path(@project),
+                              method: :post,
+                              params: { use_case_name: use_case.name },
+                              class: "quiz-new-use-case-option" %>
+              <% end %>
+            </div>
+          </details>
+        <% end %>
+      </div>
+    </div>
+    <p class="board-key">Project: <%= @project.name %></p>
+  </section>
+
+  <section class="artifact-type-nav" aria-label="Dump navigation">
+    <% @dumps.each do |dump| %>
+      <%= link_to project_dump_path(@project, dump), class: "artifact-type-card" do %>
+        <h2><%= dump.title %></h2>
+        <p><%= dump.use_case&.name || "Project" %> · <%= dump.capture_status %> · <%= dump.curation_status %></p>
+        <% preview_lines = dump.entries.ordered.last(5).map(&:polished_input) %>
+        <% preview_lines = [dump.summary.presence || "No entries yet"] if preview_lines.empty? %>
+        <div class="protocol-card-preview" aria-hidden="true">
+          <% preview_lines.each do |line| %>
+            <span><%= line %></span>
+          <% end %>
+        </div>
+      <% end %>
+    <% end %>
+  </section>
+</main>
