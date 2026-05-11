@@ -11,3 +11,6 @@ agent-ticket-scenario-inspect:
 
 llm-trace:
 	./scripts/trace-llm.sh
+
+llm-trace-delete:
+	rm -rf ./scripts/trace-llm.sh
