@@ -249,6 +249,9 @@ class CodexProofContainerSmokeTest < Minitest::Test
       assert_equal(File.join(output, "changed-files.txt"), result.fetch("changed_files"))
       assert_equal(File.join(output, "git-diff.patch"), result.fetch("git_diff"))
       assert_equal(File.join(output, "git-push.log"), result.fetch("git_push_log"))
+      assert_equal(File.join(output, "validation-stdout.log"), result.fetch("validation_stdout"))
+      assert_equal(File.join(output, "validation-stderr.log"), result.fetch("validation_stderr"))
+      assert_equal(File.join(output, "result-envelope.json"), result.fetch("result_envelope"))
       assert_equal(File.join(workspace, "repo"), result.fetch("workspace_path"))
       assert(File.exist?(result.fetch("codex_prompt")))
 
@@ -260,16 +263,74 @@ class CodexProofContainerSmokeTest < Minitest::Test
       assert_includes(args.last, "git clone")
       assert_includes(args.last, ": > /redwright/output/git-commit.log")
       assert_includes(args.last, ": > /redwright/output/git-push.log")
+      assert_includes(args.last, ": > /redwright/output/validation-stdout.log")
+      assert_includes(args.last, ": > /redwright/output/validation-stderr.log")
       assert_includes(args.last, "codex exec --json --color never --sandbox workspace-write")
       assert_includes(args.last, "--output-last-message /redwright/output/codex-last-message.txt")
       assert_includes(args.last, "changed-files.txt")
       assert_includes(args.last, "git-diff.patch")
+      assert_includes(args.last, "validation_command")
+      assert_includes(args.last, "validation-stdout.log")
+      assert_includes(args.last, "validation-stderr.log")
+      assert_includes(args.last, "codex_validation_failed")
+      assert_includes(args.last, "codex_auth_failed")
+      assert_includes(args.last, "401 Unauthorized")
       assert_includes(args.last, "git commit -m")
       assert_includes(args.last, "git push")
       assert_includes(args.last, "codex-execution-result.json")
+      assert_includes(args.last, "result-envelope.json")
+      assert_includes(args.last, 'backend: "codex"')
       assert_includes(args.last, "split(/\\n/)")
       assert_includes(args.last, "timeout_seconds=30")
       assert_includes(args.last, "timeout \"${timeout_seconds}s\"")
+    end
+  end
+
+  def test_execute_codex_task_reads_validation_status_from_result_envelope
+    Dir.mktmpdir("codex-proof-test-") do |dir|
+      output = File.join(dir, "output")
+      workspace = File.join(dir, "workspace")
+      packet_path = File.join(dir, "packet.json")
+      File.write(packet_path, JSON.generate(valid_packet))
+
+      runner = lambda do |*_args|
+        File.write(
+          File.join(output, "codex-execution-result.json"),
+          JSON.generate(
+            "status" => "codex_validation_failed",
+            "timed_out" => false,
+            "validation" => {
+              "status" => "failed",
+              "command" => "go test ./...",
+              "exit_status" => 1,
+              "timed_out" => false
+            }
+          )
+        )
+        File.write(
+          File.join(output, "result-envelope.json"),
+          JSON.generate(
+            "schema_version" => 1,
+            "backend" => "codex",
+            "status" => "codex_validation_failed"
+          )
+        )
+        ["", "validation failed", FakeStatus.new(1)]
+      end
+
+      result = Redwright::CodexProof::ContainerSmoke.new(
+        dockerfile: "Dockerfile",
+        context_dir: ".",
+        command_runner: runner
+      ).execute_codex_task(
+        input_packet: packet_path,
+        output_directory: output,
+        workspace_directory: workspace
+      )
+
+      assert_equal("codex_validation_failed", result.fetch("status"))
+      assert_equal(File.join(output, "result-envelope.json"), result.fetch("result_envelope"))
+      assert_equal(false, result.fetch("timed_out"))
     end
   end
 
