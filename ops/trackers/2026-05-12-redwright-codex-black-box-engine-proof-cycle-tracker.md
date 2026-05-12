@@ -3,10 +3,10 @@
 ## Metadata
 
 - cycle_id: `2026-05-12-redwright-codex-black-box-engine-proof`
-- status: `planned`
-- state: `planned`
+- status: `in_progress`
+- state: `slice_1_implemented`
 - updated: `2026-05-12`
-- active_slice: `none`
+- active_slice: `Slice 1`
 - active_task: `none`
 - source_plan: `ops/plans/2026-05-12-redwright-codex-black-box-engine-proof-cycle-plan.md`
 - source_ticket: `ops/tickets/open/20260511182745-prove-codex-resolves-a-cloned-repo-task-inside-docker.md`
@@ -21,28 +21,32 @@
 
 ### Slice 1: Proof Harness Skeleton
 
-- status: `planned`
+- status: `implemented`
 - branch: `fix/slice-1-codex-proof-harness`
 - PR: `pending`
 - merge_target: `dev`
-- last_sync_commit: `pending`
+- last_sync_commit: `6a32248`
 
 Tasks:
 
-- [ ] `T1.1 Define the proof input packet shape for Codeberg repository URL, result branch, ticket-like task prompt, validation command, remote push policy, and output directory.`
-- [ ] `T1.2 Add a local proof command or script that reads the input packet and creates a run directory.`
-- [ ] `T1.3 Add a handcrafted Dockerfile or runtime recipe placeholder for the selected first stack.`
+- [x] `T1.1 Define the proof input packet shape for Codeberg repository URL, result branch, ticket-like task prompt, validation command, remote push policy, and output directory.`
+- [x] `T1.2 Add a local proof command or script that reads the input packet and creates a run directory.`
+- [x] `T1.3 Add a handcrafted Dockerfile or runtime recipe placeholder for the selected first stack.`
 
 Commits:
 
-- [ ] `pending feat(runtime): add codex proof harness skeleton`
-- [ ] `pending test(runtime): cover codex proof input packet`
+- [x] `88ebd09 feat(runtime): define codex proof input packet`
+- [x] `4f24271 feat(runtime): prepare codex proof runs`
+- [x] `6a32248 feat(runtime): add codex proof go runtime placeholder`
 
 Validation:
 
-- [ ] `A local operator can start a proof run from the repository root.`
-- [ ] `The proof run creates an isolated run directory with input and output locations.`
-- [ ] `No Codex credential is required in this slice.`
+- [x] `ruby -Itest test/redwright/codex_proof_input_packet_test.rb` (pass)
+- [x] `ruby -Itest test/redwright/codex_proof_harness_test.rb` (pass)
+- [x] `ruby scripts/runtime/codex_black_box_proof.rb --packet <temp packet> --runs-root <temp runs>` (pass)
+- [x] `A local operator can start a proof run from the repository root.`
+- [x] `The proof run creates an isolated run directory with input and output locations.`
+- [x] `No Codex credential is required in this slice.`
 
 ### Slice 2: Container Runtime Smoke Test
 
@@ -238,3 +242,4 @@ Validation:
 
 - `2026-05-12` state=`planned` note=`created the 8-slice plan and tracker for proving the Codex black box engine boundary with manual runtime configuration, isolated repository work, explicit credential injection, non-interactive Codex execution, artifact return, validation capture, and viability reporting`
 - `2026-05-12` state=`scope_refined` note=`refined the proof to use an existing Codeberg Go todo repository seeded from _workspace/Projects/go-todo-agent, pass a ticket-like mark-as-read task, run Codex inside the Docker boundary, implement tests, and push a result branch to the remote`
+- `2026-05-12` state=`slice_1_implemented` note=`implemented the proof input packet contract, local run preparation harness, script entrypoint, and Go runtime Dockerfile placeholder on fix/slice-1-codex-proof-harness`

@@ -46,7 +46,7 @@ Execution must follow the slice delivery protocol:
 
 ### Slice 1: Proof Harness Skeleton
 
-- status: `planned`
+- status: `implemented`
 - branch: `fix/slice-1-codex-proof-harness`
 - objective: `Create the smallest host-side proof entrypoint and fixture layout without invoking Codex yet.`
 - tasks:
@@ -58,8 +58,9 @@ Execution must follow the slice delivery protocol:
 - `The proof run creates an isolated run directory with input and output locations.`
 - `No Codex credential is required in this slice.`
 - planned_commits:
-- `feat(runtime): add codex proof harness skeleton`
-- `test(runtime): cover codex proof input packet`
+- `feat(runtime): define codex proof input packet`
+- `feat(runtime): prepare codex proof runs`
+- `feat(runtime): add codex proof go runtime placeholder`
 
 ### Slice 2: Container Runtime Smoke Test
 
