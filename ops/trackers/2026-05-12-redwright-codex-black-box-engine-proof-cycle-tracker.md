@@ -182,11 +182,11 @@ Validation:
 
 ### Slice 6: Diff, Commit, Push, And Artifact Return
 
-- status: `implemented`
+- status: `merged`
 - branch: `fix/slice-6-codex-proof-diff-artifacts`
-- PR: `pending`
+- PR: `#430`
 - merge_target: `dev`
-- last_sync_commit: `622af98`
+- last_sync_commit: `736b2ba`
 
 Tasks:
 
@@ -306,3 +306,5 @@ Validation:
 - `2026-05-12` state=`slice_5_merged` note=`PR #429 merged into dev; Slice 5 is closed and Slice 6 is ready to start`
 - `2026-05-12` state=`slice_6_implemented` note=`implemented worker diff collection, changed-file artifacts, conditional commit, Codeberg push attempt with runtime token injection, push/no-diff/failure classification, and real Docker validation that preserves diff and push artifacts when Codex fails before producing changes`
 - `2026-05-12` state=`slice_6_pr_blocked_rate_limit` note=`pushed fix/slice-6-codex-proof-diff-artifacts, but Codeberg rejected PR creation for canonical title feat(slice-6): codex proof diff artifacts because similarly named PRs were created within the last hour; wait and retry with the same title`
+- `2026-05-12` state=`slice_6_pr_open` note=`opened Codeberg PR #430 from fix/slice-6-codex-proof-diff-artifacts into dev`
+- `2026-05-12` state=`slice_6_merged` note=`PR #430 merged into dev; Slice 6 is closed and Slice 7 is ready to start`

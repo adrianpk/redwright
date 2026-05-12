@@ -146,7 +146,7 @@ Execution must follow the slice delivery protocol:
 
 ### Slice 6: Diff, Commit, Push, And Artifact Return
 
-- status: `planned`
+- status: `merged`
 - branch: `fix/slice-6-codex-proof-diff-artifacts`
 - objective: `Return changed files, git diff, logs, push metadata, and raw worker artifacts to the host.`
 - tasks:
