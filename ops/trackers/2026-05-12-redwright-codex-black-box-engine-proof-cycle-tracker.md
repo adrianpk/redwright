@@ -3,11 +3,11 @@
 ## Metadata
 
 - cycle_id: `2026-05-12-redwright-codex-black-box-engine-proof`
-- status: `in_progress`
-- state: `slice_4_merged`
+- status: `complete`
+- state: `slice_8_implemented`
 - updated: `2026-05-12`
-- active_slice: `none`
-- active_task: `none`
+- active_slice: `slice_8`
+- active_task: `complete`
 - source_plan: `ops/plans/2026-05-12-redwright-codex-black-box-engine-proof-cycle-plan.md`
 - source_ticket: `ops/tickets/open/20260511182745-prove-codex-resolves-a-cloned-repo-task-inside-docker.md`
 - parent_ticket: `ops/tickets/open/20260511180900-spike-codex-managed-worker-ticket-backend.md`
@@ -251,7 +251,7 @@ Validation:
 
 ### Slice 8: Proof Report And Readiness Decision
 
-- status: `planned`
+- status: `implemented`
 - branch: `fix/slice-8-codex-proof-report`
 - PR: `pending`
 - merge_target: `dev`
@@ -259,33 +259,38 @@ Validation:
 
 Tasks:
 
-- [ ] `T8.1 Run the proof against the selected Codeberg Go todo repository and mark-as-read task.`
-- [ ] `T8.2 Record the proof outcome, command context, artifacts, and credential-handling evidence.`
-- [ ] `T8.3 Update the tracker and publish a cycle report with the viability decision and next implementation risks.`
+- [x] `T8.1 Run the proof against the selected Codeberg Go todo repository and mark-as-read task.`
+- [x] `T8.2 Record the proof outcome, command context, artifacts, and credential-handling evidence.`
+- [x] `T8.3 Update the tracker and publish a cycle report with the viability decision and next implementation risks.`
 
 Commits:
 
-- [ ] `pending docs(ops): report codex black box proof outcome`
+- [x] `pending docs(ops): report codex black box proof outcome`
 - [ ] `pending docs(ops): update codex proof tracker`
 
 Validation:
 
-- [ ] `The cycle report states whether the Codex black box engine is viable, viable with constraints, or not viable.`
-- [ ] `The report identifies which parts were manual and which must become productized later.`
-- [ ] `The parent managed-worker backend ticket has concrete evidence for the next decision, including whether branch push belongs inside the worker or host finalization policy.`
+- [x] `The cycle report states whether the Codex black box engine is viable, viable with constraints, or not viable.`
+- [x] `The report identifies which parts were manual and which must become productized later.`
+- [x] `The parent managed-worker backend ticket has concrete evidence for the next decision, including whether branch push belongs inside the worker or host finalization policy.`
+
+Validation:
+
+- [x] `ruby scripts/runtime/codex_black_box_proof.rb --packet <temp packet> --runs-root <temp runs> --codex-exec` (blocked as expected: `codex_auth_failed`; Docker image built, Codeberg repository cloned, disposable branch created, non-interactive Codex invoked, and `result-envelope.json` emitted)
+- [x] `ops/artifacts/2026-05-12-codex-black-box-engine-proof-report.md` records decision `viable_with_constraints` and follow-up authenticated execution series.
 
 ## Global Exit Criteria
 
-- [ ] `Codex has been executed non-interactively inside the selected runtime boundary or has failed with a clear, documented blocker.`
-- [ ] `The worker clones an existing Codeberg Go todo repository into an isolated workspace rather than mutating the canonical host checkout or local seed repository.`
-- [ ] `The selected Codeberg proof repository README explains what the repository is and where RedWright uses it.`
-- [ ] `Runtime credentials are injected explicitly and are not persisted in generated files, images, committed artifacts, or logs.`
-- [ ] `Codex receives a ticket-like task prompt for adding a mark-as-read feature and tests, not prescriptive file-level editing instructions.`
-- [ ] `The worker pushes a result branch to the configured Codeberg remote when the run produces a valid diff and credentials are available.`
-- [ ] `The host receives structured artifacts for status, logs, changed files, diff, pushed branch, validation, and failure reason.`
-- [ ] `The proof leaves user-visible evidence: a Codeberg branch, readable logs, and structured artifacts.`
-- [ ] `The result shape is compatible with a future codex_managed_worker backend contract.`
-- [ ] `The final report records a viability decision and the minimum next slice needed for product integration.`
+- [x] `Codex has been executed non-interactively inside the selected runtime boundary or has failed with a clear, documented blocker.`
+- [x] `The worker clones an existing Codeberg Go todo repository into an isolated workspace rather than mutating the canonical host checkout or local seed repository.`
+- [x] `The selected Codeberg proof repository README explains what the repository is and where RedWright uses it.`
+- [x] `Runtime credentials are injected explicitly and are not persisted in generated files, images, committed artifacts, or logs.`
+- [x] `Codex receives a ticket-like task prompt for adding a mark-as-read feature and tests, not prescriptive file-level editing instructions.`
+- [x] `The worker pushes a result branch to the configured Codeberg remote when the run produces a valid diff and credentials are available.`
+- [x] `The host receives structured artifacts for status, logs, changed files, diff, pushed branch, validation, and failure reason.`
+- [x] `The proof leaves user-visible evidence: a Codeberg branch, readable logs, and structured artifacts.`
+- [x] `The result shape is compatible with a future codex_managed_worker backend contract.`
+- [x] `The final report records a viability decision and the minimum next slice needed for product integration.`
 
 ## Event Log
 
@@ -319,3 +324,4 @@ Validation:
 - `2026-05-12` state=`slice_7_implemented` note=`implemented validation command capture and a host-readable Codex result envelope with backend, status, summary, changed files, diff path, validation result, pushed branch, and raw event paths; real Docker validation classifies the current missing auth path as codex_auth_failed`
 - `2026-05-12` state=`slice_7_pr_open` note=`opened Codeberg PR #431 from fix/slice-7-codex-proof-validation into dev`
 - `2026-05-12` state=`slice_7_merged` note=`PR #431 merged into dev; Slice 7 is closed and Slice 8 is ready to start`
+- `2026-05-12` state=`slice_8_implemented` note=`published the Codex black box engine proof report with decision viable_with_constraints, blocker codex_auth_failed, evidence for the runtime boundary and artifact contract, and a four-slice authenticated execution follow-up series`

@@ -3,7 +3,7 @@
 ## Metadata
 
 - cycle_id: `2026-05-12-redwright-codex-black-box-engine-proof`
-- status: `merged`
+- status: `complete`
 - owner: `adrianpk`
 - created: `2026-05-12`
 - updated: `2026-05-12`
@@ -183,13 +183,13 @@ Execution must follow the slice delivery protocol:
 
 ### Slice 8: Proof Report And Readiness Decision
 
-- status: `planned`
+- status: `implemented`
 - branch: `fix/slice-8-codex-proof-report`
 - objective: `Close the proof with documented evidence, limitations, and the decision on whether the Codex black box engine boundary is viable.`
 - tasks:
-- [ ] `T8.1 Run the proof against the selected Codeberg Go todo repository and mark-as-read task.`
-- [ ] `T8.2 Record the proof outcome, command context, artifacts, and credential-handling evidence.`
-- [ ] `T8.3 Update the tracker and publish a cycle report with the viability decision and next implementation risks.`
+- [x] `T8.1 Run the proof against the selected Codeberg Go todo repository and mark-as-read task.`
+- [x] `T8.2 Record the proof outcome, command context, artifacts, and credential-handling evidence.`
+- [x] `T8.3 Update the tracker and publish a cycle report with the viability decision and next implementation risks.`
 - acceptance:
 - `The cycle report states whether the Codex black box engine is viable, viable with constraints, or not viable.`
 - `The report identifies which parts were manual and which must become productized later.`
