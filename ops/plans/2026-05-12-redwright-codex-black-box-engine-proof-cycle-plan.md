@@ -13,8 +13,8 @@
 - parent_ticket: `ops/tickets/open/20260511180900-spike-codex-managed-worker-ticket-backend.md`
 - source_dump: `ops/conv/dump/2026-05-11-redwright-codex-backend-and-agent-sandboxing-dump-raw.md`
 - source_draft: `ops/specs/drafts/2026-05-11-redwright-reusable-agent-sandbox-behavior-draft.md`
-- proof_repository_seed: `_workspace/Projects/go-todo-agent`
-- proof_repository_remote: `operator-supplied Codeberg repository URL`
+- proof_repository_seed: `runtime/codex-proof/fixtures/go-todo-agent`
+- proof_repository_remote: `https://codeberg.org/adrianpk/go-todo-agent-proof.git`
 - proof_task: `Add a user-facing mark-as-read capability to the Go todo CLI, including tests.`
 
 ## Delivery Strategy
@@ -84,7 +84,7 @@ Execution must follow the slice delivery protocol:
 
 ### Slice 3: Codeberg Repository Clone
 
-- status: `implemented_with_external_blocker`
+- status: `implemented`
 - branch: `fix/slice-3-codex-proof-repo-clone`
 - objective: `Make the worker clone the existing Codeberg Go todo repository into its own disposable workspace inside the run boundary.`
 - tasks:
@@ -93,12 +93,16 @@ Execution must follow the slice delivery protocol:
 - [ ] `T3.3 Capture clone metadata, checked-out revision, and workspace path in the result artifact.`
 - [ ] `T3.4 Ensure the proof repository README explains that the repository is a RedWright Codex black-box proof fixture and identifies where RedWright uses it.`
 - [ ] `T3.5 Define the remote reset policy: default branch remains the clean fixture, every proof run uses a run-scoped branch, and reset means deleting or replacing only the run branch.`
+- [ ] `T3.6 Keep the proof fixture source outside _workspace so manual workspace scenarios remain independent.`
+- [ ] `T3.7 Make the proof outcome visible to operators through the Codeberg branch, README explanation, logs, clone metadata, and validation artifacts.`
 - acceptance:
 - `The worker does not mutate the host's canonical project checkout or the local seed repository.`
 - `The cloned workspace is correlated with the proof run id.`
 - `Clone failures return a structured failure result.`
 - `The selected Codeberg repository has a README that states its proof-fixture purpose and RedWright usage context.`
 - `The proof cannot spoil the clean fixture branch because work is isolated to a run-scoped branch.`
+- `The fixture seed lives under runtime/codex-proof/fixtures and does not depend on _workspace manual scenarios.`
+- `The fixture README explains what the operator should see when a proof run succeeds.`
 - planned_commits:
 - `feat(runtime): clone codex proof repository`
 - `fix(runtime): support container clone proof fixtures`
@@ -202,6 +206,7 @@ Execution must follow the slice delivery protocol:
 - Codex receives a ticket-like task prompt for adding a mark-as-read feature and tests, not prescriptive file-level editing instructions.
 - The worker pushes a result branch to the configured Codeberg remote when the run produces a valid diff and credentials are available.
 - The host receives structured artifacts for status, logs, changed files, diff, pushed branch, validation, and failure reason.
+- The proof leaves user-visible evidence: a Codeberg branch, readable logs, and structured artifacts.
 - The result shape is compatible with a future `codex_managed_worker` backend contract.
 - The final report records a viability decision and the minimum next slice needed for product integration.
 

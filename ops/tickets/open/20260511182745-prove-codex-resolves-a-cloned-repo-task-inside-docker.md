@@ -45,6 +45,7 @@ The critical unknown is whether the core execution model works at all: a contain
 - The selected Codeberg repository README explains that the repository is a RedWright Codex black-box proof fixture and identifies where RedWright uses it.
 - The worker commits the result to the configured branch and pushes that branch to Codeberg.
 - The result is inspectable from the host through logs, validation output, repository diff, commit metadata, and pushed branch metadata.
+- The result is also visible to the operator through the pushed Codeberg branch and structured run artifacts.
 - This slice does not move RedWright tickets between kanban columns and does not need to open a pull request.
 
 ## Actual
@@ -52,7 +53,7 @@ The critical unknown is whether the core execution model works at all: a contain
 - Docker runtime setup generation is tracked separately and should not block this proof.
 
 ## Fix Strategy
-- Pick or create one controlled Codeberg repository seeded from `_workspace/Projects/go-todo-agent`.
+- Pick or create one controlled Codeberg repository seeded from `runtime/codex-proof/fixtures/go-todo-agent`.
 - Ensure that repository has a README explaining its proof-fixture purpose and its use by the RedWright Codex black-box engine proof.
 - Add a hardcoded proof Dockerfile or runtime recipe for that repository's stack.
 - Add a local proof command or script that starts the container with explicit environment variables.
@@ -72,4 +73,6 @@ The critical unknown is whether the core execution model works at all: a contain
 - No provider API keys or tokens are written into the image, generated repo files, committed artifacts, pushed commits, or result logs.
 
 ## Outcome
-Pending implementation.
+In progress.
+
+The proof repository exists at `https://codeberg.org/adrianpk/go-todo-agent-proof.git` and is seeded from `runtime/codex-proof/fixtures/go-todo-agent`.

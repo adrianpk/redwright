@@ -4,7 +4,7 @@
 
 - cycle_id: `2026-05-12-redwright-codex-black-box-engine-proof`
 - status: `in_progress`
-- state: `slice_3_pr_blocked_rate_limit`
+- state: `slice_3_implemented`
 - updated: `2026-05-12`
 - active_slice: `Slice 3`
 - active_task: `none`
@@ -13,8 +13,8 @@
 - parent_ticket: `ops/tickets/open/20260511180900-spike-codex-managed-worker-ticket-backend.md`
 - source_dump: `ops/conv/dump/2026-05-11-redwright-codex-backend-and-agent-sandboxing-dump-raw.md`
 - source_draft: `ops/specs/drafts/2026-05-11-redwright-reusable-agent-sandbox-behavior-draft.md`
-- proof_repository_seed: `_workspace/Projects/go-todo-agent`
-- proof_repository_remote: `operator-supplied Codeberg repository URL`
+- proof_repository_seed: `runtime/codex-proof/fixtures/go-todo-agent`
+- proof_repository_remote: `https://codeberg.org/adrianpk/go-todo-agent-proof.git`
 - proof_task: `Add a user-facing mark-as-read capability to the Go todo CLI, including tests.`
 
 ## Slice Progress
@@ -79,7 +79,7 @@ Validation:
 
 ### Slice 3: Codeberg Repository Clone
 
-- status: `implemented_with_external_blocker`
+- status: `implemented`
 - branch: `fix/slice-3-codex-proof-repo-clone`
 - PR: `pending`
 - merge_target: `dev`
@@ -92,6 +92,8 @@ Tasks:
 - [x] `T3.3 Capture clone metadata, checked-out revision, and workspace path in the result artifact.`
 - [x] `T3.4 Ensure the proof repository README explains that the repository is a RedWright Codex black-box proof fixture and identifies where RedWright uses it.`
 - [x] `T3.5 Define the remote reset policy: default branch remains the clean fixture, every proof run uses a run-scoped branch, and reset means deleting or replacing only the run branch.`
+- [x] `T3.6 Keep the proof fixture source outside _workspace so manual workspace scenarios remain independent.`
+- [x] `T3.7 Make the proof outcome visible to operators through the Codeberg branch, README explanation, logs, clone metadata, and validation artifacts.`
 
 Commits:
 
@@ -105,12 +107,16 @@ Validation:
 - [x] `ruby -Itest test/redwright/codex_proof_container_smoke_test.rb` (pass)
 - [x] `ruby -c scripts/runtime/codex_black_box_proof.rb` (pass)
 - [x] `container clone proof against temporary mounted bare repository` (pass)
+- [x] `container clone proof against https://codeberg.org/adrianpk/go-todo-agent-proof.git` (pass, checkout `3ab9bfb`)
+- [x] `GOWORK=off go test ./...` from `runtime/codex-proof/fixtures/go-todo-agent` (pass)
 - [x] `The worker does not mutate the host's canonical project checkout or the local seed repository.`
 - [x] `The cloned workspace is correlated with the proof run id.`
 - [x] `Clone failures return a structured failure result.`
 - [x] `The fixture README template states the proof-fixture purpose and RedWright usage context.`
 - [x] `The proof cannot spoil the clean fixture branch because work is isolated to a run-scoped branch.`
-- [ ] `Create or verify real Codeberg repository go-todo-agent-proof` (blocked: `tea repos create` requires missing token scope `write:user`)
+- [x] `The fixture seed lives under runtime/codex-proof/fixtures and does not depend on _workspace manual scenarios.`
+- [x] `The fixture README explains what the operator should see when a proof run succeeds.`
+- [x] `Create or verify real Codeberg repository go-todo-agent-proof` (pass, created by operator and seeded from canonical asset)
 
 ### Slice 4: Codex And Remote Credential Boundary
 
@@ -250,13 +256,14 @@ Validation:
 - [ ] `Codex receives a ticket-like task prompt for adding a mark-as-read feature and tests, not prescriptive file-level editing instructions.`
 - [ ] `The worker pushes a result branch to the configured Codeberg remote when the run produces a valid diff and credentials are available.`
 - [ ] `The host receives structured artifacts for status, logs, changed files, diff, pushed branch, validation, and failure reason.`
+- [ ] `The proof leaves user-visible evidence: a Codeberg branch, readable logs, and structured artifacts.`
 - [ ] `The result shape is compatible with a future codex_managed_worker backend contract.`
 - [ ] `The final report records a viability decision and the minimum next slice needed for product integration.`
 
 ## Event Log
 
 - `2026-05-12` state=`planned` note=`created the 8-slice plan and tracker for proving the Codex black box engine boundary with manual runtime configuration, isolated repository work, explicit credential injection, non-interactive Codex execution, artifact return, validation capture, and viability reporting`
-- `2026-05-12` state=`scope_refined` note=`refined the proof to use an existing Codeberg Go todo repository seeded from _workspace/Projects/go-todo-agent, pass a ticket-like mark-as-read task, run Codex inside the Docker boundary, implement tests, and push a result branch to the remote`
+- `2026-05-12` state=`scope_refined` note=`refined the proof to use an existing Codeberg Go todo repository seeded from runtime/codex-proof/fixtures/go-todo-agent, pass a ticket-like mark-as-read task, run Codex inside the Docker boundary, implement tests, and push a result branch to the remote`
 - `2026-05-12` state=`slice_1_implemented` note=`implemented the proof input packet contract, local run preparation harness, script entrypoint, and Go runtime Dockerfile placeholder on fix/slice-1-codex-proof-harness`
 - `2026-05-12` state=`slice_1_pr_open` note=`opened Codeberg PR #425 from fix/slice-1-codex-proof-harness into dev`
 - `2026-05-12` state=`slice_1_merged` note=`PR #425 merged into dev; Slice 1 is closed and Slice 2 is ready to start`
@@ -264,5 +271,8 @@ Validation:
 - `2026-05-12` state=`slice_2_implemented` note=`implemented Docker build/run smoke behavior, runtime-only packet and environment passing, host-inspectable smoke artifact capture, and targeted plus real Docker smoke validation on fix/slice-2-codex-proof-container-smoke`
 - `2026-05-12` state=`slice_2_pr_open` note=`opened Codeberg PR #426 from fix/slice-2-codex-proof-container-smoke into dev`
 - `2026-05-12` state=`slice_2_merged` note=`PR #426 merged into dev; Slice 2 is closed and Slice 3 is ready to start`
-- `2026-05-12` state=`slice_3_implemented_with_external_blocker` note=`implemented container-side clone, run-scoped branch expansion, clone metadata capture, fixture README template, and reset policy; real Codeberg proof repository creation is blocked because the configured tea token lacks write:user/write:organization scopes`
+- `2026-05-12` state=`slice_3_implemented_with_external_blocker` note=`implemented container-side clone, run-scoped branch expansion, clone metadata capture, fixture README template, and reset policy; real Codeberg proof repository creation was initially blocked because the configured tea token lacked write:user/write:organization scopes`
 - `2026-05-12` state=`slice_3_pr_blocked_rate_limit` note=`pushed fix/slice-3-codex-proof-repo-clone, but Codeberg rejected PR creation because similarly named PRs were created within the last hour; retry with canonical title feat(slice-3): codex proof repository clone after the rate-limit window`
+- `2026-05-12` state=`fixture_seed_relocated` note=`added runtime/codex-proof/fixtures/go-todo-agent as the canonical seed source so the proof does not depend on _workspace manual testing scenarios`
+- `2026-05-12` state=`visibility_requirement_added` note=`recorded that a successful proof must be visible to the operator through the Codeberg branch, readable logs, clone metadata, validation output, and structured artifacts`
+- `2026-05-12` state=`proof_repo_ready` note=`operator created adrianpk/go-todo-agent-proof; seeded main from runtime/codex-proof/fixtures/go-todo-agent and validated container clone from https://codeberg.org/adrianpk/go-todo-agent-proof.git at checkout 3ab9bfb`
