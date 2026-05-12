@@ -111,8 +111,9 @@ Execution must follow the slice delivery protocol:
 
 ### Slice 4: Codex And Remote Credential Boundary
 
-- status: `implemented`
+- status: `pr_open`
 - branch: `fix/slice-4-codex-proof-auth-preflight`
+- PR: `#428 https://codeberg.org/adrianpk/redwright/pulls/428`
 - objective: `Verify Codex can be invoked inside the runtime and that Codex plus Codeberg push credentials are supplied only through explicit runtime injection.`
 - tasks:
 - [ ] `T4.1 Add a Codex availability preflight inside the worker.`

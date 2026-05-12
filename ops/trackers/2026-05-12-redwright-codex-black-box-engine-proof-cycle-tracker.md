@@ -4,7 +4,7 @@
 
 - cycle_id: `2026-05-12-redwright-codex-black-box-engine-proof`
 - status: `in_progress`
-- state: `slice_4_implemented`
+- state: `slice_4_pr_open`
 - updated: `2026-05-12`
 - active_slice: `Slice 4`
 - active_task: `none`
@@ -120,9 +120,9 @@ Validation:
 
 ### Slice 4: Codex And Remote Credential Boundary
 
-- status: `implemented`
+- status: `pr_open`
 - branch: `fix/slice-4-codex-proof-auth-preflight`
-- PR: `pending`
+- PR: `#428 https://codeberg.org/adrianpk/redwright/pulls/428`
 - merge_target: `dev`
 - last_sync_commit: `0963d4b`
 
@@ -283,3 +283,4 @@ Validation:
 - `2026-05-12` state=`slice_3_pr_open` note=`opened Codeberg PR #427 from fix/slice-3-codex-proof-repo-clone into dev`
 - `2026-05-12` state=`slice_3_merged` note=`PR #427 merged into dev; Slice 3 is closed and Slice 4 is ready to start`
 - `2026-05-12` state=`slice_4_implemented` note=`implemented Codex CLI installation in the proof image, explicit Codex and Codeberg credential preflight, runtime-only credential injection, and structured missing-auth failures on fix/slice-4-codex-proof-auth-preflight`
+- `2026-05-12` state=`slice_4_pr_open` note=`opened Codeberg PR #428 from fix/slice-4-codex-proof-auth-preflight into dev`
