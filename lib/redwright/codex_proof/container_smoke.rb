@@ -184,6 +184,7 @@ module Redwright
           packet=/redwright/input/packet.json
           repo_url=$(node -e 'const fs = require("fs"); console.log(JSON.parse(fs.readFileSync(process.argv[1], "utf8")).repository_url)' "$packet")
           branch=$(node -e 'const fs = require("fs"); console.log(JSON.parse(fs.readFileSync(process.argv[1], "utf8")).result_branch)' "$packet")
+          validation_command=$(node -e 'const fs = require("fs"); console.log(JSON.parse(fs.readFileSync(process.argv[1], "utf8")).validation_command)' "$packet")
           timeout_seconds=#{Integer(timeout_seconds)}
           git config --global --add safe.directory '*'
           git clone "$repo_url" /redwright/workspace/repo
@@ -191,6 +192,8 @@ module Redwright
           git checkout -B "$branch"
           : > /redwright/output/git-commit.log
           : > /redwright/output/git-push.log
+          : > /redwright/output/validation-stdout.log
+          : > /redwright/output/validation-stderr.log
           set +e
           timeout "${timeout_seconds}s" codex exec --json --color never --sandbox workspace-write -C /redwright/workspace/repo --output-last-message /redwright/output/codex-last-message.txt - < /redwright/output/codex-prompt.txt > /redwright/output/codex-events.jsonl 2> /redwright/output/codex-stderr.log
           codex_status=$?
@@ -211,11 +214,33 @@ module Redwright
           commit_sha=''
           push_status=not_attempted
           push_exit_status=''
+          validation_status=not_run
+          validation_exit_status=''
+          validation_timed_out=false
           if [ "$codex_status" -ne 0 ]; then
             final_status=codex_execution_failed
+            if grep -q '401 Unauthorized' /redwright/output/codex-stderr.log; then
+              final_status=codex_auth_failed
+            fi
           elif [ "$has_diff" != true ]; then
             final_status=codex_no_diff
           else
+            set +e
+            timeout "${timeout_seconds}s" sh -lc "$validation_command" > /redwright/output/validation-stdout.log 2> /redwright/output/validation-stderr.log
+            validation_exit_status=$?
+            set -e
+            if [ "$validation_exit_status" -eq 124 ]; then
+              validation_timed_out=true
+              validation_status=timed_out
+              final_status=codex_validation_failed
+            elif [ "$validation_exit_status" -eq 0 ]; then
+              validation_status=passed
+            else
+              validation_status=failed
+              final_status=codex_validation_failed
+            fi
+          fi
+          if [ "$final_status" = codex_executed ]; then
             git config user.name "RedWright Codex Proof"
             git config user.email "redwright-codex-proof@example.invalid"
             git add -A
@@ -244,7 +269,7 @@ module Redwright
               printf 'CODEBERG_PUSH_TOKEN is required to push the result branch.\n' > /redwright/output/git-push.log
             fi
           fi
-          node -e 'const fs = require("fs"); const changedPath = "/redwright/output/changed-files.txt"; const changed = fs.existsSync(changedPath) ? fs.readFileSync(changedPath, "utf8").trim().split(/\\n/).filter(Boolean) : []; console.log(JSON.stringify({status: process.argv[1], codex_exit_status: Number(process.argv[2]), timed_out: process.argv[3] === "true", has_diff: process.argv[4] === "true", changed_files: changed, commit_sha: process.argv[5], push_status: process.argv[6], push_exit_status: process.argv[7] === "" ? null : Number(process.argv[7]), prompt_path: "/redwright/output/codex-prompt.txt", events_path: "/redwright/output/codex-events.jsonl", stderr_path: "/redwright/output/codex-stderr.log", last_message_path: "/redwright/output/codex-last-message.txt", post_status_path: "/redwright/output/post-codex-status.txt", changed_files_path: "/redwright/output/changed-files.txt", diff_path: "/redwright/output/git-diff.patch", commit_log_path: "/redwright/output/git-commit.log", push_log_path: "/redwright/output/git-push.log", workspace_path: "/redwright/workspace/repo"}, null, 2))' "$final_status" "$codex_status" "$timed_out" "$has_diff" "$commit_sha" "$push_status" "$push_exit_status" > /redwright/output/codex-execution-result.json
+          node -e 'const fs = require("fs"); const changedPath = "/redwright/output/changed-files.txt"; const changed = fs.existsSync(changedPath) ? fs.readFileSync(changedPath, "utf8").trim().split(/\\n/).filter(Boolean) : []; const result = {status: process.argv[1], codex_exit_status: Number(process.argv[2]), timed_out: process.argv[3] === "true", has_diff: process.argv[4] === "true", changed_files: changed, commit_sha: process.argv[5], push_status: process.argv[6], push_exit_status: process.argv[7] === "" ? null : Number(process.argv[7]), validation: {status: process.argv[8], command: process.argv[9], exit_status: process.argv[10] === "" ? null : Number(process.argv[10]), timed_out: process.argv[11] === "true", stdout_path: "/redwright/output/validation-stdout.log", stderr_path: "/redwright/output/validation-stderr.log"}, prompt_path: "/redwright/output/codex-prompt.txt", events_path: "/redwright/output/codex-events.jsonl", stderr_path: "/redwright/output/codex-stderr.log", last_message_path: "/redwright/output/codex-last-message.txt", post_status_path: "/redwright/output/post-codex-status.txt", changed_files_path: "/redwright/output/changed-files.txt", diff_path: "/redwright/output/git-diff.patch", commit_log_path: "/redwright/output/git-commit.log", push_log_path: "/redwright/output/git-push.log", workspace_path: "/redwright/workspace/repo"}; console.log(JSON.stringify(result, null, 2)); fs.writeFileSync("/redwright/output/result-envelope.json", JSON.stringify({schema_version: 1, backend: "codex", status: result.status, summary: {has_diff: result.has_diff, changed_file_count: result.changed_files.length, push_status: result.push_status, validation_status: result.validation.status}, result_branch: process.argv[12], commit_sha: result.commit_sha, pushed_branch: result.push_status === "pushed" ? process.argv[12] : null, changed_files: result.changed_files, diff_path: result.diff_path, validation: result.validation, raw_events_path: result.events_path, stderr_path: result.stderr_path, execution_result_path: "/redwright/output/codex-execution-result.json"}, null, 2) + "\\n")' "$final_status" "$codex_status" "$timed_out" "$has_diff" "$commit_sha" "$push_status" "$push_exit_status" "$validation_status" "$validation_command" "$validation_exit_status" "$validation_timed_out" "$branch" > /redwright/output/codex-execution-result.json
           if [ "$final_status" = codex_result_pushed ] || [ "$final_status" = codex_no_diff ]; then
             exit 0
           fi
@@ -290,6 +315,9 @@ module Redwright
           "git_diff" => File.join(File.expand_path(output_directory), "git-diff.patch"),
           "git_commit_log" => File.join(File.expand_path(output_directory), "git-commit.log"),
           "git_push_log" => File.join(File.expand_path(output_directory), "git-push.log"),
+          "validation_stdout" => File.join(File.expand_path(output_directory), "validation-stdout.log"),
+          "validation_stderr" => File.join(File.expand_path(output_directory), "validation-stderr.log"),
+          "result_envelope" => File.join(File.expand_path(output_directory), "result-envelope.json"),
           "workspace_path" => File.join(File.expand_path(workspace_directory), "repo")
         }
       end
