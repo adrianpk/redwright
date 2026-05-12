@@ -148,7 +148,7 @@ Validation:
 
 ### Slice 5: Non-Interactive Codex Task Execution
 
-- status: `pr_open`
+- status: `merged`
 - branch: `fix/slice-5-codex-proof-exec`
 - PR: `#429`
 - merge_target: `dev`
@@ -295,3 +295,4 @@ Validation:
 - `2026-05-12` state=`slice_4_merged` note=`PR #428 merged into dev; Slice 4 is closed and Slice 5 is ready to start`
 - `2026-05-12` state=`slice_5_implemented` note=`implemented non-interactive Codex execution inside the proof container with a ticket-like prompt, disposable Codeberg clone, bounded timeout, JSONL/stderr/last-message/status artifacts, and real Docker validation that reached Codex auth with HTTP 401 after cloning`
 - `2026-05-12` state=`slice_5_pr_open` note=`opened Codeberg PR #429 from fix/slice-5-codex-proof-exec into dev`
+- `2026-05-12` state=`slice_5_merged` note=`PR #429 merged into dev; Slice 5 is closed and Slice 6 is ready to start`

@@ -3,7 +3,7 @@
 ## Metadata
 
 - cycle_id: `2026-05-12-redwright-codex-black-box-engine-proof`
-- status: `pr_open`
+- status: `merged`
 - owner: `adrianpk`
 - created: `2026-05-12`
 - updated: `2026-05-12`
