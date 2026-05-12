@@ -4,9 +4,9 @@
 
 - cycle_id: `2026-05-12-redwright-codex-black-box-engine-proof`
 - status: `in_progress`
-- state: `slice_3_pr_open`
+- state: `slice_3_merged`
 - updated: `2026-05-12`
-- active_slice: `Slice 3`
+- active_slice: `none`
 - active_task: `none`
 - source_plan: `ops/plans/2026-05-12-redwright-codex-black-box-engine-proof-cycle-plan.md`
 - source_ticket: `ops/tickets/open/20260511182745-prove-codex-resolves-a-cloned-repo-task-inside-docker.md`
@@ -79,7 +79,7 @@ Validation:
 
 ### Slice 3: Codeberg Repository Clone
 
-- status: `pr_open`
+- status: `merged`
 - branch: `fix/slice-3-codex-proof-repo-clone`
 - PR: `#427 https://codeberg.org/adrianpk/redwright/pulls/427`
 - merge_target: `dev`
@@ -278,3 +278,4 @@ Validation:
 - `2026-05-12` state=`proof_repo_ready` note=`operator created adrianpk/go-todo-agent-proof; seeded main from runtime/codex-proof/fixtures/go-todo-agent and validated container clone from https://codeberg.org/adrianpk/go-todo-agent-proof.git at checkout 3ab9bfb`
 - `2026-05-12` state=`slice_3_pr_blocked_rate_limit` note=`retried PR creation after proof repository validation, but Codeberg still rejected the canonical PR title because similarly named PRs were created within the last hour`
 - `2026-05-12` state=`slice_3_pr_open` note=`opened Codeberg PR #427 from fix/slice-3-codex-proof-repo-clone into dev`
+- `2026-05-12` state=`slice_3_merged` note=`PR #427 merged into dev; Slice 3 is closed and Slice 4 is ready to start`
