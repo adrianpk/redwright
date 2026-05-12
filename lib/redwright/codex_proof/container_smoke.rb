@@ -42,6 +42,12 @@ module Redwright
       end
 
       def run_container(input_packet:, output_directory:, env: {})
+        smoke_command = <<~SH.strip
+          test -f /redwright/input/packet.json &&
+          test -d /redwright/output &&
+          printf '{"status":"container_smoke_passed","packet_path":"/redwright/input/packet.json"}\n' > /redwright/output/smoke-result.json
+        SH
+
         args = [
           "docker",
           "run",
@@ -56,7 +62,7 @@ module Redwright
           args.concat(["-e", "#{key}=#{value}"])
         end
 
-        args.concat([image_name, "sh", "-lc", "test -f /redwright/input/packet.json && test -d /redwright/output"])
+        args.concat([image_name, "sh", "-lc", smoke_command])
 
         stdout, stderr, status = command_runner.call(*args)
 
@@ -65,7 +71,8 @@ module Redwright
           "image_name" => image_name,
           "stdout" => stdout,
           "stderr" => stderr,
-          "exit_status" => status.exitstatus
+          "exit_status" => status.exitstatus,
+          "smoke_result" => File.join(File.expand_path(output_directory), "smoke-result.json")
         }
       end
     end

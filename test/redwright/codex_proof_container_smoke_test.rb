@@ -68,6 +68,7 @@ class CodexProofContainerSmokeTest < Minitest::Test
 
     assert_equal("container_started", result.fetch("status"))
     assert_equal("proof:test", result.fetch("image_name"))
+    assert_equal("/tmp/output/smoke-result.json", result.fetch("smoke_result"))
 
     args = calls.fetch(0)
     assert_equal("docker", args.fetch(0))
@@ -75,6 +76,7 @@ class CodexProofContainerSmokeTest < Minitest::Test
     assert_includes(args, "/tmp/packet.json:/redwright/input/packet.json:ro")
     assert_includes(args, "/tmp/output:/redwright/output:rw")
     assert_includes(args, "RW_PROOF_MODE=smoke")
+    assert_includes(args.last, "smoke-result.json")
   end
 
   def test_run_container_reports_failure
