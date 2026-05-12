@@ -80,14 +80,15 @@ module Redwright
         clone_command = <<~SH.strip
           set -eu
           packet=/redwright/input/packet.json
-          repo_url=$(ruby -rjson -e 'puts JSON.parse(File.read(ARGV.fetch(0))).fetch("repository_url")' "$packet")
-          branch=$(ruby -rjson -e 'puts JSON.parse(File.read(ARGV.fetch(0))).fetch("result_branch")' "$packet")
+          repo_url=$(node -e 'const fs = require("fs"); console.log(JSON.parse(fs.readFileSync(process.argv[1], "utf8")).repository_url)' "$packet")
+          branch=$(node -e 'const fs = require("fs"); console.log(JSON.parse(fs.readFileSync(process.argv[1], "utf8")).result_branch)' "$packet")
+          git config --global --add safe.directory '*'
           git clone "$repo_url" /redwright/workspace/repo
           cd /redwright/workspace/repo
           git checkout -B "$branch"
           git rev-parse HEAD > /redwright/output/checkout-revision.txt
           git status --short --branch > /redwright/output/checkout-status.txt
-          ruby -rjson -e 'puts JSON.pretty_generate({status: "repository_cloned", repository_url: ARGV.fetch(0), result_branch: ARGV.fetch(1), checkout_revision: File.read("/redwright/output/checkout-revision.txt").strip, workspace_path: "/redwright/workspace/repo"})' "$repo_url" "$branch" > /redwright/output/clone-result.json
+          node -e 'const fs = require("fs"); console.log(JSON.stringify({status: "repository_cloned", repository_url: process.argv[1], result_branch: process.argv[2], checkout_revision: fs.readFileSync("/redwright/output/checkout-revision.txt", "utf8").trim(), workspace_path: "/redwright/workspace/repo"}, null, 2))' "$repo_url" "$branch" > /redwright/output/clone-result.json
         SH
 
         args = [
