@@ -4,7 +4,7 @@
 
 - cycle_id: `2026-05-12-redwright-codex-black-box-engine-proof`
 - status: `in_progress`
-- state: `slice_1_implemented`
+- state: `slice_1_pr_open`
 - updated: `2026-05-12`
 - active_slice: `Slice 1`
 - active_task: `none`
@@ -21,9 +21,9 @@
 
 ### Slice 1: Proof Harness Skeleton
 
-- status: `implemented`
+- status: `pr_open`
 - branch: `fix/slice-1-codex-proof-harness`
-- PR: `pending`
+- PR: `#425 https://codeberg.org/adrianpk/redwright/pulls/425`
 - merge_target: `dev`
 - last_sync_commit: `6a32248`
 
@@ -243,3 +243,4 @@ Validation:
 - `2026-05-12` state=`planned` note=`created the 8-slice plan and tracker for proving the Codex black box engine boundary with manual runtime configuration, isolated repository work, explicit credential injection, non-interactive Codex execution, artifact return, validation capture, and viability reporting`
 - `2026-05-12` state=`scope_refined` note=`refined the proof to use an existing Codeberg Go todo repository seeded from _workspace/Projects/go-todo-agent, pass a ticket-like mark-as-read task, run Codex inside the Docker boundary, implement tests, and push a result branch to the remote`
 - `2026-05-12` state=`slice_1_implemented` note=`implemented the proof input packet contract, local run preparation harness, script entrypoint, and Go runtime Dockerfile placeholder on fix/slice-1-codex-proof-harness`
+- `2026-05-12` state=`slice_1_pr_open` note=`opened Codeberg PR #425 from fix/slice-1-codex-proof-harness into dev`
