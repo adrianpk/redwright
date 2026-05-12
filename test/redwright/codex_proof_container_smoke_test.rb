@@ -148,4 +148,50 @@ class CodexProofContainerSmokeTest < Minitest::Test
     assert_equal("clone failed", result.fetch("stderr"))
     assert_equal(128, result.fetch("exit_status"))
   end
+
+  def test_preflight_credentials_passes_runtime_only_env
+    calls = []
+    runner = lambda do |*args|
+      calls << args
+      ["", "", FakeStatus.new(0)]
+    end
+
+    result = Redwright::CodexProof::ContainerSmoke.new(
+      dockerfile: "Dockerfile",
+      context_dir: ".",
+      image_name: "proof:test",
+      command_runner: runner
+    ).preflight_credentials(
+      output_directory: "/tmp/output",
+      env: {
+        "CODEX_API_KEY" => "codex-secret",
+        "CODEBERG_PUSH_TOKEN" => "codeberg-secret"
+      }
+    )
+
+    assert_equal("preflight_passed", result.fetch("status"))
+    assert_equal("/tmp/output/preflight-result.json", result.fetch("preflight_result"))
+
+    args = calls.fetch(0)
+    assert_includes(args, "/tmp/output:/redwright/output:rw")
+    assert_includes(args, "CODEX_API_KEY=codex-secret")
+    assert_includes(args, "CODEBERG_PUSH_TOKEN=codeberg-secret")
+    assert_includes(args.last, "preflight-result.json")
+    assert_includes(args.last, "codex_auth_missing")
+    assert_includes(args.last, "codeberg_push_auth_missing")
+  end
+
+  def test_preflight_credentials_reports_failure
+    runner = ->(*_args) { ["", "missing auth", FakeStatus.new(1)] }
+
+    result = Redwright::CodexProof::ContainerSmoke.new(
+      dockerfile: "Dockerfile",
+      context_dir: ".",
+      command_runner: runner
+    ).preflight_credentials(output_directory: "/tmp/output")
+
+    assert_equal("preflight_failed", result.fetch("status"))
+    assert_equal("missing auth", result.fetch("stderr"))
+    assert_equal(1, result.fetch("exit_status"))
+  end
 end

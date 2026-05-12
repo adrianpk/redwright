@@ -121,6 +121,56 @@ module Redwright
           "workspace_path" => File.join(File.expand_path(workspace_directory), "repo")
         }
       end
+
+      def preflight_credentials(output_directory:, env: {})
+        preflight_command = <<~SH.strip
+          set -eu
+          status=preflight_passed
+          failures=''
+          codex_version=''
+          if command -v codex >/dev/null 2>&1; then
+            codex_version=$(codex --version 2>/dev/null || true)
+          else
+            status=preflight_failed
+            failures="${failures}codex_unavailable "
+          fi
+          if [ -z "${CODEX_API_KEY:-}" ] && [ -z "${OPENAI_API_KEY:-}" ]; then
+            status=preflight_failed
+            failures="${failures}codex_auth_missing "
+          fi
+          if [ -z "${CODEBERG_PUSH_TOKEN:-}" ]; then
+            status=preflight_failed
+            failures="${failures}codeberg_push_auth_missing "
+          fi
+          node -e 'const fs = require("fs"); const failures = process.argv[1].trim().split(/\\s+/).filter(Boolean); console.log(JSON.stringify({status: process.argv[2], codex_version: process.argv[3], failures}, null, 2))' "$failures" "$status" "$codex_version" > /redwright/output/preflight-result.json
+          test "$status" = preflight_passed
+        SH
+
+        args = [
+          "docker",
+          "run",
+          "--rm",
+          "-v",
+          "#{File.expand_path(output_directory)}:/redwright/output:rw"
+        ]
+
+        env.each do |key, value|
+          args.concat(["-e", "#{key}=#{value}"])
+        end
+
+        args.concat([image_name, "sh", "-lc", preflight_command])
+
+        stdout, stderr, status = command_runner.call(*args)
+
+        {
+          "status" => status.success? ? "preflight_passed" : "preflight_failed",
+          "image_name" => image_name,
+          "stdout" => stdout,
+          "stderr" => stderr,
+          "exit_status" => status.exitstatus,
+          "preflight_result" => File.join(File.expand_path(output_directory), "preflight-result.json")
+        }
+      end
     end
   end
 end

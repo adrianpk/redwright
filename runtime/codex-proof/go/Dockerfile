@@ -9,7 +9,8 @@ RUN apt-get update \
     npm \
   && rm -rf /var/lib/apt/lists/*
 
+RUN npm install -g @openai/codex@0.130.0
+
 WORKDIR /workspace
 
-# Codex installation and authentication preflight are added in later slices.
 CMD ["sh", "-lc", "echo 'codex proof go runtime placeholder ready'"]

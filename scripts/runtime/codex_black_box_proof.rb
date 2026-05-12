@@ -15,7 +15,8 @@ options = {
   context_dir: File.expand_path("../../runtime/codex-proof/go", __dir__),
   image_name: Redwright::CodexProof::ContainerSmoke::DEFAULT_IMAGE_NAME,
   smoke: false,
-  clone: false
+  clone: false,
+  preflight: false
 }
 
 parser = OptionParser.new do |opts|
@@ -24,6 +25,7 @@ parser = OptionParser.new do |opts|
   opts.on("--runs-root PATH", "Directory where proof run directories are created") { |value| options[:runs_root] = value }
   opts.on("--smoke", "Build and run the placeholder Docker smoke test after preparing the run") { options[:smoke] = true }
   opts.on("--clone", "Build and run the Docker repository clone proof after preparing the run") { options[:clone] = true }
+  opts.on("--preflight", "Build and run Codex plus remote credential preflight") { options[:preflight] = true }
   opts.on("--dockerfile PATH", "Path to the proof Dockerfile") { |value| options[:dockerfile] = value }
   opts.on("--context-dir PATH", "Path to the proof Docker build context") { |value| options[:context_dir] = value }
   opts.on("--image-name NAME", "Docker image name to build and run") { |value| options[:image_name] = value }
@@ -42,7 +44,7 @@ result = Redwright::CodexProof::Harness.new(
   runs_root: options.fetch(:runs_root)
 ).prepare
 
-if result.fetch("status") == "prepared" && (options.fetch(:smoke) || options.fetch(:clone))
+if result.fetch("status") == "prepared" && (options.fetch(:smoke) || options.fetch(:clone) || options.fetch(:preflight))
   smoke = Redwright::CodexProof::ContainerSmoke.new(
     dockerfile: options.fetch(:dockerfile),
     context_dir: options.fetch(:context_dir),
@@ -65,6 +67,17 @@ if result.fetch("status") == "prepared" && (options.fetch(:smoke) || options.fet
       env: { "RW_PROOF_MODE" => "clone" }
     )
   end
+  if build_result.fetch("status") == "built" && options.fetch(:preflight)
+    runtime_env = {
+      "CODEX_API_KEY" => ENV.fetch("CODEX_API_KEY", ""),
+      "OPENAI_API_KEY" => ENV.fetch("OPENAI_API_KEY", ""),
+      "CODEBERG_PUSH_TOKEN" => ENV.fetch("CODEBERG_PUSH_TOKEN", "")
+    }.reject { |_key, value| value.to_s.empty? }
+    run_result = smoke.preflight_credentials(
+      output_directory: result.fetch("output_directory"),
+      env: runtime_env
+    )
+  end
 
   result = result.merge(
     "container_build" => build_result,
@@ -75,7 +88,7 @@ end
 puts(JSON.pretty_generate(result))
 container_run = result["container_run"]
 if container_run
-  successful_statuses = %w[container_started repository_cloned]
+  successful_statuses = %w[container_started repository_cloned preflight_passed]
   exit(successful_statuses.include?(container_run.fetch("status")) ? 0 : 2)
 end
 
