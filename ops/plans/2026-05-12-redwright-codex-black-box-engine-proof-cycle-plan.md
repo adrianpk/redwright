@@ -128,7 +128,7 @@ Execution must follow the slice delivery protocol:
 
 ### Slice 5: Non-Interactive Codex Task Execution
 
-- status: `planned`
+- status: `implemented`
 - branch: `fix/slice-5-codex-proof-exec`
 - objective: `Run Codex non-interactively against the cloned workspace with a bounded ticket-like task prompt for the mark-as-read feature.`
 - tasks:
@@ -150,11 +150,11 @@ Execution must follow the slice delivery protocol:
 - branch: `fix/slice-6-codex-proof-diff-artifacts`
 - objective: `Return changed files, git diff, logs, push metadata, and raw worker artifacts to the host.`
 - tasks:
-- [ ] `T6.1 Collect changed files and git diff from the worker repository.`
-- [ ] `T6.2 Commit the Codex-produced changes on the configured result branch when the working tree has a valid diff.`
-- [ ] `T6.3 Push the result branch to the configured Codeberg remote and capture push metadata.`
-- [ ] `T6.4 Copy or write result artifacts into the host-inspectable output directory.`
-- [ ] `T6.5 Classify no-diff and push-failed results separately from execution failures.`
+- [x] `T6.1 Collect changed files and git diff from the worker repository.`
+- [x] `T6.2 Commit the Codex-produced changes on the configured result branch when the working tree has a valid diff.`
+- [x] `T6.3 Push the result branch to the configured Codeberg remote and capture push metadata.`
+- [x] `T6.4 Copy or write result artifacts into the host-inspectable output directory.`
+- [x] `T6.5 Classify no-diff and push-failed results separately from execution failures.`
 - acceptance:
 - `The host can inspect the final diff without entering the container.`
 - `No-diff, changed, push-failed, and failed outcomes are distinct.`

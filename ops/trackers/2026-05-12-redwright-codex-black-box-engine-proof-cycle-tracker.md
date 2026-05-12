@@ -182,31 +182,39 @@ Validation:
 
 ### Slice 6: Diff, Commit, Push, And Artifact Return
 
-- status: `planned`
+- status: `implemented`
 - branch: `fix/slice-6-codex-proof-diff-artifacts`
 - PR: `pending`
 - merge_target: `dev`
-- last_sync_commit: `pending`
+- last_sync_commit: `622af98`
 
 Tasks:
 
-- [ ] `T6.1 Collect changed files and git diff from the worker repository.`
-- [ ] `T6.2 Commit the Codex-produced changes on the configured result branch when the working tree has a valid diff.`
-- [ ] `T6.3 Push the result branch to the configured Codeberg remote and capture push metadata.`
-- [ ] `T6.4 Copy or write result artifacts into the host-inspectable output directory.`
-- [ ] `T6.5 Classify no-diff and push-failed results separately from execution failures.`
+- [x] `T6.1 Collect changed files and git diff from the worker repository.`
+- [x] `T6.2 Commit the Codex-produced changes on the configured result branch when the working tree has a valid diff.`
+- [x] `T6.3 Push the result branch to the configured Codeberg remote and capture push metadata.`
+- [x] `T6.4 Copy or write result artifacts into the host-inspectable output directory.`
+- [x] `T6.5 Classify no-diff and push-failed results separately from execution failures.`
 
 Commits:
 
-- [ ] `pending feat(runtime): push codex proof result branch`
-- [ ] `pending test(runtime): cover proof diff and push classification`
+- [x] `07cc517 feat(runtime): push codex proof result branch`
+- [x] `622af98 test(runtime): cover proof diff and push classification`
 
 Validation:
 
-- [ ] `The host can inspect the final diff without entering the container.`
-- [ ] `No-diff, changed, push-failed, and failed outcomes are distinct.`
-- [ ] `The result branch is pushed to the configured Codeberg remote when credentials and validation policy allow it.`
-- [ ] `Raw logs and structured summary artifacts are preserved according to proof policy.`
+- [x] `The host can inspect the final diff without entering the container.`
+- [x] `No-diff, changed, push-failed, and failed outcomes are distinct.`
+- [x] `The result branch is pushed to the configured Codeberg remote when credentials and validation policy allow it.`
+- [x] `Raw logs and structured summary artifacts are preserved according to proof policy.`
+
+Validation:
+
+- [x] `ruby -Itest test/redwright/codex_proof_container_smoke_test.rb` (pass)
+- [x] `ruby -Itest test/redwright/codex_proof_input_packet_test.rb` (pass)
+- [x] `ruby -Itest test/redwright/codex_proof_harness_test.rb` (pass)
+- [x] `ruby -c scripts/runtime/codex_black_box_proof.rb` (pass)
+- [x] `ruby scripts/runtime/codex_black_box_proof.rb --packet <temp packet> --runs-root <temp runs> --codex-exec` (expected fail: Codex exits with HTTP 401 auth failure; structured output includes `codex_execution_failed`, `changed-files.txt`, `git-diff.patch`, `git-commit.log`, `git-push.log`, and `push_status: not_attempted`)
 
 ### Slice 7: Validation Command And Result Envelope
 
@@ -296,3 +304,4 @@ Validation:
 - `2026-05-12` state=`slice_5_implemented` note=`implemented non-interactive Codex execution inside the proof container with a ticket-like prompt, disposable Codeberg clone, bounded timeout, JSONL/stderr/last-message/status artifacts, and real Docker validation that reached Codex auth with HTTP 401 after cloning`
 - `2026-05-12` state=`slice_5_pr_open` note=`opened Codeberg PR #429 from fix/slice-5-codex-proof-exec into dev`
 - `2026-05-12` state=`slice_5_merged` note=`PR #429 merged into dev; Slice 5 is closed and Slice 6 is ready to start`
+- `2026-05-12` state=`slice_6_implemented` note=`implemented worker diff collection, changed-file artifacts, conditional commit, Codeberg push attempt with runtime token injection, push/no-diff/failure classification, and real Docker validation that preserves diff and push artifacts when Codex fails before producing changes`
