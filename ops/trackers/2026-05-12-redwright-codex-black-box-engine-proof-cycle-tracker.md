@@ -4,7 +4,7 @@
 
 - cycle_id: `2026-05-12-redwright-codex-black-box-engine-proof`
 - status: `in_progress`
-- state: `slice_3_implemented_with_external_blocker`
+- state: `slice_3_pr_blocked_rate_limit`
 - updated: `2026-05-12`
 - active_slice: `Slice 3`
 - active_task: `none`
@@ -265,3 +265,4 @@ Validation:
 - `2026-05-12` state=`slice_2_pr_open` note=`opened Codeberg PR #426 from fix/slice-2-codex-proof-container-smoke into dev`
 - `2026-05-12` state=`slice_2_merged` note=`PR #426 merged into dev; Slice 2 is closed and Slice 3 is ready to start`
 - `2026-05-12` state=`slice_3_implemented_with_external_blocker` note=`implemented container-side clone, run-scoped branch expansion, clone metadata capture, fixture README template, and reset policy; real Codeberg proof repository creation is blocked because the configured tea token lacks write:user/write:organization scopes`
+- `2026-05-12` state=`slice_3_pr_blocked_rate_limit` note=`pushed fix/slice-3-codex-proof-repo-clone, but Codeberg rejected PR creation because similarly named PRs were created within the last hour; retry with canonical title feat(slice-3): codex proof repository clone after the rate-limit window`
