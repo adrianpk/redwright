@@ -246,6 +246,9 @@ class CodexProofContainerSmokeTest < Minitest::Test
       assert_equal(File.join(output, "codex-prompt.txt"), result.fetch("codex_prompt"))
       assert_equal(File.join(output, "codex-events.jsonl"), result.fetch("codex_events"))
       assert_equal(File.join(output, "codex-stderr.log"), result.fetch("codex_stderr"))
+      assert_equal(File.join(output, "changed-files.txt"), result.fetch("changed_files"))
+      assert_equal(File.join(output, "git-diff.patch"), result.fetch("git_diff"))
+      assert_equal(File.join(output, "git-push.log"), result.fetch("git_push_log"))
       assert_equal(File.join(workspace, "repo"), result.fetch("workspace_path"))
       assert(File.exist?(result.fetch("codex_prompt")))
 
@@ -255,9 +258,16 @@ class CodexProofContainerSmokeTest < Minitest::Test
       assert_includes(args, "#{workspace}:/redwright/workspace:rw")
       assert_includes(args, "CODEX_API_KEY=codex-secret")
       assert_includes(args.last, "git clone")
+      assert_includes(args.last, ": > /redwright/output/git-commit.log")
+      assert_includes(args.last, ": > /redwright/output/git-push.log")
       assert_includes(args.last, "codex exec --json --color never --sandbox workspace-write")
       assert_includes(args.last, "--output-last-message /redwright/output/codex-last-message.txt")
+      assert_includes(args.last, "changed-files.txt")
+      assert_includes(args.last, "git-diff.patch")
+      assert_includes(args.last, "git commit -m")
+      assert_includes(args.last, "git push")
       assert_includes(args.last, "codex-execution-result.json")
+      assert_includes(args.last, "split(/\\n/)")
       assert_includes(args.last, "timeout_seconds=30")
       assert_includes(args.last, "timeout \"${timeout_seconds}s\"")
     end
@@ -286,6 +296,66 @@ class CodexProofContainerSmokeTest < Minitest::Test
       assert_equal("codex failed", result.fetch("stderr"))
       assert_equal(124, result.fetch("exit_status"))
       assert_equal(true, result.fetch("timed_out"))
+    end
+  end
+
+  def test_execute_codex_task_uses_structured_result_status_when_available
+    Dir.mktmpdir("codex-proof-test-") do |dir|
+      output = File.join(dir, "output")
+      workspace = File.join(dir, "workspace")
+      packet_path = File.join(dir, "packet.json")
+      File.write(packet_path, JSON.generate(valid_packet))
+
+      runner = lambda do |*_args|
+        File.write(
+          File.join(output, "codex-execution-result.json"),
+          JSON.generate("status" => "codex_push_failed", "timed_out" => true)
+        )
+        ["", "push failed", FakeStatus.new(1)]
+      end
+
+      result = Redwright::CodexProof::ContainerSmoke.new(
+        dockerfile: "Dockerfile",
+        context_dir: ".",
+        command_runner: runner
+      ).execute_codex_task(
+        input_packet: packet_path,
+        output_directory: output,
+        workspace_directory: workspace
+      )
+
+      assert_equal("codex_push_failed", result.fetch("status"))
+      assert_equal(1, result.fetch("exit_status"))
+      assert_equal(true, result.fetch("timed_out"))
+    end
+  end
+
+  def test_codex_execution_status_distinguishes_no_diff_result
+    Dir.mktmpdir("codex-proof-test-") do |dir|
+      File.write(
+        File.join(dir, "codex-execution-result.json"),
+        JSON.generate("status" => "codex_no_diff")
+      )
+
+      status = Redwright::CodexProof::ContainerSmoke.new(
+        dockerfile: "Dockerfile",
+        context_dir: "."
+      ).codex_execution_status(dir, FakeStatus.new(0))
+
+      assert_equal("codex_no_diff", status)
+    end
+  end
+
+  def test_codex_execution_result_tolerates_empty_json_artifact
+    Dir.mktmpdir("codex-proof-test-") do |dir|
+      File.write(File.join(dir, "codex-execution-result.json"), "")
+
+      result = Redwright::CodexProof::ContainerSmoke.new(
+        dockerfile: "Dockerfile",
+        context_dir: "."
+      ).codex_execution_result(dir)
+
+      assert_equal({}, result)
     end
   end
 
