@@ -46,7 +46,7 @@ Execution must follow the slice delivery protocol:
 
 ### Slice 1: Proof Harness Skeleton
 
-- status: `pr_open`
+- status: `merged`
 - branch: `fix/slice-1-codex-proof-harness`
 - PR: `#425 https://codeberg.org/adrianpk/redwright/pulls/425`
 - objective: `Create the smallest host-side proof entrypoint and fixture layout without invoking Codex yet.`

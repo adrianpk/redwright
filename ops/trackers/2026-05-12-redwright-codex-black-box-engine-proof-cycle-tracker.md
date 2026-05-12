@@ -4,9 +4,9 @@
 
 - cycle_id: `2026-05-12-redwright-codex-black-box-engine-proof`
 - status: `in_progress`
-- state: `slice_2_pr_open`
+- state: `slice_2_merged`
 - updated: `2026-05-12`
-- active_slice: `Slice 2`
+- active_slice: `none`
 - active_task: `none`
 - source_plan: `ops/plans/2026-05-12-redwright-codex-black-box-engine-proof-cycle-plan.md`
 - source_ticket: `ops/tickets/open/20260511182745-prove-codex-resolves-a-cloned-repo-task-inside-docker.md`
@@ -50,7 +50,7 @@ Validation:
 
 ### Slice 2: Container Runtime Smoke Test
 
-- status: `pr_open`
+- status: `merged`
 - branch: `fix/slice-2-codex-proof-container-smoke`
 - PR: `#426 https://codeberg.org/adrianpk/redwright/pulls/426`
 - merge_target: `dev`
@@ -255,3 +255,4 @@ Validation:
 - `2026-05-12` state=`readme_requirement_added` note=`recorded that the selected Codeberg Go todo proof repository must explain in its README that it is a RedWright Codex black-box proof fixture and where RedWright uses it`
 - `2026-05-12` state=`slice_2_implemented` note=`implemented Docker build/run smoke behavior, runtime-only packet and environment passing, host-inspectable smoke artifact capture, and targeted plus real Docker smoke validation on fix/slice-2-codex-proof-container-smoke`
 - `2026-05-12` state=`slice_2_pr_open` note=`opened Codeberg PR #426 from fix/slice-2-codex-proof-container-smoke into dev`
+- `2026-05-12` state=`slice_2_merged` note=`PR #426 merged into dev; Slice 2 is closed and Slice 3 is ready to start`
