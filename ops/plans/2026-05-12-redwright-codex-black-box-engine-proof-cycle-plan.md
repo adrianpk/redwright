@@ -65,8 +65,9 @@ Execution must follow the slice delivery protocol:
 
 ### Slice 2: Container Runtime Smoke Test
 
-- status: `implemented`
+- status: `pr_open`
 - branch: `fix/slice-2-codex-proof-container-smoke`
+- PR: `#426 https://codeberg.org/adrianpk/redwright/pulls/426`
 - objective: `Prove that the handcrafted runtime can start, receive explicit input, and write host-inspectable output.`
 - tasks:
 - [ ] `T2.1 Build or start the proof Docker runtime from the handcrafted setup.`
