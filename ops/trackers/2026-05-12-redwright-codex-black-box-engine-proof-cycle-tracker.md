@@ -4,9 +4,9 @@
 
 - cycle_id: `2026-05-12-redwright-codex-black-box-engine-proof`
 - status: `in_progress`
-- state: `slice_4_pr_open`
+- state: `slice_4_merged`
 - updated: `2026-05-12`
-- active_slice: `Slice 4`
+- active_slice: `none`
 - active_task: `none`
 - source_plan: `ops/plans/2026-05-12-redwright-codex-black-box-engine-proof-cycle-plan.md`
 - source_ticket: `ops/tickets/open/20260511182745-prove-codex-resolves-a-cloned-repo-task-inside-docker.md`
@@ -120,7 +120,7 @@ Validation:
 
 ### Slice 4: Codex And Remote Credential Boundary
 
-- status: `pr_open`
+- status: `merged`
 - branch: `fix/slice-4-codex-proof-auth-preflight`
 - PR: `#428 https://codeberg.org/adrianpk/redwright/pulls/428`
 - merge_target: `dev`
@@ -284,3 +284,4 @@ Validation:
 - `2026-05-12` state=`slice_3_merged` note=`PR #427 merged into dev; Slice 3 is closed and Slice 4 is ready to start`
 - `2026-05-12` state=`slice_4_implemented` note=`implemented Codex CLI installation in the proof image, explicit Codex and Codeberg credential preflight, runtime-only credential injection, and structured missing-auth failures on fix/slice-4-codex-proof-auth-preflight`
 - `2026-05-12` state=`slice_4_pr_open` note=`opened Codeberg PR #428 from fix/slice-4-codex-proof-auth-preflight into dev`
+- `2026-05-12` state=`slice_4_merged` note=`PR #428 merged into dev; Slice 4 is closed and Slice 5 is ready to start`

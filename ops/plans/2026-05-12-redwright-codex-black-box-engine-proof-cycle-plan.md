@@ -84,7 +84,7 @@ Execution must follow the slice delivery protocol:
 
 ### Slice 3: Codeberg Repository Clone
 
-- status: `pr_open`
+- status: `merged`
 - branch: `fix/slice-3-codex-proof-repo-clone`
 - PR: `#427 https://codeberg.org/adrianpk/redwright/pulls/427`
 - objective: `Make the worker clone the existing Codeberg Go todo repository into its own disposable workspace inside the run boundary.`
