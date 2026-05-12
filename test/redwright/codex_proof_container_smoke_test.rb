@@ -47,4 +47,50 @@ class CodexProofContainerSmokeTest < Minitest::Test
     assert_equal("docker failed", result.fetch("stderr"))
     assert_equal(1, result.fetch("exit_status"))
   end
+
+  def test_run_container_mounts_packet_output_and_env
+    calls = []
+    runner = lambda do |*args|
+      calls << args
+      ["container ok", "", FakeStatus.new(0)]
+    end
+
+    result = Redwright::CodexProof::ContainerSmoke.new(
+      dockerfile: "Dockerfile",
+      context_dir: ".",
+      image_name: "proof:test",
+      command_runner: runner
+    ).run_container(
+      input_packet: "/tmp/packet.json",
+      output_directory: "/tmp/output",
+      env: { "RW_PROOF_MODE" => "smoke" }
+    )
+
+    assert_equal("container_started", result.fetch("status"))
+    assert_equal("proof:test", result.fetch("image_name"))
+
+    args = calls.fetch(0)
+    assert_equal("docker", args.fetch(0))
+    assert_includes(args, "run")
+    assert_includes(args, "/tmp/packet.json:/redwright/input/packet.json:ro")
+    assert_includes(args, "/tmp/output:/redwright/output:rw")
+    assert_includes(args, "RW_PROOF_MODE=smoke")
+  end
+
+  def test_run_container_reports_failure
+    runner = ->(*_args) { ["", "run failed", FakeStatus.new(125)] }
+
+    result = Redwright::CodexProof::ContainerSmoke.new(
+      dockerfile: "Dockerfile",
+      context_dir: ".",
+      command_runner: runner
+    ).run_container(
+      input_packet: "/tmp/packet.json",
+      output_directory: "/tmp/output"
+    )
+
+    assert_equal("docker_run_failed", result.fetch("status"))
+    assert_equal("run failed", result.fetch("stderr"))
+    assert_equal(125, result.fetch("exit_status"))
+  end
 end
