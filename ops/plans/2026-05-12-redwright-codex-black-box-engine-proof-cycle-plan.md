@@ -92,11 +92,13 @@ Execution must follow the slice delivery protocol:
 - [ ] `T3.2 Create a run-scoped branch or equivalent isolated working state.`
 - [ ] `T3.3 Capture clone metadata, checked-out revision, and workspace path in the result artifact.`
 - [ ] `T3.4 Ensure the proof repository README explains that the repository is a RedWright Codex black-box proof fixture and identifies where RedWright uses it.`
+- [ ] `T3.5 Define the remote reset policy: default branch remains the clean fixture, every proof run uses a run-scoped branch, and reset means deleting or replacing only the run branch.`
 - acceptance:
 - `The worker does not mutate the host's canonical project checkout or the local seed repository.`
 - `The cloned workspace is correlated with the proof run id.`
 - `Clone failures return a structured failure result.`
 - `The selected Codeberg repository has a README that states its proof-fixture purpose and RedWright usage context.`
+- `The proof cannot spoil the clean fixture branch because work is isolated to a run-scoped branch.`
 - planned_commits:
 - `feat(runtime): clone proof codeberg repository inside worker`
 - `test(runtime): cover proof clone failure result`

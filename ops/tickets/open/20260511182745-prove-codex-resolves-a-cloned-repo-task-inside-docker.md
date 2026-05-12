@@ -38,6 +38,8 @@ The critical unknown is whether the core execution model works at all: a contain
 - Required Codex and Codeberg push environment variables are injected from the host at container startup and are not baked into the image.
 - The container receives an existing Codeberg repository URL, target branch or scratch branch name, and ticket-like task prompt.
 - The container clones the repository itself into a disposable workspace.
+- The default branch remains the clean reusable fixture state; each proof execution works on a run-scoped branch such as `redwright/codex-proof/<run-id>`.
+- Resetting the proof means deleting or replacing only the run-scoped branch, not mutating the clean fixture branch.
 - Codex runs non-interactively and must not block waiting for a human approval prompt.
 - The initial task is a Go todo CLI implementation ticket that asks for a mark-as-read capability and tests without prescribing exact file edits.
 - The selected Codeberg repository README explains that the repository is a RedWright Codex black-box proof fixture and identifies where RedWright uses it.
