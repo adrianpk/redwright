@@ -16,7 +16,8 @@ options = {
   image_name: Redwright::CodexProof::ContainerSmoke::DEFAULT_IMAGE_NAME,
   smoke: false,
   clone: false,
-  preflight: false
+  preflight: false,
+  codex_exec: false
 }
 
 parser = OptionParser.new do |opts|
@@ -26,6 +27,7 @@ parser = OptionParser.new do |opts|
   opts.on("--smoke", "Build and run the placeholder Docker smoke test after preparing the run") { options[:smoke] = true }
   opts.on("--clone", "Build and run the Docker repository clone proof after preparing the run") { options[:clone] = true }
   opts.on("--preflight", "Build and run Codex plus remote credential preflight") { options[:preflight] = true }
+  opts.on("--codex-exec", "Build and run the non-interactive Codex proof task") { options[:codex_exec] = true }
   opts.on("--dockerfile PATH", "Path to the proof Dockerfile") { |value| options[:dockerfile] = value }
   opts.on("--context-dir PATH", "Path to the proof Docker build context") { |value| options[:context_dir] = value }
   opts.on("--image-name NAME", "Docker image name to build and run") { |value| options[:image_name] = value }
@@ -44,7 +46,7 @@ result = Redwright::CodexProof::Harness.new(
   runs_root: options.fetch(:runs_root)
 ).prepare
 
-if result.fetch("status") == "prepared" && (options.fetch(:smoke) || options.fetch(:clone) || options.fetch(:preflight))
+if result.fetch("status") == "prepared" && (options.fetch(:smoke) || options.fetch(:clone) || options.fetch(:preflight) || options.fetch(:codex_exec))
   smoke = Redwright::CodexProof::ContainerSmoke.new(
     dockerfile: options.fetch(:dockerfile),
     context_dir: options.fetch(:context_dir),
@@ -78,6 +80,18 @@ if result.fetch("status") == "prepared" && (options.fetch(:smoke) || options.fet
       env: runtime_env
     )
   end
+  if build_result.fetch("status") == "built" && options.fetch(:codex_exec)
+    runtime_env = {
+      "CODEX_API_KEY" => ENV.fetch("CODEX_API_KEY", ""),
+      "OPENAI_API_KEY" => ENV.fetch("OPENAI_API_KEY", "")
+    }.reject { |_key, value| value.to_s.empty? }
+    run_result = smoke.execute_codex_task(
+      input_packet: result.fetch("input_packet"),
+      output_directory: result.fetch("output_directory"),
+      workspace_directory: result.fetch("workspace_directory"),
+      env: runtime_env
+    )
+  end
 
   result = result.merge(
     "container_build" => build_result,
@@ -88,7 +102,7 @@ end
 puts(JSON.pretty_generate(result))
 container_run = result["container_run"]
 if container_run
-  successful_statuses = %w[container_started repository_cloned preflight_passed]
+  successful_statuses = %w[container_started repository_cloned preflight_passed codex_executed]
   exit(successful_statuses.include?(container_run.fetch("status")) ? 0 : 2)
 end
 
