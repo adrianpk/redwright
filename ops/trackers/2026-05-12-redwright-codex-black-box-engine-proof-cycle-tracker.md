@@ -305,3 +305,4 @@ Validation:
 - `2026-05-12` state=`slice_5_pr_open` note=`opened Codeberg PR #429 from fix/slice-5-codex-proof-exec into dev`
 - `2026-05-12` state=`slice_5_merged` note=`PR #429 merged into dev; Slice 5 is closed and Slice 6 is ready to start`
 - `2026-05-12` state=`slice_6_implemented` note=`implemented worker diff collection, changed-file artifacts, conditional commit, Codeberg push attempt with runtime token injection, push/no-diff/failure classification, and real Docker validation that preserves diff and push artifacts when Codex fails before producing changes`
+- `2026-05-12` state=`slice_6_pr_blocked_rate_limit` note=`pushed fix/slice-6-codex-proof-diff-artifacts, but Codeberg rejected PR creation for canonical title feat(slice-6): codex proof diff artifacts because similarly named PRs were created within the last hour; wait and retry with the same title`
