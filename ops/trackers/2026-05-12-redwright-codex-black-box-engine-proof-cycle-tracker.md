@@ -39,7 +39,7 @@ Commits:
 - [x] `4f24271 feat(runtime): prepare codex proof runs`
 - [x] `6a32248 feat(runtime): add codex proof go runtime placeholder`
 
-Validation:
+Acceptance:
 
 - [x] `ruby -Itest test/redwright/codex_proof_input_packet_test.rb` (pass)
 - [x] `ruby -Itest test/redwright/codex_proof_harness_test.rb` (pass)
@@ -148,29 +148,37 @@ Validation:
 
 ### Slice 5: Non-Interactive Codex Task Execution
 
-- status: `planned`
+- status: `implemented`
 - branch: `fix/slice-5-codex-proof-exec`
 - PR: `pending`
 - merge_target: `dev`
-- last_sync_commit: `pending`
+- last_sync_commit: `45f2230`
 
 Tasks:
 
-- [ ] `T5.1 Build the Codex prompt from the proof input packet and run metadata without prescribing exact file edits.`
-- [ ] `T5.2 Invoke Codex in non-interactive mode inside the runtime boundary.`
-- [ ] `T5.3 Capture Codex events, stdout, stderr, exit status, and timeout state.`
+- [x] `T5.1 Build the Codex prompt from the proof input packet and run metadata without prescribing exact file edits.`
+- [x] `T5.2 Invoke Codex in non-interactive mode inside the runtime boundary.`
+- [x] `T5.3 Capture Codex events, stdout, stderr, exit status, and timeout state.`
 
 Commits:
 
-- [ ] `pending feat(runtime): execute codex proof task noninteractively`
-- [ ] `pending test(runtime): cover codex proof execution failures`
+- [x] `cf6dcdc feat(runtime): execute codex proof task noninteractively`
+- [x] `45f2230 test(runtime): cover codex proof execution failures`
 
 Validation:
 
-- [ ] `Codex does not block waiting for human approval.`
-- [ ] `Codex runs against the disposable worker workspace, not the host checkout.`
-- [ ] `The prompt reads like an implementation ticket for marking todo items as read and adding tests.`
-- [ ] `The proof records enough process output for audit even when Codex fails.`
+- [x] `Codex does not block waiting for human approval.`
+- [x] `Codex runs against the disposable worker workspace, not the host checkout.`
+- [x] `The prompt reads like an implementation ticket for marking todo items as read and adding tests.`
+- [x] `The proof records enough process output for audit even when Codex fails.`
+
+Validation:
+
+- [x] `ruby -Itest test/redwright/codex_proof_container_smoke_test.rb` (pass)
+- [x] `ruby -Itest test/redwright/codex_proof_input_packet_test.rb` (pass)
+- [x] `ruby -Itest test/redwright/codex_proof_harness_test.rb` (pass)
+- [x] `ruby -c scripts/runtime/codex_black_box_proof.rb` (pass)
+- [x] `ruby scripts/runtime/codex_black_box_proof.rb --packet <temp packet> --runs-root <temp runs> --codex-exec` (expected fail: Codex exits with HTTP 401 auth failure after cloning the disposable Codeberg branch and writing prompt/events/stderr/result artifacts)
 
 ### Slice 6: Diff, Commit, Push, And Artifact Return
 
@@ -285,3 +293,4 @@ Validation:
 - `2026-05-12` state=`slice_4_implemented` note=`implemented Codex CLI installation in the proof image, explicit Codex and Codeberg credential preflight, runtime-only credential injection, and structured missing-auth failures on fix/slice-4-codex-proof-auth-preflight`
 - `2026-05-12` state=`slice_4_pr_open` note=`opened Codeberg PR #428 from fix/slice-4-codex-proof-auth-preflight into dev`
 - `2026-05-12` state=`slice_4_merged` note=`PR #428 merged into dev; Slice 4 is closed and Slice 5 is ready to start`
+- `2026-05-12` state=`slice_5_implemented` note=`implemented non-interactive Codex execution inside the proof container with a ticket-like prompt, disposable Codeberg clone, bounded timeout, JSONL/stderr/last-message/status artifacts, and real Docker validation that reached Codex auth with HTTP 401 after cloning`

@@ -3,7 +3,7 @@
 ## Metadata
 
 - cycle_id: `2026-05-12-redwright-codex-black-box-engine-proof`
-- status: `planned`
+- status: `implemented`
 - owner: `adrianpk`
 - created: `2026-05-12`
 - updated: `2026-05-12`
@@ -132,9 +132,9 @@ Execution must follow the slice delivery protocol:
 - branch: `fix/slice-5-codex-proof-exec`
 - objective: `Run Codex non-interactively against the cloned workspace with a bounded ticket-like task prompt for the mark-as-read feature.`
 - tasks:
-- [ ] `T5.1 Build the Codex prompt from the proof input packet and run metadata without prescribing exact file edits.`
-- [ ] `T5.2 Invoke Codex in non-interactive mode inside the runtime boundary.`
-- [ ] `T5.3 Capture Codex events, stdout, stderr, exit status, and timeout state.`
+- [x] `T5.1 Build the Codex prompt from the proof input packet and run metadata without prescribing exact file edits.`
+- [x] `T5.2 Invoke Codex in non-interactive mode inside the runtime boundary.`
+- [x] `T5.3 Capture Codex events, stdout, stderr, exit status, and timeout state.`
 - acceptance:
 - `Codex does not block waiting for human approval.`
 - `Codex runs against the disposable worker workspace, not the host checkout.`
