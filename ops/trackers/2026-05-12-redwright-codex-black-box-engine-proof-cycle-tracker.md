@@ -4,9 +4,9 @@
 
 - cycle_id: `2026-05-12-redwright-codex-black-box-engine-proof`
 - status: `in_progress`
-- state: `slice_3_merged`
+- state: `slice_4_implemented`
 - updated: `2026-05-12`
-- active_slice: `none`
+- active_slice: `Slice 4`
 - active_task: `none`
 - source_plan: `ops/plans/2026-05-12-redwright-codex-black-box-engine-proof-cycle-plan.md`
 - source_ticket: `ops/tickets/open/20260511182745-prove-codex-resolves-a-cloned-repo-task-inside-docker.md`
@@ -120,28 +120,31 @@ Validation:
 
 ### Slice 4: Codex And Remote Credential Boundary
 
-- status: `planned`
+- status: `implemented`
 - branch: `fix/slice-4-codex-proof-auth-preflight`
 - PR: `pending`
 - merge_target: `dev`
-- last_sync_commit: `pending`
+- last_sync_commit: `0963d4b`
 
 Tasks:
 
-- [ ] `T4.1 Add a Codex availability preflight inside the worker.`
-- [ ] `T4.2 Inject only the required Codex and Codeberg push credential environment variables at container startup.`
-- [ ] `T4.3 Fail clearly when Codex, Codex authentication, or remote push authentication is unavailable.`
+- [x] `T4.1 Add a Codex availability preflight inside the worker.`
+- [x] `T4.2 Inject only the required Codex and Codeberg push credential environment variables at container startup.`
+- [x] `T4.3 Fail clearly when Codex, Codex authentication, or remote push authentication is unavailable.`
 
 Commits:
 
-- [ ] `pending feat(runtime): preflight codex proof credentials`
-- [ ] `pending test(runtime): cover codex and remote auth failures`
+- [x] `0963d4b feat(runtime): preflight codex proof credentials`
 
 Validation:
 
-- [ ] `Codex availability is checked before attempting the task.`
-- [ ] `No credential value is written into generated files, images, committed artifacts, pushed commits, or result logs.`
-- [ ] `Missing Codex authentication and missing remote push authentication return distinct structured failure results.`
+- [x] `ruby -Itest test/redwright/codex_proof_container_smoke_test.rb` (pass)
+- [x] `ruby -c scripts/runtime/codex_black_box_proof.rb` (pass)
+- [x] `ruby scripts/runtime/codex_black_box_proof.rb --packet <temp packet> --runs-root <temp runs> --preflight` (expected fail, structured result)
+- [x] `cat <temp run>/output/preflight-result.json` (pass: `codex_auth_missing`, `codeberg_push_auth_missing`, `codex_version: codex-cli 0.130.0`)
+- [x] `Codex availability is checked before attempting the task.`
+- [x] `No credential value is written into generated files, images, committed artifacts, pushed commits, or result logs.`
+- [x] `Missing Codex authentication and missing remote push authentication return distinct structured failure results.`
 
 ### Slice 5: Non-Interactive Codex Task Execution
 
@@ -279,3 +282,4 @@ Validation:
 - `2026-05-12` state=`slice_3_pr_blocked_rate_limit` note=`retried PR creation after proof repository validation, but Codeberg still rejected the canonical PR title because similarly named PRs were created within the last hour`
 - `2026-05-12` state=`slice_3_pr_open` note=`opened Codeberg PR #427 from fix/slice-3-codex-proof-repo-clone into dev`
 - `2026-05-12` state=`slice_3_merged` note=`PR #427 merged into dev; Slice 3 is closed and Slice 4 is ready to start`
+- `2026-05-12` state=`slice_4_implemented` note=`implemented Codex CLI installation in the proof image, explicit Codex and Codeberg credential preflight, runtime-only credential injection, and structured missing-auth failures on fix/slice-4-codex-proof-auth-preflight`

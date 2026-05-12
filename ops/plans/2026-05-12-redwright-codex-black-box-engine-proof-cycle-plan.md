@@ -111,7 +111,7 @@ Execution must follow the slice delivery protocol:
 
 ### Slice 4: Codex And Remote Credential Boundary
 
-- status: `planned`
+- status: `implemented`
 - branch: `fix/slice-4-codex-proof-auth-preflight`
 - objective: `Verify Codex can be invoked inside the runtime and that Codex plus Codeberg push credentials are supplied only through explicit runtime injection.`
 - tasks:
@@ -124,7 +124,6 @@ Execution must follow the slice delivery protocol:
 - `Missing Codex authentication and missing remote push authentication return distinct structured failure results.`
 - planned_commits:
 - `feat(runtime): preflight codex proof credentials`
-- `test(runtime): cover codex and remote auth failures`
 
 ### Slice 5: Non-Interactive Codex Task Execution
 
