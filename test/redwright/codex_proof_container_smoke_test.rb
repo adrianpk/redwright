@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 require "minitest/autorun"
+require "json"
+require "tmpdir"
 
 $LOAD_PATH.unshift(File.expand_path("../../lib", __dir__))
 require "redwright/codex_proof/container_smoke"
@@ -193,5 +195,115 @@ class CodexProofContainerSmokeTest < Minitest::Test
     assert_equal("preflight_failed", result.fetch("status"))
     assert_equal("missing auth", result.fetch("stderr"))
     assert_equal(1, result.fetch("exit_status"))
+  end
+
+  def test_codex_prompt_is_ticket_like_without_file_edit_instructions
+    Dir.mktmpdir("codex-proof-test-") do |dir|
+      packet_path = File.join(dir, "packet.json")
+      File.write(packet_path, JSON.generate(valid_packet))
+
+      prompt = Redwright::CodexProof::ContainerSmoke.new(
+        dockerfile: "Dockerfile",
+        context_dir: "."
+      ).codex_prompt(packet_path)
+
+      assert_includes(prompt, "normal implementation ticket")
+      assert_includes(prompt, "mark-as-read")
+      assert_includes(prompt, "go test ./...")
+      assert_includes(prompt, "Do not commit, push")
+      refute_includes(prompt, "main.go")
+      refute_includes(prompt, "edit this file")
+    end
+  end
+
+  def test_execute_codex_task_clones_repository_and_captures_artifacts
+    Dir.mktmpdir("codex-proof-test-") do |dir|
+      output = File.join(dir, "output")
+      workspace = File.join(dir, "workspace")
+      packet_path = File.join(dir, "packet.json")
+      File.write(packet_path, JSON.generate(valid_packet))
+
+      calls = []
+      runner = lambda do |*args|
+        calls << args
+        ["", "", FakeStatus.new(0)]
+      end
+
+      result = Redwright::CodexProof::ContainerSmoke.new(
+        dockerfile: "Dockerfile",
+        context_dir: ".",
+        image_name: "proof:test",
+        command_runner: runner
+      ).execute_codex_task(
+        input_packet: packet_path,
+        output_directory: output,
+        workspace_directory: workspace,
+        env: { "CODEX_API_KEY" => "codex-secret" },
+        timeout_seconds: 30
+      )
+
+      assert_equal("codex_executed", result.fetch("status"))
+      assert_equal(File.join(output, "codex-prompt.txt"), result.fetch("codex_prompt"))
+      assert_equal(File.join(output, "codex-events.jsonl"), result.fetch("codex_events"))
+      assert_equal(File.join(output, "codex-stderr.log"), result.fetch("codex_stderr"))
+      assert_equal(File.join(workspace, "repo"), result.fetch("workspace_path"))
+      assert(File.exist?(result.fetch("codex_prompt")))
+
+      args = calls.fetch(0)
+      assert_includes(args, "#{packet_path}:/redwright/input/packet.json:ro")
+      assert_includes(args, "#{output}:/redwright/output:rw")
+      assert_includes(args, "#{workspace}:/redwright/workspace:rw")
+      assert_includes(args, "CODEX_API_KEY=codex-secret")
+      assert_includes(args.last, "git clone")
+      assert_includes(args.last, "codex exec --json --color never --sandbox workspace-write")
+      assert_includes(args.last, "--output-last-message /redwright/output/codex-last-message.txt")
+      assert_includes(args.last, "codex-execution-result.json")
+      assert_includes(args.last, "timeout_seconds=30")
+      assert_includes(args.last, "timeout \"${timeout_seconds}s\"")
+    end
+  end
+
+  def test_execute_codex_task_reports_failure_and_timeout_state
+    Dir.mktmpdir("codex-proof-test-") do |dir|
+      output = File.join(dir, "output")
+      workspace = File.join(dir, "workspace")
+      packet_path = File.join(dir, "packet.json")
+      File.write(packet_path, JSON.generate(valid_packet))
+
+      runner = ->(*_args) { ["", "codex failed", FakeStatus.new(124)] }
+
+      result = Redwright::CodexProof::ContainerSmoke.new(
+        dockerfile: "Dockerfile",
+        context_dir: ".",
+        command_runner: runner
+      ).execute_codex_task(
+        input_packet: packet_path,
+        output_directory: output,
+        workspace_directory: workspace
+      )
+
+      assert_equal("codex_execution_failed", result.fetch("status"))
+      assert_equal("codex failed", result.fetch("stderr"))
+      assert_equal(124, result.fetch("exit_status"))
+      assert_equal(true, result.fetch("timed_out"))
+    end
+  end
+
+  private
+
+  def valid_packet
+    {
+      "schema_version" => 1,
+      "repository_url" => "https://codeberg.org/adrianpk/go-todo-agent-proof.git",
+      "result_branch" => "redwright/codex-proof/test-run",
+      "task_prompt" => "Add a mark-as-read feature to the Go todo CLI so a user can mark an existing todo item as read, and cover the behavior with tests.",
+      "validation_command" => "go test ./...",
+      "output_directory" => "output",
+      "remote_push_policy" => {
+        "enabled" => true,
+        "remote" => "origin",
+        "branch" => "redwright/codex-proof/test-run"
+      }
+    }
   end
 end
