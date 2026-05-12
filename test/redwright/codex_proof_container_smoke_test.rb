@@ -95,4 +95,57 @@ class CodexProofContainerSmokeTest < Minitest::Test
     assert_equal("run failed", result.fetch("stderr"))
     assert_equal(125, result.fetch("exit_status"))
   end
+
+  def test_clone_repository_mounts_workspace_and_writes_metadata
+    calls = []
+    runner = lambda do |*args|
+      calls << args
+      ["clone ok", "", FakeStatus.new(0)]
+    end
+
+    result = Redwright::CodexProof::ContainerSmoke.new(
+      dockerfile: "Dockerfile",
+      context_dir: ".",
+      image_name: "proof:test",
+      command_runner: runner
+    ).clone_repository(
+      input_packet: "/tmp/packet.json",
+      output_directory: "/tmp/output",
+      workspace_directory: "/tmp/workspace",
+      env: { "RW_PROOF_MODE" => "clone" }
+    )
+
+    assert_equal("repository_cloned", result.fetch("status"))
+    assert_equal("/tmp/output/clone-result.json", result.fetch("clone_result"))
+    assert_equal("/tmp/workspace/repo", result.fetch("workspace_path"))
+
+    args = calls.fetch(0)
+    assert_equal("docker", args.fetch(0))
+    assert_includes(args, "run")
+    assert_includes(args, "/tmp/packet.json:/redwright/input/packet.json:ro")
+    assert_includes(args, "/tmp/output:/redwright/output:rw")
+    assert_includes(args, "/tmp/workspace:/redwright/workspace:rw")
+    assert_includes(args, "RW_PROOF_MODE=clone")
+    assert_includes(args.last, "git clone")
+    assert_includes(args.last, "git checkout -B")
+    assert_includes(args.last, "clone-result.json")
+  end
+
+  def test_clone_repository_reports_failure
+    runner = ->(*_args) { ["", "clone failed", FakeStatus.new(128)] }
+
+    result = Redwright::CodexProof::ContainerSmoke.new(
+      dockerfile: "Dockerfile",
+      context_dir: ".",
+      command_runner: runner
+    ).clone_repository(
+      input_packet: "/tmp/packet.json",
+      output_directory: "/tmp/output",
+      workspace_directory: "/tmp/workspace"
+    )
+
+    assert_equal("repository_clone_failed", result.fetch("status"))
+    assert_equal("clone failed", result.fetch("stderr"))
+    assert_equal(128, result.fetch("exit_status"))
+  end
 end

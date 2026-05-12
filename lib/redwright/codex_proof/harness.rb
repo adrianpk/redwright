@@ -31,6 +31,7 @@ module Redwright
         FileUtils.mkdir_p(runs_root)
         FileUtils.mkdir_p(input_dir)
         FileUtils.mkdir_p(output_dir)
+        FileUtils.mkdir_p(workspace_dir)
 
         File.write(packet_path, JSON.pretty_generate(run_packet) + "\n")
 
@@ -39,17 +40,26 @@ module Redwright
           "run_id" => run_id,
           "run_directory" => run_dir,
           "input_packet" => packet_path,
-          "output_directory" => output_dir
+          "output_directory" => output_dir,
+          "workspace_directory" => workspace_dir
         }
       end
 
       private
 
       def run_packet
+        result_branch = packet.to_h.fetch("result_branch").gsub("{run_id}", run_id)
+        remote_push_policy = packet.to_h.fetch("remote_push_policy").merge(
+          "branch" => packet.to_h.dig("remote_push_policy", "branch").to_s.gsub("{run_id}", run_id)
+        )
+
         packet.to_h.merge(
           "run_id" => run_id,
+          "result_branch" => result_branch,
+          "remote_push_policy" => remote_push_policy,
           "run_directory" => run_dir,
-          "output_directory" => output_dir
+          "output_directory" => output_dir,
+          "workspace_directory" => workspace_dir
         )
       end
 
@@ -74,6 +84,10 @@ module Redwright
             File.expand_path(requested, run_dir)
           end
         end
+      end
+
+      def workspace_dir
+        File.join(run_dir, "workspace")
       end
 
       def packet_path

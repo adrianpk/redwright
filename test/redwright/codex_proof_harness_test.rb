@@ -37,6 +37,28 @@ class CodexProofHarnessTest < Minitest::Test
     end
   end
 
+  def test_prepare_expands_run_id_in_result_branch
+    Dir.mktmpdir("codex-proof-harness-") do |dir|
+      packet_data = valid_packet("output")
+      packet_data["result_branch"] = "redwright/codex-proof/{run_id}"
+      packet_data["remote_push_policy"]["branch"] = "redwright/codex-proof/{run_id}"
+      packet = Redwright::CodexProof::InputPacket.new(packet_data)
+      clock = FixedClock.new(Time.utc(2026, 5, 12, 10, 30, 0))
+      harness = Redwright::CodexProof::Harness.new(
+        packet: packet,
+        runs_root: dir,
+        clock: clock,
+        id_generator: -> { "abcd1234" }
+      )
+
+      result = harness.prepare
+      normalized = JSON.parse(File.read(result.fetch("input_packet")))
+
+      assert_equal("redwright/codex-proof/codex-proof-20260512103000-abcd1234", normalized.fetch("result_branch"))
+      assert_equal("redwright/codex-proof/codex-proof-20260512103000-abcd1234", normalized.dig("remote_push_policy", "branch"))
+    end
+  end
+
   def test_prepare_returns_invalid_input_without_creating_run
     Dir.mktmpdir("codex-proof-harness-") do |dir|
       packet = Redwright::CodexProof::InputPacket.new({})
