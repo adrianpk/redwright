@@ -251,9 +251,9 @@ Validation:
 
 ### Slice 8: Proof Report And Readiness Decision
 
-- status: `implemented`
+- status: `pr_open`
 - branch: `fix/slice-8-codex-proof-report`
-- PR: `pending`
+- PR: `#432`
 - merge_target: `dev`
 - last_sync_commit: `pending`
 
@@ -325,3 +325,4 @@ Validation:
 - `2026-05-12` state=`slice_7_pr_open` note=`opened Codeberg PR #431 from fix/slice-7-codex-proof-validation into dev`
 - `2026-05-12` state=`slice_7_merged` note=`PR #431 merged into dev; Slice 7 is closed and Slice 8 is ready to start`
 - `2026-05-12` state=`slice_8_implemented` note=`published the Codex black box engine proof report with decision viable_with_constraints, blocker codex_auth_failed, evidence for the runtime boundary and artifact contract, and a four-slice authenticated execution follow-up series`
+- `2026-05-12` state=`slice_8_pr_open` note=`opened Codeberg PR #432 from fix/slice-8-codex-proof-report into dev`

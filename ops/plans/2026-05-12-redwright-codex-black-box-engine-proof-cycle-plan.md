@@ -166,7 +166,7 @@ Execution must follow the slice delivery protocol:
 
 ### Slice 7: Validation Command And Result Envelope
 
-- status: `implemented`
+- status: `pr_open`
 - branch: `fix/slice-7-codex-proof-validation`
 - objective: `Run the declared validation command and produce the common result envelope needed by RedWright orchestration.`
 - tasks:
