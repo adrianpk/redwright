@@ -189,6 +189,8 @@ module Redwright
           git clone "$repo_url" /redwright/workspace/repo
           cd /redwright/workspace/repo
           git checkout -B "$branch"
+          : > /redwright/output/git-commit.log
+          : > /redwright/output/git-push.log
           set +e
           timeout "${timeout_seconds}s" codex exec --json --color never --sandbox workspace-write -C /redwright/workspace/repo --output-last-message /redwright/output/codex-last-message.txt - < /redwright/output/codex-prompt.txt > /redwright/output/codex-events.jsonl 2> /redwright/output/codex-stderr.log
           codex_status=$?
@@ -198,8 +200,55 @@ module Redwright
             timed_out=true
           fi
           git status --short --branch > /redwright/output/post-codex-status.txt || true
-          node -e 'const fs = require("fs"); const status = Number(process.argv[1]); console.log(JSON.stringify({status: status === 0 ? "codex_executed" : "codex_execution_failed", codex_exit_status: status, timed_out: process.argv[2] === "true", prompt_path: "/redwright/output/codex-prompt.txt", events_path: "/redwright/output/codex-events.jsonl", stderr_path: "/redwright/output/codex-stderr.log", last_message_path: "/redwright/output/codex-last-message.txt", post_status_path: "/redwright/output/post-codex-status.txt", workspace_path: "/redwright/workspace/repo"}, null, 2))' "$codex_status" "$timed_out" > /redwright/output/codex-execution-result.json
-          exit "$codex_status"
+          git add -N . >/dev/null 2>&1 || true
+          git status --short | sed 's/^...//' | sort -u > /redwright/output/changed-files.txt
+          git diff --binary HEAD > /redwright/output/git-diff.patch || true
+          has_diff=false
+          if [ -s /redwright/output/changed-files.txt ]; then
+            has_diff=true
+          fi
+          final_status=codex_executed
+          commit_sha=''
+          push_status=not_attempted
+          push_exit_status=''
+          if [ "$codex_status" -ne 0 ]; then
+            final_status=codex_execution_failed
+          elif [ "$has_diff" != true ]; then
+            final_status=codex_no_diff
+          else
+            git config user.name "RedWright Codex Proof"
+            git config user.email "redwright-codex-proof@example.invalid"
+            git add -A
+            git commit -m "feat: implement mark as read proof task" > /redwright/output/git-commit.log 2>&1
+            commit_sha=$(git rev-parse HEAD)
+            git rev-parse HEAD > /redwright/output/result-commit.txt
+            if [ -n "${CODEBERG_PUSH_TOKEN:-}" ]; then
+              remote_url="$repo_url"
+              if printf '%s' "$repo_url" | grep -q '^https://codeberg.org/'; then
+                remote_url=$(printf '%s' "$repo_url" | sed "s#^https://#https://${CODEBERG_PUSH_USER:-adrianpk}:${CODEBERG_PUSH_TOKEN}@#")
+              fi
+              set +e
+              git push "$remote_url" "HEAD:$branch" > /redwright/output/git-push.log 2>&1
+              push_exit_status=$?
+              set -e
+              if [ "$push_exit_status" -eq 0 ]; then
+                push_status=pushed
+                final_status=codex_result_pushed
+              else
+                push_status=failed
+                final_status=codex_push_failed
+              fi
+            else
+              push_status=auth_missing
+              final_status=codex_push_failed
+              printf 'CODEBERG_PUSH_TOKEN is required to push the result branch.\n' > /redwright/output/git-push.log
+            fi
+          fi
+          node -e 'const fs = require("fs"); const changedPath = "/redwright/output/changed-files.txt"; const changed = fs.existsSync(changedPath) ? fs.readFileSync(changedPath, "utf8").trim().split(/\\n/).filter(Boolean) : []; console.log(JSON.stringify({status: process.argv[1], codex_exit_status: Number(process.argv[2]), timed_out: process.argv[3] === "true", has_diff: process.argv[4] === "true", changed_files: changed, commit_sha: process.argv[5], push_status: process.argv[6], push_exit_status: process.argv[7] === "" ? null : Number(process.argv[7]), prompt_path: "/redwright/output/codex-prompt.txt", events_path: "/redwright/output/codex-events.jsonl", stderr_path: "/redwright/output/codex-stderr.log", last_message_path: "/redwright/output/codex-last-message.txt", post_status_path: "/redwright/output/post-codex-status.txt", changed_files_path: "/redwright/output/changed-files.txt", diff_path: "/redwright/output/git-diff.patch", commit_log_path: "/redwright/output/git-commit.log", push_log_path: "/redwright/output/git-push.log", workspace_path: "/redwright/workspace/repo"}, null, 2))' "$final_status" "$codex_status" "$timed_out" "$has_diff" "$commit_sha" "$push_status" "$push_exit_status" > /redwright/output/codex-execution-result.json
+          if [ "$final_status" = codex_result_pushed ] || [ "$final_status" = codex_no_diff ]; then
+            exit 0
+          fi
+          exit 1
         SH
 
         args = [
@@ -222,21 +271,47 @@ module Redwright
 
         stdout, stderr, status = command_runner.call(*args)
 
+        execution_result = codex_execution_result(output_directory)
+
         {
-          "status" => status.success? ? "codex_executed" : "codex_execution_failed",
+          "status" => execution_result.fetch("status") { status.success? ? "codex_executed" : "codex_execution_failed" },
           "image_name" => image_name,
           "stdout" => stdout,
           "stderr" => stderr,
           "exit_status" => status.exitstatus,
-          "timed_out" => status.exitstatus == 124,
+          "timed_out" => execution_result.fetch("timed_out", status.exitstatus == 124),
           "codex_prompt" => prompt_path,
           "codex_events" => File.join(File.expand_path(output_directory), "codex-events.jsonl"),
           "codex_stderr" => File.join(File.expand_path(output_directory), "codex-stderr.log"),
           "codex_last_message" => File.join(File.expand_path(output_directory), "codex-last-message.txt"),
           "codex_execution_result" => File.join(File.expand_path(output_directory), "codex-execution-result.json"),
           "post_codex_status" => File.join(File.expand_path(output_directory), "post-codex-status.txt"),
+          "changed_files" => File.join(File.expand_path(output_directory), "changed-files.txt"),
+          "git_diff" => File.join(File.expand_path(output_directory), "git-diff.patch"),
+          "git_commit_log" => File.join(File.expand_path(output_directory), "git-commit.log"),
+          "git_push_log" => File.join(File.expand_path(output_directory), "git-push.log"),
           "workspace_path" => File.join(File.expand_path(workspace_directory), "repo")
         }
+      end
+
+      def codex_execution_status(output_directory, process_status)
+        result = codex_execution_result(output_directory)
+        if result.key?("status")
+          result.fetch("status")
+        elsif process_status.success?
+          "codex_executed"
+        else
+          "codex_execution_failed"
+        end
+      end
+
+      def codex_execution_result(output_directory)
+        result_path = File.join(output_directory, "codex-execution-result.json")
+        return {} unless File.exist?(result_path)
+
+        JSON.parse(File.read(result_path))
+      rescue JSON::ParserError
+        {}
       end
 
       def codex_prompt(input_packet)

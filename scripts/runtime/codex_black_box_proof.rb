@@ -83,7 +83,9 @@ if result.fetch("status") == "prepared" && (options.fetch(:smoke) || options.fet
   if build_result.fetch("status") == "built" && options.fetch(:codex_exec)
     runtime_env = {
       "CODEX_API_KEY" => ENV.fetch("CODEX_API_KEY", ""),
-      "OPENAI_API_KEY" => ENV.fetch("OPENAI_API_KEY", "")
+      "OPENAI_API_KEY" => ENV.fetch("OPENAI_API_KEY", ""),
+      "CODEBERG_PUSH_TOKEN" => ENV.fetch("CODEBERG_PUSH_TOKEN", ""),
+      "CODEBERG_PUSH_USER" => ENV.fetch("CODEBERG_PUSH_USER", "")
     }.reject { |_key, value| value.to_s.empty? }
     run_result = smoke.execute_codex_task(
       input_packet: result.fetch("input_packet"),
@@ -102,7 +104,7 @@ end
 puts(JSON.pretty_generate(result))
 container_run = result["container_run"]
 if container_run
-  successful_statuses = %w[container_started repository_cloned preflight_passed codex_executed]
+  successful_statuses = %w[container_started repository_cloned preflight_passed codex_executed codex_no_diff codex_result_pushed]
   exit(successful_statuses.include?(container_run.fetch("status")) ? 0 : 2)
 end
 
