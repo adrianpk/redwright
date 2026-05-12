@@ -14,7 +14,7 @@ started_at:
 reviewed_at:
 closed_at:
 resolution:
-owner: 
+owner:
 branch:
 pr:
 commits: []
