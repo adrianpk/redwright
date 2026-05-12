@@ -4,9 +4,9 @@
 
 - cycle_id: `2026-05-12-redwright-codex-black-box-engine-proof`
 - status: `in_progress`
-- state: `slice_2_merged`
+- state: `slice_3_implemented_with_external_blocker`
 - updated: `2026-05-12`
-- active_slice: `none`
+- active_slice: `Slice 3`
 - active_task: `none`
 - source_plan: `ops/plans/2026-05-12-redwright-codex-black-box-engine-proof-cycle-plan.md`
 - source_ticket: `ops/tickets/open/20260511182745-prove-codex-resolves-a-cloned-repo-task-inside-docker.md`
@@ -79,32 +79,38 @@ Validation:
 
 ### Slice 3: Codeberg Repository Clone
 
-- status: `planned`
+- status: `implemented_with_external_blocker`
 - branch: `fix/slice-3-codex-proof-repo-clone`
 - PR: `pending`
 - merge_target: `dev`
-- last_sync_commit: `pending`
+- last_sync_commit: `9a9178b`
 
 Tasks:
 
-- [ ] `T3.1 Add Codeberg repository clone logic inside the proof worker.`
-- [ ] `T3.2 Create a run-scoped branch or equivalent isolated working state.`
-- [ ] `T3.3 Capture clone metadata, checked-out revision, and workspace path in the result artifact.`
-- [ ] `T3.4 Ensure the proof repository README explains that the repository is a RedWright Codex black-box proof fixture and identifies where RedWright uses it.`
-- [ ] `T3.5 Define the remote reset policy: default branch remains the clean fixture, every proof run uses a run-scoped branch, and reset means deleting or replacing only the run branch.`
+- [x] `T3.1 Add Codeberg repository clone logic inside the proof worker.`
+- [x] `T3.2 Create a run-scoped branch or equivalent isolated working state.`
+- [x] `T3.3 Capture clone metadata, checked-out revision, and workspace path in the result artifact.`
+- [x] `T3.4 Ensure the proof repository README explains that the repository is a RedWright Codex black-box proof fixture and identifies where RedWright uses it.`
+- [x] `T3.5 Define the remote reset policy: default branch remains the clean fixture, every proof run uses a run-scoped branch, and reset means deleting or replacing only the run branch.`
 
 Commits:
 
-- [ ] `pending feat(runtime): clone proof codeberg repository inside worker`
-- [ ] `pending test(runtime): cover proof clone failure result`
+- [x] `e87dddb feat(runtime): clone codex proof repository`
+- [x] `0661ac8 docs(runtime): document codex proof fixture repo`
+- [x] `9a9178b fix(runtime): support container clone proof fixtures`
 
 Validation:
 
-- [ ] `The worker does not mutate the host's canonical project checkout or the local seed repository.`
-- [ ] `The cloned workspace is correlated with the proof run id.`
-- [ ] `Clone failures return a structured failure result.`
-- [ ] `The selected Codeberg repository has a README that states its proof-fixture purpose and RedWright usage context.`
-- [ ] `The proof cannot spoil the clean fixture branch because work is isolated to a run-scoped branch.`
+- [x] `ruby -Itest test/redwright/codex_proof_harness_test.rb` (pass)
+- [x] `ruby -Itest test/redwright/codex_proof_container_smoke_test.rb` (pass)
+- [x] `ruby -c scripts/runtime/codex_black_box_proof.rb` (pass)
+- [x] `container clone proof against temporary mounted bare repository` (pass)
+- [x] `The worker does not mutate the host's canonical project checkout or the local seed repository.`
+- [x] `The cloned workspace is correlated with the proof run id.`
+- [x] `Clone failures return a structured failure result.`
+- [x] `The fixture README template states the proof-fixture purpose and RedWright usage context.`
+- [x] `The proof cannot spoil the clean fixture branch because work is isolated to a run-scoped branch.`
+- [ ] `Create or verify real Codeberg repository go-todo-agent-proof` (blocked: `tea repos create` requires missing token scope `write:user`)
 
 ### Slice 4: Codex And Remote Credential Boundary
 
@@ -258,3 +264,4 @@ Validation:
 - `2026-05-12` state=`slice_2_implemented` note=`implemented Docker build/run smoke behavior, runtime-only packet and environment passing, host-inspectable smoke artifact capture, and targeted plus real Docker smoke validation on fix/slice-2-codex-proof-container-smoke`
 - `2026-05-12` state=`slice_2_pr_open` note=`opened Codeberg PR #426 from fix/slice-2-codex-proof-container-smoke into dev`
 - `2026-05-12` state=`slice_2_merged` note=`PR #426 merged into dev; Slice 2 is closed and Slice 3 is ready to start`
+- `2026-05-12` state=`slice_3_implemented_with_external_blocker` note=`implemented container-side clone, run-scoped branch expansion, clone metadata capture, fixture README template, and reset policy; real Codeberg proof repository creation is blocked because the configured tea token lacks write:user/write:organization scopes`

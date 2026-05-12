@@ -84,7 +84,7 @@ Execution must follow the slice delivery protocol:
 
 ### Slice 3: Codeberg Repository Clone
 
-- status: `planned`
+- status: `implemented_with_external_blocker`
 - branch: `fix/slice-3-codex-proof-repo-clone`
 - objective: `Make the worker clone the existing Codeberg Go todo repository into its own disposable workspace inside the run boundary.`
 - tasks:
@@ -100,8 +100,9 @@ Execution must follow the slice delivery protocol:
 - `The selected Codeberg repository has a README that states its proof-fixture purpose and RedWright usage context.`
 - `The proof cannot spoil the clean fixture branch because work is isolated to a run-scoped branch.`
 - planned_commits:
-- `feat(runtime): clone proof codeberg repository inside worker`
-- `test(runtime): cover proof clone failure result`
+- `feat(runtime): clone codex proof repository`
+- `fix(runtime): support container clone proof fixtures`
+- `docs(runtime): document codex proof fixture repo`
 
 ### Slice 4: Codex And Remote Credential Boundary
 
