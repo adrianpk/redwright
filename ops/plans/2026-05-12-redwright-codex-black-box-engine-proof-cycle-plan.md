@@ -128,7 +128,7 @@ Execution must follow the slice delivery protocol:
 
 ### Slice 5: Non-Interactive Codex Task Execution
 
-- status: `implemented`
+- status: `pr_open`
 - branch: `fix/slice-5-codex-proof-exec`
 - objective: `Run Codex non-interactively against the cloned workspace with a bounded ticket-like task prompt for the mark-as-read feature.`
 - tasks:

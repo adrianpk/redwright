@@ -218,9 +218,9 @@ Validation:
 
 ### Slice 7: Validation Command And Result Envelope
 
-- status: `implemented`
+- status: `pr_open`
 - branch: `fix/slice-7-codex-proof-validation`
-- PR: `pending`
+- PR: `#431`
 - merge_target: `dev`
 - last_sync_commit: `a5e7e94`
 
@@ -317,3 +317,4 @@ Validation:
 - `2026-05-12` state=`slice_6_pr_open` note=`opened Codeberg PR #430 from fix/slice-6-codex-proof-diff-artifacts into dev`
 - `2026-05-12` state=`slice_6_merged` note=`PR #430 merged into dev; Slice 6 is closed and Slice 7 is ready to start`
 - `2026-05-12` state=`slice_7_implemented` note=`implemented validation command capture and a host-readable Codex result envelope with backend, status, summary, changed files, diff path, validation result, pushed branch, and raw event paths; real Docker validation classifies the current missing auth path as codex_auth_failed`
+- `2026-05-12` state=`slice_7_pr_open` note=`opened Codeberg PR #431 from fix/slice-7-codex-proof-validation into dev`
