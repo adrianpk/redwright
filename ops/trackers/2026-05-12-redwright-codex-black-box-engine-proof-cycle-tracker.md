@@ -4,9 +4,9 @@
 
 - cycle_id: `2026-05-12-redwright-codex-black-box-engine-proof`
 - status: `in_progress`
-- state: `slice_1_merged`
+- state: `slice_2_implemented`
 - updated: `2026-05-12`
-- active_slice: `none`
+- active_slice: `Slice 2`
 - active_task: `none`
 - source_plan: `ops/plans/2026-05-12-redwright-codex-black-box-engine-proof-cycle-plan.md`
 - source_ticket: `ops/tickets/open/20260511182745-prove-codex-resolves-a-cloned-repo-task-inside-docker.md`
@@ -50,28 +50,32 @@ Validation:
 
 ### Slice 2: Container Runtime Smoke Test
 
-- status: `planned`
+- status: `implemented`
 - branch: `fix/slice-2-codex-proof-container-smoke`
 - PR: `pending`
 - merge_target: `dev`
-- last_sync_commit: `pending`
+- last_sync_commit: `ad0f5f8`
 
 Tasks:
 
-- [ ] `T2.1 Build or start the proof Docker runtime from the handcrafted setup.`
-- [ ] `T2.2 Pass the proof input packet and runtime-only environment variables into the container without baking them into the image.`
-- [ ] `T2.3 Write a structured smoke result artifact from inside the container.`
+- [x] `T2.1 Build or start the proof Docker runtime from the handcrafted setup.`
+- [x] `T2.2 Pass the proof input packet and runtime-only environment variables into the container without baking them into the image.`
+- [x] `T2.3 Write a structured smoke result artifact from inside the container.`
 
 Commits:
 
-- [ ] `pending feat(runtime): run codex proof container smoke test`
-- [ ] `pending test(runtime): cover proof container artifact capture`
+- [x] `df3eb86 feat(runtime): build codex proof container`
+- [x] `a4b522a feat(runtime): run codex proof smoke container`
+- [x] `ad0f5f8 feat(runtime): capture codex proof smoke artifact`
 
 Validation:
 
-- [ ] `The container starts successfully for the selected stack.`
-- [ ] `The container can read the mounted or copied input packet.`
-- [ ] `The host can inspect a structured output artifact after the container exits.`
+- [x] `ruby -Itest test/redwright/codex_proof_container_smoke_test.rb` (pass)
+- [x] `ruby scripts/runtime/codex_black_box_proof.rb --packet <temp packet> --runs-root <temp runs> --smoke` (pass)
+- [x] `cat <temp run>/output/smoke-result.json` (pass)
+- [x] `The container starts successfully for the selected stack.`
+- [x] `The container can read the mounted or copied input packet.`
+- [x] `The host can inspect a structured output artifact after the container exits.`
 
 ### Slice 3: Codeberg Repository Clone
 
@@ -249,3 +253,4 @@ Validation:
 - `2026-05-12` state=`slice_1_pr_open` note=`opened Codeberg PR #425 from fix/slice-1-codex-proof-harness into dev`
 - `2026-05-12` state=`slice_1_merged` note=`PR #425 merged into dev; Slice 1 is closed and Slice 2 is ready to start`
 - `2026-05-12` state=`readme_requirement_added` note=`recorded that the selected Codeberg Go todo proof repository must explain in its README that it is a RedWright Codex black-box proof fixture and where RedWright uses it`
+- `2026-05-12` state=`slice_2_implemented` note=`implemented Docker build/run smoke behavior, runtime-only packet and environment passing, host-inspectable smoke artifact capture, and targeted plus real Docker smoke validation on fix/slice-2-codex-proof-container-smoke`

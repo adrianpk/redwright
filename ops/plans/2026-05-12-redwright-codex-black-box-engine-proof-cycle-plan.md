@@ -65,7 +65,7 @@ Execution must follow the slice delivery protocol:
 
 ### Slice 2: Container Runtime Smoke Test
 
-- status: `planned`
+- status: `implemented`
 - branch: `fix/slice-2-codex-proof-container-smoke`
 - objective: `Prove that the handcrafted runtime can start, receive explicit input, and write host-inspectable output.`
 - tasks:
@@ -77,8 +77,9 @@ Execution must follow the slice delivery protocol:
 - `The container can read the mounted or copied input packet.`
 - `The host can inspect a structured output artifact after the container exits.`
 - planned_commits:
-- `feat(runtime): run codex proof container smoke test`
-- `test(runtime): cover proof container artifact capture`
+- `feat(runtime): build codex proof container`
+- `feat(runtime): run codex proof smoke container`
+- `feat(runtime): capture codex proof smoke artifact`
 
 ### Slice 3: Codeberg Repository Clone
 
