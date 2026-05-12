@@ -218,28 +218,36 @@ Validation:
 
 ### Slice 7: Validation Command And Result Envelope
 
-- status: `planned`
+- status: `implemented`
 - branch: `fix/slice-7-codex-proof-validation`
 - PR: `pending`
 - merge_target: `dev`
-- last_sync_commit: `pending`
+- last_sync_commit: `a5e7e94`
 
 Tasks:
 
-- [ ] `T7.1 Run the proof validation command inside the worker workspace after Codex completes.`
-- [ ] `T7.2 Capture validation stdout, stderr, exit status, and timeout state.`
-- [ ] `T7.3 Emit a structured result envelope with status, summary, changed files, diff path, validation, pushed branch, raw events, and backend name.`
+- [x] `T7.1 Run the proof validation command inside the worker workspace after Codex completes.`
+- [x] `T7.2 Capture validation stdout, stderr, exit status, and timeout state.`
+- [x] `T7.3 Emit a structured result envelope with status, summary, changed files, diff path, validation, pushed branch, raw events, and backend name.`
 
 Commits:
 
-- [ ] `pending feat(runtime): add codex proof result envelope`
-- [ ] `pending test(runtime): cover codex proof validation outcomes`
+- [x] `ce557ab feat(runtime): add codex proof result envelope`
+- [x] `a5e7e94 test(runtime): cover codex proof validation outcomes`
 
 Validation:
 
-- [ ] `Validation pass, validation failure, execution failure, authentication failure, push failure, and no-diff outcomes are distinguishable.`
-- [ ] `The result envelope is close enough to the proposed backend contract to evaluate interchangeability.`
-- [ ] `RedWright host-side code remains responsible for interpreting the result.`
+- [x] `Validation pass, validation failure, execution failure, authentication failure, push failure, and no-diff outcomes are distinguishable.`
+- [x] `The result envelope is close enough to the proposed backend contract to evaluate interchangeability.`
+- [x] `RedWright host-side code remains responsible for interpreting the result.`
+
+Validation:
+
+- [x] `ruby -Itest test/redwright/codex_proof_container_smoke_test.rb` (pass)
+- [x] `ruby -Itest test/redwright/codex_proof_input_packet_test.rb` (pass)
+- [x] `ruby -Itest test/redwright/codex_proof_harness_test.rb` (pass)
+- [x] `ruby -c scripts/runtime/codex_black_box_proof.rb` (pass)
+- [x] `ruby scripts/runtime/codex_black_box_proof.rb --packet <temp packet> --runs-root <temp runs> --codex-exec` (expected fail: Codex exits with HTTP 401 auth failure; structured envelope includes `status: codex_auth_failed`, `backend: codex`, `validation.status: not_run`, and host-inspectable artifact paths)
 
 ### Slice 8: Proof Report And Readiness Decision
 
@@ -308,3 +316,4 @@ Validation:
 - `2026-05-12` state=`slice_6_pr_blocked_rate_limit` note=`pushed fix/slice-6-codex-proof-diff-artifacts, but Codeberg rejected PR creation for canonical title feat(slice-6): codex proof diff artifacts because similarly named PRs were created within the last hour; wait and retry with the same title`
 - `2026-05-12` state=`slice_6_pr_open` note=`opened Codeberg PR #430 from fix/slice-6-codex-proof-diff-artifacts into dev`
 - `2026-05-12` state=`slice_6_merged` note=`PR #430 merged into dev; Slice 6 is closed and Slice 7 is ready to start`
+- `2026-05-12` state=`slice_7_implemented` note=`implemented validation command capture and a host-readable Codex result envelope with backend, status, summary, changed files, diff path, validation result, pushed branch, and raw event paths; real Docker validation classifies the current missing auth path as codex_auth_failed`

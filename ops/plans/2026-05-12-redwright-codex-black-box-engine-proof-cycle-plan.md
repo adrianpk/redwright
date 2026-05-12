@@ -166,13 +166,13 @@ Execution must follow the slice delivery protocol:
 
 ### Slice 7: Validation Command And Result Envelope
 
-- status: `planned`
+- status: `implemented`
 - branch: `fix/slice-7-codex-proof-validation`
 - objective: `Run the declared validation command and produce the common result envelope needed by RedWright orchestration.`
 - tasks:
-- [ ] `T7.1 Run the proof validation command inside the worker workspace after Codex completes.`
-- [ ] `T7.2 Capture validation stdout, stderr, exit status, and timeout state.`
-- [ ] `T7.3 Emit a structured result envelope with status, summary, changed files, diff path, validation, pushed branch, raw events, and backend name.`
+- [x] `T7.1 Run the proof validation command inside the worker workspace after Codex completes.`
+- [x] `T7.2 Capture validation stdout, stderr, exit status, and timeout state.`
+- [x] `T7.3 Emit a structured result envelope with status, summary, changed files, diff path, validation, pushed branch, raw events, and backend name.`
 - acceptance:
 - `Validation pass, validation failure, execution failure, authentication failure, push failure, and no-diff outcomes are distinguishable.`
 - `The result envelope is close enough to the proposed backend contract to evaluate interchangeability.`
