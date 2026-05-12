@@ -4,9 +4,9 @@
 
 - cycle_id: `2026-05-12-redwright-codex-black-box-engine-proof`
 - status: `in_progress`
-- state: `slice_1_pr_open`
+- state: `slice_1_merged`
 - updated: `2026-05-12`
-- active_slice: `Slice 1`
+- active_slice: `none`
 - active_task: `none`
 - source_plan: `ops/plans/2026-05-12-redwright-codex-black-box-engine-proof-cycle-plan.md`
 - source_ticket: `ops/tickets/open/20260511182745-prove-codex-resolves-a-cloned-repo-task-inside-docker.md`
@@ -21,11 +21,11 @@
 
 ### Slice 1: Proof Harness Skeleton
 
-- status: `pr_open`
+- status: `merged`
 - branch: `fix/slice-1-codex-proof-harness`
 - PR: `#425 https://codeberg.org/adrianpk/redwright/pulls/425`
 - merge_target: `dev`
-- last_sync_commit: `6a32248`
+- last_sync_commit: `a1e048d`
 
 Tasks:
 
@@ -86,6 +86,7 @@ Tasks:
 - [ ] `T3.1 Add Codeberg repository clone logic inside the proof worker.`
 - [ ] `T3.2 Create a run-scoped branch or equivalent isolated working state.`
 - [ ] `T3.3 Capture clone metadata, checked-out revision, and workspace path in the result artifact.`
+- [ ] `T3.4 Ensure the proof repository README explains that the repository is a RedWright Codex black-box proof fixture and identifies where RedWright uses it.`
 
 Commits:
 
@@ -97,6 +98,7 @@ Validation:
 - [ ] `The worker does not mutate the host's canonical project checkout or the local seed repository.`
 - [ ] `The cloned workspace is correlated with the proof run id.`
 - [ ] `Clone failures return a structured failure result.`
+- [ ] `The selected Codeberg repository has a README that states its proof-fixture purpose and RedWright usage context.`
 
 ### Slice 4: Codex And Remote Credential Boundary
 
@@ -231,6 +233,7 @@ Validation:
 
 - [ ] `Codex has been executed non-interactively inside the selected runtime boundary or has failed with a clear, documented blocker.`
 - [ ] `The worker clones an existing Codeberg Go todo repository into an isolated workspace rather than mutating the canonical host checkout or local seed repository.`
+- [ ] `The selected Codeberg proof repository README explains what the repository is and where RedWright uses it.`
 - [ ] `Runtime credentials are injected explicitly and are not persisted in generated files, images, committed artifacts, or logs.`
 - [ ] `Codex receives a ticket-like task prompt for adding a mark-as-read feature and tests, not prescriptive file-level editing instructions.`
 - [ ] `The worker pushes a result branch to the configured Codeberg remote when the run produces a valid diff and credentials are available.`
@@ -244,3 +247,5 @@ Validation:
 - `2026-05-12` state=`scope_refined` note=`refined the proof to use an existing Codeberg Go todo repository seeded from _workspace/Projects/go-todo-agent, pass a ticket-like mark-as-read task, run Codex inside the Docker boundary, implement tests, and push a result branch to the remote`
 - `2026-05-12` state=`slice_1_implemented` note=`implemented the proof input packet contract, local run preparation harness, script entrypoint, and Go runtime Dockerfile placeholder on fix/slice-1-codex-proof-harness`
 - `2026-05-12` state=`slice_1_pr_open` note=`opened Codeberg PR #425 from fix/slice-1-codex-proof-harness into dev`
+- `2026-05-12` state=`slice_1_merged` note=`PR #425 merged into dev; Slice 1 is closed and Slice 2 is ready to start`
+- `2026-05-12` state=`readme_requirement_added` note=`recorded that the selected Codeberg Go todo proof repository must explain in its README that it is a RedWright Codex black-box proof fixture and where RedWright uses it`

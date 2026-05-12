@@ -40,6 +40,7 @@ The critical unknown is whether the core execution model works at all: a contain
 - The container clones the repository itself into a disposable workspace.
 - Codex runs non-interactively and must not block waiting for a human approval prompt.
 - The initial task is a Go todo CLI implementation ticket that asks for a mark-as-read capability and tests without prescribing exact file edits.
+- The selected Codeberg repository README explains that the repository is a RedWright Codex black-box proof fixture and identifies where RedWright uses it.
 - The worker commits the result to the configured branch and pushes that branch to Codeberg.
 - The result is inspectable from the host through logs, validation output, repository diff, commit metadata, and pushed branch metadata.
 - This slice does not move RedWright tickets between kanban columns and does not need to open a pull request.
@@ -50,6 +51,7 @@ The critical unknown is whether the core execution model works at all: a contain
 
 ## Fix Strategy
 - Pick or create one controlled Codeberg repository seeded from `_workspace/Projects/go-todo-agent`.
+- Ensure that repository has a README explaining its proof-fixture purpose and its use by the RedWright Codex black-box engine proof.
 - Add a hardcoded proof Dockerfile or runtime recipe for that repository's stack.
 - Add a local proof command or script that starts the container with explicit environment variables.
 - Pass the repository URL, result branch, ticket-like task prompt, validation command, and remote push policy into the container as structured arguments or mounted input.
@@ -60,6 +62,7 @@ The critical unknown is whether the core execution model works at all: a contain
 ## Validation
 - Running the proof command builds or starts the Docker image successfully.
 - The container clones the supplied repository into its own workspace.
+- The supplied repository has a README that explains the proof-fixture purpose and RedWright usage context.
 - Codex completes the task without requiring an interactive approval from a human.
 - The container runs the repository's validation command and reports pass or failure clearly.
 - The worker pushes the result branch to the configured Codeberg remote when credentials and validation policy allow it.

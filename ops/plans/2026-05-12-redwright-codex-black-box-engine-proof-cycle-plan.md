@@ -89,10 +89,12 @@ Execution must follow the slice delivery protocol:
 - [ ] `T3.1 Add Codeberg repository clone logic inside the proof worker.`
 - [ ] `T3.2 Create a run-scoped branch or equivalent isolated working state.`
 - [ ] `T3.3 Capture clone metadata, checked-out revision, and workspace path in the result artifact.`
+- [ ] `T3.4 Ensure the proof repository README explains that the repository is a RedWright Codex black-box proof fixture and identifies where RedWright uses it.`
 - acceptance:
 - `The worker does not mutate the host's canonical project checkout or the local seed repository.`
 - `The cloned workspace is correlated with the proof run id.`
 - `Clone failures return a structured failure result.`
+- `The selected Codeberg repository has a README that states its proof-fixture purpose and RedWright usage context.`
 - planned_commits:
 - `feat(runtime): clone proof codeberg repository inside worker`
 - `test(runtime): cover proof clone failure result`
@@ -190,6 +192,7 @@ Execution must follow the slice delivery protocol:
 
 - Codex has been executed non-interactively inside the selected runtime boundary or has failed with a clear, documented blocker.
 - The worker clones an existing Codeberg Go todo repository into an isolated workspace rather than mutating the canonical host checkout or local seed repository.
+- The selected Codeberg proof repository README explains what the repository is and where RedWright uses it.
 - Runtime credentials are injected explicitly and are not persisted in generated files, images, committed artifacts, or logs.
 - Codex receives a ticket-like task prompt for adding a mark-as-read feature and tests, not prescriptive file-level editing instructions.
 - The worker pushes a result branch to the configured Codeberg remote when the run produces a valid diff and credentials are available.
