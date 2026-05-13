@@ -13,11 +13,16 @@ entry per commit.
 - Added Conversation as the shared place for Dumps and Quizzes.
 - Added Dumps so users can capture free-form project or use-case notes, curate
   them, and reuse them as future ticket context.
+- Added an authenticated Codex-backed black-box proof milestone: RedWright can
+  run a ticket-like task in the proof container, validate the generated Go
+  change, and push the result branch to the proof remote.
 
 ### Fixed
 
 - Fixed `./scripts/run-dev.sh` so local provider credentials are loaded before
   the Telegram daemon starts.
+- Fixed the Codex proof runtime so authenticated Codex execution can run inside
+  Docker and validate Go proof repositories.
 
 ## [0.1.0-alpha.1] - 2026-05-09
 
