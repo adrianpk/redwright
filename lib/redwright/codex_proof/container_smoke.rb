@@ -195,7 +195,7 @@ module Redwright
           : > /redwright/output/validation-stdout.log
           : > /redwright/output/validation-stderr.log
           set +e
-          timeout "${timeout_seconds}s" codex exec --json --color never --sandbox workspace-write -C /redwright/workspace/repo --output-last-message /redwright/output/codex-last-message.txt - < /redwright/output/codex-prompt.txt > /redwright/output/codex-events.jsonl 2> /redwright/output/codex-stderr.log
+          timeout "${timeout_seconds}s" codex exec --json --color never --dangerously-bypass-approvals-and-sandbox -C /redwright/workspace/repo --output-last-message /redwright/output/codex-last-message.txt - < /redwright/output/codex-prompt.txt > /redwright/output/codex-events.jsonl 2> /redwright/output/codex-stderr.log
           codex_status=$?
           set -e
           timed_out=false

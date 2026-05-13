@@ -265,7 +265,7 @@ class CodexProofContainerSmokeTest < Minitest::Test
       assert_includes(args.last, ": > /redwright/output/git-push.log")
       assert_includes(args.last, ": > /redwright/output/validation-stdout.log")
       assert_includes(args.last, ": > /redwright/output/validation-stderr.log")
-      assert_includes(args.last, "codex exec --json --color never --sandbox workspace-write")
+      assert_includes(args.last, "codex exec --json --color never --dangerously-bypass-approvals-and-sandbox")
       assert_includes(args.last, "--output-last-message /redwright/output/codex-last-message.txt")
       assert_includes(args.last, "changed-files.txt")
       assert_includes(args.last, "git-diff.patch")
