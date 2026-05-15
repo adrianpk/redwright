@@ -34,6 +34,9 @@ The Kanban board serves as the primary interface for local operation, while Tele
 - Technical reference: [Runtime Capabilities](docs/reference/runtime-capabilities.md)
 - Semantic contract: [Application Semantics v1](docs/reference/application-semantics-v1.md)
 
-## Mirror
+## Repositories
 
-A public mirror is available at https://codeberg.org/adrianpk/redwright.
+Official repository: https://forge.adrianpk.com/adrianpk/redwrigh
+
+Public mirrors:
+- https://codeberg.org/adrianpk/redwright
