@@ -1,206 +1,87 @@
 require "test_helper"
 
 class ProjectProtocolsControllerTest < ActionDispatch::IntegrationTest
-  def create_admin_user!
-    User.create!(
-      email_address: "protocols-owner@example.com",
-      password: "password-123",
-      password_confirmation: "password-123"
-    )
+  setup do
+    @admin = User.create!(email_address: "protocols-owner@example.com", password: "password-123", password_confirmation: "password-123")
+    @project = create_project(key: "protocols-web")
+    @store = write_protocol_files(project: @project, documents: [
+      {path: "AGENTS.md", body: "# Root"},
+      {path: ".agents/CONVENTIONS.md", body: "# Conventions"}
+    ])
   end
 
-  test "index requires authentication" do
-    project = create_project(key: "protocols-auth")
-
-    get project_protocols_path(project)
-
+  test "requires authentication" do
+    get project_protocols_path(@project)
     assert_redirected_to new_session_path
   end
 
-  test "index renders project protocol documents in canonical order" do
-    admin = create_admin_user!
-    sign_in_as(admin)
-    project = create_project(key: "protocols-index")
-    create_project_protocol(
-      project: project,
-      documents: [
-        {key: "agents_root", path: "AGENTS.md", title: "AGENTS", position: 0, body: "# Root"},
-        {key: "architecture", path: ".agents/ARCHITECTURE.md", title: "Architecture", position: 1, body: "# Architecture"},
-        {key: "playbooks_index", path: ".agents/PLAYBOOKS.md", title: "Playbooks", position: 2, body: "# Playbooks"}
-      ]
-    )
-
-    get project_protocols_path(project)
-
+  # The index must reflect additions and removals without a canonical slot list.
+  test "lists the actual project files" do
+    sign_in_as(@admin)
+    @store.create(".agents/custom/NOTES.md", "# Custom notes")
+    @store.root.join(".agents/CONVENTIONS.md").delete
+    get project_protocols_path(@project)
     assert_response :success
-    assert_match "Protocols", response.body
-    assert_match "href=\"#{project_protocols_path(project)}\"", response.body
-    assert_match "Playbooks", response.body
-    assert_operator response.body.index("AGENTS"), :<, response.body.index("Architecture")
-    refute_match ".agents/ARCHITECTURE.md", response.body
+    assert_match "Custom / Notes", response.body
+    refute_match ">Conventions<", response.body
+    refute @store.root.join(".agents/CONVENTIONS.md").exist?
   end
 
-  test "index materializes missing canonical entries as stable editable slots" do
-    admin = create_admin_user!
-    sign_in_as(admin)
-    project = create_project(key: "protocols-missing")
-    create_project_protocol(
-      project: project,
-      documents: [
-        {key: "agents_root", path: "AGENTS.md", title: "AGENTS", position: 0, body: "# Root"}
-      ]
-    )
-
-    get project_protocols_path(project)
-
+  test "shows the current file in the editor" do
+    sign_in_as(@admin)
+    @store.root.join("AGENTS.md").write("# Changed externally")
+    document = @store.find_path("AGENTS.md")
+    get project_protocol_path(@project, document)
     assert_response :success
-    assert_match "Conventions", response.body
-    refute_match ".agents/CONVENTIONS.md", response.body
-    refute_match "Create", response.body
-    assert project.reload.protocol.documents.find_by(key: "conventions")
+    assert_select "textarea", text: /Changed externally/
+    assert_select "input[name='protocol_document[revision]'][value=?]", document.revision
   end
 
-  test "playbooks renders dedicated subview" do
-    admin = create_admin_user!
-    sign_in_as(admin)
-    project = create_project(key: "protocols-playbooks")
-    create_project_protocol(
-      project: project,
-      documents: [
-        {key: "agents_root", path: "AGENTS.md", title: "AGENTS", position: 0, body: "# Root"},
-        {key: "playbooks_index", path: ".agents/PLAYBOOKS.md", title: "Playbooks", position: 3, body: "# Playbooks"},
-        {key: "playbook_slice_delivery", path: ".agents/playbooks/slice-delivery.md", title: "Slice Delivery", position: 4, body: "# Slice Delivery"}
-      ]
-    )
-
-    get playbooks_project_protocols_path(project)
-
-    assert_response :success
-    assert_match "Playbooks", response.body
-    assert_match "Slice Delivery", response.body
-    refute_match ".agents/playbooks/slice-delivery.md", response.body
-    refute_match "AGENTS.md", response.body
-  end
-
-  test "materialized canonical protocol entry persists local template body" do
-    admin = create_admin_user!
-    sign_in_as(admin)
-    project = create_project(key: "protocols-placeholder")
-
-    get project_protocols_path(project)
-    document = project.reload.protocol.documents.find_by!(key: "conventions")
-
-
-    get project_protocol_path(project, document)
-
-    assert_response :success
-    assert_match "Engineering Conventions", document.body
-    assert_match "<textarea", response.body
-    assert_match "Engineering Conventions", response.body
-  end
-
-  test "show renders combined read edit protocol screen" do
-    admin = create_admin_user!
-    sign_in_as(admin)
-    project = create_project(key: "protocols-show")
-    protocol = create_project_protocol(
-      project: project,
-      documents: [{key: "agents_root", path: "AGENTS.md", title: "AGENTS", body: "# Root\n\nRead first."}]
-    )
-
-    get project_protocol_path(project, protocol.documents.first)
-
-    assert_response :success
-    assert_match "AGENTS", response.body
-    assert_match "textarea", response.body
-    assert_match "Last saved", response.body
-    refute_match "Delete Protocol", response.body
-    refute_match "AGENTS.md", response.body
-    refute_match "Project protocol", response.body
-  end
-
-  test "edit and update protocol markdown" do
-    admin = create_admin_user!
-    sign_in_as(admin)
-    project = create_project(key: "protocols-edit")
-    protocol = create_project_protocol(
-      project: project,
-      documents: [{key: "agents_root", path: "AGENTS.md", title: "AGENTS", body: "# Root"}]
-    )
-    document = protocol.documents.first
-
-    get edit_project_protocol_path(project, document)
-    assert_redirected_to project_protocol_path(project, document)
-
-    patch project_protocol_path(project, document), params: {
-      project_protocol_document: {
-        title: "AGENTS Updated",
-        body: "# Updated Root"
-      }
+  # JSON autosave writes the file and returns the next revision for the editor.
+  test "autosaves to the selected file" do
+    sign_in_as(@admin)
+    document = @store.find_path("AGENTS.md")
+    patch project_protocol_path(@project, document, format: :json), params: {
+      protocol_document: {body: "# Saved from web", revision: document.revision}
     }
-
-    assert_redirected_to project_protocol_path(project, document)
-    assert_equal "AGENTS", document.reload.title
-    assert_equal "# Updated Root", document.reload.body
-  end
-
-  test "autosave updates protocol over json and returns updated timestamp" do
-    admin = create_admin_user!
-    sign_in_as(admin)
-    project = create_project(key: "protocols-autosave")
-    protocol = create_project_protocol(
-      project: project,
-      documents: [{key: "agents_root", path: "AGENTS.md", title: "AGENTS", body: "# Root"}]
-    )
-    document = protocol.documents.first
-
-    patch project_protocol_path(project, document, format: :json), params: {
-      project_protocol_document: {
-        title: "AGENTS Autosaved",
-        body: "# Autosaved Root"
-      }
-    }
-
     assert_response :success
-    payload = JSON.parse(response.body)
-    refute payload.key?("title")
+    assert_equal "# Saved from web", @store.root.join("AGENTS.md").read
+    payload = response.parsed_body
+    assert_equal @store.find_path("AGENTS.md").revision, payload.fetch("revision")
     assert payload.fetch("updated_at").present?
-    assert_equal "AGENTS", document.reload.title
-    assert_equal "# Autosaved Root", document.reload.body
+    assert_equal "# Conventions", @store.root.join(".agents/CONVENTIONS.md").read
   end
 
-  test "index reconstitutes deleted canonical protocol entry from local template source" do
-    admin = create_admin_user!
-    sign_in_as(admin)
-    project = create_project(key: "protocols-delete")
-    protocol = create_project_protocol(
-      project: project,
-      documents: [{key: "conventions", path: ".agents/CONVENTIONS.md", title: "Conventions", body: "# Rules"}]
-    )
-    document = protocol.documents.first
-
-    delete project_protocol_path(project, document)
-
-    assert_redirected_to project_protocols_path(project)
-    assert_nil protocol.reload.documents.find_by(id: document.id)
-
-    get project_protocols_path(project)
-
-    recreated = project.reload.protocol.documents.find_by!(key: "conventions")
-    assert_match "Engineering Conventions", recreated.body
+  test "rejects an outdated browser edit" do
+    sign_in_as(@admin)
+    document = @store.find_path("AGENTS.md")
+    @store.root.join("AGENTS.md").write("# Newer external edit")
+    patch project_protocol_path(@project, document, format: :json), params: {
+      protocol_document: {body: "# Outdated", revision: document.revision}
+    }
+    assert_response :conflict
+    assert_equal "# Newer external edit", @store.root.join("AGENTS.md").read
   end
 
-  test "index does not duplicate existing canonical protocol entry" do
-    admin = create_admin_user!
-    sign_in_as(admin)
-    project = create_project(key: "protocols-no-duplicate")
-    create_project_protocol(
-      project: project,
-      documents: [{key: "agents_root", path: "AGENTS.md", title: "AGENTS", body: "# Root"}]
-    )
+  test "does not recreate deleted files" do
+    sign_in_as(@admin)
+    document = @store.find_path("AGENTS.md")
+    @store.root.join("AGENTS.md").delete
+    get project_protocol_path(@project, document)
+    assert_response :not_found
+    get project_protocols_path(@project)
+    assert_response :success
+    refute @store.root.join("AGENTS.md").exist?
+  end
 
-    assert_no_difference -> { project.reload.protocol.documents.where(key: "agents_root").count } do
-      get project_protocols_path(project)
-    end
+  test "keeps playbooks reachable without an index file" do
+    sign_in_as(@admin)
+    document = @store.create(".agents/playbooks/custom.md", "# Custom playbook")
+    get project_protocols_path(@project)
+    assert_response :success
+    assert_match project_protocol_path(@project, document), response.body
+    get playbooks_project_protocols_path(@project)
+    assert_response :success
+    assert_match "Custom playbook", response.body
   end
 end

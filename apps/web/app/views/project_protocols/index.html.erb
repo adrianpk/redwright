@@ -6,6 +6,9 @@
   </section>
 
   <section class="artifact-type-nav" aria-label="Protocol navigation">
+    <% if @protocol_entries.empty? %>
+      <p>No protocol files found in the local project workspace.</p>
+    <% end %>
     <% @protocol_entries.each do |entry| %>
       <% if entry.playbooks_index? %>
         <%= link_to playbooks_project_protocols_path(@project), class: "artifact-type-card" do %>
@@ -20,7 +23,7 @@
           <% end %>
         <% end %>
       <% else %>
-        <%= link_to project_protocol_path(@project, entry.document), class: "artifact-type-card" do %>
+        <%= link_to project_protocol_path(@project, entry), class: "artifact-type-card" do %>
           <h2><%= entry.title %></h2>
           <% preview_lines = entry.body.to_s.lines.map(&:strip).reject(&:blank?).first(6) %>
           <% if preview_lines.any? %>

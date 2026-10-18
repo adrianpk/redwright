@@ -19,7 +19,7 @@
       <% if entry.playbooks_index? %>
         <%= link_to(@template.common? ? common_playbooks_protocol_templates_path : playbooks_protocol_template_path(@template), class: "artifact-type-card") do %>
           <h2><%= entry.title %></h2>
-          <% preview_lines = ProjectProtocols::LocalProtocolSource::PROTOCOL_FILES.map { |file| file[1] }.select { |path| path.start_with?(".agents/playbooks/") }.map { |path| File.basename(path) }.first(6) %>
+          <% preview_lines = @template.files.playbook_entries.map { |file| File.basename(file.path) }.first(6) %>
           <% if preview_lines.any? %>
             <div class="protocol-card-preview" aria-hidden="true">
               <% preview_lines.each do |line| %>
@@ -28,15 +28,8 @@
             </div>
           <% end %>
         <% end %>
-      <% elsif entry.missing? %>
-        <div class="artifact-type-card">
-          <h2><%= entry.title %></h2>
-          <div class="artifact-list-card-body">
-            <%= button_to "Create", documents_protocol_template_path(@template, key: entry.key), method: :post, class: "ticket-action" %>
-          </div>
-        </div>
       <% else %>
-        <%= link_to edit_protocol_template_document_path(@template, entry.document), class: "artifact-type-card" do %>
+        <%= link_to edit_protocol_template_document_path(@template, entry), class: "artifact-type-card" do %>
           <h2><%= entry.title %></h2>
           <% preview_lines = entry.body.to_s.lines.map(&:strip).reject(&:blank?).first(6) %>
           <% if preview_lines.any? %>
@@ -50,4 +43,9 @@
       <% end %>
     <% end %>
   </section>
+  <%= form_with url: documents_protocol_template_path(@template), html: { class: "document-artifact-form" } do |form| %>
+    <%= form.label :path, "New Markdown file" %>
+    <%= form.text_field :path, required: true, placeholder: @template.common? ? ".agents/CUSTOM.md" : "#{@template.files.prefix}/CUSTOM.md" %>
+    <%= form.submit "Create", class: "ticket-action" %>
+  <% end %>
 </main>

@@ -88,9 +88,9 @@ class ProjectTest < ActiveSupport::TestCase
 
   test "project exposes protocol state helper" do
     project = create_project(key: "project-protocol-helper")
-    create_project_protocol(project: project, documents: [{key: "agents_root", path: "AGENTS.md", title: "AGENTS", body: "Root"}])
+    write_protocol_files(project: project, documents: [{key: "agents_root", path: "AGENTS.md", title: "AGENTS", body: "Root"}])
 
-    assert_equal "draft", project.protocol_state.fetch("status")
+    assert_equal "active", project.protocol_state.fetch("status")
     assert_equal "AGENTS.md", project.protocol_state.fetch("documents").first.fetch("path")
   end
 

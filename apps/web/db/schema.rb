@@ -123,61 +123,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_10_100100) do
     t.index ["project_id"], name: "index_project_attributes_on_project_id"
   end
 
-  create_table "project_protocol_documents", force: :cascade do |t|
-    t.text "body", null: false
-    t.datetime "created_at", null: false
-    t.string "key", null: false
-    t.string "layer", null: false
-    t.string "path", null: false
-    t.integer "position", default: 0, null: false
-    t.integer "project_protocol_id", null: false
-    t.text "provenance_json", default: "{}", null: false
-    t.string "title", null: false
-    t.datetime "updated_at", null: false
-    t.index ["layer"], name: "index_project_protocol_documents_on_layer"
-    t.index ["project_protocol_id", "key"], name: "idx_project_protocol_documents_unique_key", unique: true
-    t.index ["project_protocol_id", "path"], name: "idx_project_protocol_documents_unique_path", unique: true
-    t.index ["project_protocol_id", "position"], name: "idx_project_protocol_documents_position"
-    t.index ["project_protocol_id"], name: "index_project_protocol_documents_on_project_protocol_id"
-  end
-
-  create_table "project_protocol_template_documents", force: :cascade do |t|
-    t.text "body", null: false
-    t.datetime "created_at", null: false
-    t.string "key", null: false
-    t.string "layer", null: false
-    t.string "path", null: false
-    t.integer "position", default: 0, null: false
-    t.integer "project_protocol_template_id", null: false
-    t.string "title", null: false
-    t.datetime "updated_at", null: false
-    t.index ["project_protocol_template_id", "key"], name: "idx_project_protocol_template_docs_key", unique: true
-    t.index ["project_protocol_template_id", "path"], name: "idx_project_protocol_template_docs_path", unique: true
-    t.index ["project_protocol_template_id", "position"], name: "idx_project_protocol_template_docs_position"
-    t.index ["project_protocol_template_id"], name: "idx_on_project_protocol_template_id_34fcfbee19"
-  end
-
-  create_table "project_protocol_templates", force: :cascade do |t|
-    t.datetime "created_at", null: false
-    t.string "key", null: false
-    t.text "matchers_json", default: "[]", null: false
-    t.string "name", null: false
-    t.string "status", default: "active", null: false
-    t.string "template_kind", null: false
-    t.datetime "updated_at", null: false
-    t.index ["status"], name: "index_project_protocol_templates_on_status"
-    t.index ["template_kind", "key"], name: "idx_project_protocol_templates_kind_key", unique: true
-  end
-
-  create_table "project_protocols", force: :cascade do |t|
-    t.datetime "created_at", null: false
-    t.integer "project_id", null: false
-    t.string "status", default: "draft", null: false
-    t.datetime "updated_at", null: false
-    t.index ["project_id"], name: "index_project_protocols_on_project_id", unique: true
-    t.index ["status"], name: "index_project_protocols_on_status"
-  end
-
   create_table "project_runtime_containers", force: :cascade do |t|
     t.text "assumptions_json", default: "[]", null: false
     t.string "base_image"
@@ -469,9 +414,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_10_100100) do
   add_foreign_key "dumps", "use_cases"
   add_foreign_key "labels", "boards"
   add_foreign_key "project_attributes", "projects"
-  add_foreign_key "project_protocol_documents", "project_protocols"
-  add_foreign_key "project_protocol_template_documents", "project_protocol_templates"
-  add_foreign_key "project_protocols", "projects"
   add_foreign_key "project_runtime_containers", "projects"
   add_foreign_key "project_setup_sessions", "projects"
   add_foreign_key "project_setup_turns", "project_setup_sessions"

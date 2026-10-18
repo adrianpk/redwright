@@ -21,9 +21,9 @@ module ProjectProtocols
       assert_equal [], state.fetch("documents")
     end
 
-    test "queries persisted protocols state" do
+    test "queries protocols from project files" do
       project = create_project(key: "project-protocols-query-existing")
-      create_project_protocol(
+      write_protocol_files(
         project: project,
         documents: [
           {
@@ -57,15 +57,15 @@ module ProjectProtocols
 
       assert result.ok?
       state = result.data.fetch("protocols")
-      assert_equal "draft", state.fetch("status")
+      assert_equal "active", state.fetch("status")
       assert_equal "AGENTS.md", state.fetch("documents").first.fetch("path")
-      assert_equal "stack", state.fetch("documents").second.fetch("layer")
-      assert_equal "rails", state.fetch("documents").second.fetch("provenance").fetch("stack")
+      assert_equal "behavioral", state.fetch("documents").second.fetch("layer")
+      assert_equal "project_protocol_files", state.fetch("documents").second.fetch("provenance").fetch("source")
     end
 
     test "project query includes protocols state" do
       project = create_project(key: "project-protocols-project-query")
-      create_project_protocol(
+      write_protocol_files(
         project: project,
         documents: [{key: "agents_root", path: "AGENTS.md", title: "AGENTS", layer: "behavioral", body: "Root"}]
       )
@@ -80,7 +80,7 @@ module ProjectProtocols
 
       assert result.ok?
       protocols_state = result.data.fetch("project").fetch("protocols")
-      assert_equal "draft", protocols_state.fetch("status")
+      assert_equal "active", protocols_state.fetch("status")
       assert_equal "AGENTS.md", protocols_state.fetch("documents").first.fetch("path")
     end
 

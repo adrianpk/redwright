@@ -43,9 +43,14 @@
           credentials: "same-origin"
         });
 
+        if (response.status === 409) {
+          setStatus("File changed elsewhere. Reload before saving.");
+          return;
+        }
         if (!response.ok) throw new Error("autosave_failed");
 
         var payload = await response.json();
+        form.querySelector("[name='protocol_document[revision]']").value = payload.revision;
         dirty = false;
         setStatus(formatTimestamp(payload.updated_at));
       } catch (_error) {

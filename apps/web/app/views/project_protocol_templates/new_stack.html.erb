@@ -1,37 +1,17 @@
 <main class="document-artifacts-edit">
   <p class="document-artifact-breadcrumb">
-    <%= link_to "Settings", protocol_templates_path %>
-    /
+    <%= link_to "Settings", protocol_templates_path %> /
     <%= link_to "Stack Protocol Templates", stacks_protocol_templates_path %>
   </p>
-  <header class="document-artifacts-header">
-    <h1>New Stack Protocol Template</h1>
-  </header>
-
+  <header class="document-artifacts-header"><h1>New Stack Protocol Template</h1></header>
   <section class="document-artifact-panel">
-    <%= form_with model: @template, url: stacks_protocol_templates_path, html: { class: "document-artifact-form" } do |f| %>
-      <% if @template.errors.any? %>
-        <div class="document-artifact-errors">
-          <h2><%= pluralize(@template.errors.count, "error") %> blocked this stack template:</h2>
-          <ul>
-            <% @template.errors.full_messages.each do |message| %>
-              <li><%= message %></li>
-            <% end %>
-          </ul>
-        </div>
-      <% end %>
-
+    <%= form_with scope: :protocol_template, url: stacks_protocol_templates_path, html: { class: "document-artifact-form" } do |form| %>
+      <% if @error %><div class="document-artifact-errors"><%= @error %></div><% end %>
       <div class="document-artifact-field">
-        <%= f.label :key, "Stack identity" %>
-        <%= f.text_field :key, required: true %>
+        <%= form.label :key, "Stack identity" %>
+        <%= form.text_field :key, value: @stack_key, required: true %>
       </div>
-      <div class="document-artifact-field">
-        <%= f.label :name, "Display name" %>
-        <%= f.text_field :name %>
-      </div>
-      <div class="document-artifact-actions">
-        <%= f.submit "Create", class: "ticket-action" %>
-      </div>
+      <div class="document-artifact-actions"><%= form.submit "Create", class: "ticket-action" %></div>
     <% end %>
   </section>
 </main>

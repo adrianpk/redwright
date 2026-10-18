@@ -7,6 +7,7 @@
                   last_saved_at: protocol_document.updated_at&.iso8601
                 }
               } do |f| %>
+  <%= f.hidden_field :revision %>
   <% if protocol_document.errors.any? %>
     <div class="document-artifact-errors">
       <h2><%= pluralize(protocol_document.errors.count, "error") %> blocked this protocol:</h2>

@@ -17,6 +17,12 @@ entry per commit.
   run a ticket-like task in the proof container, validate the generated Go
   change, and push the result branch to the proof remote.
 
+### Changed
+
+- Protocols now reads and edits `AGENTS.md` and Markdown files under `.agents/`
+  directly, including custom files and subdirectories. Changes from other
+  tools appear without synchronization, and outdated web saves are rejected.
+
 ### Fixed
 
 - Fixed `./scripts/run-dev.sh` so local provider credentials are loaded before

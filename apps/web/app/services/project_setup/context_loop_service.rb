@@ -800,7 +800,7 @@ module ProjectSetup
       metadata["setup_summary_document_id"] = document.id
       metadata["starter_ticket_id"] = starter_ticket&.id if starter_ticket
       metadata["protocols_generation"] = protocol_generation_metadata(protocol_generation)
-      metadata["protocols"] = project.reload.protocol_state
+      metadata["protocols"] = project.reload.protocol_state.except("documents")
       metadata["runtime_containers_readiness_ticket_id"] = runtime_containers_readiness_ticket&.id if runtime_containers_readiness_ticket
       metadata["runtime_containers_generation"] = runtime_generation_metadata(runtime_generation)
       metadata["runtime_containers"] = project.reload.runtime_container_state
@@ -842,10 +842,10 @@ module ProjectSetup
       return {} unless protocol_generation
 
       {
-        "persisted" => protocol_generation.persisted?,
-        "stack_keys" => protocol_generation.stack_keys,
-        "fallback_used" => protocol_generation.fallback_used,
-        "missing_stack_tokens" => protocol_generation.missing_stack_tokens
+        "initialized" => protocol_generation.fetch("initialized"),
+        "stack_keys" => protocol_generation.fetch("stack_keys"),
+        "fallback_used" => protocol_generation.fetch("fallback_used"),
+        "missing_stack_tokens" => protocol_generation.fetch("missing_stack_tokens")
       }
     end
 
@@ -878,7 +878,7 @@ module ProjectSetup
         "board_id" => metadata["board_id"],
         "setup_summary_document_id" => metadata["setup_summary_document_id"],
         "starter_ticket_id" => metadata["starter_ticket_id"],
-        "protocols" => metadata["protocols"] || project.protocol_state,
+        "protocols" => project.protocol_state,
         "protocols_generation" => metadata["protocols_generation"] || {},
         "runtime_containers_readiness_ticket_id" => metadata["runtime_containers_readiness_ticket_id"],
         "runtime_containers" => metadata["runtime_containers"] || project.runtime_container_state,

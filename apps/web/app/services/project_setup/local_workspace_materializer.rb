@@ -177,7 +177,7 @@ module ProjectSetup
     end
 
     def materialize_project_protocols(path)
-      ProjectProtocols::FilesystemMaterializer.new(
+      ProjectProtocols::InitializationService.new(
         project: @project,
         workspace_path: path
       ).call
@@ -320,8 +320,7 @@ module ProjectSetup
       {
         "status" => protocol_materialization.fetch("status"),
         "root_entrypoint" => protocol_materialization.fetch("root_entrypoint"),
-        "files" => protocol_materialization.fetch("files"),
-        "state" => @project.reload.protocol_state
+        "files" => protocol_materialization.fetch("files")
       }
     end
 

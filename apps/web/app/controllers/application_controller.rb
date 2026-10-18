@@ -28,7 +28,6 @@ class ApplicationController < ActionController::Base
 
   def navigation_project
     return @project if defined?(@project) && @project.present?
-    return @protocol_document.project_protocol.project if defined?(@protocol_document) && @protocol_document.present?
     return @template.project if defined?(@template) && @template.respond_to?(:project) && @template.project.present?
     return @document.project if defined?(@document) && @document.respond_to?(:project) && @document.project.present?
 

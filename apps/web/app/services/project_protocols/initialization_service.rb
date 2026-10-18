@@ -1,74 +1,32 @@
 module ProjectProtocols
   class InitializationService
-    Result = Struct.new(
-      :project,
-      :protocol_state,
-      :generated_state,
-      :persisted,
-      :stack_keys,
-      :fallback_used,
-      :missing_stack_tokens,
-      keyword_init: true
-    ) do
-      def persisted?
-        persisted == true
-      end
-    end
-
-    def initialize(project:, persist: true, registry: TemplateRegistry.new)
+    def initialize(project:, workspace_path: nil, catalog: TemplateCatalog.new)
       @project = project
-      @persist = persist
-      @registry = registry
+      @workspace_path = workspace_path
+      @catalog = catalog
     end
 
     def call
-      composition = Composer.new(project: project, registry: registry).call
-      generated_state = {"status" => "generated", "documents" => composition.documents}
-
-      if persist
-        protocol = project.protocol || project.create_protocol!(status: "draft")
-        persisted = protocol.documents.index_by(&:key)
-        created = false
-
-        composition.documents.each do |document|
-          next if persisted.key?(document.fetch("key"))
-
-          protocol.documents.create!(
-            key: document.fetch("key"),
-            path: document.fetch("path"),
-            title: document.fetch("title"),
-            layer: document.fetch("layer"),
-            position: document.fetch("position"),
-            body: document.fetch("body"),
-            provenance: document.fetch("provenance", {})
-          )
-          created = true
-        end
-
-        return Result.new(
-          project: project,
-          protocol_state: protocol.reload.to_state,
-          generated_state: generated_state,
-          persisted: created,
-          stack_keys: composition.stack_keys,
-          fallback_used: composition.fallback_used,
-          missing_stack_tokens: composition.missing_stack_tokens
-        )
+      composition = Composer.new(project: @project, registry: @catalog).call
+      metadata = {"initialized" => false, "stack_keys" => composition.stack_keys,
+                  "fallback_used" => composition.fallback_used, "missing_stack_tokens" => composition.missing_stack_tokens}
+      files = @workspace_path ? FileStore.new(root: @workspace_path) : @project.protocol_files
+      unless files.root.directory?
+        return metadata.merge("status" => "skipped", "reason" => "workspace_missing", "root_entrypoint" => "AGENTS.md", "files" => [])
       end
 
-      Result.new(
-        project: project,
-        protocol_state: project.protocol_state,
-        generated_state: generated_state,
-        persisted: false,
-        stack_keys: composition.stack_keys,
-        fallback_used: composition.fallback_used,
-        missing_stack_tokens: composition.missing_stack_tokens
-      )
+      # Existing files define the user's set, including deliberate omissions.
+      if files.documents.empty? && !files.root.join(".redwright", "manifest.yml").file?
+        composition.documents.each do |document|
+          files.create(document.fetch("path"), document.fetch("body"))
+        end
+        metadata["initialized"] = true
+      end
+
+      metadata.merge("status" => "materialized", "workspace_path" => files.root.to_s,
+       "root_entrypoint" => "AGENTS.md", "files" => files.documents.map { |document|
+         {"path" => document.path, "title" => document.title, "absolute_path" => files.root.join(document.path).to_s}
+       })
     end
-
-    private
-
-    attr_reader :project, :persist, :registry
   end
 end

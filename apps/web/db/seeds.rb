@@ -96,31 +96,6 @@ def seed_ticket(board:, labels:, title:, column_key:, description:, priority:, a
   ticket.ticket_labels.joins(:label).where.not(labels: {name: label_names}).destroy_all
 end
 
-def sync_project_protocol_from_templates(project, catalog)
-  composition = ProjectProtocols::Composer.new(project: project, registry: catalog).call
-  protocol = project.protocol || project.create_protocol!(status: "draft")
-  expected_keys = composition.documents.map { |document| document.fetch("key") }
-  existing_documents = protocol.documents.index_by(&:key)
-
-  composition.documents.each do |document|
-    protocol_document = existing_documents.fetch(document.fetch("key")) do
-      protocol.documents.build(key: document.fetch("key"))
-    end
-
-    protocol_document.assign_attributes(
-      path: document.fetch("path"),
-      title: document.fetch("title"),
-      layer: document.fetch("layer"),
-      position: document.fetch("position"),
-      body: document.fetch("body"),
-      provenance: document.fetch("provenance", {})
-    )
-    protocol_document.save!
-  end
-
-  protocol.documents.where.not(key: expected_keys).destroy_all
-end
-
 def seed_project_document(project:, artifact_type:, title:, body:, source_draft: nil)
   document = project.documents.find_or_initialize_by(artifact_type: artifact_type, title: title)
   document.body = body
@@ -340,9 +315,8 @@ seed_ticket(
   label_names: ["docs"]
 )
 
-catalog = ProjectProtocols::TemplateCatalog.new
-catalog.all_templates
-sync_project_protocol_from_templates(project, catalog)
+FileUtils.mkdir_p(project.root_path)
+ProjectProtocols::InitializationService.new(project: project).call
 seed_demo_project_documents(project: project)
 
 board.labels.where.not(name: labels.keys).find_each do |label|

@@ -9,6 +9,7 @@
     <%= form_with model: @document,
                   url: protocol_template_document_path(@template, @document),
                   html: { class: "document-artifact-form" } do |f| %>
+      <%= f.hidden_field :revision %>
       <% if @document.errors.any? %>
         <div class="document-artifact-errors">
           <h2><%= pluralize(@document.errors.count, "error") %> blocked this template:</h2>
@@ -20,13 +21,10 @@
         </div>
       <% end %>
 
-      <div class="document-artifact-field">
-        <%= f.label :title %>
-        <%= f.text_field :title, required: true %>
-      </div>
+      <p class="board-key"><%= @document.path %></p>
       <div class="document-artifact-field">
         <%= f.label :body %>
-        <%= f.text_area :body, rows: 18, required: true %>
+        <%= f.text_area :body, rows: 18 %>
       </div>
       <div class="document-artifact-actions">
         <%= f.submit "Update", class: "ticket-action" %>

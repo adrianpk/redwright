@@ -24,13 +24,12 @@ module AgentTicketExecution
 
         sections = context.context_sections.index_by(&:name)
         assert_equal(
-          %w[ticket project repository_tree relevant_files tests operational_setup tree_sitter protocol_files protocol_model documents quizzes dumps llm_based_context previous_interactions],
+          %w[ticket project repository_tree relevant_files tests operational_setup tree_sitter protocol_files documents quizzes dumps llm_based_context previous_interactions],
           sections.keys
         )
         assert_equal "ticket_record", sections.fetch("ticket").authority
         assert_equal "workspace_filesystem", sections.fetch("relevant_files").authority
-        assert_equal "project_protocol_model", sections.fetch("protocol_model").authority
-        assert_equal "project_protocol_model", sections.fetch("protocol_files").authority
+        assert_equal "project_protocol_files", sections.fetch("protocol_files").authority
         assert_equal "workspace_semantic_parser", sections.fetch("tree_sitter").authority
         assert_equal "project_documents", sections.fetch("documents").authority
         assert_equal "project_quiz_model", sections.fetch("quizzes").authority
@@ -218,27 +217,12 @@ module AgentTicketExecution
       end
     end
 
-    test "selects protocol documents from modeled state by policy attributes" do
+    test "selects protocol files by policy" do
       with_agent_ticket_execution_workspace do |fixture|
-        protocol = fixture.project.create_protocol!(status: "draft")
-        protocol.documents.create!(
-          key: "agents_root",
-          path: "AGENTS.md",
-          title: "AGENTS",
-          layer: "behavioral",
-          position: 0,
-          body: "Root instructions.",
-          provenance: {"source" => "test"}
-        )
-        protocol.documents.create!(
-          key: "runtime_stack",
-          path: ".agents/RUNTIME.md",
-          title: "Runtime",
-          layer: "stack",
-          position: 1,
-          body: "Runtime stack instructions.",
-          provenance: {"source" => "test"}
-        )
+        write_protocol_files(project: fixture.project, documents: [
+          {path: "AGENTS.md", body: "Root instructions."},
+          {path: ".agents/stacks/custom/RUNTIME.md", body: "Runtime stack instructions."}
+        ])
 
         workspace = WorkspaceBoundary.new(allowed_projects_root: fixture.projects_root).resolve(ticket: fixture.ticket)
         implementation_context = ContextComposer.new.compose(
@@ -254,10 +238,10 @@ module AgentTicketExecution
 
         implementation_protocols = implementation_context.context_sections.index_by(&:name).fetch("protocol_files")
         planning_protocols = planning_context.context_sections.index_by(&:name).fetch("protocol_files")
-        assert_equal %w[AGENTS.md .agents/RUNTIME.md], implementation_protocols.content.map { |document| document.fetch("path") }
+        assert_equal %w[AGENTS.md .agents/stacks/custom/RUNTIME.md], implementation_protocols.content.map { |document| document.fetch("path") }
         assert_equal ["AGENTS.md"], planning_protocols.content.map { |document| document.fetch("path") }
         assert_equal "protocols", implementation_protocols.metadata.fetch("context_layer")
-        assert_equal "test", implementation_protocols.metadata.fetch("selected_protocol_documents").last.fetch("provenance").fetch("source")
+        assert_equal "project_protocol_files", implementation_protocols.metadata.fetch("selected_protocol_documents").last.fetch("provenance").fetch("source")
       end
     end
 
@@ -424,26 +408,10 @@ module AgentTicketExecution
     end
 
     def write_project_protocols(project, project_path)
-      protocol = project.create_protocol!(status: "draft")
-      protocol.documents.create!(
-        key: "agents_root",
-        path: "AGENTS.md",
-        title: "AGENTS",
-        layer: "behavioral",
-        position: 0,
-        body: "Use Conventional Commits and run go test ./....",
-        provenance: {"source" => "test"}
-      )
-      protocol.documents.create!(
-        key: "conventions",
-        path: ".agents/CONVENTIONS.md",
-        title: "Conventions",
-        layer: "behavioral",
-        position: 1,
-        body: "Keep generated protocol files out of repository filesystem context.",
-        provenance: {"source" => "test"}
-      )
-      ProjectProtocols::FilesystemMaterializer.new(project: project, workspace_path: project_path).call
+      write_protocol_files(project: project, documents: [
+        {path: "AGENTS.md", body: "Use Conventional Commits and run go test ./...."},
+        {path: ".agents/CONVENTIONS.md", body: "Keep protocol files out of repository filesystem context."}
+      ])
     end
 
     def write_previous_interactions(ticket)

@@ -13,7 +13,7 @@
     <% @stack_templates.each do |template| %>
       <%= link_to protocol_template_path(template), class: "artifact-type-card" do %>
         <h2><%= template.name %></h2>
-        <% preview_lines = template.documents.order(:position).flat_map { |document| document.body.to_s.lines.map(&:strip).reject(&:blank?).first(3) }.first(6) %>
+        <% preview_lines = template.documents.flat_map { |document| document.body.to_s.lines.map(&:strip).reject(&:blank?).first(3) }.first(6) %>
         <% if preview_lines.any? %>
           <div class="protocol-card-preview" aria-hidden="true">
             <% preview_lines.each do |line| %>

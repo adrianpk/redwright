@@ -223,7 +223,7 @@ module ProjectSetup
       assert_equal "pocket-ledger", session.project.name
       assert_equal "ruby-3.4", session.project.stack_slug
       assert session.project.documents.exists?(title: "Project Setup Summary", artifact_type: "draft")
-      assert_equal "draft", session.project.protocol_state.fetch("status")
+      assert_equal "active", session.project.protocol_state.fetch("status")
       assert_equal "AGENTS.md", session.project.protocol_state.fetch("documents").first.fetch("path")
       assert_equal %w[backlog in_progress review approved merged], session.project.boards.first.columns.order(:position).pluck(:key)
       ticket = session.project.tickets_scope.find_by!(title: "Prepare initial implementation plan")
@@ -250,7 +250,7 @@ module ProjectSetup
       assert_equal false, saga.fetch("initial_implementation").fetch("runnable")
       assert_equal "planned", saga.fetch("initial_implementation").fetch("status")
       assert_includes saga.fetch("initial_implementation").fetch("linked_ticket_ids"), ticket.id
-      assert_equal "draft", saga.fetch("protocols").fetch("status")
+      assert_equal "active", saga.fetch("protocols").fetch("status")
       assert_equal "blocked", saga.fetch("runtime_containers").fetch("readiness")
       assert_equal "available", saga.fetch("ticket_operation").fetch("status")
     end
@@ -341,19 +341,19 @@ module ProjectSetup
       expected_values.each do |key, value|
         assert_equal value, actual_values.fetch(key)
       end
-      assert_equal "draft", result.data.fetch("protocols").fetch("status")
-      assert_equal "AGENTS.md", result.data.fetch("protocols").fetch("documents").first.fetch("path")
+      assert_equal "missing", result.data.fetch("protocols").fetch("status")
+      assert_empty result.data.fetch("protocols").fetch("documents")
       assert_equal ["ruby"], result.data.fetch("protocols_generation").fetch("stack_keys")
       materialized = session.metadata.fetch("materialized_setup_context")
       assert_equal "context-rich", materialized.fetch("slots").fetch("project_name").fetch("value")
       assert_equal "conventional commits", materialized.fetch("slots").fetch("conventions").fetch("value")
       assert_equal project.id, session.metadata.fetch("project_id")
       assert_equal result.data.fetch("project").fetch("repo_url"), session.metadata.fetch("materialized_repository_url")
-      assert_equal "draft", session.metadata.fetch("protocols").fetch("status")
+      assert_equal "missing", session.metadata.fetch("protocols").fetch("status")
       assert_equal false, session.metadata.fetch("protocols_generation").fetch("fallback_used")
     end
 
-    test "setup persists protocol fallback when stack coverage is missing" do
+    test "setup initializes fallback protocol files" do
       session = context_session
       session.assign_setup_slot(key: "project_name", value: "unknown-protocol", source: "payload")
       session.assign_setup_slot(key: "description", value: "Fallback protocol coverage.", source: "payload")
@@ -374,7 +374,8 @@ module ProjectSetup
       assert_equal true, result.data.fetch("protocols_generation").fetch("fallback_used")
       assert_includes result.data.fetch("protocols_generation").fetch("missing_stack_tokens"), "Cobol 1.0"
       architecture = session.reload.project.protocol_state.fetch("documents").find { |doc| doc.fetch("key") == "architecture" }
-      assert_equal "generated_during_initialization", architecture.fetch("provenance").fetch("source")
+      assert_equal "project_protocol_files", architecture.fetch("provenance").fetch("source")
+      assert_includes architecture.fetch("body"), "Initialization Notes"
     end
 
     test "completion replay reuses existing materialized rails state" do
@@ -459,7 +460,7 @@ module ProjectSetup
         assert_equal "skipped", manifest.dig("validation", "status")
         assert_equal "materialized", manifest.dig("protocols", "status")
         assert_equal "AGENTS.md", manifest.dig("protocols", "root_entrypoint")
-        assert_equal "draft", manifest.dig("protocols", "state", "status")
+        refute manifest.fetch("protocols").key?("state")
         assert_equal result.data.fetch("runtime_containers").fetch("id"), manifest.dig("runtime_containers", "runtime_container_id")
         assert_equal "blocked", manifest.dig("runtime_containers", "state", "readiness")
         assert_equal result.data.fetch("runtime_containers_readiness_ticket_id"), manifest.dig("runtime_containers", "readiness_ticket_id")

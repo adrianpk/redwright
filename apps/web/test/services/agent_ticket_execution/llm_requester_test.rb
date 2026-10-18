@@ -1,9 +1,11 @@
 require "test_helper"
+require Rails.root.join("..", "..", "lib", "redwright", "llm", "request_engine").expand_path.to_s
 
 module AgentTicketExecution
   class LlmRequesterTest < ActiveSupport::TestCase
     test "calls request engine with ticket execution action and records trace" do
       with_agent_ticket_execution_workspace do |fixture|
+        write_protocol_files(project: fixture.project, documents: [{path: "AGENTS.md", body: "Read these project files."}])
         workspace = WorkspaceBoundary.new(allowed_projects_root: fixture.projects_root).resolve(ticket: fixture.ticket)
         execution_context = ContextComposer.new.compose(
           ticket: fixture.ticket,
@@ -35,10 +37,9 @@ module AgentTicketExecution
         assert_equal fixture.ticket.id, provider_prompt.dig("request", "ticket_id")
         assert_includes provider_prompt.fetch("context_sections").map { |section| section.fetch("name") }, "repository_tree"
         assert_includes provider_prompt.fetch("context_sections").to_s, "main.go"
-        protocol_model_section = provider_prompt.fetch("context_sections").find { |section| section.fetch("name") == "protocol_model" }
-        assert_equal true, protocol_model_section.fetch("content_omitted")
-        assert_equal "duplicated_by_protocol_files", protocol_model_section.fetch("omission_reason")
-        refute_includes protocol_model_section.keys, "content"
+        protocol_files = provider_prompt.fetch("context_sections").select { |section| section.fetch("name") == "protocol_files" }
+        assert_equal 1, protocol_files.size
+        assert_equal "Read these project files.", protocol_files.first.fetch("content").first.fetch("content")
         assert_equal LlmContract::ACTION, recorder.requests.first.fetch(:action)
         assert_equal "implementation_default", recorder.requests.first.fetch(:policy_decision).fetch(:policy_name)
         assert_includes recorder.requests.first.fetch(:user_text), "context_sections"

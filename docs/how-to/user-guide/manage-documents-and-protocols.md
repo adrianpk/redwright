@@ -7,6 +7,7 @@ Use documents for project knowledge and protocols for agent operating guidance.
 ## Before You Start
 
 - Create or select a project.
+- Make the project workspace available locally before editing protocols.
 - Use the web app for Markdown editing.
 - Keep the distinction between documents and protocols clear.
 
@@ -36,37 +37,51 @@ From a project page, select `Protocols`.
 
 Protocols are the operational instructions for agents and LLMs. They are distinct from project documents.
 
+The list follows the files in the project workspace: root `AGENTS.md` and every
+Markdown file under `.agents/`, including subdirectories. Add or remove files
+with your editor and reload the page to see the updated set.
+
 5. Edit a project protocol document.
 
-Protocol documents are Markdown documents. Changes are persisted in Rails and projected to workspace files such as:
+The web editor reads and saves the selected file directly. RW and external
+agents such as Codex and Pi use the same files:
 
 ```text
 AGENTS.md
-.agents/*.md
-.agents/playbooks/*.md
+.agents/**/*.md
 ```
+
+Saving one file leaves the others untouched. If another tool changes the file
+while the editor is open, RW rejects the outdated save. Reload the file and
+reconcile your edits before saving again. Opening Protocols does not create
+missing files or restore deleted ones.
 
 6. Open protocol templates.
 
-Use the protocol templates area to inspect and edit common templates and stack templates.
+Use the protocol templates area to inspect and edit common and stack template
+files. The default set includes concern documents, playbooks, operational
+protocols, and stack-specific guidance.
 
-Template edits affect future project setup composition. They do not rewrite protocol copies that already belong to existing projects.
+Templates initialize new project files. Editing a template does not rewrite
+an existing project's files, add missing defaults, or restore removed files.
 
 ## Verify
 
 - Draft changes are visible after save.
 - Promoted specs appear under `Specs`.
-- Project protocol edits are saved in the web app.
-- Materialized project protocol files update in the workspace when the project has a local workspace.
+- Web edits appear directly in the selected project file.
+- External edits appear after reloading the web editor and in subsequent agent context.
+- Added and removed Markdown files change the Protocols list without re-import.
 - Template edits remain scoped to future project setup.
 
 ## Troubleshooting
 
 - If a document cannot be edited, confirm it is a draft.
-- If protocol edits do not appear in files, confirm the project workspace has been materialized locally.
-- If template edits do not affect an existing project, that is expected; existing project protocols are copied project state.
+- If Protocols is empty, check the project workspace path and its `AGENTS.md` and `.agents/` files.
+- If a save reports an external change, reload the current file before applying your edits.
+- Template edits apply to new projects; existing files remain under project control.
 
 ## Related Docs
 
-- [Project Protocol Templates Specification](../../../ops/specs/specs/2026-05-03-redwright-project-protocol-templates-spec.md)
+- [Original Protocol Design](../../../ops/specs/specs/2026-05-03-redwright-project-protocol-templates-spec.md) (historical)
 - [Application Semantics v1](../../reference/application-semantics-v1.md)

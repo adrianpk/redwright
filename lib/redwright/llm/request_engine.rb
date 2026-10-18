@@ -187,15 +187,9 @@ module Redwright
       end
 
       def provider_context_sections(context_sections)
-        names = context_section_names(context_sections)
         Array(context_sections).map do |section|
           payload = section.respond_to?(:to_h) ? section.to_h : {"name" => section.to_s}
-          if section.respond_to?(:name) && section.name.to_s == "protocol_model" && names.include?("protocol_files")
-            payload.merge(
-              "content_omitted" => true,
-              "omission_reason" => "duplicated_by_protocol_files"
-            )
-          elsif section.respond_to?(:content)
+          if section.respond_to?(:content)
             payload.merge("content" => section.content)
           else
             payload

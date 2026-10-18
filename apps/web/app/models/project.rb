@@ -9,7 +9,6 @@ class Project < ApplicationRecord
   has_many :dumps, dependent: :restrict_with_error
   has_many :dump_entries, dependent: :restrict_with_error
   has_many :taggings, dependent: :restrict_with_error
-  has_one :protocol, class_name: "ProjectProtocol", dependent: :destroy
   has_one :runtime_container, class_name: "ProjectRuntimeContainer", dependent: :destroy
 
   validates :name, presence: true
@@ -39,7 +38,11 @@ class Project < ApplicationRecord
   end
 
   def protocol_state
-    protocol&.to_state || ProjectProtocol.missing_state_for(self)
+    protocol_files.state.merge("project_id" => id)
+  end
+
+  def protocol_files
+    ProjectProtocols::FileStore.for_project(self)
   end
 
   def main_quiz

@@ -78,28 +78,19 @@ module AgentTicketExecution
     end
 
     def provider_user_text(user_text:, context_sections:)
-      section_names = context_sections.map { |section| section.name.to_s }
       JSON.generate(
         "request" => JSON.parse(user_text),
-        "context_sections" => context_sections.map { |section| provider_context_section(section, section_names: section_names) }
+        "context_sections" => context_sections.map { |section| provider_context_section(section) }
       )
     rescue JSON::ParserError
       JSON.generate(
         "request" => user_text.to_s,
-        "context_sections" => context_sections.map { |section| provider_context_section(section, section_names: section_names) }
+        "context_sections" => context_sections.map { |section| provider_context_section(section) }
       )
     end
 
-    def provider_context_section(section, section_names:)
-      payload = section.to_h
-      if section.name.to_s == "protocol_model" && section_names.include?("protocol_files")
-        payload.merge(
-          "content_omitted" => true,
-          "omission_reason" => "duplicated_by_protocol_files"
-        )
-      else
-        payload.merge("content" => section.content)
-      end
+    def provider_context_section(section)
+      section.to_h.merge("content" => section.content)
     end
 
     def record_request(user_text:, context_sections:, trace_metadata:, context_policy:)

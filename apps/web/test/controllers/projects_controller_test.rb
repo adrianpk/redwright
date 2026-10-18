@@ -92,7 +92,7 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
     admin = create_admin_user!
     sign_in_as(admin)
     project = create_project(key: "project-show-areas")
-    create_project_protocol(
+    write_protocol_files(
       project: project,
       documents: [{key: "agents_root", path: "AGENTS.md", title: "AGENTS", body: "# Root"}]
     )

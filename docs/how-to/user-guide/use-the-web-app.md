@@ -69,7 +69,8 @@ Drafts are editable. Specs and plan trackers are read-only in the current web su
 
 7. Use protocols.
 
-The project protocols area lets you inspect and edit the Markdown protocol documents attached to a project.
+The project protocols area reads and edits root `AGENTS.md` and all Markdown
+files under the project's `.agents/` directory, including nested and custom files.
 
 8. Use protocol templates.
 
@@ -80,14 +81,14 @@ The protocol templates area lets you inspect common templates and stack template
 - Project pages show links to protocols, documents, and board when those resources exist.
 - Conversation shows Dump and Quiz entry cards.
 - Ticket changes update the board.
-- Protocol edits are saved and projected to the project workspace.
+- Protocol edits are saved directly to the selected workspace file.
 - Template edits affect future project setup composition, not already copied project protocols.
 
 ## Troubleshooting
 
 - If assignment is rejected, use an admin user; ticket assignment is admin-gated.
 - If a draft cannot be edited, confirm it is still a draft and not already promoted.
-- If protocol file changes do not appear in a workspace, confirm the project has a materialized local workspace.
+- If Protocols is empty, confirm the local project workspace exists and contains protocol Markdown files.
 
 ## Related Docs
 

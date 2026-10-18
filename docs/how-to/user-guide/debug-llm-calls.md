@@ -96,7 +96,6 @@ sections:
 - `tests`
 - `operational_setup`
 - `protocol_files`
-- `protocol_model`
 - `previous_interactions`
 - `validation_feedback` on retry attempts
 

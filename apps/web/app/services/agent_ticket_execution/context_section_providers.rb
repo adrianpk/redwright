@@ -305,8 +305,7 @@ module AgentTicketExecution
         selected_documents = selector.selected_documents
 
         [
-          protocol_section("protocol_files", protocol_file_payload(selected_documents), selector.selection_metadata),
-          protocol_section("protocol_model", protocol_model_payload(context.project.protocol_state, selected_documents), selector.selection_metadata)
+          protocol_section("protocol_files", protocol_file_payload(selected_documents), selector.selection_metadata)
         ]
       end
 
@@ -330,18 +329,11 @@ module AgentTicketExecution
         end
       end
 
-      def protocol_model_payload(protocol_state, selected_documents)
-        protocol_state.merge(
-          "documents" => selected_documents,
-          "selection_source" => "project_protocol_model"
-        )
-      end
-
       def protocol_section(name, content, selection_metadata)
-        section = section(name, content, "project_protocol_model")
+        section = section(name, content, "project_protocol_files")
         section.metadata.merge!(
           "context_layer" => "protocols",
-          "selection_source" => "project_protocol_model",
+          "selection_source" => "project_protocol_files",
           "selected_protocol_documents" => selection_metadata
         )
         section

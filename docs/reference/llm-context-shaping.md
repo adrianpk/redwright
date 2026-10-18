@@ -127,18 +127,18 @@ Quiz generation supplies project and quiz context sections. Project setup prompt
 
 Dump context can come from repository conversation artifacts under `ops/conv/dump` and from database-backed Conversation dumps captured through the web app or Telegram. Agent ticket execution selects only dumps that are closed, curated, allowed by the effective context policy, and matched to the ticket or project scope. Active or uncurated dumps are omitted with an explicit diagnostic reason.
 
-Protocols are selected from modeled RedWright protocol state, not from generated repository protocol files. Generated protocol files are omitted from the general repository filesystem scan to avoid duplicate authority.
+Protocols are read from the project's root `AGENTS.md` and Markdown files under
+`.agents/`. The dedicated `protocol_files` section uses those same files as the
+web editor. Protocol files are omitted from the general repository filesystem
+scan to avoid duplicate context. Additions, removals, and edits made by other
+tools appear in the next context composition without re-import.
 
 ## Provider Payload Behavior
 
 For provider requests whose JSON payload contains `context_sections`, `RequestEngine` replaces that field with the policy-selected sections before calling the provider.
 
-When both `protocol_files` and `protocol_model` are present, provider payloads omit duplicate `protocol_model` content and mark it with:
-
-- `content_omitted: true`
-- `omission_reason: "duplicated_by_protocol_files"`
-
-The trace can still record model metadata for debugging.
+Protocol content is supplied once through `protocol_files`; there is no
+separate database-backed protocol content section.
 
 ## Trace Fields
 
