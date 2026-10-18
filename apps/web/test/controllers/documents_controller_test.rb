@@ -15,6 +15,9 @@ class DocumentsControllerTest < ActionDispatch::IntegrationTest
     assert_select "h1", "Specs"
     assert_select "h2", text: @spec.title
     assert_select "h2", text: tracker.title, count: 0
+    assert_select "a[data-turbo-frame='modal'][href='#{new_document_path(project_id: @project.id)}']", text: "New"
+    assert_select "main form", count: 0
+    assert_select "main select", count: 0
     assert_no_match(/Plan Trackers|New Draft|Document type navigation/, response.body)
     get document_path(tracker)
     assert_response :not_found
@@ -22,6 +25,27 @@ class DocumentsControllerTest < ActionDispatch::IntegrationTest
     assert_response :not_found
     post approve_document_path(tracker), params: {revision: tracker.source_hash}
     assert_response :not_found
+  end
+
+  test "New opens generation and manual authoring inside the modal" do
+    use_case = create_use_case(project: @project, name: "Billing")
+    get new_document_path(project_id: @project.id)
+    assert_response :success
+    assert_select "turbo-frame#modal [role='dialog']" do
+      assert_select "form[action='#{generate_documents_path(project_id: @project.id)}']" do
+        assert_select "select[name='use_case_id'] option[value='#{use_case.id}']", text: "Billing"
+        assert_select "textarea[name='feature']"
+      end
+      assert_select "a[data-turbo-frame='modal']", text: "Write"
+    end
+
+    get new_document_path(project_id: @project.id, mode: "write")
+    assert_response :success
+    assert_select "turbo-frame#modal form[action='#{documents_path(project_id: @project.id)}']" do
+      assert_select "select[name='document[use_case_id]']"
+      assert_select "textarea[name='document[body]']"
+      assert_select "button", text: "Save and approve"
+    end
   end
 
   test "manual authoring and one click approval retain the same spec" do
@@ -88,5 +112,24 @@ class DocumentsControllerTest < ActionDispatch::IntegrationTest
       post documents_path(project_id: @project.id), params: {document: {title: "Invalid scope", body: "Content", use_case_id: foreign.id}}
     end
     assert_response :unprocessable_entity
+    assert_select "turbo-frame#modal .document-artifact-errors"
+    assert_select "textarea[name='document[body]']", text: "Content"
+  end
+
+  test "generation failure retains the modal inputs for retry" do
+    use_case = create_use_case(project: @project, name: "Billing")
+    previous = ENV["REDWRIGHT_SPEC_HARNESS"]
+    ENV["REDWRIGHT_SPEC_HARNESS"] = File.join(@project.root_path, "missing-harness")
+    assert_no_difference "Document.count" do
+      post generate_documents_path(project_id: @project.id), params: {feature: "Keep invoice history", use_case_id: use_case.id}
+    end
+    assert_response :unprocessable_entity
+    assert_select "turbo-frame#modal" do
+      assert_select "[role='alert']", text: /harness is unavailable/
+      assert_select "option[selected][value='#{use_case.id}']"
+      assert_select "textarea[name='feature']", text: "Keep invoice history"
+    end
+  ensure
+    ENV["REDWRIGHT_SPEC_HARNESS"] = previous
   end
 end

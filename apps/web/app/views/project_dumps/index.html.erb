@@ -3,7 +3,7 @@
     <div class="board-title-row">
       <h1>Dumps</h1>
       <div class="quiz-action-group">
-        <%= button_to "New Dump", project_dumps_path(@project), method: :post, class: "ticket-action" %>
+        <%= button_to "New", project_dumps_path(@project), method: :post, class: "ticket-action" %>
         <% if @available_use_cases.any? %>
           <details class="quiz-new-use-case-menu">
             <summary class="ticket-action quiz-new-use-case-trigger">For Use Case</summary>

@@ -4,7 +4,7 @@
       <h1>Quizzes</h1>
       <% if @available_use_cases_for_quiz.any? %>
         <details class="quiz-new-use-case-menu">
-          <summary class="ticket-action quiz-new-use-case-trigger">New Quiz</summary>
+          <summary class="ticket-action quiz-new-use-case-trigger">New</summary>
           <div class="quiz-new-use-case-dropdown">
             <% @available_use_cases_for_quiz.each do |use_case| %>
               <%= button_to use_case.name,

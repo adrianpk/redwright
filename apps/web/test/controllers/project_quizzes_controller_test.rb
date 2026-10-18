@@ -31,7 +31,7 @@ class ProjectQuizzesControllerTest < ActionDispatch::IntegrationTest
     refute_match "projects/#{project.id}/quizzes/project", response.body
     refute_match "Use case", response.body
     refute_match "Open Quiz", response.body
-    refute_match "New Quiz", response.body
+    assert_select ".quiz-new-use-case-trigger", count: 0
   end
 
   test "index is scoped to requested current project" do
@@ -69,7 +69,7 @@ class ProjectQuizzesControllerTest < ActionDispatch::IntegrationTest
     get project_quizzes_path(project)
 
     assert_response :success
-    assert_match "New Quiz", response.body
+    assert_select ".quiz-new-use-case-trigger", text: "New"
     assert_match "quiz-new-use-case-menu", response.body
     assert_match "quiz-new-use-case-option", response.body
     assert_match "Billing", response.body
@@ -83,7 +83,7 @@ class ProjectQuizzesControllerTest < ActionDispatch::IntegrationTest
     get project_quizzes_path(project)
 
     assert_response :success
-    refute_match "New Quiz", response.body
+    assert_select ".quiz-new-use-case-trigger", count: 0
   end
 
   test "opens use case quiz from index" do

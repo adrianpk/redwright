@@ -15,8 +15,8 @@ Use Specs for feature contracts and Protocol for agent operating guidance.
 
 1. Generate a specification.
 
-Open `Specs`. Select a use case when the feature belongs to one, describe the
-feature or corrective change, and select `Generate spec`. RW invokes the local
+Open `Specs` and select `New`. In the modal, select a use case when the feature
+belongs to one, describe the feature, and select `Generate`. RW invokes the local
 wrapped harness with project context, relevant dumps, and quiz answers. A dump
 is optional, and a quiz can start without one.
 
@@ -29,9 +29,9 @@ that revision immediately. Approval does not start ticket execution.
 
 3. Write a specification directly when the behavior is already clear.
 
-Select `Write spec`, fill in the title and Markdown body, and choose `Save draft`
-or `Save and approve`. A use case can contain several specifications for
-features and corrective work. No dump, quiz, or separate draft document is
+Select `New`, then `Write` in the modal. Fill in the title and Markdown body,
+and choose `Save draft` or `Save and approve`. A use case can contain several
+specifications for features and corrective work. No dump, quiz, or separate draft document is
 required for manual authoring.
 
 Specification files remain authoritative. External changes appear when the

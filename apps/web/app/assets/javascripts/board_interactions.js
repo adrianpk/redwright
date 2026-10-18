@@ -186,6 +186,7 @@
     const doc = new DOMParser().parseFromString(html, "text/html");
     const frame = doc.querySelector("turbo-frame#modal");
     modal.innerHTML = frame ? frame.innerHTML : html;
+    bindModalLinks();
     bindTicketMarkdownEditors();
   }
 

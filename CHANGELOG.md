@@ -12,7 +12,8 @@ entry per commit.
 
 - Generate specification drafts from project context, optional dumps, and quiz
   answers through a local harness. Review and approve the same specification,
-  or write one directly.
+  or write one directly. Start with New and choose generation or writing in
+  the creation modal.
 - Added Dumps so users can capture free-form project or use-case notes, curate
   them, and reuse them as future ticket context.
 - Added an authenticated Codex-backed black-box proof milestone: RedWright can

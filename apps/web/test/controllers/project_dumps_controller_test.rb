@@ -48,6 +48,7 @@ class ProjectDumpsControllerTest < ActionDispatch::IntegrationTest
     assert_match "Dumps", response.body
     assert_match "Project: Dump Web Project", response.body
     assert_select ".artifact-type-card h2", text: "Billing Dump"
+    assert_select "button.ticket-action", text: "New"
     assert_select ".quiz-new-use-case-option", text: "Billing"
     assert_match "Polished billing note.", response.body
   end

@@ -6,7 +6,6 @@ class DocumentsController < ApplicationController
 
   def index
     @artifacts = @project.documents.specifications.order(source_modified_at: :desc, id: :desc)
-    @available_use_cases = @project.use_cases.order(:name)
   end
 
   def show
@@ -14,6 +13,7 @@ class DocumentsController < ApplicationController
   end
 
   def new
+    @authoring_mode = params[:mode] == "write" ? "write" : "generate"
     @artifact = @project.documents.new(artifact_type: "spec", status: "draft")
     load_form
   end
@@ -25,6 +25,7 @@ class DocumentsController < ApplicationController
     if @artifact.save
       redirect_to document_path(@artifact), notice: "Specification saved."
     else
+      @authoring_mode = "write"
       load_form
       render :new, status: :unprocessable_entity
     end
@@ -55,6 +56,11 @@ class DocumentsController < ApplicationController
     use_case = @project.use_cases.find(params[:use_case_id]) if params[:use_case_id].present?
     specification = Specifications::Generator.new(project: @project, use_case: use_case, feature: params[:feature]).call
     redirect_to document_path(specification), notice: "Specification generated. Review it and approve when ready."
+  rescue Specifications::Error => error
+    @authoring_mode = "generate"
+    @generation_error = error.message
+    load_form
+    render :new, status: :unprocessable_entity
   end
 
   private

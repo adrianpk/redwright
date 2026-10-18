@@ -61,13 +61,14 @@ The board lets you:
 
 6. Create and approve specifications.
 
-Open `Specs`, select a use case when relevant, describe the feature or corrective
-change, and select `Generate spec`. RW uses the wrapped harness to produce a
-draft from project context, optional dumps, and quiz decisions.
+Open `Specs` and select `New`. In the modal, choose a use case when relevant,
+describe the feature, and select `Generate`. RW uses the wrapped harness to
+produce a draft from project context, optional dumps, and quiz decisions.
 
 Review the generated specification and select `Approve`. The same specification
-becomes approved. Use `Edit spec` for changes. You can also select `Write spec`
-and choose `Save draft` or `Save and approve` without discovery prerequisites.
+becomes approved. Use `Edit spec` for changes. For direct authoring, select
+`New`, then `Write`, and choose `Save draft` or `Save and approve` without
+discovery prerequisites.
 
 Implementation work is managed through Board tickets. Internal trackers organize
 their execution and do not appear in the web interface.
