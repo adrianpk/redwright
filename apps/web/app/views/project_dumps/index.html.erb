@@ -11,7 +11,6 @@
     <% @dumps.each do |dump| %>
       <%= link_to project_dump_path(@project, dump), class: "artifact-type-card" do %>
         <h2><%= dump.title %></h2>
-        <p><%= dump.use_case&.name || "Project" %> · <%= dump.capture_status %> · <%= dump.curation_status %></p>
         <% preview_lines = dump.entries.ordered.last(5).map(&:polished_input) %>
         <% preview_lines = [dump.summary.presence || "No entries yet"] if preview_lines.empty? %>
         <div class="protocol-card-preview" aria-hidden="true">
