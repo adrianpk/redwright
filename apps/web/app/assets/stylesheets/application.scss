@@ -512,6 +512,7 @@ body {
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
+  min-width: 0;
   aspect-ratio: var(--catalog-card-ratio);
   min-height: var(--catalog-card-min-height);
   text-decoration: none;
@@ -525,23 +526,27 @@ body {
 .artifact-type-card h2 {
   margin: 0;
   font-size: 0.92rem;
+  overflow-wrap: anywhere;
 }
 
 .artifact-type-card p {
   margin: 6px 0 0;
   font-size: 0.78rem;
   color: var(--muted);
+  overflow-wrap: anywhere;
 }
 
 .protocol-card-preview {
   margin-top: auto;
-  min-height: 96px;
+  flex: 0 1 106px;
+  min-height: 0;
   max-height: 106px;
   border: 1px solid rgba(31, 42, 68, 0.1);
   border-radius: 6px;
   background: #f7f7f4;
   color: rgba(31, 42, 68, 0.6);
   display: grid;
+  align-content: start;
   gap: 2px;
   padding: 7px 8px;
   overflow: hidden;
