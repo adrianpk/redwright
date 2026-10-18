@@ -11,7 +11,7 @@
 - derived_from:
   - `ops/conv/quiz/2026-05-06-redwright-use-case-management-ui-quiz.md`
   - `ops/conv/quiz/2026-05-06-redwright-use-case-management-ui-quiz-raw.md`
-  - `ops/tickets/ready/20260506081044-add-use-case-management-ui.md`
+  - `ops/tickets/solved/20260506081044-add-use-case-management-ui.md`
 
 ## Problem Statement
 

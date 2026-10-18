@@ -1,7 +1,7 @@
 ---
 id: TKT-20260508181112
 title: Improve agent ticket LLM response diagnostics and context shaping
-status: reviewing
+status: solved
 kind: bug
 severity: high
 priority: high
@@ -12,8 +12,8 @@ reported_at: 2026-05-08T18:11:12Z
 ready_at: 2026-05-08T18:11:12Z
 started_at: 2026-05-08T18:10:54Z
 reviewed_at: 2026-05-08T18:23:17Z
-closed_at:
-resolution:
+closed_at: 2026-10-18T20:45:27Z
+resolution: fixed
 owner: 
 branch: fix/ticket-20260508181112-llm-diagnostics-context
 pr: https://codeberg.org/adrianpk/redwright/pulls/379
@@ -83,4 +83,11 @@ The async execution thread also loses the originating Telegram trace id, so the 
 - Run `make agent-ticket-scenario-inspect` and verify any applied changes or blocked outcome are explainable from trace data.
 
 ## Outcome
-Implemented in PR #379.
+Implemented in PR #379 and integrated into `dev`.
+
+## Resolution Evidence
+
+Status reconciled on 2026-10-18 after verifying that every listed commit is included in `origin/dev`.
+
+- PR #379 implementation is included in `dev`; the requester records response diagnostics and propagates trace metadata.
+- Current implementation: `apps/web/app/services/agent_ticket_execution/llm_requester.rb`; regression coverage: `apps/web/test/services/agent_ticket_execution/llm_requester_test.rb`.

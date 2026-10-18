@@ -3,9 +3,9 @@
 ## Metadata
 
 - cycle_id: `cycle-2026-05-06-redwright-use-case-management-ui`
-- status: `in_progress`
-- state: `slice_8_merged`
-- updated: `2026-05-06`
+- status: `completed`
+- state: `completed`
+- updated: `2026-10-18`
 - active_slice: `none`
 - active_task: `none`
 - source_plan: `ops/plans/2026-05-06-redwright-use-case-management-ui-cycle-plan.md`
@@ -13,7 +13,7 @@
 - source_quiz:
   - `ops/conv/quiz/2026-05-06-redwright-use-case-management-ui-quiz.md`
   - `ops/conv/quiz/2026-05-06-redwright-use-case-management-ui-quiz-raw.md`
-- source_ticket: `ops/tickets/ready/20260506081044-add-use-case-management-ui.md`
+- source_ticket: `ops/tickets/solved/20260506081044-add-use-case-management-ui.md`
 - related_future_draft: `ops/specs/drafts/2026-05-06-redwright-ticket-context-inheritance-use-case-document-model-draft.md`
 
 ## Slice Progress
@@ -293,3 +293,7 @@ Post-Slice Tuning:
 - `2026-05-06` state=`slice_8_implemented` note=`validated the full Use Case management UI cycle with targeted cross-surface Rails tests, full Rails suite, final checklist, and deferred-work confirmation`
 - `2026-05-06` state=`slice_8_merged` note=`PR #335 branch was already included in dev and local dev fast-forwarded to 45163f2`
 - `2026-05-06` state=`post_slice_tuning_active` note=`opened tuning branch fix/use-case-metrics-modal-layout after manual screenshot review showed unstyled Use Case edit modal metrics and stacked actions`
+
+## Completion Reconciliation
+
+Reconciled on 2026-10-18: all listed slice commits are integrated into `dev`, the recorded validation is complete, and the source ticket is now `solved`.

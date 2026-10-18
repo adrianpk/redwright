@@ -1,7 +1,7 @@
 ---
 id: TKT-20260507074859
 title: Review quiz navigation flow and question routing semantics
-status: reviewing
+status: solved
 kind: task
 severity: medium
 priority: normal
@@ -12,12 +12,16 @@ reported_at: 2026-05-07T07:48:59Z
 ready_at:
 started_at: 2026-05-07T07:59:05Z
 reviewed_at: 2026-05-07T09:20:00Z
-closed_at:
-resolution:
+closed_at: 2026-10-18T20:45:27Z
+resolution: fixed
 owner:
 branch: multi-slice; see ops/trackers/2026-05-07-redwright-quiz-navigation-flow-cycle-tracker.md
 pr: https://codeberg.org/adrianpk/redwright/pulls/344
-commits: []
+commits:
+  - 2f9596b
+  - 8c6d9db
+  - c0588d8
+  - 5b49868
 ---
 
 ## Context
@@ -132,7 +136,7 @@ The current web quiz navigation appears coupled to URL state and does not reliab
 - Repository ticket checks after status or metadata changes.
 
 ## Outcome
-Implemented through a four-slice planned delivery cycle and sent to review:
+Implemented and integrated through a four-slice planned delivery cycle:
 
 - `ops/plans/2026-05-07-redwright-quiz-navigation-flow-cycle-plan.md`
 - `ops/trackers/2026-05-07-redwright-quiz-navigation-flow-cycle-tracker.md`
@@ -145,3 +149,10 @@ Implemented behavior:
 - Adaptive routing state is explicit in prompt intent metadata, including phase, follow-up depth, limits, remaining questions, and covered tags.
 - Follow-up loops return to trunk coverage when the configured maximum follow-up depth is exhausted.
 - Quiz next-question generation now uses the existing centralized `Redwright::LLM::RequestEngine` path and records LLM traces through `Redwright::LLM::TraceRecorder`.
+
+## Resolution Evidence
+
+Status reconciled on 2026-10-18 after verifying that every listed commit is included in `origin/dev`.
+
+- All four delivery slices, including backend current-question state, Answer/Skip progression, Done/Cancel semantics, and shared web/Telegram routing, are included in `dev`.
+- Cycle evidence and recorded validation: `ops/trackers/2026-05-07-redwright-quiz-navigation-flow-cycle-tracker.md`.

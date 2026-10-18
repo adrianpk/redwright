@@ -13,7 +13,7 @@
 - source_quiz:
   - `ops/conv/quiz/2026-05-06-redwright-use-case-management-ui-quiz.md`
   - `ops/conv/quiz/2026-05-06-redwright-use-case-management-ui-quiz-raw.md`
-- source_ticket: `ops/tickets/ready/20260506081044-add-use-case-management-ui.md`
+- source_ticket: `ops/tickets/solved/20260506081044-add-use-case-management-ui.md`
 - related_future_draft: `ops/specs/drafts/2026-05-06-redwright-ticket-context-inheritance-use-case-document-model-draft.md`
 
 ## Slice List

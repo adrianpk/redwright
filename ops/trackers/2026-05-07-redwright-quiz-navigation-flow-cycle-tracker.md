@@ -3,13 +3,13 @@
 ## Metadata
 
 - cycle_id: `cycle-2026-05-07-redwright-quiz-navigation-flow`
-- status: `in_progress`
-- state: `slice_4_reviewing`
-- updated: `2026-05-07`
+- status: `completed`
+- state: `completed`
+- updated: `2026-10-18`
 - active_slice: `none`
 - active_task: `none`
 - source_plan: `ops/plans/2026-05-07-redwright-quiz-navigation-flow-cycle-plan.md`
-- source_ticket: `ops/tickets/reviewing/20260507074859-review-quiz-navigation-flow-and-question-routing-semantics.md`
+- source_ticket: `ops/tickets/solved/20260507074859-review-quiz-navigation-flow-and-question-routing-semantics.md`
 
 ## Slice Progress
 
@@ -101,7 +101,7 @@ Validation:
 
 ### Slice 4: Adaptive Routing Closure
 
-- status: `reviewing`
+- status: `pr_merged`
 - branch: `fix/slice-4-quiz-adaptive-routing-closure`
 - PR: `https://codeberg.org/adrianpk/redwright/pulls/344`
 - merge_target: `dev`
@@ -113,7 +113,7 @@ Tasks:
 - [x] `T4.2 reuse existing LLMRequestEngine and question contract behavior`
 - [x] `T4.3 prevent local follow-up loops from losing broader quiz coverage`
 - [x] `T4.4 update tracker, ticket metadata, and residual-risk notes`
-- [ ] `T4.5 run targeted and broad validation for the completed cycle`
+- [x] `T4.5 run targeted and broad validation for the completed cycle`
 
 Commits:
 
@@ -154,3 +154,7 @@ Validation:
 
 - tuning needed: `no`
 - evidence: `targeted runtime, contract, provider, controller, Telegram, and full Rails validation are part of Slice 4 closure`
+
+## Completion Reconciliation
+
+Reconciled on 2026-10-18: all listed slice commits are integrated into `dev`, the recorded validation is complete, and the source ticket is now `solved`.

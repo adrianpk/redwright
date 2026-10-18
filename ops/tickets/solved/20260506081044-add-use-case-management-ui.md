@@ -1,7 +1,7 @@
 ---
 id: TKT-20260506081044
 title: Add use case management UI
-status: ready
+status: solved
 kind: task
 severity: medium
 priority: normal
@@ -11,13 +11,21 @@ source: chat
 reported_at: 2026-05-06T08:10:44Z
 ready_at: 2026-05-06T16:47:39Z
 started_at:
-reviewed_at:
-closed_at:
-resolution:
+reviewed_at: 2026-10-18T20:45:27Z
+closed_at: 2026-10-18T20:45:27Z
+resolution: fixed
 owner:
-branch:
-pr:
-commits: []
+branch: multi-slice; see ops/trackers/2026-05-06-redwright-use-case-management-ui-cycle-tracker.md
+pr: https://codeberg.org/adrianpk/redwright/pulls/335
+commits:
+  - a10bbfa
+  - 93b950a
+  - 81a70df
+  - 274429b
+  - 34f7570
+  - 1c2c5c7
+  - d6adcca
+  - 45163f2
 ---
 
 ## Context
@@ -81,4 +89,11 @@ Without a clear management surface, Quizzes may become overloaded with use-case 
 Quiz alignment completed. The ticket is ready, but the spec may justify splitting implementation into slices.
 
 ## Outcome
-Ready for implementation from the linked spec.
+Implemented through the eight-slice Use Case Management UI cycle. Project-scoped CRUD, generated slugs, command/query operations, reference metrics, optional ticket assignment, and protected deletion are integrated into `dev`.
+
+## Resolution Evidence
+
+Status reconciled on 2026-10-18 after verifying that every listed commit is included in `origin/dev`.
+
+- Cycle evidence: `ops/trackers/2026-05-06-redwright-use-case-management-ui-cycle-tracker.md`.
+- Current implementation: `apps/web/app/controllers/use_cases_controller.rb` and `apps/web/app/services/use_cases/command_query_handlers.rb`.

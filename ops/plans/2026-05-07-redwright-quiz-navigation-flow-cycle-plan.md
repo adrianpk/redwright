@@ -9,7 +9,7 @@
 - updated: `2026-05-07`
 - goal: `make web quiz question routing deterministic, state-consistent, adaptive, and aligned with Telegram quiz semantics without relying on URL-carried question payloads`
 - scope: `fix`
-- source_ticket: `ops/tickets/reviewing/20260507074859-review-quiz-navigation-flow-and-question-routing-semantics.md`
+- source_ticket: `ops/tickets/solved/20260507074859-review-quiz-navigation-flow-and-question-routing-semantics.md`
 - source_references:
   - `.agents/playbooks/quiz.md`
   - `ops/specs/specs/2026-05-05-redwright-quiz-questionnaire-context-spec.md`

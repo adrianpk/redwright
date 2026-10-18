@@ -1,7 +1,7 @@
 ---
 id: TKT-20260506081604
 title: Launch quiz rounds from quiz UI
-status: ready
+status: solved
 kind: task
 severity: medium
 priority: normal
@@ -11,13 +11,17 @@ source: chat
 reported_at: 2026-05-06T08:16:04Z
 ready_at: 2026-05-06T08:46:02Z
 started_at:
-reviewed_at:
-closed_at:
-resolution:
+reviewed_at: 2026-10-18T20:45:27Z
+closed_at: 2026-10-18T20:45:27Z
+resolution: fixed
 owner:
 branch:
 pr:
-commits: []
+commits:
+  - b9808d0a
+  - b05e2131
+  - 8f6152f0
+  - c79fdfc9
 ---
 
 ## Context
@@ -60,4 +64,11 @@ At the same time, indiscriminately launching rounds may create excessive questio
 - Verify the UI does not allow or encourage uncontrolled quiz growth past the limit.
 
 ## Outcome
-Pending implementation.
+The Quizzes UI opens and resumes the project quiz and use-case quizzes through the shared runtime. New launches are scoped to an existing use case; the runtime enforces `QuizLoops::Configuration#max_questions` and stops generation at that limit.
+
+## Resolution Evidence
+
+Status reconciled on 2026-10-18 after verifying that every listed commit is included in `origin/dev`.
+
+- Current implementation: `apps/web/app/controllers/project_quizzes_controller.rb`, `apps/web/app/views/project_quizzes/index.html.erb`, and `apps/web/app/services/quiz_loops/runtime.rb`.
+- Existing regression coverage: `apps/web/test/controllers/project_quizzes_controller_test.rb` and the configured question-limit case in `apps/web/test/services/quiz_loops/runtime_test.rb`.
