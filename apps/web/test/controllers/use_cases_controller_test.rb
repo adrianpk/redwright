@@ -245,7 +245,8 @@ class UseCasesControllerTest < ActionDispatch::IntegrationTest
     get project_use_cases_path(project)
 
     assert_response :success
-    assert_operator response.body.index("Protocols"), :<, response.body.index("Cases")
+    assert_select ".top-nav-link[href='#{project_protocols_path(project)}']", text: "Protocol"
+    assert_operator response.body.index("Protocol"), :<, response.body.index("Cases")
     assert_operator response.body.index("Cases"), :<, response.body.index("Conv")
     assert_match "href=\"#{project_use_cases_path(project)}\"", response.body
   end
