@@ -5,9 +5,20 @@
     <p class="board-key"><%= @artifact.status.humanize %><% if @artifact.use_case %> · <%= @artifact.use_case.name %><% end %></p>
   </header>
   <article class="document-artifact-panel"><pre><%= @artifact.body %></pre></article>
-  <p class="document-artifact-inline-actions"><%= link_to "Edit spec", edit_document_path(@artifact), class: "ticket-action" %></p>
-  <% if @artifact.status == "draft" %>
-    <%= button_to "Approve", approve_document_path(@artifact), params: {revision: @artifact.source_hash}, class: "ticket-action" %>
+  <% unless @execution_started %>
+    <div class="document-artifact-inline-actions">
+      <%= link_to "Edit", edit_document_path(@artifact), class: "ticket-action" %>
+      <%= button_to "Regenerate", regenerate_document_path(@artifact), class: "ticket-action" %>
+      <% if @artifact.status == "draft" %>
+        <%= button_to "Approve", approve_document_path(@artifact), params: {revision: @artifact.source_hash}, class: "ticket-action" %>
+      <% else %>
+        <%= button_to "Build tickets", slice_document_path(@artifact), class: "ticket-action" %>
+      <% end %>
+    </div>
+  <% else %>
+    <p class="board-key">Execution started</p>
+    <%= link_to "New corrective case", new_project_use_case_path(@project, corrects_use_case_id: @artifact.use_case_id), class: "ticket-action", data: {turbo_frame: "modal"} %>
+    <%= turbo_frame_tag "modal" %>
   <% end %>
   <% if @related_artifacts.any? %>
     <section class="artifact-relations">

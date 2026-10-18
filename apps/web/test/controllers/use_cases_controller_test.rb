@@ -128,7 +128,7 @@ class UseCasesControllerTest < ActionDispatch::IntegrationTest
     use_case = create_use_case(project: project, name: "Billing")
     board.tickets.create!(column: backlog, title: "Scoped ticket", use_case: use_case)
     draft = create_document(project: project, use_case: use_case, artifact_type: "spec", status: "draft", title: "Draft One")
-    create_document(project: project, use_case: use_case, artifact_type: "spec", title: "Spec One", body: "spec")
+    draft.update!(status: "approved", title: "Spec One", body: "spec")
     create_document(project: project, use_case: use_case, artifact_type: "plan_tracker", title: "Plan One", body: "plan")
     quiz = use_case.find_or_create_quiz!
     quiz.entries.create!(question: "What matters?", answer: "Context.")
@@ -140,7 +140,7 @@ class UseCasesControllerTest < ActionDispatch::IntegrationTest
     assert_select ".use-case-detail-metrics dt", text: "Tickets"
     assert_select ".use-case-detail-metrics dd", text: "1"
     assert_select ".use-case-detail-metrics dt", text: "Documents", count: 0
-    assert_select ".use-case-detail-metrics dd", text: "2"
+    assert_select ".use-case-detail-metrics dd", text: "1"
     assert_select ".use-case-detail-metrics dt", text: "Drafts", count: 0
     assert_select ".use-case-detail-metrics dt", text: "Specs"
     assert_select ".use-case-detail-metrics dt", text: "Plans", count: 0

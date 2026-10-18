@@ -12,8 +12,9 @@ Rails.application.routes.draw do
   resources :passwords, param: :token
   resources :projects, only: [ :index, :new, :create, :show ]
   resources :projects, only: [] do
-    resources :dumps, controller: "project_dumps", only: [ :index, :show, :create ] do
+    resources :dumps, controller: "project_dumps", only: [ :index, :new, :show, :create ] do
       member do
+        post :reopen
         post :append
         post :done
         post :cancel
@@ -84,6 +85,8 @@ Rails.application.routes.draw do
     end
     member do
       post :approve
+      post :regenerate
+      post :slice
     end
   end
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html

@@ -58,9 +58,12 @@ modified time.
 
 - Current baseline: `Project` has many use cases and documents. `UseCase` has
   many documents; `Document` has an optional use-case association.
-- Agreed cardinality: a use case may contain many specifications for distinct
-  features or for corrective work that needs its own specification. Preserve
-  the current lack of a one-specification-per-use-case uniqueness constraint.
+- Agreed cardinality: one use case represents one feature and owns at most
+  one dump, quiz, specification, and tracker. A tracker orders one or more
+  implementation tickets. Database uniqueness and file reconciliation enforce
+  singular artifact relationships.
+- `corrects_use_case_id` links a corrective feature to another use case in the
+  same project. Linked features and delivery history prevent destructive removal.
 - Remove the previous `source_draft` requirement. Direct authoring and harness
   generation create a specification without a prerequisite draft record.
 - Case slugs remain stable when display names change, preserving file-owned
@@ -114,8 +117,16 @@ modified time.
 - Tracker generation and maintenance are internal operations. There is no
   direct web tracker editor, ordering control, deletion action, or completion
   control; implementation remains manageable through tickets in Board.
-- Internal trackers serialize ordered ticket keys; current ticket states
-  determine progress and pickup. Ticket storage authority remains unchanged.
+- Trackers serialize ordered ticket keys and the specification source revision.
+  Current ticket states determine progress. Stale slicing cannot authorize execution.
+- Ticket Markdown files own descriptions and ticket metadata. SQL indexes paths,
+  source revisions, board/column and feature associations, statuses, and other
+  query metadata, without a description body. Separate comments retain ticket IDs.
+- Re-slicing before execution retains useful ticket IDs and keys and closes
+  omitted tickets as obsolete, preserving their feature and source references.
+- Starting a ticket records execution history in its file and the tracker.
+  Returning it to ready does not reset that history. Regeneration and contract
+  edits stay blocked; corrective work uses a linked feature.
 
 ## Serialization Contract
 

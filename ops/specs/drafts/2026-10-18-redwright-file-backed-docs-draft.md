@@ -92,9 +92,11 @@ Cases -> Dumps -> Quizzes -> Specs -> Board -> Protocol -> Settings
 - Reuse existing behavior where it already meets this contract. Simplification
   is the goal; existing capabilities do not need replacement merely to adopt
   a new storage representation.
-- A use case can group multiple features and contain multiple specifications.
-  A feature and, when needed, its corrective work can have separate specs.
-  Do not constrain a use case to a single specification.
+- A use case represents one feature. It owns at most one dump, one quiz, one
+  specification, and one tracker. Its tracker references one or more tickets.
+  Corrective work gets a separate use case linked to the original feature.
+- Dump and quiz are optional recommendations, without a mandatory discovery
+  gate. A directly authored specification is a supported starting point.
 - A specification captures a sufficiently understood feature: its purpose,
   relevant decisions, scope, expected behavior, and acceptance criteria.
 - Project context supplies the main product and engineering direction. The
@@ -116,7 +118,7 @@ Cases -> Dumps -> Quizzes -> Specs -> Board -> Protocol -> Settings
 The intended entry paths are:
 
 ```text
-Project context + optional dump + quiz
+Project context + optional dump + optional quiz
     -> RW through wrapped harness -> spec(status=draft)
     -> user approves -> same spec(status=approved)
 
@@ -142,6 +144,24 @@ Project context + user-authored content -> directly authored specification
 - Approval makes the specification ready to organize implementation. Starting
   ticket execution remains a separate action.
 
+### Feature Regeneration and Execution Boundary
+
+- Regenerate the same specification, preserving its identity and path. Include
+  its authored content, current project context, latest dump, and quiz answers.
+  The result becomes draft and invalidates prior slicing.
+- Once the revised specification is approved, Build tickets explicitly runs
+  slicing through the wrapped harness and rebuilds the internal tracker.
+- Before execution starts, retained work keeps its ticket key and record ID.
+  New work gets new tickets. Omitted work closes with resolution obsolete,
+  retaining its feature, specification, tracker, and history.
+- The first execution start permanently protects the specification and tracker.
+  Returning a ticket to ready, closing it, or archiving it does not enable
+  regeneration. This boundary also applies to manual edits and APIs.
+- Further contract changes use a linked corrective use case. Discovery may
+  continue on the existing dump and quiz after execution starts.
+- Source revision checks and a feature lock fence regeneration, slicing, and
+  execution starts. Outdated or incomplete slicing cannot authorize execution.
+
 ### Ticket-Owned Implementation and Internal Tracking
 
 - Tickets carry the implementation work for a specification. Their actual
@@ -166,9 +186,11 @@ Project context + user-authored content -> directly authored specification
   lifecycle metadata, including its status.
 - Editing a document outside RedWright is a valid operation. RedWright must
   recognize that change rather than restore an older database copy.
-- Use a consistent Markdown and metadata format across managed documents.
-  The detailed format is being collected in the model companion and remains
-  open for review.
+- Use the Markdown and metadata format defined in the model companion and
+  [Specification Files](../../../docs/reference/specification-files.md).
+- Ticket files own their Markdown bodies, workflow state, timestamps, and
+  feature/specification/tracker references. SQL indexes metadata and paths
+  without a description body. Comments remain separate records.
 
 ### Database Role
 
@@ -223,9 +245,10 @@ Project context + user-authored content -> directly authored specification
   wrapper records actual provenance and leaves approval to the user.
 - Saving a revision as a draft returns it to review. Save and approve approves
   the revision explicitly. Automatic approval is not exposed in this change.
-- Tracker generation is an internal operation supplied with the ordered, actual
-  implementation tickets. Pickup uses ticket states and tracker ordering;
-  approval alone does not generate tickets or start execution.
+- Build tickets runs bounded wrapped-harness slicing and publishes the internal
+  tracker after updating actual ticket files. Failed rebuilding leaves planning
+  unavailable for execution until repaired. Approval alone does not generate
+  tickets or start execution.
 - Internal setup/alignment summaries are file-backed reports, separate from
   user specifications. Setup creates an owned workspace for generated
   placeholder project paths before writing those files.
@@ -262,8 +285,8 @@ These criteria define the implemented scope for maintainer review:
 12. Trackers and supporting documents have no user-facing management surface
     or entries in specification lists and relation panels. Their internal
     execution role and existing data remain operational.
-13. A use case can contain distinct specifications for multiple features and
-    for corrective work when a separate specification is needed.
+13. A use case represents one feature, with at most one dump, quiz, spec, and
+    tracker. Corrective work has its own linked use case.
 14. The generated tracker references the real implementation tickets and
     organizes their execution order. Resolved and pending work follow current
     ticket state rather than an independent tracker checklist.
@@ -277,6 +300,9 @@ These criteria define the implemented scope for maintainer review:
     reflects the new status, and ticket execution does not start implicitly.
 
 ## Open Questions
+
+Feature cardinality, optional discovery, regeneration limits, obsolete-ticket
+retention, and file-backed ticket authority are settled for this PR.
 
 - Should a later explicit mode allow automatic approval of generated specs?
 - Do additional lifecycle states or revision policies become necessary after

@@ -86,7 +86,7 @@ class Api::V1::CommandQueriesControllerTest < ActionDispatch::IntegrationTest
 
   test "returns reconciliation-aware setup saga through command api when initialization fails" do
     slug = "api-duplicate-#{SecureRandom.hex(4)}"
-    create_project(name: "Existing API Duplicate", key: slug)
+    create_project(name: "Existing API Duplicate", key: slug).update!(root_path: "/workspace/projects/#{slug}")
 
     post "/api/v1/commands",
       params: {
@@ -655,6 +655,7 @@ class Api::V1::CommandQueriesControllerTest < ActionDispatch::IntegrationTest
 
   test "creates and approves specifications through command api" do
     project = create_project(key: "api-docs-#{SecureRandom.hex(4)}")
+    use_case = create_use_case(project: project, name: "API feature")
 
     write_protocol_files(project: project)
 
@@ -664,7 +665,8 @@ class Api::V1::CommandQueriesControllerTest < ActionDispatch::IntegrationTest
         payload: {
           project_id: project.id,
           title: "API Draft",
-          body: "Draft body"
+          body: "Draft body",
+          use_case_id: use_case.id
         },
         request_id: "req-api-doc-create"
       },

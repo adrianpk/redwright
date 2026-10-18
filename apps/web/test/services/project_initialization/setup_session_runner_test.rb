@@ -158,7 +158,7 @@ module ProjectInitialization
       create_project(
         name: "Existing Inventory",
         key: "inventory-duplicate"
-      )
+      ).update!(root_path: "/workspace/projects/inventory-duplicate")
       command = build_command(slug: "inventory-duplicate", guided_alignment: true)
 
       assert_no_difference -> { Project.count } do

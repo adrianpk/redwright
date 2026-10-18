@@ -99,11 +99,12 @@ def seed_ticket(board:, labels:, title:, column_key:, description:, priority:, a
 end
 
 def seed_project_document(project:, artifact_type:, title:, body:)
-  kind = artifact_type == "plan_tracker" ? "plan_tracker" : "spec"
+  kind = {"draft" => "internal", "spec" => "spec", "plan_tracker" => "plan_tracker"}.fetch(artifact_type)
   existing = project.documents.find_by(artifact_type: kind, title: title)
   return existing if existing
-  status = {"draft" => "draft", "spec" => "approved", "plan_tracker" => "tracking"}.fetch(artifact_type)
-  project.documents.create!(artifact_type: kind, title: title, body: body, status: status)
+  status = {"draft" => "active", "spec" => "approved", "plan_tracker" => "needs_review"}.fetch(artifact_type)
+  use_case = project.use_cases.find_or_create_by!(name: "Board Workflow Reliability") { |feature| feature.description = "Reliable board operations." }
+  project.documents.create!(artifact_type: kind, title: title, body: body, status: status, use_case: use_case)
 end
 
 def seed_document_relation(from:, to:, relation_type:)

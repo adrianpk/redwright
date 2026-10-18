@@ -18,9 +18,9 @@ module Specifications
       @root = root.present? ? Pathname.new(root).expand_path : ProjectProtocols::FileStore.for_project(project).root
     end
 
-    def entries
+    def entries(patterns: PATTERNS)
       ensure_workspace!
-      paths = PATTERNS.flat_map { |pattern| Dir.glob(pattern, base: root) }.uniq.sort
+      paths = patterns.flat_map { |pattern| Dir.glob(pattern, base: root) }.uniq.sort
       raise Error, "This project has too many specification files to index." if paths.size > MAX_FILES
       total = paths.sum { |path| safe_path(path).size }
       raise Error, "The project specification collection is too large." if total > MAX_TOTAL_BYTES
@@ -33,7 +33,6 @@ module Specifications
       raw = target.read(encoding: "UTF-8")
       raise Error, "Document is not valid UTF-8: #{path}" unless raw.valid_encoding?
       metadata, body = split(raw, path)
-      raise Error, "Document body is empty: #{path}" if body.blank?
       if metadata.key?("title") && (!metadata["title"].is_a?(String) || metadata["title"].strip.empty?)
         raise Error, "Document title is invalid: #{path}"
       end
@@ -41,13 +40,16 @@ module Specifications
       if relations && (!relations.is_a?(Array) || relations.any? { |edge| !edge.is_a?(Hash) || !edge["path"].is_a?(String) || !DocumentRelation::RELATION_TYPES.include?(edge["type"]) })
         raise Error, "Document relations are invalid: #{path}"
       end
-      kind = if path.include?("/report/")
+      kind = if path.include?("/ticket/")
+        "ticket"
+      elsif path.include?("/report/")
         "internal"
       elsif path.match?(%r{(?:/tracker/|\Aops/(?:plans|trackers)/)})
         "plan_tracker"
       else
         "spec"
       end
+      raise Error, "Document body is empty: #{path}" if kind != "ticket" && body.blank?
       status = metadata.fetch("status", kind == "plan_tracker" ? "tracking" : "draft").to_s
       if kind == "spec" && !%w[draft approved accepted final].include?(status)
         raise Error, "Unknown specification status in #{path}."
@@ -143,7 +145,7 @@ module Specifications
 
     def next_path(title, kind)
       slug = title.to_s.parameterize[0, 80].presence || "spec"
-      directory = {"spec" => "spec", "plan_tracker" => "tracker", "internal" => "report"}.fetch(kind)
+      directory = {"spec" => "spec", "plan_tracker" => "tracker", "internal" => "report", "ticket" => "ticket"}.fetch(kind)
       parent = root.join("ops", "default", directory)
       ordinal = Dir.glob("*", base: parent).filter_map { |name| name[/\A\d+/]&.to_i }.max.to_i + 1
       "ops/default/#{directory}/#{format('%05d', ordinal)}-#{slug}/artifact.md"

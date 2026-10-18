@@ -11,7 +11,8 @@ module DumpContext
         curation_status: "curated",
         curated_body: "Billing context."
       )
-      uncurated = project.dumps.create!(use_case: use_case, title: "Draft Billing Dump")
+      other_case = create_use_case(project: project, name: "Other feature")
+      uncurated = project.dumps.create!(use_case: other_case, title: "Draft Billing Dump")
       other_project = create_project(key: "dump-context-other")
       other_dump = other_project.dumps.create!(title: "Other Dump", curation_status: "curated", curated_body: "Other.")
 
@@ -22,7 +23,9 @@ module DumpContext
       result = RetrievalQuery.new(project: project, use_case: use_case, tags: ["billing"]).call
 
       assert_equal [dump], result.dumps.to_a
-      assert_equal [dump.id, uncurated.id].sort, result.taggings.map(&:taggable_id).sort
+      assert_equal [dump.id], result.taggings.map(&:taggable_id)
+      dump.update!(curation_status: "not_curated")
+      assert_empty RetrievalQuery.new(project: project, use_case: use_case, tags: ["billing"]).call.dumps
     end
 
     test "retrieves curated project dumps without tags" do

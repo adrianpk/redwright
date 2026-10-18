@@ -6,6 +6,10 @@ class UseCase < ApplicationRecord
   has_many :dump_entries, dependent: :restrict_with_error
   has_many :tickets, dependent: :restrict_with_error
   has_many :documents, dependent: :restrict_with_error
+  has_one :specification, -> { where(artifact_type: "spec") }, class_name: "Document"
+  has_one :tracker, -> { where(artifact_type: "plan_tracker") }, class_name: "Document"
+  belongs_to :corrects_use_case, class_name: "UseCase", optional: true
+  has_many :corrective_cases, class_name: "UseCase", foreign_key: :corrects_use_case_id, dependent: :restrict_with_error
   has_many :taggings, dependent: :restrict_with_error
 
   before_validation :normalize_slug
@@ -14,6 +18,11 @@ class UseCase < ApplicationRecord
   validates :name, uniqueness: { scope: :project_id }
   validates :description, presence: true
   validates :slug, presence: true, uniqueness: { scope: :project_id }
+  validate do
+    if corrects_use_case && (corrects_use_case.project_id != project_id || corrects_use_case == self)
+      errors.add(:corrects_use_case, "must be another feature in the same project")
+    end
+  end
 
   def find_or_create_quiz!
     quiz || project.quizzes.create!(use_case: self, name: "#{name} Quiz")
@@ -22,6 +31,9 @@ class UseCase < ApplicationRecord
   def blocking_reference_counts
     {
       "tickets" => tickets.count,
+      "dumps" => dumps.count,
+      "dump_entries" => dump_entries.count,
+      "corrective_cases" => corrective_cases.count,
       "documents" => documents.count,
       "quiz" => quiz ? 1 : 0,
       "quiz_entries" => quiz_entries.count,

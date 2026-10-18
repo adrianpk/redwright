@@ -55,12 +55,15 @@ class DocumentTest < ActiveSupport::TestCase
     assert_includes path.read, "External decision"
   end
 
-  test "one use case contains specs for features and corrective work" do
+  test "one feature has one specification and corrective work has its own case" do
     first = create_document
     use_case = create_use_case(project: first.project)
     first.update!(use_case: use_case)
-    second = create_document(project: first.project, use_case: use_case, title: "Corrective specification")
-    assert_equal [first.id, second.id].sort, use_case.documents.specifications.pluck(:id).sort
+    assert_raises(ActiveRecord::RecordInvalid) { create_document(project: first.project, use_case: use_case, title: "Duplicate specification") }
+    corrective_case = create_use_case(project: first.project, name: "Billing correction", corrects_use_case: use_case)
+    second = create_document(project: first.project, use_case: corrective_case, title: "Corrective specification")
+    assert_equal [first.id], use_case.documents.specifications.pluck(:id)
+    assert_equal use_case.id, second.use_case.corrects_use_case_id
     other_case = create_use_case(name: "Foreign case")
     assert_not first.update(use_case: other_case)
   end

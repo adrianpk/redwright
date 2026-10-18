@@ -15,5 +15,7 @@ class HardenUseCaseDomainForManagementUi < ActiveRecord::Migration[8.1]
 
     add_reference :documents, :use_case, foreign_key: true
     add_index :documents, [ :project_id, :use_case_id ]
+    add_index :documents, [:use_case_id, :artifact_type], unique: true,
+      where: "use_case_id IS NOT NULL AND artifact_type IN ('spec', 'plan_tracker')", name: "idx_documents_one_per_feature_kind"
   end
 end

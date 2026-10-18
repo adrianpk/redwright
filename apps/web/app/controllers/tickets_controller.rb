@@ -76,6 +76,8 @@ class TicketsController < ApplicationController
     load_board_context(board)
     @columns_to_refresh = [ source_column ]
     render "boards/update_columns"
+  rescue ActiveRecord::RecordNotDestroyed
+    render plain: @ticket.errors.full_messages.to_sentence, status: :unprocessable_entity
   end
 
   def pick
@@ -102,10 +104,13 @@ class TicketsController < ApplicationController
 
   def set_ticket
     @ticket = Ticket.find(params[:id])
+    Ticket.reconcile!(@ticket.project)
+    @ticket.reload
   end
 
   def set_board
     @board = Board.find(params[:board_id])
+    Ticket.reconcile!(@board.project)
   end
 
   def load_board_context(board)
@@ -122,6 +127,7 @@ class TicketsController < ApplicationController
     permitted = params.require(:ticket).permit(
       :title,
       :description,
+      :revision,
       :priority,
       :assignee,
       :column_id,

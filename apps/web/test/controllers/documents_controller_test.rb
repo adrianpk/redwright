@@ -49,8 +49,9 @@ class DocumentsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "manual authoring and one click approval retain the same spec" do
+    use_case = create_use_case(project: @project, name: "Manual feature")
     assert_difference "Document.count", 1 do
-      post documents_path(project_id: @project.id), params: {document: {title: "Manual spec", body: "Detailed behavior"}, approval: "draft"}
+      post documents_path(project_id: @project.id), params: {document: {title: "Manual spec", body: "Detailed behavior", use_case_id: use_case.id}, approval: "draft"}
     end
     assert_response :redirect
     created = @project.documents.order(:id).last
@@ -64,7 +65,8 @@ class DocumentsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "save and approve needs no discovery artifacts" do
-    post documents_path(project_id: @project.id), params: {document: {title: "Already understood", body: "Complete feature"}, approval: "approved"}
+    use_case = create_use_case(project: @project, name: "Already understood")
+    post documents_path(project_id: @project.id), params: {document: {title: "Already understood", body: "Complete feature", use_case_id: use_case.id}, approval: "approved"}
     assert_response :redirect
     assert_equal "approved", @project.documents.order(:id).last.status
     assert_equal 0, @project.quizzes.count
@@ -82,6 +84,7 @@ class DocumentsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "web generation calls the wrapped harness without manual document creation" do
+    use_case = create_use_case(project: @project, name: "Invoice corrections")
     program = Pathname.new(@project.root_path).join("web-test-harness")
     program.write(<<~'SCRIPT')
       #!/usr/bin/env ruby
@@ -95,7 +98,7 @@ class DocumentsControllerTest < ActionDispatch::IntegrationTest
     previous = ENV["REDWRIGHT_SPEC_HARNESS"]
     ENV["REDWRIGHT_SPEC_HARNESS"] = program.to_s
     assert_difference "Document.count", 1 do
-      post generate_documents_path(project_id: @project.id), params: {feature: "Add invoice corrections"}
+      post generate_documents_path(project_id: @project.id), params: {feature: "Add invoice corrections", use_case_id: use_case.id}
     end
     generated = @project.documents.order(:id).last
     assert_redirected_to document_path(generated)
@@ -129,6 +132,52 @@ class DocumentsControllerTest < ActionDispatch::IntegrationTest
       assert_select "option[selected][value='#{use_case.id}']"
       assert_select "textarea[name='feature']", text: "Keep invoice history"
     end
+  ensure
+    ENV["REDWRIGHT_SPEC_HARNESS"] = previous
+  end
+
+  test "the web regenerates and slices one feature until execution begins" do
+    # Exercise the actual form endpoints and subprocess contract without a live model.
+    board = create_board(project: @project)
+    ready = board.columns.create!(key: "backlog", title: "Ready", position: 0)
+    working = board.columns.create!(key: "in_progress", title: "Working", position: 1)
+    program = Pathname.new(@project.root_path).join("feature-web-harness")
+    program.write(<<~'SCRIPT')
+      #!/usr/bin/env ruby
+      require "json"
+      context = JSON.parse(STDIN.read.split("Context:\n", 2).last)
+      result = if context.key?("existing_tickets")
+        {tickets: [{key: nil, title: "Implement feature", body: "Scope and acceptance criteria"}]}
+      else
+        {title: "Updated feature", body: "# Updated contract\n\nLatest discovery."}
+      end
+      File.write(ARGV[ARGV.index("--output-last-message") + 1], JSON.generate(result))
+    SCRIPT
+    program.chmod(0o700)
+    previous = ENV["REDWRIGHT_SPEC_HARNESS"]
+    ENV["REDWRIGHT_SPEC_HARNESS"] = program.to_s
+    assert_no_difference "Document.specifications.count" do
+      post regenerate_document_path(@spec)
+      assert_redirected_to document_path(@spec)
+    end
+    @spec.reload
+    post approve_document_path(@spec), params: {revision: @spec.source_hash}
+    assert_difference "Ticket.count", 1 do
+      post slice_document_path(@spec)
+      assert_redirected_to document_path(@spec)
+    end
+    ticket = board.tickets.find_by!(title: "Implement feature")
+    assert_equal ready.id, ticket.column_id
+    ticket.transition_to_column!(working)
+    get document_path(@spec)
+    assert_response :success
+    assert_select "button", text: "Regenerate", count: 0
+    assert_select "a", text: "New corrective case"
+    post regenerate_document_path(@spec)
+    assert_response :unprocessable_entity
+    assert_includes response.body, "Execution has started"
+    post slice_document_path(@spec)
+    assert_response :unprocessable_entity
   ensure
     ENV["REDWRIGHT_SPEC_HARNESS"] = previous
   end

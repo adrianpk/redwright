@@ -38,7 +38,11 @@ class Ticket < ApplicationRecord
 
   before_validation :assign_workflow_defaults
   before_validation :normalize_ticket_key
-  after_create :assign_ticket_key_after_create
+  before_save :persist_source
+  before_destroy :protect_delivery_history
+  after_destroy :remove_source
+  attr_writer :description
+  attr_accessor :revision
 
   validates :title, presence: true
   validates :ticket_key, uniqueness: true, allow_blank: true
@@ -55,14 +59,46 @@ class Ticket < ApplicationRecord
 
   scope :visible_on_board, -> { where(archived_at: nil) }
   scope :ordered_for_board, -> { order(priority: :desc, created_at: :asc) }
-  scope :active, -> { visible_on_board.joins(:column).where.not(columns: { key: [ "merged", "done" ] }) }
+  scope :active, -> { visible_on_board.joins(:column).where.not(columns: { key: [ "merged", "done" ] }).where.not(workflow_status: %w[solved closed]) }
   scope :for_project, ->(project_id) { joins(:board).where(boards: { project_id: project_id }) }
   scope :for_use_case, ->(use_case_id) { where(use_case_id: use_case_id) }
   scope :with_workflow_status, ->(*statuses) { where(workflow_status: statuses.flatten) }
 
   delegate :project, :project_id, to: :board
 
+  def self.reconcile!(project)
+    TicketManagement::FileIndex.new(project).reconcile!
+  end
+
+  def source_document
+    Specifications::FileStore.new(project).read(relative_path)
+  end
+
+  def description
+    return @description if defined?(@description)
+    return nil if relative_path.blank?
+    entry = source_document
+    entry[:body].empty? && entry[:metadata]["description_nil"] ? nil : entry[:body]
+  end
+
+  def execution_started?
+    started_at.present? || runtime_execution_started_at.present? || runtime_execution_status == "started" ||
+      workflow_status.in?(%w[in_progress reviewing solved]) || review_started_at.present? || merged_at.present?
+  end
+
   def transition_to_column!(target_column)
+    Features::Workflow.new(use_case).with_lock { apply_column_transition!(target_column) }
+  end
+
+  def begin_execution!
+    raise Specifications::Error, "Closed or archived tickets cannot start execution." if archived_at.present? || workflow_status.in?(%w[closed solved])
+    Features::Workflow.new(use_case).with_lock do
+      Features::Workflow.new(use_case).ensure_start_allowed!(self) if use_case
+      update!(started_at: started_at || Time.current)
+    end
+  end
+
+  def apply_column_transition!(target_column)
     self.column = target_column
     self.workflow_status = workflow_status_for_column(target_column)
     now = Time.current
@@ -120,6 +156,7 @@ class Ticket < ApplicationRecord
   end
 
   def self.pick_next_for(board:, assignee: nil)
+    reconcile!(board.project)
     relation = board.tickets.active
     assigned = assignee.to_s.strip.empty? ? Ticket.none : relation.where(assignee: assignee.to_s.strip)
     pool = assigned.exists? ? assigned : relation
@@ -130,9 +167,12 @@ class Ticket < ApplicationRecord
     value = ref.to_s.strip
     return nil if value.blank?
 
-    return find_by(id: value) if value.match?(/\A\d+\z/)
-
-    find_by(ticket_key: value.upcase)
+    record = value.match?(/\A\d+\z/) ? find_by(id: value) : find_by(ticket_key: value.upcase)
+    if record
+      reconcile!(record.project)
+      record.reload
+    end
+    record
   end
 
   def self.next_ticket_key
@@ -201,18 +241,39 @@ class Ticket < ApplicationRecord
     self.commits = [] if commits.blank?
     self.ready_at ||= created_at || Time.current if workflow_status == "ready"
     self.closed_at ||= Time.current if workflow_status.in?(%w[solved closed]) && closed_at.blank?
+    self.started_at ||= Time.current if workflow_status.in?(%w[in_progress reviewing solved]) || runtime_execution_status == "started"
   end
 
   def normalize_ticket_key
     self.ticket_key = ticket_key.to_s.strip.upcase.presence
+    self.ticket_key ||= self.class.next_ticket_key
   end
 
-  def assign_ticket_key_after_create
-    return if ticket_key.present?
+  def persist_source
+    self.created_at ||= Time.current
+    self.updated_at = Time.current
+    if started_at_in_database && started_at.nil?
+      self.started_at = started_at_in_database
+    end
+    starting = use_case && execution_started? && !started_at_in_database
+    workflow = Features::Workflow.new(use_case)
+    workflow.ensure_start_allowed!(self) if starting
+    entry = TicketManagement::FileIndex.new(project).write(self)
+    workflow.mark_started!(self) if starting
+    self.relative_path = entry[:path]
+    self.source_hash = entry[:source_hash]
+    self.source_modified_at = entry[:source_modified_at]
+    remove_instance_variable(:@description) if defined?(@description)
+  end
 
-    update_column(:ticket_key, self.class.next_ticket_key)
-  rescue ActiveRecord::RecordNotUnique
-    update_column(:ticket_key, self.class.next_ticket_key)
+  def protect_delivery_history
+    return if specification_path.blank? && !execution_started?
+    errors.add(:base, "Delivery tickets retain their history; close or archive them instead.")
+    throw :abort
+  end
+
+  def remove_source
+    Pathname.new(project.root_path).join(relative_path).delete if relative_path.present?
   end
 
   def resolution_matches_terminal_status

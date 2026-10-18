@@ -2,26 +2,11 @@
   <section class="documents-top-shell">
     <div class="board-title-row">
       <h1>Dumps</h1>
-      <div class="quiz-action-group">
-        <%= button_to "New", project_dumps_path(@project), method: :post, class: "ticket-action" %>
-        <% if @available_use_cases.any? %>
-          <details class="quiz-new-use-case-menu">
-            <summary class="ticket-action quiz-new-use-case-trigger">For Use Case</summary>
-            <div class="quiz-new-use-case-dropdown">
-              <% @available_use_cases.each do |use_case| %>
-                <%= button_to use_case.name,
-                              project_dumps_path(@project),
-                              method: :post,
-                              params: { use_case_name: use_case.name },
-                              class: "quiz-new-use-case-option" %>
-              <% end %>
-            </div>
-          </details>
-        <% end %>
-      </div>
+      <%= link_to "New", new_project_dump_path(@project), class: "ticket-action", data: {turbo_frame: "modal"} %>
     </div>
     <p class="board-key">Project: <%= @project.name %></p>
   </section>
+  <%= turbo_frame_tag "modal" %>
 
   <section class="artifact-type-nav" aria-label="Dump navigation">
     <% @dumps.each do |dump| %>

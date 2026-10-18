@@ -23,7 +23,8 @@ module UseCases
 
       use_case = project.use_cases.new(
         name: value_from(payload, "name").to_s.strip,
-        description: value_from(payload, "description").to_s.strip
+        description: value_from(payload, "description").to_s.strip,
+        corrects_use_case_id: value_from(payload, "corrects_use_case_id")
       )
       return invalid_record_result(use_case, request_id: request_id, summary: "Use case could not be created.") unless use_case.save
 

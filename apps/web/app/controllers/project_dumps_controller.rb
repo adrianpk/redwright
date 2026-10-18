@@ -8,6 +8,16 @@ class ProjectDumpsController < ApplicationController
     @available_use_cases = @project.use_cases.order(:name, :id)
   end
 
+  def new
+    @available_use_cases = @project.use_cases.where.not(id: @project.dumps.where.not(use_case_id: nil).select(:use_case_id)).order(:name)
+  end
+
+  def reopen
+    dump = @project.dumps.find_by!(slug: params[:id])
+    dump.update!(status: "active", capture_status: "capturing", curation_status: "needs_review")
+    redirect_to project_dump_path(@project, dump)
+  end
+
   def create
     result = DumpLoops::Runtime.new(
       project: @project,

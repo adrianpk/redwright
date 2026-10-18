@@ -11,8 +11,9 @@ module Specifications
       properties: {title: {type: "string"}, body: {type: "string"}}
     }.freeze
 
-    def initialize(program: ENV.fetch("REDWRIGHT_SPEC_HARNESS", "codex"), timeout: TIMEOUT_SECONDS)
+    def initialize(program: ENV.fetch("REDWRIGHT_SPEC_HARNESS", "codex"), timeout: TIMEOUT_SECONDS, schema: OUTPUT_SCHEMA)
       @program, @timeout = program, timeout
+      @schema = schema
     end
 
     def generate(context:, workspace:)
@@ -20,7 +21,7 @@ module Specifications
         schema = File.join(directory, "schema.json")
         prompt = File.join(directory, "prompt.txt")
         output = File.join(directory, "result.json")
-        File.write(schema, JSON.generate(OUTPUT_SCHEMA))
+        File.write(schema, JSON.generate(@schema))
         File.write(prompt, instructions + "\nContext:\n" + JSON.generate(context))
         command = [@program, "exec", "--sandbox", "read-only", "--ephemeral", "--skip-git-repo-check", "--color", "never",
           "-c", 'approval_policy="never"', "--output-schema", schema, "--output-last-message", output, "-"]
@@ -35,9 +36,7 @@ module Specifications
         raise Error, "Specification generation failed. Check the local harness session and try again." unless status.success? && File.file?(output)
         raise Error, "Generated specification is too large." if File.size(output) > MAX_OUTPUT_BYTES
         value = JSON.parse(File.read(output))
-        unless value.is_a?(Hash) && value.keys.sort == %w[body title] && value.values.all? { |item| item.is_a?(String) && item.strip.present? }
-          raise Error, "The harness did not return a valid specification."
-        end
+        validate_output!(value)
         value
       end
     rescue Errno::ENOENT, Errno::EACCES
@@ -47,6 +46,12 @@ module Specifications
     end
 
     private
+
+    def validate_output!(value)
+      unless value.is_a?(Hash) && value.keys.sort == %w[body title] && value.values.all? { |item| item.is_a?(String) && item.strip.present? }
+        raise Error, "The harness did not return a valid specification."
+      end
+    end
 
     def instructions
       <<~TEXT

@@ -4,6 +4,7 @@ class CreateUseCases < ActiveRecord::Migration[8.1]
       t.references :project, null: false, foreign_key: true
       t.string :name, null: false
       t.string :slug, null: false
+      t.references :corrects_use_case, foreign_key: {to_table: :use_cases}
 
       t.timestamps
     end

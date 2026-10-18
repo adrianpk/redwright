@@ -15,8 +15,8 @@ Use Specs for feature contracts and Protocol for agent operating guidance.
 
 1. Generate a specification.
 
-Open `Specs` and select `New`. In the modal, select a use case when the feature
-belongs to one, describe the feature, and select `Generate`. RW invokes the local
+Open `Specs` and select `New`. In the modal, select the feature's use case,
+describe the feature, and select `Generate`. RW invokes the local
 wrapped harness with project context, relevant dumps, and quiz answers. A dump
 is optional, and a quiz can start without one.
 
@@ -30,8 +30,8 @@ that revision immediately. Approval does not start ticket execution.
 3. Write a specification directly when the behavior is already clear.
 
 Select `New`, then `Write` in the modal. Fill in the title and Markdown body,
-and choose `Save draft` or `Save and approve`. A use case can contain several
-specifications for features and corrective work. No dump, quiz, or separate draft document is
+and choose `Save draft` or `Save and approve`. Each use case is one feature with
+one specification. No dump, quiz, or separate draft document is
 required for manual authoring.
 
 Specification files remain authoritative. External changes appear when the
@@ -42,6 +42,15 @@ are not recreated from the database.
 Implementation progress is managed through tickets in Board. Generated internal
 trackers reference those same tickets and order execution; they have no web
 management surface.
+
+Use `Regenerate` to incorporate later dump entries or quiz answers into the same
+specification. Review and approve it again, then use `Build tickets` to generate
+or revise its slicing. Useful tickets retain their identity; omitted work closes
+as obsolete with its relationships and history preserved.
+
+Once execution starts, the specification and tracker are protected, including
+after returning a ticket to ready. Use `New corrective case` for subsequent
+contract changes. Discovery can continue on the existing dump and quiz.
 
 4. Open project protocols.
 

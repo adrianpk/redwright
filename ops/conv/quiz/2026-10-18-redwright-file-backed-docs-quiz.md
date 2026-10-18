@@ -60,8 +60,16 @@ separate questionnaire session.
   without copying it into a separate document.
 - Manual authoring can offer Save draft and Save and approve. Approval does
   not by itself start ticket execution.
-- A use case can group multiple features. Features and corrective work can
-  have distinct specifications; the one-to-many relationship is now agreed.
+- A use case represents one feature, with at most one dump, quiz, spec, and
+  tracker. This supersedes the earlier grouping of multiple features under
+  one case. The tracker orders one or more implementation tickets.
+- Dump and quiz stay optional. Later discovery improves regeneration of the
+  same specification, without creating another specification artifact.
+- Before execution starts, re-slicing preserves useful ticket identities and
+  closes omitted work as obsolete without orphaning it.
+- Starting a ticket permanently protects the specification and tracker,
+  including after returning it to ready. Changes become a linked corrective
+  use case. Ticket files become authoritative with derived SQL indexes.
 - Implementation belongs in tickets. The generated tracker organizes execution
   order and references those tickets, whose states determine what is resolved.
 - Tracker summaries must derive from tickets rather than maintain a separate
@@ -101,7 +109,7 @@ separate questionnaire session.
   same specification to approved while retaining identity and provenance.
 - `unsure`: whether an explicitly selected automatic approval mode is useful,
   and what authorization and revision rules should govern it.
-- `keep`: multiple specifications per use case for features and corrective work.
+- `keep`: one feature per use case, with one specification and linked corrective cases.
 - `keep`: tickets own implementation status; the generated internal tracker
   orders execution and references those same tickets.
 - `keep`: no direct web tracker management.

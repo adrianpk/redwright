@@ -11,14 +11,16 @@
         <%= link_to "Generate", new_document_path(project_id: @project.id), class: "#{'is-active' if @authoring_mode == 'generate'}", aria: {current: @authoring_mode == "generate" ? "page" : nil}, data: {turbo_frame: "modal"} %>
         <%= link_to "Write", new_document_path(project_id: @project.id, mode: "write"), class: "#{'is-active' if @authoring_mode == 'write'}", aria: {current: @authoring_mode == "write" ? "page" : nil}, data: {turbo_frame: "modal"} %>
       </nav>
-      <% if @authoring_mode == "write" %>
+      <% if @available_use_cases.empty? && @artifact&.errors&.empty? && !@generation_error %>
+        <%= link_to "New case", new_project_use_case_path(@project), class: "ticket-action", data: {turbo_frame: "modal"} %>
+      <% elsif @authoring_mode == "write" %>
         <%= render "form", artifact: @artifact %>
       <% else %>
         <%= form_with url: generate_documents_path(project_id: @project.id), method: :post, class: "document-artifact-form" do |form| %>
           <% if @generation_error %><div class="document-artifact-errors" role="alert"><%= @generation_error %></div><% end %>
           <div class="document-artifact-field">
             <%= form.label :use_case_id, "Use case" %>
-            <%= form.collection_select :use_case_id, @available_use_cases, :id, :name, include_blank: "Project", selected: params[:use_case_id] %>
+            <%= form.collection_select :use_case_id, @available_use_cases, :id, :name, {prompt: "Select", selected: params[:use_case_id]}, required: true %>
           </div>
           <div class="document-artifact-field">
             <%= form.label :feature, "Feature" %>

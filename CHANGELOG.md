@@ -27,6 +27,11 @@ entry per commit.
 - Specs replaces the document catalogue and follows the project's Markdown
   files, including external edits. Outdated saves are rejected. Implementation
   progress belongs to Board tickets; trackers remain internal.
+- Each use case represents one feature with one specification. Regenerate it
+  from later discovery and rebuild tickets before execution starts. Retained
+  work keeps its identity; obsolete work keeps its history. Execution protects
+  the contract, with linked corrective cases for later changes.
+- Tickets follow project files, including descriptions and workflow state.
 - Protocols now reads and edits `AGENTS.md` and Markdown files under `.agents/`
   directly, including custom files and subdirectories. Changes from other
   tools appear without synchronization, and outdated web saves are rejected.

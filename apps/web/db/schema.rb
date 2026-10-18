@@ -60,6 +60,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_10_100100) do
     t.index ["project_id", "status"], name: "index_documents_on_project_id_and_status"
     t.index ["project_id", "use_case_id"], name: "index_documents_on_project_id_and_use_case_id"
     t.index ["project_id"], name: "index_documents_on_project_id"
+    t.index ["use_case_id", "artifact_type"], name: "idx_documents_one_per_feature_kind", unique: true, where: "use_case_id IS NOT NULL AND artifact_type IN ('spec', 'plan_tracker')"
     t.index ["use_case_id"], name: "index_documents_on_use_case_id"
   end
 
@@ -99,6 +100,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_10_100100) do
     t.index ["project_id", "status"], name: "idx_dumps_project_status"
     t.index ["project_id", "use_case_id", "created_at"], name: "idx_dumps_project_use_case_created"
     t.index ["project_id"], name: "index_dumps_on_project_id"
+    t.index ["use_case_id"], name: "idx_dumps_one_per_feature", unique: true, where: "use_case_id IS NOT NULL"
     t.index ["use_case_id"], name: "index_dumps_on_use_case_id"
   end
 
@@ -360,7 +362,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_10_100100) do
     t.integer "column_id", null: false
     t.text "commits"
     t.datetime "created_at", null: false
-    t.text "description"
     t.string "kind"
     t.datetime "merge_started_at"
     t.datetime "merged_at"
@@ -370,6 +371,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_10_100100) do
     t.integer "priority", default: 1, null: false
     t.string "pull_request_url"
     t.datetime "ready_at"
+    t.string "relative_path", null: false
     t.string "resolution"
     t.datetime "review_completed_at"
     t.datetime "review_started_at"
@@ -386,14 +388,20 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_10_100100) do
     t.datetime "sent_to_review_at"
     t.string "severity"
     t.string "source"
+    t.string "source_hash", null: false
+    t.datetime "source_modified_at", null: false
+    t.string "specification_path"
+    t.string "specification_revision"
     t.datetime "started_at"
     t.string "ticket_key"
     t.string "title", null: false
+    t.string "tracker_path"
     t.datetime "updated_at", null: false
     t.integer "use_case_id"
     t.string "workflow_status"
     t.index ["archived_at"], name: "index_tickets_on_archived_at"
     t.index ["board_id", "priority"], name: "index_tickets_on_board_id_and_priority"
+    t.index ["board_id", "relative_path"], name: "index_tickets_on_board_id_and_relative_path", unique: true
     t.index ["board_id", "use_case_id"], name: "index_tickets_on_board_id_and_use_case_id"
     t.index ["board_id", "workflow_status"], name: "index_tickets_on_board_id_and_workflow_status"
     t.index ["board_id"], name: "index_tickets_on_board_id"
@@ -404,18 +412,21 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_10_100100) do
     t.index ["runtime_execution_status", "updated_at"], name: "index_tickets_on_runtime_execution_status_and_updated_at"
     t.index ["scope"], name: "index_tickets_on_scope"
     t.index ["severity"], name: "index_tickets_on_severity"
+    t.index ["specification_path"], name: "index_tickets_on_specification_path"
     t.index ["ticket_key"], name: "index_tickets_on_ticket_key", unique: true
     t.index ["use_case_id"], name: "index_tickets_on_use_case_id"
     t.index ["workflow_status"], name: "index_tickets_on_workflow_status"
   end
 
   create_table "use_cases", force: :cascade do |t|
+    t.integer "corrects_use_case_id"
     t.datetime "created_at", null: false
     t.text "description", null: false
     t.string "name", null: false
     t.integer "project_id", null: false
     t.string "slug", null: false
     t.datetime "updated_at", null: false
+    t.index ["corrects_use_case_id"], name: "index_use_cases_on_corrects_use_case_id"
     t.index ["project_id", "name"], name: "index_use_cases_on_project_id_and_name", unique: true
     t.index ["project_id", "slug"], name: "index_use_cases_on_project_id_and_slug", unique: true
     t.index ["project_id"], name: "index_use_cases_on_project_id"
@@ -465,4 +476,5 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_10_100100) do
   add_foreign_key "tickets", "columns"
   add_foreign_key "tickets", "use_cases"
   add_foreign_key "use_cases", "projects"
+  add_foreign_key "use_cases", "use_cases", column: "corrects_use_case_id"
 end

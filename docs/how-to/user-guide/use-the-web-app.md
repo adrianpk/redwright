@@ -61,7 +61,7 @@ The board lets you:
 
 6. Create and approve specifications.
 
-Open `Specs` and select `New`. In the modal, choose a use case when relevant,
+Open `Specs` and select `New`. In the modal, choose the feature's use case,
 describe the feature, and select `Generate`. RW uses the wrapped harness to
 produce a draft from project context, optional dumps, and quiz decisions.
 
@@ -72,6 +72,11 @@ discovery prerequisites.
 
 Implementation work is managed through Board tickets. Internal trackers organize
 their execution and do not appear in the web interface.
+
+Each use case is one feature with one specification. `Regenerate` incorporates
+later discovery into it before execution starts. After approval, `Build tickets`
+revises slicing while preserving retained ticket identities and obsolete history.
+Once execution starts, use a linked corrective case for contract changes.
 
 7. Use protocols.
 

@@ -38,7 +38,7 @@ class SpecificationsGeneratorTest < ActiveSupport::TestCase
     document = create_document
     harness = Specifications::Harness.new(program: "/bin/false")
     assert_no_difference "Document.count" do
-      assert_raises(Specifications::Error) { Specifications::Generator.new(project: document.project, harness: harness).call }
+      assert_raises(Specifications::Error) { Specifications::Generator.new(project: document.project, use_case: document.use_case, harness: harness).call }
     end
   end
 
@@ -49,7 +49,7 @@ class SpecificationsGeneratorTest < ActiveSupport::TestCase
     program.chmod(0o700)
     harness = Specifications::Harness.new(program: program.to_s, timeout: 0.05)
     assert_no_difference "Document.count" do
-      error = assert_raises(Specifications::Error) { Specifications::Generator.new(project: document.project, harness: harness).call }
+      error = assert_raises(Specifications::Error) { Specifications::Generator.new(project: document.project, use_case: document.use_case, harness: harness).call }
       assert_includes error.message, "timed out"
     end
   end

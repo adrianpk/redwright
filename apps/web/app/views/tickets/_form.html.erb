@@ -1,4 +1,5 @@
 <%= form_with model: ticket, url: url do |f| %>
+  <%= f.hidden_field :revision, value: ticket.revision.presence || ticket.source_hash %>
   <% if ticket.errors.any? %>
     <div class="form-errors">
       <% ticket.errors.full_messages.each do |message| %>

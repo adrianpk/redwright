@@ -85,7 +85,7 @@ class UseCaseTest < ActiveSupport::TestCase
     use_case = create_use_case(project: project, name: "Billing")
     board.tickets.create!(column: backlog, title: "Scoped ticket", use_case: use_case)
     draft = create_document(project: project, use_case: use_case, artifact_type: "spec", status: "draft", title: "Draft One")
-    create_document(project: project, use_case: use_case, artifact_type: "spec", title: "Spec One", body: "spec")
+    draft.update!(status: "approved", title: "Spec One", body: "spec")
     create_document(project: project, use_case: use_case, artifact_type: "plan_tracker", title: "Plan One", body: "plan")
     quiz = use_case.find_or_create_quiz!
     quiz.entries.create!(question: "What matters?", answer: "Context.")
@@ -93,7 +93,7 @@ class UseCaseTest < ActiveSupport::TestCase
     metrics = use_case.detail_metrics
 
     assert_equal 1, metrics.fetch("tickets")
-    assert_equal 2, metrics.fetch("documents").fetch("spec")
+    assert_equal 1, metrics.fetch("documents").fetch("spec")
     assert_equal 1, metrics.fetch("documents").fetch("plan_tracker")
     assert_equal 1, metrics.fetch("plans")
     assert_equal 1, metrics.fetch("quiz_entries")

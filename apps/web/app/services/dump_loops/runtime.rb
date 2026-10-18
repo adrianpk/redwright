@@ -103,6 +103,10 @@ module DumpLoops
     def resolve_dump!
       return @dump if @dump
 
+      if use_case && (existing = dumps_scope.first)
+        existing.update!(status: "active", capture_status: "capturing", curation_status: "needs_review") unless existing.capturing?
+        return @dump = existing
+      end
       active = dumps_scope.where(status: "active", capture_status: "capturing").order(updated_at: :desc).first
       return @dump = active if active && title.to_s.strip.empty?
 

@@ -1,7 +1,7 @@
 class DocumentsController < ApplicationController
   before_action :set_project
   before_action :reconcile
-  before_action :set_document, only: [:show, :edit, :update, :approve]
+  before_action :set_document, only: [:show, :edit, :update, :approve, :regenerate, :slice]
   rescue_from Specifications::Error, with: :document_error
 
   def index
@@ -10,6 +10,7 @@ class DocumentsController < ApplicationController
 
   def show
     @related_artifacts = @artifact.related_artifacts.select { |_, document| document.specification? }
+    @execution_started = Features::Workflow.new(@artifact.use_case).started?
   end
 
   def new
@@ -32,19 +33,17 @@ class DocumentsController < ApplicationController
   end
 
   def edit
+    Features::Workflow.new(@artifact.use_case).ensure_mutable!
     load_form
   end
 
   def update
     params.require(:document).require(:revision)
-    @artifact.assign_attributes(document_params)
-    @artifact.status = params[:approval] == "approved" ? "approved" : "draft"
-    if @artifact.save
-      redirect_to document_path(@artifact), notice: "Specification saved."
-    else
-      load_form
-      render :edit, status: :unprocessable_entity
-    end
+    @artifact.revise!(attributes: document_params.except(:revision).merge(status: params[:approval] == "approved" ? "approved" : "draft"), revision: document_params[:revision])
+    redirect_to document_path(@artifact), notice: "Specification saved."
+  rescue ActiveRecord::RecordInvalid
+    load_form
+    render :edit, status: :unprocessable_entity
   end
 
   def approve
@@ -61,6 +60,16 @@ class DocumentsController < ApplicationController
     @generation_error = error.message
     load_form
     render :new, status: :unprocessable_entity
+  end
+
+  def regenerate
+    Specifications::Generator.new(project: @project, use_case: @artifact.use_case, feature: params[:feature]).call
+    redirect_to document_path(@artifact)
+  end
+
+  def slice
+    Specifications::Slicing.new(specification: @artifact).call
+    redirect_to document_path(@artifact), notice: "Tickets updated."
   end
 
   private
@@ -85,7 +94,9 @@ class DocumentsController < ApplicationController
   end
 
   def load_form
-    @available_use_cases = @project.use_cases.order(:name)
+    scope = @project.use_cases.order(:name)
+    scope = scope.where.not(id: @project.documents.specifications.select(:use_case_id)) if @artifact&.new_record?
+    @available_use_cases = scope
   end
 
   def document_error(error)

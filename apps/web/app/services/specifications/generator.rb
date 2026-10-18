@@ -5,11 +5,18 @@ module Specifications
     end
 
     def call
+      raise Error, "Choose the feature's use case before generating its specification." unless @use_case
+      Document.reconcile!(@project)
+      workflow = Features::Workflow.new(@use_case)
+      workflow.ensure_mutable!
+      document = @use_case.reload.specification
+      revision = document&.source_hash
       store = FileStore.new(@project)
       raise Error, "The project workspace is unavailable." unless store.root.directory?
       raise Error, "The feature description is too long." if @feature.bytesize > 4_000
       context = ContextBuilder.new(project: @project, use_case: @use_case).to_h
       context["feature"] = @feature if @feature.present?
+      context["current_specification"] = {"title" => document.title, "body" => document.body} if document
       request_id = SecureRandom.uuid
       context["request_id"] = request_id
       output = @harness.generate(context: context, workspace: store.root.to_s)
@@ -17,10 +24,16 @@ module Specifications
       sources += context.fetch("dumps").map { |dump| "- dump: #{dump.fetch("id")}" }
       sources += context.fetch("quiz_answers").map { |entry| entry.fetch("quiz_id") }.uniq.map { |id| "- quiz: #{id}" }
       body = output.fetch("body") + "\n\n## Provenance\n\n" + sources.join("\n") + "\n"
-      document = @project.documents.new(title: output.fetch("title"), body: body, artifact_type: "spec", status: "draft", use_case: @use_case)
+      document ||= @project.documents.new(artifact_type: "spec", use_case: @use_case)
+      document.assign_attributes(title: output.fetch("title"), body: body, status: "draft")
+      document.revision = revision
       document.provenance = {"source_request_id" => request_id, "source_response_id" => Digest::SHA256.hexdigest(output.to_json),
         "generation_source" => "wrapped_harness", "discovery_dump_ids" => context.fetch("dumps").map { |dump| dump.fetch("id") }}
-      document.save!
+      workflow.with_lock do
+        workflow.ensure_mutable!
+        document.save!
+        workflow.invalidate_tracker!
+      end
       document
     end
   end

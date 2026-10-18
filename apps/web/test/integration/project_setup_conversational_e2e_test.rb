@@ -115,7 +115,7 @@ class ProjectSetupConversationalE2eTest < ActionDispatch::IntegrationTest
       request_id: request_id("go-runtime-blocked"),
       response_status: :unprocessable_entity
     )
-    assert_equal "runtime_containers_not_ready", blocked.fetch("errors").first.fetch("code")
+    assert_equal "runtime_containers_not_ready", blocked.fetch("errors").first.fetch("code"), blocked.inspect
     assert_equal "generated", blocked.dig("errors", 0, "details", "runtime_containers", "readiness")
 
     generated_files = project.runtime_container.generated_files.map { |file| file.merge("status" => "accepted") }
@@ -239,7 +239,7 @@ class ProjectSetupConversationalE2eTest < ActionDispatch::IntegrationTest
 
   test "reconciled initialization failure preserves setup saga failure context" do
     slug = "repo-duplicate-#{SecureRandom.hex(4)}"
-    create_project(name: "Existing Duplicate", key: slug)
+    create_project(name: "Existing Duplicate", key: slug).update!(root_path: "/workspace/projects/#{slug}")
 
     body = command(
       "StartProjectSetup",

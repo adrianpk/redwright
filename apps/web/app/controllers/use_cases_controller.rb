@@ -57,7 +57,7 @@ class UseCasesController < ApplicationController
   end
 
   def use_case_params
-    params.require(:use_case).permit(:name, :description)
+    params.require(:use_case).permit(:name, :description, :corrects_use_case_id)
   end
 
   def load_use_case_detail_context

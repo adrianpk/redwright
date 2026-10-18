@@ -2,6 +2,7 @@
 <% form_html_options[:id] = local_assigns[:form_id] if local_assigns[:form_id].present? %>
 
 <%= form_with model: use_case, url: url, html: form_html_options do |f| %>
+  <%= f.hidden_field :corrects_use_case_id, value: use_case.corrects_use_case_id || params[:corrects_use_case_id] %>
   <% if use_case.errors.any? %>
     <div class="form-errors">
       <% use_case.errors.each do |error| %>

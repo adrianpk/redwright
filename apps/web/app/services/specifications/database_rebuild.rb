@@ -3,7 +3,7 @@ require "fileutils"
 
 module Specifications
   class DatabaseRebuild
-    INDEX_TABLES = %w[documents document_relations schema_migrations ar_internal_metadata].freeze
+    INDEX_TABLES = %w[tickets documents document_relations schema_migrations ar_internal_metadata].freeze
 
     def self.prepare!(output_path:)
       original = ActiveRecord::Base.connection_db_config.configuration_hash
@@ -21,6 +21,7 @@ module Specifications
         ActiveRecord::Base.connection_pool.migration_context.migrate
         ActiveRecord::Base.descendants.each(&:reset_column_information)
         copy_domain_tables!(snapshot, output)
+        import_tickets!(snapshot)
         import_documents!(snapshot)
         violations = ActiveRecord::Base.connection.select_all("PRAGMA foreign_key_check")
         raise Error, "Prepared database has invalid relationships." if violations.any?
@@ -54,7 +55,7 @@ module Specifications
           quoted = '"' + table.gsub('"', '""') + '"'
           columns = source.execute("PRAGMA table_info(#{quoted})").map { |row| row[1] }
           available = target.execute("PRAGMA table_info(#{quoted})").map { |row| row[1] }
-          raise Error, "Unsupported source table: #{table}" unless columns.sort == available.sort
+          raise Error, "Unsupported source table: #{table}" unless (columns - available).empty?
           placeholders = (["?"] * columns.size).join(",")
           names = columns.map { |name| '"' + name.gsub('"', '""') + '"' }.join(",")
           source.execute("SELECT * FROM #{quoted}") { |row| target.execute("INSERT INTO #{quoted} (#{names}) VALUES (#{placeholders})", row) }
@@ -72,13 +73,28 @@ module Specifications
         rows = source.execute("SELECT * FROM documents WHERE project_id = ?", [project.id])
         next if rows.empty?
         unless rows.first.key?("body")
-          Document.reconcile!(project)
-          next
+          rows.each do |row|
+            entry = FileStore.new(project).read(row.fetch("relative_path"))
+            row["body"] = entry[:body]
+            row["title"] = entry[:title]
+            row["use_case_id"] = entry[:use_case_id]
+            row["previous_relative_path"] = entry[:path]
+            row["source_metadata"] = entry[:metadata]
+            row["artifact_type"] = "draft" if row["artifact_type"] == "spec" && entry[:status] == "draft"
+          end
         end
         edges = source.execute("SELECT * FROM document_relations").select { |edge| rows.any? { |row| row["id"] == edge["from_artifact_id"] } }
-        entries = LegacyExporter.new(project: project, documents: rows, relations: edges).export!
+        specifications = rows.select { |row| row["artifact_type"].in?(%w[spec draft]) }
+        old_layout = rows.any? { |row| row["previous_relative_path"].nil? } || specifications.any? { |row| row["use_case_id"].nil? } ||
+          specifications.group_by { |row| row["use_case_id"] }.values.any? { |group| group.size > 1 }
+        entries = if old_layout
+          LegacyExporter.new(project: project, documents: rows, relations: edges).export!
+        else
+          rows.map { |row| FileStore.new(project).read(row.fetch("previous_relative_path")) }
+        end
         entries.each do |entry|
-          row = rows.find { |candidate| candidate["id"] == entry[:metadata]["legacy_document_id"] }
+          row = rows.find { |candidate| candidate["previous_relative_path"] == entry[:path] } ||
+            rows.find { |candidate| candidate["id"] == entry[:metadata]["legacy_document_id"] }
           raise Error, "Exported document content differs from the source." unless entry[:body] == row.fetch("body")
           values = entry.slice(:title, :artifact_type, :status, :use_case_id, :source_hash, :source_modified_at)
           Document.insert_all!([values.merge(id: row.fetch("id"), project_id: project.id, relative_path: entry[:path], created_at: row.fetch("created_at"), updated_at: row.fetch("updated_at"))])
@@ -89,6 +105,29 @@ module Specifications
       source&.close
     end
 
-    private_class_method :backup!, :copy_domain_tables!, :import_documents!
+    def self.import_tickets!(snapshot)
+      source = SQLite3::Database.new(snapshot)
+      source.results_as_hash = true
+      Project.find_each do |project|
+        board_ids = project.boards.pluck(:id)
+        next if board_ids.empty?
+        rows = source.execute("SELECT * FROM tickets WHERE board_id IN (#{board_ids.map(&:to_i).join(',')})")
+        index = TicketManagement::FileIndex.new(project)
+        rows.each do |row|
+          if row.key?("description")
+            ticket = Ticket.new(row.slice(*(Ticket.column_names + ["description"])))
+            ticket.commits = JSON.parse(row["commits"]) if row["commits"].is_a?(String) && row["commits"].present?
+            entry = index.write(ticket)
+          else
+            entry = FileStore.new(project).read(row.fetch("relative_path"))
+          end
+          Ticket.insert_all!([index.values_for(entry).merge(id: row.fetch("id"))])
+        end
+      end
+    ensure
+      source&.close
+    end
+
+    private_class_method :backup!, :copy_domain_tables!, :import_documents!, :import_tickets!
   end
 end

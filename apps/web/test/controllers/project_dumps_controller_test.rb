@@ -39,6 +39,7 @@ class ProjectDumpsControllerTest < ActionDispatch::IntegrationTest
     sign_in_as(admin)
     project = create_project(name: "Dump Web Project", key: "dump-controller-index")
     use_case = create_use_case(project: project, name: "Billing")
+    available = create_use_case(project: project, name: "Checkout")
     dump = project.dumps.create!(use_case: use_case, title: "Billing Dump")
     dump.entries.create!(raw_input: "raw", polished_input: "Polished billing note.")
 
@@ -48,9 +49,12 @@ class ProjectDumpsControllerTest < ActionDispatch::IntegrationTest
     assert_match "Dumps", response.body
     assert_match "Project: Dump Web Project", response.body
     assert_select ".artifact-type-card h2", text: "Billing Dump"
-    assert_select "button.ticket-action", text: "New"
-    assert_select ".quiz-new-use-case-option", text: "Billing"
+    assert_select "a[data-turbo-frame='modal'][href='#{new_project_dump_path(project)}']", text: "New"
+    assert_select "main select", count: 0
     assert_match "Polished billing note.", response.body
+    get new_project_dump_path(project)
+    assert_select "turbo-frame#modal select option", text: available.name
+    assert_select "turbo-frame#modal select option", text: use_case.name, count: 0
   end
 
   test "creates project and use case dumps" do

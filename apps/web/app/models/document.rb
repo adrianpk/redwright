@@ -12,6 +12,9 @@ class Document < ApplicationRecord
   validates :status, inclusion: {in: %w[draft approved accepted final]}, if: :specification?
   validate :same_project_use_case
   validate :immutable_kind
+  validate :delivery_owner_is_stable
+  validates :use_case, presence: true, if: :specification?
+  validates :artifact_type, uniqueness: {scope: :use_case_id}, if: -> { use_case_id.present? && artifact_type.in?(%w[spec plan_tracker]) }
   before_validation :assign_defaults
   before_save :persist_source
 
@@ -21,7 +24,22 @@ class Document < ApplicationRecord
   scope :for_use_case, ->(id) { where(use_case_id: id) }
 
   def self.reconcile!(project)
+    Ticket.reconcile!(project)
     entries = Specifications::FileStore.new(project).entries
+    if entries.any? { |entry| entry[:artifact_type] == "spec" && entry[:use_case_id].nil? }
+      raise Specifications::Error, "Feature specifications need a valid case_slug in their file metadata."
+    end
+    grouped = entries.select { |entry| entry[:use_case_id] && entry[:artifact_type].in?(%w[spec plan_tracker]) }.group_by { |entry| [entry[:use_case_id], entry[:artifact_type]] }
+    raise Specifications::Error, "A feature can have only one specification and one tracker." if grouped.values.any? { |group| group.size > 1 }
+    entries.select { |entry| entry[:artifact_type] == "spec" }.each do |entry|
+      if Ticket.for_project(project.id).where(specification_path: entry[:path]).where.not(use_case_id: entry[:use_case_id]).exists?
+        raise Specifications::Error, "A sliced specification cannot move to another feature."
+      end
+      tracker = entries.find { |candidate| candidate[:artifact_type] == "plan_tracker" && candidate[:metadata]["specification_path"] == entry[:path] }
+      if tracker&.dig(:metadata, "execution_started_at").present? && tracker[:metadata]["specification_revision"] != entry[:source_hash]
+        raise Specifications::Error, "A specification changed after execution started. Restore its execution revision and create a corrective feature."
+      end
+    end
     transaction do
       entries.each do |entry|
         document = project.documents.find_by(relative_path: entry[:path])
@@ -32,7 +50,12 @@ class Document < ApplicationRecord
           document.update_columns(values.merge(updated_at: Time.current))
         end
       end
-      project.documents.where.not(relative_path: entries.map { |entry| entry[:path] }).each(&:destroy!)
+      project.documents.where.not(relative_path: entries.map { |entry| entry[:path] }).each do |missing|
+        if Ticket.for_project(project.id).where("specification_path = ? OR tracker_path = ?", missing.relative_path, missing.relative_path).exists?
+          raise Specifications::Error, "A delivery document is missing. Restore its file before continuing."
+        end
+        missing.destroy!
+      end
       DocumentRelation.where(from_artifact_id: project.documents.select(:id)).delete_all
       by_path = project.documents.index_by(&:relative_path)
       entries.each do |entry|
@@ -67,6 +90,16 @@ class Document < ApplicationRecord
     self
   end
 
+  def revise!(attributes:, revision:)
+    Features::Workflow.new(use_case).with_lock do
+      Features::Workflow.new(use_case).ensure_mutable!
+      self.revision = revision
+      update!(attributes)
+      Features::Workflow.new(use_case).invalidate_tracker!
+    end
+    self
+  end
+
   def related_documents
     outgoing_relations.includes(:to_artifact).map { |edge| [edge.relation_type, edge.to_artifact] } +
       incoming_relations.includes(:from_artifact).map { |edge| [edge.relation_type, edge.from_artifact] }
@@ -79,6 +112,12 @@ class Document < ApplicationRecord
     errors.add(:artifact_type, "cannot be changed") if persisted? && artifact_type_changed?
   end
 
+  def delivery_owner_is_stable
+    if persisted? && specification? && use_case_id_changed? && Ticket.for_project(project_id).where(specification_path: relative_path).exists?
+      errors.add(:use_case, "cannot change after slicing")
+    end
+  end
+
   def assign_defaults
     self.artifact_type ||= "spec"
     self.status ||= specification? ? "draft" : "tracking"
@@ -89,6 +128,7 @@ class Document < ApplicationRecord
   end
 
   def persist_source
+    Features::Workflow.new(use_case).ensure_mutable! if specification? && use_case
     store = Specifications::FileStore.new(project)
     metadata = relative_path.present? ? source[:metadata] : {}
     metadata.merge!(provenance.stringify_keys) if provenance

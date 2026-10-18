@@ -68,6 +68,7 @@ module RuntimeBridge
         project_setup_context: project_setup_context,
         runtime_containers_context: readiness.context
       )
+      ticket.begin_execution!
       response = client.request(
         type: request.fetch("type"),
         session_id: request.fetch("session_id"),

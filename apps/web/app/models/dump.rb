@@ -20,6 +20,7 @@ class Dump < ApplicationRecord
   validates :capture_status, inclusion: { in: CAPTURE_STATUSES }
   validates :curation_status, inclusion: { in: CURATION_STATUSES }
   validate :use_case_belongs_to_project
+  validates :use_case_id, uniqueness: true, allow_nil: true
 
   scope :project_level, -> { where(use_case_id: nil) }
   scope :for_use_case, ->(use_case_id) { where(use_case_id: use_case_id) }

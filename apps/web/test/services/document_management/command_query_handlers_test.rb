@@ -5,7 +5,8 @@ class DocumentManagementCommandQueryHandlersTest < ActiveSupport::TestCase
     original = create_document
     project = original.project
     dispatcher = CommandQuery::ApplicationDispatcher.build
-    create = dispatcher.call(message("CreateSpecification", {project_id: project.id, title: "API feature", body: "Expected behavior"}))
+    feature = create_use_case(project: project, name: "API feature")
+    create = dispatcher.call(message("CreateSpecification", {project_id: project.id, use_case_id: feature.id, title: "API feature", body: "Expected behavior"}))
     assert create.ok?, create.errors.inspect
     id = create.data.fetch("document_id")
     revision = create.data.fetch("document").fetch("source_hash")

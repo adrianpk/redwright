@@ -7,9 +7,10 @@ module AgentTicketExecution
       with_agent_ticket_execution_workspace do |fixture|
         write_runtime_setup(fixture.project_path)
         write_project_protocols(fixture.project, fixture.project_path)
-        draft = create_document(project: fixture.project, title: "Implementation Draft", body: "Draft body")
-        create_document(project: fixture.project, artifact_type: "spec", title: "Implementation Spec", body: "Spec body")
-        create_document(project: fixture.project, artifact_type: "plan_tracker", title: "Implementation Plan", body: "Plan body")
+        use_case = create_use_case(project: fixture.project, name: "Done command")
+        fixture.ticket.update!(use_case: use_case)
+        create_document(project: fixture.project, use_case: use_case, artifact_type: "spec", title: "Implementation Spec", body: "Spec body")
+        create_document(project: fixture.project, use_case: use_case, artifact_type: "plan_tracker", title: "Implementation Plan", body: "Plan body")
         store = write_previous_interactions(fixture.ticket)
 
         workspace = WorkspaceBoundary.new(allowed_projects_root: fixture.projects_root).resolve(
@@ -61,7 +62,7 @@ module AgentTicketExecution
         assert_equal "docs", sections.fetch("documents").metadata.fetch("context_layer")
         assert_includes sections.fetch("documents").content.fetch("documents").map { |document| document.fetch("title") }, "Implementation Spec"
         assert_includes sections.fetch("documents").content.fetch("documents").map { |document| document.fetch("title") }, "Implementation Plan"
-        assert_includes sections.fetch("documents").content.fetch("omitted_documents").map { |document| document.fetch("title") }, "Implementation Draft"
+        assert_empty sections.fetch("documents").content.fetch("omitted_documents")
         assert_equal "quizzes", sections.fetch("quizzes").metadata.fetch("context_layer")
         assert_equal "dumps", sections.fetch("dumps").metadata.fetch("context_layer")
         assert_equal "llm_based", sections.fetch("llm_based_context").metadata.fetch("context_layer")
@@ -250,15 +251,17 @@ module AgentTicketExecution
         use_case = create_use_case(project: fixture.project, name: "Feature")
         other_use_case = create_use_case(project: fixture.project, name: "Other")
         fixture.ticket.update!(use_case: use_case)
-        draft = create_document(project: fixture.project, title: "Feature Draft", body: "Draft body")
-        scoped_draft = create_document(project: fixture.project, use_case: use_case, title: "Scoped Feature Draft", body: "Scoped draft body")
-        create_document(project: fixture.project, use_case: use_case, artifact_type: "spec", title: "Feature Spec", body: "Spec body")
-        create_document(project: fixture.project, artifact_type: "plan_tracker", title: "Feature Plan", body: "Plan body")
-        other_draft = create_document(project: fixture.project, use_case: other_use_case, title: "Other Draft", body: "Other draft body")
+        draft = create_document(project: fixture.project, use_case: use_case, title: "Feature Draft", status: "draft", body: "Draft body")
+        create_document(project: fixture.project, use_case: use_case, artifact_type: "plan_tracker", title: "Feature Plan", body: "Plan body")
         create_document(project: fixture.project, use_case: other_use_case, artifact_type: "spec", title: "Other Spec", body: "Other spec body")
         write_project_protocols(fixture.project, fixture.project_path)
 
         workspace = WorkspaceBoundary.new(allowed_projects_root: fixture.projects_root).resolve(ticket: fixture.ticket)
+        draft_context = ContextComposer.new.compose(ticket: fixture.ticket,
+          request: request_payload(branch_name: "feature/todo-done").merge("context_policy" => "implementation_default"), workspace: workspace)
+        omitted = draft_context.context_sections.index_by(&:name).fetch("documents").content.fetch("omitted_documents")
+        assert_equal "specification_not_approved", omitted.find { |document| document.fetch("title") == "Feature Draft" }.fetch("omission_reason")
+        draft.update!(title: "Feature Spec", status: "approved", body: "Spec body")
         context = ContextComposer.new.compose(
           ticket: fixture.ticket,
           request: request_payload(branch_name: "feature/todo-done").merge("context_policy" => "implementation_default"),
@@ -273,13 +276,11 @@ module AgentTicketExecution
 
         assert_includes selected_titles, "Feature Spec"
         assert_includes selected_titles, "Feature Plan"
-        assert_includes omitted_titles, "Feature Draft"
         assert_includes omitted_titles, "Other Spec"
         refute_includes selected_titles, "AGENTS"
         assert_includes protocol_files.content.map { |document| document.fetch("title") }, "AGENTS"
         assert_equal "document_context_inventory", documents.metadata.fetch("selection_source")
         assert_equal "matched_use_case:#{use_case.id}:spec", documents.metadata.fetch("selected_documents").find { |document| document.fetch("title") == "Feature Spec" }.fetch("selection_reason")
-        assert_equal "specification_not_approved", documents.metadata.fetch("omitted_documents").find { |document| document.fetch("title") == "Feature Draft" }.fetch("omission_reason")
         assert_equal "unmatched_use_case:#{other_use_case.id}", documents.metadata.fetch("omitted_documents").find { |document| document.fetch("title") == "Other Spec" }.fetch("omission_reason")
       end
     end
@@ -348,7 +349,6 @@ module AgentTicketExecution
         )
         database_dump.tag_with!("billing", "llm")
         active_dump = fixture.project.dumps.create!(
-          use_case: use_case,
           title: "Active LLM Draft Dump",
           raw_body: "Draft LLM context that should not be selected."
         )

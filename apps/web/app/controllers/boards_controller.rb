@@ -10,6 +10,7 @@ class BoardsController < ApplicationController
   end
 
   def show
+    Ticket.reconcile!(@board.project)
     persist_current_project!(@board.project)
     @columns = @board.columns.order(:position)
     @tickets_by_column = @board.tickets.visible_on_board.ordered_for_board.includes(:labels).group_by(&:column_id)

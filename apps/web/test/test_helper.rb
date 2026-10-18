@@ -11,10 +11,12 @@ end
 
 module ProjectBoardTestHelper
   def create_project(name: "Factory Project", key: "factory")
+    path = Dir.mktmpdir("redwright-project-test-")
+    (@protocol_test_directories ||= []) << path
     Project.create!(
       name: name,
       description: "#{name} description",
-      root_path: "/workspace/projects/#{key}",
+      root_path: path,
       repo_url: "https://codeberg.org/acme/#{key}",
       stack_slug: "ruby"
     )
@@ -27,6 +29,7 @@ module ProjectBoardTestHelper
   def create_document(project: nil, **attrs)
     document_project = project || create_project(name: "Docs Project", key: "docs-#{SecureRandom.hex(4)}")
     write_protocol_files(project: document_project) unless File.directory?(document_project.root_path)
+    attrs[:use_case] ||= create_use_case(project: document_project, name: "Feature #{SecureRandom.hex(4)}") if attrs.fetch(:artifact_type, "spec") == "spec"
     defaults = {
       artifact_type: "spec",
       status: attrs.fetch(:status, attrs[:artifact_type] == "plan_tracker" ? "tracking" : (attrs[:artifact_type] == "spec" ? "approved" : "draft")),
@@ -84,7 +87,15 @@ class ActiveSupport::TestCase
 end
 
 class ActiveSupport::TestCase
+  setup do
+    @previous_local_projects_root = ENV["REDWRIGHT_LOCAL_PROJECTS_ROOT"]
+    @local_projects_test_root = Dir.mktmpdir("redwright-setup-test-")
+    ENV["REDWRIGHT_LOCAL_PROJECTS_ROOT"] = @local_projects_test_root
+  end
+
   teardown do
+    ENV["REDWRIGHT_LOCAL_PROJECTS_ROOT"] = @previous_local_projects_root
+    FileUtils.remove_entry(@local_projects_test_root) if @local_projects_test_root && File.directory?(@local_projects_test_root)
     Array(@protocol_test_directories).each { |path| FileUtils.remove_entry(path) if File.directory?(path) }
   end
 end

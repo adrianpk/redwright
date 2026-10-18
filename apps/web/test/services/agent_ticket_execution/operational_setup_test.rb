@@ -54,7 +54,7 @@ module AgentTicketExecution
         assert_equal "missing", setup.fetch("status")
         assert_equal ".rw/agent/Dockerfile", setup.fetch("dockerfile_relative_path")
         assert_equal ["go test ./..."], setup.fetch("validation_commands")
-        assert_not File.exist?(File.join(fixture.project_path, ".rw"))
+        assert_not File.exist?(File.join(fixture.project_path, ".rw", "agent"))
       end
     end
 

@@ -60,6 +60,7 @@ module AgentTicketExecution
       board = create_board(project_key: "missing-workspace-board", project: project)
       backlog = board.columns.create!(key: "backlog", title: "Backlog", position: 0)
       ticket = board.tickets.create!(column: backlog, title: "Missing workspace")
+      project.update!(root_path: File.join(project.root_path, "missing"))
 
       result = WorkspaceBoundary.new.resolve(ticket: ticket)
 

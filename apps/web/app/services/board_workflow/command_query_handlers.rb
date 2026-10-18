@@ -223,6 +223,7 @@ module BoardWorkflow
       project = find_project(value_from(payload, "project_id"))
       return missing_project_result(request_id: request_id) unless project
 
+      Ticket.reconcile!(project)
       tickets = Ticket.for_project(project.id).visible_on_board.ordered_for_board.includes(:board, :column)
       CommandQuery::Result.ok(
         request_id: request_id,
@@ -261,6 +262,7 @@ module BoardWorkflow
     end
 
     def board_data(board)
+      Ticket.reconcile!(board.project)
       {
         "id" => board.id,
         "name" => board.name,
@@ -351,6 +353,7 @@ module BoardWorkflow
       attrs[:commits] = Array(value_from(payload, "commits")).map(&:to_s) if key_present?(payload, "commits")
       attrs[:assignee] = value_from(payload, "assignee").to_s if key_present?(payload, "assignee")
       attrs[:use_case_id] = value_from(payload, "use_case_id") if key_present?(payload, "use_case_id")
+      attrs[:revision] = value_from(payload, "revision") if key_present?(payload, "revision")
       attrs
     end
 
@@ -454,7 +457,9 @@ module BoardWorkflow
     def find_board(board_id)
       return nil if board_id.blank?
 
-      Board.find_by(id: board_id)
+      board = Board.find_by(id: board_id)
+      Ticket.reconcile!(board.project) if board
+      board
     end
 
     def find_ticket(ticket_ref)

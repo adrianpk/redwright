@@ -39,7 +39,8 @@ context and can inform ticket execution once curated.
 
 1. Open `Dumps` from the top navigation.
 
-Use `New` for project-wide context, or `For Use Case` when the notes belong to a specific use case.
+Use `New` and select the feature's use case in the modal. Each feature has one
+dump. Use `Resume` on a closed dump to add entries to that same artifact.
 
 2. Add entries while the dump is capturing.
 

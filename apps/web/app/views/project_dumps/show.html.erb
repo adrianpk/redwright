@@ -10,6 +10,7 @@
           <%= button_to "Cancel", cancel_project_dump_path(@project, @dump), method: :post, class: "ticket-action ticket-action-danger" %>
           <%= button_to "Done", done_project_dump_path(@project, @dump), method: :post, class: "ticket-action" %>
         <% else %>
+          <%= button_to "Resume", reopen_project_dump_path(@project, @dump), method: :post, class: "ticket-action" %>
           <%= button_to "Curate", curate_project_dump_path(@project, @dump), method: :post, class: "ticket-action" %>
         <% end %>
       </div>

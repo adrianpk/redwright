@@ -2,7 +2,7 @@
   <% if artifact.errors.any? %><div class="document-artifact-errors"><%= artifact.errors.full_messages.to_sentence %></div><% end %>
   <%= form.hidden_field :revision, value: artifact.revision.presence || artifact.source_hash %>
   <div class="document-artifact-field"><%= form.label :title %><%= form.text_field :title, required: true %></div>
-  <div class="document-artifact-field"><%= form.label :use_case_id, "Use case" %><%= form.collection_select :use_case_id, @available_use_cases, :id, :name, include_blank: "Project" %></div>
+  <div class="document-artifact-field"><%= form.label :use_case_id, "Use case" %><%= form.collection_select :use_case_id, @available_use_cases, :id, :name, {prompt: "Select"}, required: true %></div>
   <div class="document-artifact-field"><%= form.label :body %><%= form.text_area :body, rows: 20, required: true %></div>
   <div class="document-artifact-actions">
     <%= form.button "Save draft", name: "approval", value: "draft", class: "ticket-action" %>

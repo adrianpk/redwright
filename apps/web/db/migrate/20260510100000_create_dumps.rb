@@ -20,5 +20,6 @@ class CreateDumps < ActiveRecord::Migration[8.1]
     add_index :dumps, [:project_id, :status], name: "idx_dumps_project_status"
     add_index :dumps, :capture_status
     add_index :dumps, :curation_status
+    add_index :dumps, :use_case_id, unique: true, where: "use_case_id IS NOT NULL", name: "idx_dumps_one_per_feature"
   end
 end

@@ -19,6 +19,7 @@ module AgentTicketExecution
       workspace = resolve_workspace(request: request, ticket: ticket)
       return workspace if workspace && !workspace.ok?
 
+      ticket.begin_execution!
       start_transition = kanban_transitioner.mark_started(ticket: ticket)
       execution_context = compose_execution_context(request: request, ticket: ticket, workspace: workspace)
       execution = normalize_execution(

@@ -11,6 +11,7 @@ module DocumentManagement
       dispatcher.register_command("UpdateSpecification", method(:update_specification))
       dispatcher.register_command("ApproveSpecification", method(:approve_specification))
       dispatcher.register_command("GenerateSpecification", method(:generate_specification))
+      dispatcher.register_command("BuildSpecificationTickets", method(:build_tickets))
       dispatcher.register_query("GetSpecificationsByProject", method(:list_specifications))
       dispatcher
     end
@@ -29,7 +30,7 @@ module DocumentManagement
         document = find_specification(payload)
         document.revision = value_from(payload, "revision").presence || raise(Specifications::Error, "Source revision is required.")
         attributes = %w[title body use_case_id].each_with_object({}) { |key, values| values[key] = value_from(payload, key) if key_present?(payload, key) }
-        document.update!(attributes.merge(status: "draft"))
+        document.revise!(attributes: attributes.merge(status: "draft"), revision: document.revision)
         result(document, request_id)
       end
     end
@@ -56,6 +57,14 @@ module DocumentManagement
         project = Project.find(value_from(payload, "project_id"))
         documents = Document.reconcile!(project).specifications.order(source_modified_at: :desc)
         CommandQuery::Result.ok(request_id: request_id, data: {"project_id" => project.id, "documents" => documents.map { |document| data(document) }, "count" => documents.size})
+      end
+    end
+
+    def build_tickets(payload:, context:, request_id:)
+      perform(request_id) do
+        document = find_specification(payload)
+        entry = Specifications::Slicing.new(specification: document).call
+        CommandQuery::Result.ok(request_id: request_id, data: {"document_id" => document.id, "ticket_keys" => entry[:metadata]["ticket_keys"]})
       end
     end
 
