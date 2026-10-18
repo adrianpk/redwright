@@ -47,7 +47,7 @@ class ProjectDumpsControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_match "Dumps", response.body
-    assert_match "Project: Dump Web Project", response.body
+    assert_select ".top-nav-project-name", text: project.name
     assert_select ".artifact-type-card h2", text: "Billing Dump"
     assert_select "a[data-turbo-frame='modal'][href='#{new_project_dump_path(project)}']", text: "New"
     assert_select "main select", count: 0

@@ -50,7 +50,7 @@ class ProjectQuizzesControllerTest < ActionDispatch::IntegrationTest
     get project_quizzes_path(project)
 
     assert_response :success
-    assert_match "Project: Visible Quiz Project", response.body
+    assert_select ".top-nav-project-name", text: project.name
     assert_match "Project Quiz", response.body
     assert_match "Visible project question?", response.body
     assert_match "Billing", response.body

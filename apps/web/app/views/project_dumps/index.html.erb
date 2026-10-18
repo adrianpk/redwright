@@ -4,7 +4,6 @@
       <h1>Dumps</h1>
       <%= link_to "New", new_project_dump_path(@project), class: "ticket-action", data: {turbo_frame: "modal"} %>
     </div>
-    <p class="board-key">Project: <%= @project.name %></p>
   </section>
   <%= turbo_frame_tag "modal" %>
 
