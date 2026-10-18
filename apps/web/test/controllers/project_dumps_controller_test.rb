@@ -68,12 +68,14 @@ class ProjectDumpsControllerTest < ActionDispatch::IntegrationTest
     project_dump = project.dumps.order(:id).last
     assert_redirected_to project_dump_path(project, project_dump)
     assert_nil project_dump.use_case_id
+    assert_equal project.name, project_dump.title
 
     post project_dumps_path(project), params: { use_case_name: "Checkout" }
 
     use_case_dump = project.dumps.order(:id).last
     assert_redirected_to project_dump_path(project, use_case_dump)
     assert_equal "Checkout", use_case_dump.use_case.name
+    assert_equal "Checkout", use_case_dump.title
   end
 
   test "show appends entries and renders raw preview" do

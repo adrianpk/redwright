@@ -22,6 +22,7 @@ module DumpLoops
       use_case = project.use_cases.find_by!(slug: "billing-flow")
       assert result.ok?
       assert_equal use_case.id, result.dump.use_case_id
+      assert_equal "Billing Flow", result.dump.title
       assert_equal "Use case created from dump scope.", use_case.description
     end
 

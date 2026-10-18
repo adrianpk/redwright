@@ -138,8 +138,7 @@ module DumpLoops
     end
 
     def default_title
-      base = use_case ? "#{use_case.name} Dump" : "#{project.name} Dump"
-      "#{base} #{Time.current.strftime('%Y-%m-%d %H:%M')}"
+      use_case ? use_case.name : project.name
     end
 
     def closed_result(resolved)
