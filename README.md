@@ -40,3 +40,7 @@ Official repository: https://forge.adrianpk.com/adrianpk/redwrigh
 
 Public mirrors:
 - https://codeberg.org/adrianpk/redwright
+
+## License
+
+RedWright is licensed under the [Apache License, Version 2.0](LICENSE).

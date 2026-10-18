@@ -22,6 +22,7 @@ entry per commit.
 
 ### Changed
 
+- RedWright is now licensed under the Apache License, Version 2.0.
 - Navigation now follows Cases, Dumps, Quizzes, Specs, Board, and Protocol,
   followed by Settings for administrators.
 - Specs replaces the document catalogue and follows the project's Markdown
