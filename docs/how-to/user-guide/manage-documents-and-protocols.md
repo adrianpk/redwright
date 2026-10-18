@@ -41,6 +41,10 @@ The list follows the files in the project workspace: root `AGENTS.md` and every
 Markdown file under `.agents/`, including subdirectories. Add or remove files
 with your editor and reload the page to see the updated set.
 
+The page identifies the selected project and its local workspace path.
+RW reads only that directory. An unavailable workspace produces an empty list;
+RW does not substitute its own instructions, templates, or another workspace.
+
 5. Edit a project protocol document.
 
 The web editor reads and saves the selected file directly. RW and external
@@ -58,9 +62,8 @@ missing files or restore deleted ones.
 
 6. Open protocol templates.
 
-Use the protocol templates area to inspect and edit common and stack template
-files. The default set includes concern documents, playbooks, operational
-protocols, and stack-specific guidance.
+Use `Settings` to inspect and edit common and stack templates. This catalog is
+separate from the selected project's Protocols page.
 
 Templates initialize new project files. Editing a template does not rewrite
 an existing project's files, add missing defaults, or restore removed files.

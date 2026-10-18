@@ -1,69 +1,31 @@
-# Ticket Procedure
+# Ticket Workflow for Small Fixes
 
-Use this playbook for repository tickets authorized under
-`.agents/ROUTING.md`. `.agents/TICKETS.md` owns the ticket schema, lifecycle,
-classification values, delivery boundary, and naming.
+Use tickets for small, bounded fixes where full plan/tracker formalization is unnecessary.
 
-## Invocation
+## Ticket Rules
 
-Map natural-language ticket requests to these procedure identifiers:
+1. Create ticket files under `ops/tickets/`.
+2. Use sortable filename format: `YYYYMMDDHHMMSS-<slug>.md` (UTC timestamp).
+3. Use frontmatter fields from `ops/tickets/TEMPLATE.md`.
+4. Keep code and repository docs in English.
+5. Allowed status values: `open`, `in_progress`, `reviewing`, `solved`, `closed`, `blocked`.
+6. Allowed transitions: `open -> in_progress`, `in_progress -> reviewing`, `reviewing -> solved`, `reviewing -> closed`, `* -> blocked`, `blocked -> in_progress`.
+7. Mutate ticket state in the same implementation cycle.
+8. Set `started_at` on `open -> in_progress`.
+9. Link `branch`, `pr`, and `commits` before or during `reviewing`.
+10. Set `closed_at` only on `reviewing -> solved` or `reviewing -> closed`.
+11. Keep ticket `reviewing` while implementation PR is open.
+12. Update ticket to `solved` or `closed` directly on `dev` after review decision.
+13. Do not open dedicated PRs only for ticket status metadata.
+14. If scope expands, promote ticket to formal plan/slice/tracker flow.
 
-- `capture`: one ticket.
-- `capture_round`: several informal items.
-- `triage_manual`: classification with user input.
-- `triage_auto`: agent classification by explicit request.
-- `implement`: ticket-driven delivery.
+## Reduced Workflow (Ticket-Driven)
 
-## Capture
-
-1. Accept a raw description as sufficient input.
-2. Ask only when the description is not understandable or contains unrelated
-   work that cannot be separated safely.
-3. Create the ticket in `open/` with the defaults from `.agents/TICKETS.md`.
-4. Report the ticket identifier and path.
-
-## Capture Round
-
-1. Accept a rough list, paragraphs, or short fragments.
-2. Split clearly separate items and merge obvious duplicates.
-3. Ask only when an item cannot be preserved meaningfully.
-4. Create each retained item in `open/`.
-5. Report created ticket identifiers and deferred candidates.
-
-## Assisted Capture
-
-1. Ask at most ten questions for the ticket or round.
-2. Ask only about description, expected outcome, observed behavior,
-   validation, or separability.
-3. Create the tickets without preserving the questions as quiz artifacts.
-
-## Manual Triage
-
-1. Select open or unclassified tickets.
-2. Ask the minimum questions needed to clarify and classify them.
-3. Let the user decide or confirm kind, scope, severity, and priority.
-4. Move an actionable ticket to `ready/`; leave unclear tickets in `open/`.
-
-## Automatic Triage
-
-1. Inspect the evidence recorded in each selected ticket.
-2. Classify conservatively without inventing facts.
-3. Leave a field `unclassified` when critical context is missing.
-4. Move a ticket to `ready/` only when its expected outcome is actionable.
-5. Add a short rationale only for non-obvious classification.
-
-## Implementation
-
-1. Verify that the ticket is `ready` and that implementation is authorized.
-2. Move it to `in_progress` and set the applicable lifecycle fields.
-3. Select direct `dev` or branch-and-pull-request delivery under
-   `.agents/VERSIONING.md`.
-4. Implement and validate the bounded change.
-5. Update `CHANGELOG.md` through `changelog-normalize` when the result is a
-   release-worthy user-visible outcome.
-6. For direct `dev` delivery, record commits and validation, then close the
-   ticket as `solved` with resolution `fixed`.
-7. For review delivery, move the ticket to `reviewing` and record the branch,
-   pull request, commits, and validation.
-8. After verified merge, close the ticket as `solved` with resolution `fixed`
-   on `dev`.
+1. Create ticket under `ops/tickets/`.
+2. Create a branch from `dev`.
+3. Set ticket `status: in_progress` and `started_at`.
+4. Implement the fix.
+5. Set ticket `status: reviewing`, update `branch`, `pr`, and `commits`.
+6. Open one PR for the ticket, targeting `dev`.
+7. Complete review.
+8. Merge into `dev`, then set ticket `status: solved` and `closed_at` when resolved; use `closed` when discarded/not resolved.

@@ -7,12 +7,12 @@ module ProjectProtocols
       write_protocol_files(project: @project)
     end
 
-    # New projects receive the current document set and matching stack files.
-    test "initializes files from current templates" do
+    # Setup copies template defaults once into a new project's own workspace.
+    test "initializes files from templates" do
       result = InitializationService.new(project: @project).call
       assert result.fetch("initialized")
       paths = @project.protocol_files.documents.map(&:path)
-      %w[AGENTS.md .agents/COMMUNICATION.md .agents/LANGUAGE.md .agents/REPORTING.md .agents/TICKETS.md .agents/playbooks/quiz.md .agents/protocol/ACTIVITY.md .agents/stacks/ruby/CONVENTIONS.md].each do |path|
+      %w[AGENTS.md .agents/CONVENTIONS.md .agents/ARCHITECTURE.md .agents/playbooks/questionnaires.md].each do |path|
         assert_includes paths, path
       end
       assert_equal "active", @project.protocol_state.fetch("status")

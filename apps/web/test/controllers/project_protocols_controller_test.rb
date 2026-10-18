@@ -23,8 +23,54 @@ class ProjectProtocolsControllerTest < ActionDispatch::IntegrationTest
     get project_protocols_path(@project)
     assert_response :success
     assert_match "Custom / Notes", response.body
+    assert_select ".board-key code", text: @store.root.to_s
     refute_match ">Conventions<", response.body
     refute @store.root.join(".agents/CONVENTIONS.md").exist?
+  end
+
+  # A shared file identifier must resolve within the requested project only.
+  test "isolates project files from templates and other projects" do
+    sign_in_as(@admin)
+    other_project = create_project(key: "other-protocols-web")
+    other_store = write_protocol_files(project: other_project, documents: [
+      {path: "AGENTS.md", body: "# Other project instructions"},
+      {path: ".agents/stacks/odin/CONVENTIONS.md", body: "# Other project Odin"}
+    ])
+    template = ProjectProtocols::TemplateCatalog.new.common_template.documents.find_by!(key: "agents_root")
+    template.update!(body: "# Template instructions")
+
+    get project_protocols_path(@project)
+    assert_response :success
+    assert_select ".artifact-type-card h2", text: /Odin/, count: 0
+
+    document = @store.find_path("AGENTS.md")
+    get project_protocol_path(@project, document)
+    assert_response :success
+    assert_select "textarea", text: "# Root"
+
+    patch project_protocol_path(@project, document, format: :json), params: {
+      protocol_document: {body: "# Updated project instructions", revision: document.revision}
+    }
+    assert_response :success
+    assert_equal "# Updated project instructions", @store.root.join("AGENTS.md").read
+    assert_equal "# Other project instructions", other_store.root.join("AGENTS.md").read
+    assert_equal "# Template instructions", template.reload.body
+    assert_equal ["AGENTS.md", ".agents/CONVENTIONS.md"], @store.documents.map(&:path)
+  end
+
+  # Missing project files must not be supplied by the global template catalog.
+  test "keeps missing workspaces empty" do
+    sign_in_as(@admin)
+    ProjectProtocols::TemplateCatalog.new.common_template
+    FileUtils.remove_entry(@store.root)
+
+    get project_protocols_path(@project)
+
+    assert_response :success
+    assert_select ".board-key code", text: @store.root.to_s
+    assert_select ".artifact-type-card", count: 0
+    assert_match "No protocol files found", response.body
+    refute @store.root.exist?
   end
 
   test "shows the current file in the editor" do
@@ -34,6 +80,7 @@ class ProjectProtocolsControllerTest < ActionDispatch::IntegrationTest
     get project_protocol_path(@project, document)
     assert_response :success
     assert_select "textarea", text: /Changed externally/
+    assert_select ".board-key code", text: @store.root.join("AGENTS.md").to_s
     assert_select "input[name='protocol_document[revision]'][value=?]", document.revision
   end
 

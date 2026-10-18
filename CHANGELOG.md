@@ -22,6 +22,8 @@ entry per commit.
 - Protocols now reads and edits `AGENTS.md` and Markdown files under `.agents/`
   directly, including custom files and subdirectories. Changes from other
   tools appear without synchronization, and outdated web saves are rejected.
+  The page shows the project's workspace path; setup templates remain a
+  separate catalog in Settings.
 
 ### Fixed
 

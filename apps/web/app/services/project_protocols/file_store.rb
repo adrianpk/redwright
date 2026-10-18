@@ -16,11 +16,10 @@ module ProjectProtocols
       new(root: root)
     end
 
-    attr_reader :root, :prefix
+    attr_reader :root
 
-    def initialize(root:, prefix: nil)
+    def initialize(root:)
       @root = Pathname.new(root).expand_path
-      @prefix = prefix
     end
 
     def documents
@@ -93,9 +92,7 @@ module ProjectProtocols
     def allowed_path?(path)
       return false unless path.is_a?(String) && path.valid_encoding?
       return false if path.include?("\0") || path.include?("\\") || path.split("/").any? { |part| part == "." || part == ".." || part.empty? }
-      return false unless path == "AGENTS.md" || (path.start_with?(".agents/") && path.end_with?(".md"))
-
-      prefix.nil? || path.start_with?("#{prefix}/")
+      path == "AGENTS.md" || (path.start_with?(".agents/") && path.end_with?(".md"))
     end
 
     def safe_file?(path)

@@ -4,6 +4,7 @@
   </p>
   <header class="document-artifacts-header">
     <h1><%= @protocol_document.title %></h1>
+    <p class="board-key">File: <code><%= @protocol_document.store.root.join(@protocol_document.path) %></code></p>
   </header>
   <section class="document-artifact-panel">
     <%= render "form",

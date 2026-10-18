@@ -1,85 +1,144 @@
-require "fileutils"
-
 module ProjectProtocols
   class TemplateCatalog
-    TemplateSet = Struct.new(:key, :files, keyword_init: true) do
-      def common?
-        key == "common"
-      end
-
-      def name
-        common? ? "Common Protocol Templates" : "#{key.tr("-_", " ").titleize} Protocol Templates"
-      end
-
-      def documents
-        files.documents
-      end
-
-      def to_param
-        key
-      end
-    end
-
-    def initialize(root: nil)
-      @root = Pathname.new(root || Rails.configuration.x.protocols.template_root || Rails.root.join("app", "protocol_templates", "default_behavioral"))
-    end
-
-    def common_template
-      TemplateSet.new(key: "common", files: FileStore.new(root: root))
+    def initialize(registry: TemplateRegistry.new)
+      @registry = registry
     end
 
     def common_documents
-      common_template.documents.reject { |document| document.path.start_with?(".agents/stacks/") }.map(&:to_state)
+      ensure_seeded!
+      common_template.documents.map { |document| template_document_state(document) }
     end
 
-    def stack_template_sets
-      return [] unless stacks_root.directory?
-
-      stacks_root.children.select(&:directory?).sort.map do |path|
-        key = path.basename.to_s
-        TemplateSet.new(key: key, files: FileStore.new(root: root, prefix: ".agents/stacks/#{key}"))
-      end
+    def common_template
+      ensure_seeded!
+      ProjectProtocolTemplate.find_by!(template_kind: "common", key: "common")
     end
 
     def stack_templates
-      stack_template_sets.index_with do |template|
-        {"stack_key" => template.key, "matchers" => [template.key], "documents" => template.documents.map(&:to_state)}
-      end.transform_keys(&:key)
+      ensure_seeded!
+      ProjectProtocolTemplate.where(template_kind: "stack", status: "active").order(:key).each_with_object({}) do |template, hash|
+        hash[template.key] = {
+          "stack_key" => template.key,
+          "matchers" => template.matchers,
+          "documents" => template.documents.map { |document| template_document_state(document) }
+        }
+      end
     end
 
     def available_stack_keys
-      stack_template_sets.map(&:key)
+      stack_templates.keys
     end
 
-    def find_template(key)
-      return common_template if key.to_s == "common"
-
-      stack_template_sets.find { |template| template.key == key.to_s } ||
-        raise(ActiveRecord::RecordNotFound, "Protocol template not found.")
+    def all_templates
+      ensure_seeded!
+      ProjectProtocolTemplate.includes(:documents).order(:template_kind, :key)
     end
 
-    def create_stack_template!(stack_key:)
-      key = stack_key.to_s.strip.downcase
-      raise ArgumentError, "Stack identity must contain letters, numbers, hyphens or underscores." unless /\A[a-z0-9][a-z0-9_-]*\z/.match?(key)
-      raise ArgumentError, "Stack identity is reserved." if key == "common"
-      raise ArgumentError, "Stack identity already exists." if stacks_root.join(key).exist?
+    def stack_template_sets
+      ensure_seeded!
+      ProjectProtocolTemplate.includes(:documents).where(template_kind: "stack", status: "active").order(:key)
+    end
 
-      ancestor = stacks_root
-      ancestor = ancestor.parent until ancestor.exist?
-      unless ancestor.realpath == root.realpath || ancestor.realpath.to_s.start_with?("#{root.realpath}/")
-        raise ArgumentError, "Stack templates must stay inside the template directory."
-      end
-      FileUtils.mkdir_p(stacks_root)
-      Dir.mkdir(stacks_root.join(key))
-      find_template(key)
+    def find_template(id)
+      ensure_seeded!
+      ProjectProtocolTemplate.includes(:documents).find(id)
+    end
+
+    def create_stack_template!(stack_key:, name: nil)
+      ensure_seeded!
+      normalized_key = stack_key.to_s.strip.downcase.gsub(/\s+/, "-")
+      raise ActiveRecord::RecordInvalid, ProjectProtocolTemplate.new if normalized_key.blank?
+
+      template = ProjectProtocolTemplate.create!(
+        template_kind: "stack",
+        key: normalized_key,
+        name: name.presence || "#{normalized_key.tr("-_", " ").split.map(&:capitalize).join(" ")} Protocol Templates",
+        matchers: [normalized_key],
+        status: "active"
+      )
+
+      sync_documents!(template, empty_stack_documents_for(normalized_key))
+      template.reload
     end
 
     private
 
-    attr_reader :root
+    attr_reader :registry
 
-    def stacks_root
-      root.join(".agents", "stacks")
+    def ensure_seeded!
+      seed_common_template!
+      seed_stack_templates!
+    end
+
+    def seed_common_template!
+      template = ProjectProtocolTemplate.find_or_initialize_by(template_kind: "common", key: "common")
+      template.name = "Common Protocol Templates" if template.name.blank? || template.name == "Common Protocol Template"
+      if template.new_record?
+        template.matchers = []
+        template.status = "active"
+      end
+      template.save! if template.changed?
+      sync_documents!(template, registry.common_documents)
+      template
+    end
+
+    def seed_stack_templates!
+      registry.stack_templates.each_value do |definition|
+        template = ProjectProtocolTemplate.find_or_initialize_by(template_kind: "stack", key: definition.fetch("stack_key"))
+        default_name = definition.fetch("name", "#{definition.fetch("stack_key").tr("-_", " ").split.map(&:capitalize).join(" ")} Protocol Templates")
+        template.name = default_name if template.name.blank? || template.name == default_name.delete_suffix("s")
+        if template.new_record?
+          template.matchers = definition.fetch("matchers")
+          template.status = "active"
+        end
+        template.save! if template.changed?
+        sync_documents!(template, definition.fetch("documents"))
+      end
+    end
+
+    def sync_documents!(template, documents)
+      existing_keys = template.documents.index_by(&:key)
+
+      documents.each_with_index do |document, index|
+        attributes = {
+          path: document.fetch("path"),
+          title: document.fetch("title"),
+          layer: document.fetch("layer"),
+          position: document.fetch("position", index)
+        }
+
+        if (existing_document = existing_keys[document.fetch("key")])
+          existing_document.update!(attributes)
+          next
+        end
+
+        template.documents.create!(
+          key: document.fetch("key"),
+          **attributes,
+          body: document.fetch("body")
+        )
+      end
+    end
+
+    def empty_stack_documents_for(stack_key)
+      registry.stack_template_definition(stack_key).fetch("documents").map do |document|
+        document.merge("body" => empty_body_for(document.fetch("title")))
+      end
+    end
+
+    def empty_body_for(title)
+      "# #{title}\n\n"
+    end
+
+    def template_document_state(document)
+      {
+        "key" => document.key,
+        "path" => document.path,
+        "title" => document.title,
+        "layer" => document.layer,
+        "position" => document.position,
+        "body" => document.body
+      }
     end
   end
 end

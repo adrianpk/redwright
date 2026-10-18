@@ -7,15 +7,20 @@
     </p>
     <div class="board-title-row">
       <h1>Playbooks</h1>
-      <% if (index = @template.files.documents.find(&:playbooks_index?)) %>
-        <%= link_to "Edit PLAYBOOKS.md", edit_protocol_template_document_path(@template, index), class: "ticket-action" %>
-      <% end %>
     </div>
   </section>
 
   <section class="artifact-type-nav" aria-label="Common playbook template navigation">
     <% @playbook_entries.each do |entry| %>
-        <%= link_to edit_protocol_template_document_path(@template, entry), class: "artifact-type-card" do %>
+      <% if entry.missing? %>
+        <div class="artifact-type-card">
+          <h2><%= entry.title %></h2>
+          <div class="artifact-list-card-body">
+            <%= button_to "Create", documents_protocol_template_path(@template, key: entry.key), method: :post, class: "ticket-action" %>
+          </div>
+        </div>
+      <% else %>
+        <%= link_to edit_protocol_template_document_path(@template, entry.document), class: "artifact-type-card" do %>
           <h2><%= entry.title %></h2>
           <% preview_lines = entry.body.to_s.lines.map(&:strip).reject(&:blank?).first(6) %>
           <% if preview_lines.any? %>
@@ -26,6 +31,7 @@
             </div>
           <% end %>
         <% end %>
+      <% end %>
     <% end %>
   </section>
 </main>

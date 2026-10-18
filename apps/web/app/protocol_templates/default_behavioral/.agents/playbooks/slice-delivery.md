@@ -1,43 +1,93 @@
 # Slice Delivery
 
-Use this playbook only for formal delivery work authorized under
-`.agents/ROUTING.md`. `.agents/SLICES.md` owns slice definitions, policy, entry
-conditions, naming, strategy, and integration invariants.
+## Slice Workflow
 
-## Creation Gate
+1. Evaluate single-slice vs multi-slice execution.
+2. Define behavior-first slice boundaries.
+3. Implement and validate per slice.
+4. Integrate incrementally while keeping repository healthy.
 
-Verify every planning prerequisite in `.agents/SLICES.md`. Stop before branch
-creation or runtime changes when the gate is not satisfied.
+## Naming Convention
 
-## Workflow
+1. Use `Slice 1`, `Slice 2`, `Slice 3`, ... for slice identifiers.
+2. Use `T1.1`, `T1.2`, `T2.1`, ... for task identifiers.
+3. Do not use letter-based or Roman numeral variants for slices/tasks.
 
-1. Verify current `dev`, `origin/dev`, working tree, plan, tracker, and relevant
-   pull-request state.
-2. Create the recorded branch from current `dev`.
-3. Implement only the active slice tasks in order.
-4. Use one Conventional Commit per tracker task when practical.
-5. Use `changelog-normalize` to update `CHANGELOG.md` `Unreleased` when the
-   slice completes a release-worthy user-visible outcome. Omit incomplete
-   internal layers.
-6. Run focused checks and the smallest relevant slice regression gate recorded
-   in the plan. Do not run the full repository suite for each slice unless
-   repository-specific rules require it.
-7. Update tracker tasks, commits, and validation results.
-8. Create the report required by `.agents/playbooks/slice-reporting.md`.
-9. Set the report to `reviewing` and prepare the pull-request body from the
-   contract in `.agents/SLICES.md`.
-10. Open one pull request targeting `dev` with the exact title recorded in the
-    plan and tracker.
-11. Complete review and wait for the maintainer-controlled merge.
-12. After merge confirmation, return to `dev`, verify the merge, and close the
-    report and tracker.
-13. If the same approved delivery set has a next slice, activate and execute it
-    without requesting another confirmation.
-14. After the final slice is merged into `dev`, execute the delivery-set
-    validation and correction route defined by `.agents/SLICES.md`.
-15. Close the delivery set only when the exit conditions in
-    `.agents/SLICES.md` and `.agents/LIFECYCLE.md` are satisfied.
+## PR Title
 
-Use `.agents/LIFECYCLE.md` for blockers and completion. Use
-`.agents/VERSIONING.md` for branch, pull-request, nightly integration, and
-release policy.
+- Required: `feat(slice-<n>): <short slice name>`
+
+## PR Body
+
+```md
+## Summary
+
+- <functional increment 1>
+- <functional increment 2>
+
+## Changes
+
+- <path/to/file>
+  - <change detail>
+- <path/to/other_file>
+  - <change detail>
+
+## Validation
+
+- <command and result>
+```
+
+## Ordering Rules
+
+1. `Summary`: primary behavior change first.
+2. `Changes`: runtime/library code, tests, docs, ops artifacts.
+3. `Validation`: targeted to broad.
+4. Report validation outcomes as `pass`/`fail`.
+
+## Traceability Contract
+
+- Keep explicit correlation across:
+  - `ops/plans/*-plan.md`
+  - `ops/trackers/*-tracker.md`
+  - branch name and PR title
+  - commit list mapped to slice tasks
+
+## Blocker Handling
+
+1. Capture failing command and exact error.
+2. Attempt least-invasive compliant alternative.
+3. Report blocker and stop risky changes.
+
+## Completion Checklist
+
+1. Scope implemented.
+2. Relevant checks run.
+3. Tracker/plan status updated.
+4. Final status reported with concrete outcomes.
+
+## Post-Slice Tuning
+
+1. After planned slices and automated checks pass, decide whether tuning is needed.
+2. Tuning slices are recommended, not mandatory.
+3. If needed, run one or more short tuning slices (UX polish, manual verification findings, integration adjustments).
+4. Keep the same delivery discipline: one branch + one PR per tuning slice, base `dev`.
+5. Record the decision (`tuning needed: yes/no`) and evidence in the tracker.
+
+## Main Alignment
+
+1. Slice PRs target `dev`, not `main`.
+2. Never work on `main` directly.
+3. Align `dev -> main` only through the release-alignment playbook.
+4. The `main` update is a PR merge using rebase + fast-forward from `dev`.
+
+## Mandatory Execution Rules
+
+1. Execute one slice at a time.
+2. Implement tasks in order.
+3. Create one conventional commit per task.
+4. Open one PR per slice.
+5. Do not open PRs per task or per commit.
+6. Complete PR review.
+7. Merge the approved slice PR into `dev`.
+8. Report implementation and validation status.
+9. Start next slice only after previous slice is fully closed.

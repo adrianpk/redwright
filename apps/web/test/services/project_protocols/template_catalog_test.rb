@@ -2,42 +2,139 @@ require "test_helper"
 
 module ProjectProtocols
   class TemplateCatalogTest < ActiveSupport::TestCase
-    # Reading the catalog must use existing files rather than seed database state.
-    test "discovers template sets from directories" do
-      Dir.mktmpdir("protocol-templates-") do |root|
-        FileUtils.mkdir_p(File.join(root, ".agents/stacks/custom"))
-        File.write(File.join(root, "AGENTS.md"), "root")
-        File.write(File.join(root, ".agents/stacks/custom/NOTES.md"), "custom")
-        catalog = TemplateCatalog.new(root: root)
-        assert_equal ["custom"], catalog.available_stack_keys
-        assert_equal ["AGENTS.md"], catalog.common_documents.map { |document| document.fetch("path") }
-        assert_equal "custom", catalog.find_template("custom").documents.first.body
-      end
+    test "seeds common and stack templates into Rails persistence" do
+      catalog = TemplateCatalog.new
+
+      templates = catalog.all_templates
+
+      assert ProjectProtocolTemplate.exists?(template_kind: "common", key: "common")
+      assert ProjectProtocolTemplate.exists?(template_kind: "stack", key: "rails")
+      common = templates.find { |template| template.template_kind == "common" }
+      assert_equal "Common Protocol Templates", common.name
+      assert_equal "AGENTS.md", common.documents.first.path
     end
 
-    # Editing a template changes future initialization, never an existing project.
-    test "keeps template edits separate from project files" do
-      project = create_project(key: "existing-copy")
-      write_protocol_files(project: project, documents: [{path: "AGENTS.md", body: "project"}])
-      Dir.mktmpdir("protocol-templates-") do |root|
-        File.write(File.join(root, "AGENTS.md"), "template")
-        catalog = TemplateCatalog.new(root: root)
-        document = catalog.common_template.files.find_path("AGENTS.md")
-        assert document.update(body: "new template", revision: document.revision)
-        assert_equal "new template", catalog.common_documents.first.fetch("body")
-        assert_equal "project", project.protocol_files.find_path("AGENTS.md").body
-      end
+    test "seeds ruby stack template from stack protocol markdown source" do
+      catalog = TemplateCatalog.new
+
+      ruby_template = catalog.all_templates.find { |template| template.template_kind == "stack" && template.key == "ruby" }
+
+      assert_equal "Ruby Protocol Templates", ruby_template.name
+      assert_equal ["architecture", "conventions", "documenting", "linting"], ruby_template.documents.order(:position).pluck(:key)
+      assert_match(/Ruby repository structure/, ruby_template.documents.find_by!(key: "architecture").body)
+      refute_match(/RedWright/, ruby_template.documents.map(&:body).join("\n"))
     end
 
-    # Directory creation must honor the same boundary as Markdown editing.
-    test "rejects an escaping template directory" do
-      Dir.mktmpdir("protocol-templates-") do |root|
-        Dir.mktmpdir("outside-templates-") do |outside|
-          File.symlink(outside, File.join(root, ".agents"))
-          assert_raises(ArgumentError) { TemplateCatalog.new(root: root).create_stack_template!(stack_key: "custom") }
-          refute File.exist?(File.join(outside, "stacks"))
-        end
-      end
+    test "seeds go stack template from stack protocol markdown source" do
+      catalog = TemplateCatalog.new
+
+      go_template = catalog.all_templates.find { |template| template.template_kind == "stack" && template.key == "go" }
+
+      assert_equal "Go Protocol Templates", go_template.name
+      assert_equal ["architecture", "conventions", "documenting", "linting"], go_template.documents.order(:position).pluck(:key)
+      assert_match(/Go repository structure/, go_template.documents.find_by!(key: "architecture").body)
+      refute_match(/Warden|RedWright/, go_template.documents.map(&:body).join("\n"))
+    end
+
+    test "seeds elixir stack template from stack protocol markdown source" do
+      catalog = TemplateCatalog.new
+
+      elixir_template = catalog.all_templates.find { |template| template.template_kind == "stack" && template.key == "elixir" }
+
+      assert_equal "Elixir Protocol Templates", elixir_template.name
+      assert_equal ["architecture", "conventions", "documenting", "linting"], elixir_template.documents.order(:position).pluck(:key)
+      assert_match(/Elixir repository structure/, elixir_template.documents.find_by!(key: "architecture").body)
+      refute_match(/Warden|RedWright/, elixir_template.documents.map(&:body).join("\n"))
+    end
+
+    test "seeds rails stack template from stack protocol markdown source" do
+      catalog = TemplateCatalog.new
+
+      rails_template = catalog.all_templates.find { |template| template.template_kind == "stack" && template.key == "rails" }
+
+      assert_equal "Rails Protocol Templates", rails_template.name
+      assert_equal ["architecture", "conventions", "documenting", "linting"], rails_template.documents.order(:position).pluck(:key)
+      assert_match(/Rails repository structure/, rails_template.documents.find_by!(key: "architecture").body)
+      refute_match(/RedWright/, rails_template.documents.map(&:body).join("\n"))
+    end
+
+    test "seeds zig stack template from stack protocol markdown source" do
+      catalog = TemplateCatalog.new
+
+      zig_template = catalog.all_templates.find { |template| template.template_kind == "stack" && template.key == "zig" }
+
+      assert_equal "Zig Protocol Templates", zig_template.name
+      assert_equal ["architecture", "conventions", "documenting", "linting"], zig_template.documents.order(:position).pluck(:key)
+      assert_match(/Zig repository structure/, zig_template.documents.find_by!(key: "architecture").body)
+      refute_match(/Warden|RedWright/, zig_template.documents.map(&:body).join("\n"))
+    end
+
+    test "seeds rust stack template from stack protocol markdown source" do
+      catalog = TemplateCatalog.new
+
+      rust_template = catalog.all_templates.find { |template| template.template_kind == "stack" && template.key == "rust" }
+
+      assert_equal "Rust Protocol Templates", rust_template.name
+      assert_equal ["architecture", "conventions", "documenting", "linting"], rust_template.documents.order(:position).pluck(:key)
+      assert_match(/Rust repository structure/, rust_template.documents.find_by!(key: "architecture").body)
+      refute_match(/Warden|RedWright/, rust_template.documents.map(&:body).join("\n"))
+    end
+
+    test "seeds typescript stack template from stack protocol markdown source" do
+      catalog = TemplateCatalog.new
+
+      typescript_template = catalog.all_templates.find { |template| template.template_kind == "stack" && template.key == "typescript" }
+
+      assert_equal "TypeScript Protocol Templates", typescript_template.name
+      assert_equal ["architecture", "conventions", "documenting", "linting"], typescript_template.documents.order(:position).pluck(:key)
+      assert_match(/TypeScript repository structure/, typescript_template.documents.find_by!(key: "architecture").body)
+      refute_match(/Warden|RedWright/, typescript_template.documents.map(&:body).join("\n"))
+    end
+
+    test "seeds angular stack template from stack protocol markdown source" do
+      catalog = TemplateCatalog.new
+
+      angular_template = catalog.all_templates.find { |template| template.template_kind == "stack" && template.key == "angular" }
+
+      assert_equal "Angular Protocol Templates", angular_template.name
+      assert_equal ["architecture", "conventions", "documenting", "linting"], angular_template.documents.order(:position).pluck(:key)
+      assert_match(/Angular repository structure/, angular_template.documents.find_by!(key: "architecture").body)
+      refute_match(/Warden|RedWright/, angular_template.documents.map(&:body).join("\n"))
+    end
+
+    test "edited templates affect future composition without rewriting existing project protocol copies" do
+      catalog = TemplateCatalog.new
+      rails_template = catalog.all_templates.find { |template| template.key == "rails" && template.template_kind == "stack" }
+      architecture_template = rails_template.documents.find_by!(key: "architecture")
+      architecture_template.update!(body: "# Rails Architecture\n\nCustomized from Rails admin.")
+
+      existing_project = create_project(name: "Existing Rails", key: "existing-rails")
+      write_protocol_files(
+        project: existing_project,
+        documents: [{key: "architecture", path: ".agents/ARCHITECTURE.md", title: "Architecture", layer: "stack", body: "# Existing Copy"}]
+      )
+
+      project = create_project(name: "Future Rails", key: "future-rails")
+      write_setup_attribute(project, "language_runtime", "Ruby 3.4", 5)
+      write_setup_attribute(project, "framework", "Rails", 4)
+
+      composition = Composer.new(project: project).call
+
+      architecture = composition.documents.find { |document| document.fetch("key") == "architecture" }
+      assert_match(/Customized from Rails admin/, architecture.fetch("body"))
+      assert_equal "# Existing Copy", existing_project.protocol_files.find_path(".agents/ARCHITECTURE.md").body
+    end
+
+    private
+
+    def write_setup_attribute(project, slot, value, weight)
+      ProjectAttribute.create!(
+        project: project,
+        key: "setup_context.#{slot}",
+        value: value,
+        weight: weight,
+        source: "project_setup"
+      )
     end
   end
 end

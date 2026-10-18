@@ -77,7 +77,7 @@ module ProjectProtocols
 
       merged.values.sort_by { |document| document.fetch("position", 999) }.map do |document|
         document.merge(
-          "provenance" => document.fetch("provenance", {"source" => "protocol_template_files"})
+          "provenance" => document.fetch("provenance", {"source" => "common_template"})
         )
       end
     end

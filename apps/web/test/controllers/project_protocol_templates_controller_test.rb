@@ -1,86 +1,132 @@
 require "test_helper"
 
 class ProjectProtocolTemplatesControllerTest < ActionDispatch::IntegrationTest
-  def with_catalog
-    previous = Rails.configuration.x.protocols.template_root
-    Rails.configuration.x.protocols.template_root = @template_root
-    yield
-  ensure
-    Rails.configuration.x.protocols.template_root = previous
-  end
-  setup do
-    @admin = User.create!(email_address: "template-admin@example.com", password: "password-123", password_confirmation: "password-123")
-    @template_root = Dir.mktmpdir("protocol-template-web-")
-    (@protocol_test_directories ||= []) << @template_root
-    FileUtils.mkdir_p(File.join(@template_root, ".agents/stacks/ruby"))
-    File.write(File.join(@template_root, "AGENTS.md"), "# Root template")
-    File.write(File.join(@template_root, ".agents/stacks/ruby/CONVENTIONS.md"), "# Ruby conventions")
-    @catalog = ProjectProtocols::TemplateCatalog.new(root: @template_root)
+  def create_admin_user!
+    User.create!(
+      email_address: "template-admin@example.com",
+      password: "password-123",
+      password_confirmation: "password-123"
+    )
   end
 
-  test "requires authentication" do
-    get protocol_templates_path
-    assert_redirected_to new_session_path
+  def create_non_admin_user!
+    User.create!(
+      email_address: "template-user@example.com",
+      password: "password-123",
+      password_confirmation: "password-123",
+      roles_json: "[\"programmer\"]"
+    )
   end
 
-  test "requires an administrator" do
-    programmer = User.create!(email_address: "template-programmer@example.com", password: "password-123", password_confirmation: "password-123", roles: ["programmer"])
-    sign_in_as(programmer)
+  test "index requires admin" do
+    admin = create_admin_user!
+    user = create_non_admin_user!
+    sign_in_as(user)
+
     get protocol_templates_path
+
     assert_redirected_to root_path
+    assert_equal admin.email_address, User.find_by(email_address: admin.email_address).email_address
   end
 
-  # Template administration edits the backing Markdown files directly.
-  test "edits a stack template file" do
-    sign_in_as(@admin)
-    template = @catalog.find_template("ruby")
-    document = template.documents.first
-    with_catalog do
-      get edit_protocol_template_document_path(template, document)
-      assert_response :success
-      patch protocol_template_document_path(template, document), params: {
-        protocol_document: {body: "# Updated Ruby conventions", revision: document.revision}
+  test "index renders common and stack templates for admin" do
+    admin = create_admin_user!
+    sign_in_as(admin)
+
+    get protocol_templates_path
+
+    assert_response :success
+    assert_match "Settings", response.body
+    assert_match "Common Protocol Templates", response.body
+    assert_match "Stack Protocol Templates", response.body
+  end
+
+  test "common template renders canonical cards and playbooks route" do
+    admin = create_admin_user!
+    sign_in_as(admin)
+
+    get common_protocol_templates_path
+
+    assert_response :success
+    assert_match "Common Protocol Templates", response.body
+    assert_match "Playbooks", response.body
+    assert_match "Agent Operating Contract", response.body
+  end
+
+  test "stacks overview renders stack templates and create entry point" do
+    admin = create_admin_user!
+    sign_in_as(admin)
+
+    get stacks_protocol_templates_path
+
+    assert_response :success
+    assert_match "Stack Protocol Templates", response.body
+    assert_match "Rails Protocol Templates", response.body
+    assert_match "New Stack Template", response.body
+  end
+
+  test "create stack template set and show per-stack management screen" do
+    admin = create_admin_user!
+    sign_in_as(admin)
+
+    post stacks_protocol_templates_path, params: {
+      project_protocol_template: {
+        key: "zig-web",
+        name: "Zig Web Protocol Template"
       }
-      assert_redirected_to protocol_template_path(template)
-    end
-    assert_equal "# Updated Ruby conventions", File.read(File.join(@template_root, document.path))
+    }
+
+    template = ProjectProtocolTemplate.find_by!(template_kind: "stack", key: "zig-web")
+    assert_redirected_to protocol_template_path(template)
+    assert_equal ["zig-web"], template.matchers
+    assert_equal ["architecture", "conventions"], template.documents.order(:position).pluck(:key)
+    assert_equal "# Architecture\n\n", template.documents.find_by!(key: "architecture").body
   end
 
-  test "lists file backed common and stack templates" do
-    sign_in_as(@admin)
-    with_catalog do
-      get common_protocol_templates_path
-      assert_response :success
-      assert_match "Root template", response.body
-      get stacks_protocol_templates_path
-      assert_response :success
-      assert_match "Ruby Protocol Templates", response.body
-    end
+  test "show and update template document for admin" do
+    admin = create_admin_user!
+    sign_in_as(admin)
+    template = ProjectProtocols::TemplateCatalog.new.all_templates.find { |entry| entry.key == "rails" && entry.template_kind == "stack" }
+    document = template.documents.find_by!(key: "architecture")
+
+    get protocol_template_path(template)
+    assert_response :success
+    assert_match "Rails Protocol Templates", response.body
+
+    get edit_protocol_template_document_path(template, document)
+    assert_response :success
+    assert_match "Edit Template Document", response.body
+
+    patch protocol_template_document_path(template, document), params: {
+      project_protocol_template_document: {
+        title: "Architecture Updated",
+        body: "# Rails Architecture\n\nUpdated through admin."
+      }
+    }
+
+    assert_redirected_to protocol_template_path(template)
+    assert_equal "Architecture Updated", document.reload.title
+    assert_match(/Updated through admin/, document.reload.body)
   end
 
-  test "creates a stack directory and Markdown file" do
-    sign_in_as(@admin)
-    with_catalog do
-      post stacks_protocol_templates_path, params: {protocol_template: {key: "custom"}}
-      template = @catalog.find_template("custom")
-      assert_redirected_to protocol_template_path(template)
-      post documents_protocol_template_path(template), params: {path: ".agents/stacks/custom/EXTRA.md"}
-      assert_redirected_to edit_protocol_template_document_path(template, template.documents.first)
-      assert File.file?(File.join(@template_root, ".agents/stacks/custom/EXTRA.md"))
-    end
-  end
+  test "delete and recreate template entry without duplication" do
+    admin = create_admin_user!
+    sign_in_as(admin)
+    template = ProjectProtocols::TemplateCatalog.new.all_templates.find { |entry| entry.key == "rails" && entry.template_kind == "stack" }
+    document = template.documents.find_by!(key: "architecture")
 
-  test "does not recreate deleted template files" do
-    sign_in_as(@admin)
-    template = @catalog.find_template("ruby")
-    document = template.documents.first
-    with_catalog do
-      delete protocol_template_document_path(template, document)
-      assert_redirected_to protocol_template_path(template)
-      get protocol_template_path(template)
-      assert_response :success
+    delete protocol_template_document_path(template, document)
+
+    assert_redirected_to protocol_template_path(template)
+    assert_nil template.reload.documents.find_by(id: document.id)
+
+    post documents_protocol_template_path(template), params: {key: "architecture"}
+
+    recreated = template.reload.documents.find_by!(key: "architecture")
+    assert_redirected_to edit_protocol_template_document_path(template, recreated)
+
+    assert_no_difference -> { template.reload.documents.where(key: "architecture").count } do
+      post documents_protocol_template_path(template), params: {key: "architecture"}
     end
-    assert_empty template.documents
-    refute File.exist?(File.join(@template_root, document.path))
   end
 end
