@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Use the Rails web app to inspect and manage projects, boards, tickets, documents, protocols, protocol templates, and Conversation context loops.
+Use the Rails web app to inspect and manage projects, boards, tickets, specifications, protocols, protocol templates, dumps, and quizzes.
 
 ## Before You Start
 
@@ -35,16 +35,18 @@ Use the projects area to inspect project metadata:
 Project pages link to:
 
 - `Protocols`
-- `Documents`
-- `Conversation`
+- `Specs`
 - `Board`
 
-4. Use Conversation.
+The top navigation follows this order: `Cases`, `Dumps`, `Quizzes`, `Specs`, `Board`,
+and `Protocol`. Admin users also see `Settings` at the end.
 
-The Conversation area links to:
+4. Capture context with Dumps and Quizzes.
 
-- `Dump` for user-led knowledge capture
-- `Quiz` for RedWright-led questionnaire capture
+The top navigation provides separate entries, in this order:
+
+- `Dumps` for user-led knowledge capture
+- `Quizzes` for RedWright-led questionnaire capture
 
 Closed and curated dumps can be selected as ticket execution context when the context policy and scope match.
 
@@ -57,15 +59,18 @@ The board lets you:
 - move tickets between columns
 - archive or delete tickets when authorized
 
-6. Use documents.
+6. Create and approve specifications.
 
-The documents area separates:
+Open `Specs`, select a use case when relevant, describe the feature or corrective
+change, and select `Generate spec`. RW uses the wrapped harness to produce a
+draft from project context, optional dumps, and quiz decisions.
 
-- drafts
-- specs
-- plan trackers
+Review the generated specification and select `Approve`. The same specification
+becomes approved. Use `Edit spec` for changes. You can also select `Write spec`
+and choose `Save draft` or `Save and approve` without discovery prerequisites.
 
-Drafts are editable. Specs and plan trackers are read-only in the current web surface.
+Implementation work is managed through Board tickets. Internal trackers organize
+their execution and do not appear in the web interface.
 
 7. Use protocols.
 
@@ -78,8 +83,8 @@ The protocol templates area lets you inspect common templates and stack template
 
 ## Verify
 
-- Project pages show links to protocols, documents, and board when those resources exist.
-- Conversation shows Dump and Quiz entry cards.
+- Project pages show links to protocols, specs, and board when those resources exist.
+- The top navigation opens Dumps and Quizzes directly, with Dumps first.
 - Ticket changes update the board.
 - Protocol edits are saved directly to the selected workspace file.
 - Template edits affect future project setup composition, not already copied project protocols.
@@ -87,12 +92,13 @@ The protocol templates area lets you inspect common templates and stack template
 ## Troubleshooting
 
 - If assignment is rejected, use an admin user; ticket assignment is admin-gated.
-- If a draft cannot be edited, confirm it is still a draft and not already promoted.
+- If a specification save reports an external edit, reload the file before saving.
+- If generation is unavailable, check the local harness configuration and session.
 - If Protocols is empty, confirm the local project workspace exists and contains protocol Markdown files.
 
 ## Related Docs
 
 - [Manage Projects](manage-projects.md)
 - [Manage Boards And Tickets](manage-boards-and-tickets.md)
-- [Manage Documents And Protocols](manage-documents-and-protocols.md)
+- [Manage Specs And Protocol](manage-documents-and-protocols.md)
 - [Use Conversation Dumps](use-conversation-dumps.md)

@@ -61,6 +61,7 @@ module QuizLoops
 
       result = provider.generate(
         input: {
+          "discovery" => {"dumps" => [{"raw_body" => "Consolidated invoices"}]},
           "project" => {"id" => 10, "name" => "RedWright"},
           "quiz" => {"id" => 20, "mode" => "deep"},
           "recent_entries" => [{"answer" => "Focus on context shaping."}],
@@ -73,8 +74,9 @@ module QuizLoops
       assert_equal "exploration_default", trace_recorder.requests.first.fetch(:policy_decision).fetch(:policy_name)
       assert_equal "exploration_default", trace_recorder.responses.first.fetch(:policy_decision).fetch(:policy_name)
       assert_equal ["project"], trace_recorder.responses.first.fetch(:policy_decision).fetch(:included_context_sections)
-      assert_equal ["quiz", "recent_entries", "current_question"], trace_recorder.responses.first.fetch(:policy_decision).fetch(:omitted_context_sections)
+      assert_equal ["discovery", "quiz", "recent_entries", "current_question"], trace_recorder.responses.first.fetch(:policy_decision).fetch(:omitted_context_sections)
       assert_equal "context_layer_not_in_policy:quizzes:exploration_default", trace_recorder.responses.first.fetch(:policy_decision).fetch(:omission_reasons).fetch("quiz")
+      assert_equal "Consolidated invoices", llm_client.calls.first.fetch(:user_text).dig("discovery", "dumps", 0, "raw_body")
       assert_equal "llm", trace_recorder.responses.first.fetch(:decision_source)
     end
 

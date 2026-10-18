@@ -662,13 +662,14 @@ module ProjectSetup
     end
 
     def write_setup_summary_document!(project)
+      WorkspaceDirectory.ensure!(project)
       document = Document.find_or_initialize_by(
         project: project,
-        artifact_type: "draft",
+        artifact_type: "internal",
         title: SETUP_DOCUMENT_TITLE
       )
       document.body = setup_summary_body(project)
-      document.editable = true
+      document.status = "active"
       document.save!
       document
     end

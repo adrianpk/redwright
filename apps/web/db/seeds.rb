@@ -13,6 +13,8 @@ project.assign_attributes(
   stack_slug: "ruby"
 )
 project.save!
+FileUtils.mkdir_p(project.root_path)
+Document.reconcile!(project)
 
 language_attribute = ProjectAttribute.find_or_initialize_by(project: project, key: "setup_context.language_runtime")
 language_attribute.value = "Ruby 3.4"
@@ -51,7 +53,6 @@ seeded_titles = [
   "Update docs labels from technical jargon"
 ]
 
-board.tickets.where.not(title: seeded_titles).destroy_all
 
 board.columns.where.not(key: columns.map(&:first)).find_each do |column|
   column.destroy! if column.tickets.empty?
@@ -76,6 +77,7 @@ end
 def seed_ticket(board:, labels:, title:, column_key:, description:, priority:, assignee:, total: nil, review: nil, label_names: [])
   now = Time.current
   ticket = board.tickets.find_or_initialize_by(title: title)
+  return ticket if ticket.persisted?
   ticket.column = board.columns.find_by!(key: column_key)
   ticket.description = description
   ticket.priority = priority
@@ -96,13 +98,12 @@ def seed_ticket(board:, labels:, title:, column_key:, description:, priority:, a
   ticket.ticket_labels.joins(:label).where.not(labels: {name: label_names}).destroy_all
 end
 
-def seed_project_document(project:, artifact_type:, title:, body:, source_draft: nil)
-  document = project.documents.find_or_initialize_by(artifact_type: artifact_type, title: title)
-  document.body = body
-  document.editable = (artifact_type == "draft")
-  document.source_draft = (artifact_type == "spec") ? source_draft : nil
-  document.save!
-  document
+def seed_project_document(project:, artifact_type:, title:, body:)
+  kind = artifact_type == "plan_tracker" ? "plan_tracker" : "spec"
+  existing = project.documents.find_by(artifact_type: kind, title: title)
+  return existing if existing
+  status = {"draft" => "draft", "spec" => "approved", "plan_tracker" => "tracking"}.fetch(artifact_type)
+  project.documents.create!(artifact_type: kind, title: title, body: body, status: status)
 end
 
 def seed_document_relation(from:, to:, relation_type:)
@@ -149,7 +150,6 @@ def seed_demo_project_documents(project:)
     project: project,
     artifact_type: "spec",
     title: "Board Workflow Reliability Spec",
-    source_draft: draft,
     body: <<~MARKDOWN
       # Board Workflow Reliability Spec
 

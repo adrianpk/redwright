@@ -68,13 +68,16 @@
                           style: "display:block;max-width:77px;max-height:77px;object-fit:contain;" %>
           <% end %>
           <div class="top-nav-links">
+            <% if current_project %>
+              <%= link_to "Cases", use_cases_navigation_path, class: "top-nav-link" %>
+              <%= link_to "Dumps", dumps_navigation_path, class: "top-nav-link" %>
+              <%= link_to "Quizzes", quizzes_navigation_path, class: "top-nav-link" %>
+            <% end %>
+            <%= link_to "Specs", documents_navigation_path, class: "top-nav-link" %>
             <%= link_to "Board", board_navigation_path, class: "top-nav-link" %>
             <% if current_project %>
               <%= link_to "Protocol", project_protocols_path(current_project), class: "top-nav-link" %>
-              <%= link_to "Cases", use_cases_navigation_path, class: "top-nav-link" %>
-              <%= link_to "Conv", conversation_navigation_path, class: "top-nav-link" %>
             <% end %>
-            <%= link_to "Docs", documents_navigation_path, class: "top-nav-link" %>
             <% if current_user&.admin? %>
               <%= link_to "Settings", protocol_templates_path, class: "top-nav-link" %>
             <% end %>

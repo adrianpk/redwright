@@ -20,20 +20,8 @@
             <dd><%= metrics.fetch("tickets") %></dd>
           </div>
           <div>
-            <dt>Documents</dt>
-            <dd><%= document_counts.values.sum %></dd>
-          </div>
-          <div>
-            <dt>Drafts</dt>
-            <dd><%= document_counts.fetch("draft", 0) %></dd>
-          </div>
-          <div>
             <dt>Specs</dt>
             <dd><%= document_counts.fetch("spec", 0) %></dd>
-          </div>
-          <div>
-            <dt>Plans</dt>
-            <dd><%= metrics.fetch("plans") %></dd>
           </div>
           <div>
             <dt>Quiz Entries</dt>

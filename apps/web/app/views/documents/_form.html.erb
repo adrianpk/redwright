@@ -1,28 +1,11 @@
-<%= form_with model: artifact, html: { class: "document-artifact-form" } do |f| %>
-  <% if artifact.errors.any? %>
-    <div class="document-artifact-errors">
-      <h2><%= pluralize(artifact.errors.count, "error") %> blocked this draft:</h2>
-      <ul>
-        <% artifact.errors.full_messages.each do |message| %>
-          <li><%= message %></li>
-        <% end %>
-      </ul>
-    </div>
-  <% end %>
-
-  <div class="document-artifact-field">
-    <%= f.label :title %>
-    <%= f.text_field :title, required: true %>
-  </div>
-  <div class="document-artifact-field">
-    <%= f.label :use_case_id, "Use Case" %>
-    <%= f.collection_select :use_case_id, @available_use_cases || [], :id, :name, { include_blank: "Project-level" } %>
-  </div>
-  <div class="document-artifact-field">
-    <%= f.label :body %>
-    <%= f.text_area :body, rows: 14, required: true %>
-  </div>
+<%= form_with model: artifact, url: artifact.persisted? ? document_path(artifact) : documents_path(project_id: @project.id), html: {class: "document-artifact-form"} do |form| %>
+  <% if artifact.errors.any? %><div class="document-artifact-errors"><%= artifact.errors.full_messages.to_sentence %></div><% end %>
+  <%= form.hidden_field :revision, value: artifact.revision.presence || artifact.source_hash %>
+  <div class="document-artifact-field"><%= form.label :title %><%= form.text_field :title, required: true %></div>
+  <div class="document-artifact-field"><%= form.label :use_case_id, "Use case" %><%= form.collection_select :use_case_id, @available_use_cases, :id, :name, include_blank: "Project-level" %></div>
+  <div class="document-artifact-field"><%= form.label :body %><%= form.text_area :body, rows: 20, required: true %></div>
   <div class="document-artifact-actions">
-    <%= f.submit (local_assigns[:submit_label] || "Save"), class: "ticket-action" %>
+    <%= form.button "Save draft", name: "approval", value: "draft", class: "ticket-action" %>
+    <%= form.button "Save and approve", name: "approval", value: "approved", class: "ticket-action" %>
   </div>
 <% end %>

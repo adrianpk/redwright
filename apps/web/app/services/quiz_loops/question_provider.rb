@@ -32,6 +32,8 @@ module QuizLoops
       You generate exactly one next question for a RedWright project quiz.
       Use the provided project, quiz, recent answer, and routing state context.
       Ask one concise question that helps capture useful project or use-case knowledge.
+      Use available dumps to focus the discussion. A dump is optional.
+      Elicit missing feature decisions, boundaries, and acceptance criteria through focused follow-ups.
       Prefer useful progression over repeating prior questions.
       If follow-up depth is high, return to broader coverage.
       Do not ask for secrets, credentials, tokens, passwords, private keys, or PII.
@@ -237,6 +239,7 @@ module QuizLoops
 
     def request_payload(input, action:)
       {
+        "discovery" => input["discovery"] || {},
         "project" => input["project"] || {},
         "quiz" => input["quiz"] || {},
         "recent_entries" => input["recent_entries"] || [],
@@ -271,6 +274,7 @@ module QuizLoops
       return [] unless defined?(Redwright::LLM::ContextSection)
 
       [
+        Redwright::LLM::ContextSection.new(name: "discovery", content: input["discovery"] || {}, authority: "project_discovery", metadata: {"context_layer" => "quizzes"}),
         Redwright::LLM::ContextSection.new(name: "project", content: input["project"] || {}, authority: "project_context", metadata: {"context_layer" => "project"}),
         Redwright::LLM::ContextSection.new(name: "quiz", content: input["quiz"] || {}, authority: "request_context", metadata: {"context_layer" => "quizzes"}),
         Redwright::LLM::ContextSection.new(name: "recent_entries", content: input["recent_entries"] || [], authority: "quiz_context", metadata: {"context_layer" => "quizzes"}),

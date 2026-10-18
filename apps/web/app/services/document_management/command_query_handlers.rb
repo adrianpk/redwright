@@ -7,207 +7,81 @@ module DocumentManagement
     end
 
     def register(dispatcher)
-      dispatcher.register_command("CreateDocument", method(:create_document))
-      dispatcher.register_command("UpdateDraftDocument", method(:update_draft_document))
-      dispatcher.register_command("PromoteDraftToSpec", method(:promote_draft_to_spec))
-      dispatcher.register_query("GetDocumentsByProject", method(:get_documents_by_project))
+      dispatcher.register_command("CreateSpecification", method(:create_specification))
+      dispatcher.register_command("UpdateSpecification", method(:update_specification))
+      dispatcher.register_command("ApproveSpecification", method(:approve_specification))
+      dispatcher.register_command("GenerateSpecification", method(:generate_specification))
+      dispatcher.register_query("GetSpecificationsByProject", method(:list_specifications))
       dispatcher
     end
 
-    def create_document(payload:, context:, request_id:)
-      project = find_project(value_from(payload, "project_id"))
-      return missing_project_result(request_id: request_id) unless project
-
-      document = Document.new(
-        project: project,
-        artifact_type: "draft",
-        editable: true,
-        title: value_from(payload, "title").to_s.strip,
-        body: value_from(payload, "body").to_s,
-        use_case_id: value_from(payload, "use_case_id")
-      )
-      return invalid_record_result(document, request_id: request_id, summary: "Document could not be created.") unless document.save
-
-      CommandQuery::Result.ok(
-        request_id: request_id,
-        data: document_result_data(document, summary: "Document draft created."),
-        effects: [
-          {
-            "type" => "document_created",
-            "document_id" => document.id,
-            "project_id" => project.id,
-            "artifact_type" => document.artifact_type
-          }
-        ]
-      )
+    def create_specification(payload:, context:, request_id:)
+      perform(request_id) do
+        project = Project.find(value_from(payload, "project_id"))
+        document = project.documents.create!(title: value_from(payload, "title"), body: value_from(payload, "body"),
+          artifact_type: "spec", status: value_from(payload, "status").presence || "draft", use_case_id: value_from(payload, "use_case_id"))
+        result(document, request_id)
+      end
     end
 
-    def update_draft_document(payload:, context:, request_id:)
-      document = find_document(value_from(payload, "document_id"))
-      return missing_document_result(request_id: request_id) unless document
-      return readonly_document_result(document, request_id: request_id) unless document.artifact_type == "draft"
-
-      attrs = {}
-      attrs[:title] = value_from(payload, "title").to_s.strip if key_present?(payload, "title")
-      attrs[:body] = value_from(payload, "body").to_s if key_present?(payload, "body")
-      attrs[:use_case_id] = value_from(payload, "use_case_id") if key_present?(payload, "use_case_id")
-      return invalid_payload_result(request_id: request_id, message: "title, body, or use_case_id is required") if attrs.empty?
-      return invalid_record_result(document, request_id: request_id, summary: "Document draft could not be updated.") unless document.update(attrs)
-
-      CommandQuery::Result.ok(
-        request_id: request_id,
-        data: document_result_data(document.reload, summary: "Document draft updated."),
-        effects: [
-          {
-            "type" => "document_updated",
-            "document_id" => document.id,
-            "project_id" => document.project_id
-          }
-        ]
-      )
+    def update_specification(payload:, context:, request_id:)
+      perform(request_id) do
+        document = find_specification(payload)
+        document.revision = value_from(payload, "revision").presence || raise(Specifications::Error, "Source revision is required.")
+        attributes = %w[title body use_case_id].each_with_object({}) { |key, values| values[key] = value_from(payload, key) if key_present?(payload, key) }
+        document.update!(attributes.merge(status: "draft"))
+        result(document, request_id)
+      end
     end
 
-    def promote_draft_to_spec(payload:, context:, request_id:)
-      draft = find_document(value_from(payload, "document_id"))
-      return missing_document_result(request_id: request_id) unless draft
-      return readonly_document_result(draft, request_id: request_id) unless draft.artifact_type == "draft"
-
-      spec = DocumentPromotionService.new(draft: draft).call
-      CommandQuery::Result.ok(
-        request_id: request_id,
-        data: {
-          "summary" => "Document draft promoted to spec.",
-          "document_id" => spec.id,
-          "project_id" => spec.project_id,
-          "document" => document_data(spec),
-          "source_document_id" => draft.id
-        },
-        effects: [
-          {
-            "type" => "document_promoted",
-            "document_id" => spec.id,
-            "source_document_id" => draft.id,
-            "project_id" => spec.project_id
-          }
-        ]
-      )
-    rescue DocumentPromotionService::PromotionError => e
-      CommandQuery::Result.error(
-        request_id: request_id,
-        code: "document_promotion_failed",
-        message: e.message
-      )
+    def approve_specification(payload:, context:, request_id:)
+      perform(request_id) do
+        document = find_specification(payload)
+        revision = value_from(payload, "revision").presence || raise(Specifications::Error, "Source revision is required.")
+        document.approve!(revision: revision)
+        result(document, request_id)
+      end
     end
 
-    def get_documents_by_project(payload:, context:, request_id:)
-      project = find_project(value_from(payload, "project_id"))
-      return missing_project_result(request_id: request_id) unless project
+    def generate_specification(payload:, context:, request_id:)
+      perform(request_id) do
+        project = Project.find(value_from(payload, "project_id"))
+        use_case = project.use_cases.find(value_from(payload, "use_case_id")) if value_from(payload, "use_case_id").present?
+        result(Specifications::Generator.new(project: project, use_case: use_case, feature: value_from(payload, "feature")).call, request_id)
+      end
+    end
 
-      documents = project.documents.order(updated_at: :desc, created_at: :desc)
-      artifact_type = value_from(payload, "artifact_type", "type").to_s
-      documents = documents.by_type(artifact_type) if Document::TYPES.include?(artifact_type)
-
-      CommandQuery::Result.ok(
-        request_id: request_id,
-        data: {
-          "summary" => "Project documents retrieved.",
-          "project_id" => project.id,
-          "documents" => documents.map { |document| document_data(document) },
-          "count" => documents.count
-        },
-        effects: []
-      )
+    def list_specifications(payload:, context:, request_id:)
+      perform(request_id) do
+        project = Project.find(value_from(payload, "project_id"))
+        documents = Document.reconcile!(project).specifications.order(source_modified_at: :desc)
+        CommandQuery::Result.ok(request_id: request_id, data: {"project_id" => project.id, "documents" => documents.map { |document| data(document) }, "count" => documents.size})
+      end
     end
 
     private
 
-    def document_result_data(document, summary:)
-      {
-        "summary" => summary,
-        "document_id" => document.id,
-        "project_id" => document.project_id,
-        "document" => document_data(document)
-      }
+    def find_specification(payload)
+      document = Document.specifications.find(value_from(payload, "document_id"))
+      Document.reconcile!(document.project)
+      document.reload
     end
 
-    def document_data(document)
-      {
-        "id" => document.id,
-        "project_id" => document.project_id,
-        "artifact_type" => document.artifact_type,
-        "title" => document.title,
-        "body" => document.body,
-        "editable" => document.editable,
-        "source_draft_id" => document.source_draft_id,
-        "use_case_id" => document.use_case_id,
-        "use_case_name" => document.use_case&.name
-      }
+    def result(document, request_id)
+      CommandQuery::Result.ok(request_id: request_id, data: {"summary" => "Specification saved.", "document_id" => document.id, "project_id" => document.project_id, "document" => data(document)})
     end
 
-    def invalid_record_result(record, request_id:, summary:)
-      CommandQuery::Result.new(
-        status: "error",
-        request_id: request_id,
-        data: {"summary" => summary},
-        effects: [],
-        errors: record_errors(record)
-      )
+    def data(document)
+      document.attributes.slice("id", "project_id", "title", "status", "relative_path", "source_hash", "use_case_id").merge("body" => document.body, "artifact_type" => "spec")
     end
 
-    def readonly_document_result(document, request_id:)
-      CommandQuery::Result.error(
-        request_id: request_id,
-        code: "document_not_editable",
-        message: "only draft documents are editable",
-        details: {"document_id" => document.id, "artifact_type" => document.artifact_type}
-      )
+    def perform(request_id)
+      yield
+    rescue ActiveRecord::RecordNotFound
+      CommandQuery::Result.error(request_id: request_id, code: "specification_not_found", message: "Specification or project was not found.")
+    rescue ActiveRecord::RecordInvalid, Specifications::Error => e
+      code = e.respond_to?(:code) ? e.code : "invalid_specification"
+      CommandQuery::Result.error(request_id: request_id, code: code, message: e.message)
     end
-
-    def invalid_payload_result(request_id:, message:)
-      CommandQuery::Result.error(
-        request_id: request_id,
-        code: "invalid_payload",
-        message: message
-      )
-    end
-
-    def missing_project_result(request_id:)
-      CommandQuery::Result.error(
-        request_id: request_id,
-        code: "project_not_found",
-        message: "project was not found"
-      )
-    end
-
-    def missing_document_result(request_id:)
-      CommandQuery::Result.error(
-        request_id: request_id,
-        code: "document_not_found",
-        message: "document was not found"
-      )
-    end
-
-    def record_errors(record)
-      record.errors.map do |error|
-        {
-          code: "invalid_#{error.attribute}",
-          message: "#{error.attribute} #{error.message}",
-          details: {"attribute" => error.attribute.to_s}
-        }
-      end
-    end
-
-    def find_project(project_id)
-      return nil if project_id.blank?
-
-      Project.find_by(id: project_id)
-    end
-
-    def find_document(document_id)
-      return nil if document_id.blank?
-
-      Document.find_by(id: document_id)
-    end
-
   end
 end

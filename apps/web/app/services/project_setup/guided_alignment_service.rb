@@ -205,6 +205,7 @@ module ProjectSetup
 
     def persist_alignment_outputs!(answers:)
       project = session.project
+      WorkspaceDirectory.ensure!(project)
       attributes = answers.map do |answer|
         attribute = ProjectAttribute.find_or_initialize_by(
           project: project,
@@ -218,11 +219,11 @@ module ProjectSetup
       end
       document = Document.find_or_initialize_by(
         project: project,
-        artifact_type: "draft",
+        artifact_type: "internal",
         title: DOCUMENT_TITLE
       )
       document.body = alignment_document_body(answers: answers)
-      document.editable = true
+      document.status = "active"
       document.save!
 
       output_data = {

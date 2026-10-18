@@ -4,15 +4,16 @@ class CreateDocumentTables < ActiveRecord::Migration[8.1]
       t.references :project, null: false, foreign_key: true
       t.string :artifact_type, null: false
       t.string :title, null: false
-      t.text :body, null: false
-      t.integer :source_draft_id
-      t.boolean :editable, null: false, default: true
+      t.string :relative_path, null: false
+      t.string :status, null: false, default: "draft"
+      t.string :source_hash, null: false
+      t.datetime :source_modified_at, null: false
 
       t.timestamps
     end
     add_index :documents, :artifact_type
-    add_index :documents, :source_draft_id
-    add_foreign_key :documents, :documents, column: :source_draft_id
+    add_index :documents, [:project_id, :relative_path], unique: true
+    add_index :documents, [:project_id, :status]
 
     create_table :document_relations do |t|
       t.references :from_artifact, null: false, foreign_key: { to_table: :documents }
@@ -25,15 +26,5 @@ class CreateDocumentTables < ActiveRecord::Migration[8.1]
               unique: true,
               name: "idx_document_relations_unique_edge"
 
-    create_table :ticket_document_links do |t|
-      t.references :ticket, null: false, foreign_key: true
-      t.references :document, null: false, foreign_key: true
-      t.string :role, null: false, default: "reference"
-
-      t.timestamps
-    end
-    add_index :ticket_document_links, [ :ticket_id, :document_id ],
-              unique: true,
-              name: "idx_ticket_document_links_unique_ticket_document"
   end
 end

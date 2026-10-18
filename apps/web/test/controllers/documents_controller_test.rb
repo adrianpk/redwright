@@ -1,268 +1,92 @@
 require "test_helper"
 
 class DocumentsControllerTest < ActionDispatch::IntegrationTest
-  def create_admin_user!
-    User.create!(
-      email_address: "docs-owner@example.com",
-      password: "password-123",
-      password_confirmation: "password-123"
-    )
+  setup do
+    @spec = create_document(title: "Visible feature", body: "Feature requirements")
+    @project = @spec.project
+    @user = User.create!(email_address: "spec-author@example.com", password: "password-123", password_confirmation: "password-123")
+    sign_in_as(@user)
   end
 
-  test "index requires authentication" do
-    get documents_path
-    assert_redirected_to new_session_path
+  test "Specs shows only specifications and hides internal tracker routes" do
+    tracker = create_document(project: @project, artifact_type: "plan_tracker", status: "tracking", title: "Internal execution tracker")
+    get documents_path(project_id: @project.id)
+    assert_response :success
+    assert_select "h1", "Specs"
+    assert_select "h2", text: @spec.title
+    assert_select "h2", text: tracker.title, count: 0
+    assert_no_match(/Plan Trackers|New Draft|Document type navigation/, response.body)
+    get document_path(tracker)
+    assert_response :not_found
+    get edit_document_path(tracker)
+    assert_response :not_found
+    post approve_document_path(tracker), params: {revision: tracker.source_hash}
+    assert_response :not_found
   end
 
-  test "create and update draft" do
-    admin = create_admin_user!
-    sign_in_as(admin)
-
-    post documents_path, params: {
-      document: {
-        title: "Feature Draft",
-        body: "Initial draft body"
-      }
-    }
-    created = Document.order(:created_at).last
+  test "manual authoring and one click approval retain the same spec" do
+    assert_difference "Document.count", 1 do
+      post documents_path(project_id: @project.id), params: {document: {title: "Manual spec", body: "Detailed behavior"}, approval: "draft"}
+    end
+    assert_response :redirect
+    created = @project.documents.order(:id).last
+    assert_equal "draft", created.status
+    assert_no_difference "Document.count" do
+      post approve_document_path(created), params: {revision: created.source_hash}
+    end
     assert_redirected_to document_path(created)
-    assert_equal "draft", created.artifact_type
-    assert_equal true, created.editable
-
-    patch document_path(created), params: {
-      document: {
-        title: "Feature Draft Updated",
-        body: "Updated body"
-      }
-    }
-    assert_redirected_to document_path(created)
-    assert_equal "Feature Draft Updated", created.reload.title
+    assert_equal "approved", created.reload.status
+    assert_equal "approved", created.source[:metadata]["status"]
   end
 
-  test "create can assign optional use case to draft" do
-    admin = create_admin_user!
-    sign_in_as(admin)
-    project = create_project(key: "docs-create-use-case")
-    use_case = create_use_case(project: project, name: "Billing")
-    patch current_project_path, params: { project_id: project.id }
-
-    post documents_path, params: {
-      document: {
-        title: "Billing Draft",
-        body: "Billing draft body",
-        use_case_id: use_case.id
-      }
-    }
-
-    created = Document.order(:created_at).last
-    assert_redirected_to document_path(created)
-    assert_equal use_case.id, created.use_case_id
+  test "save and approve needs no discovery artifacts" do
+    post documents_path(project_id: @project.id), params: {document: {title: "Already understood", body: "Complete feature"}, approval: "approved"}
+    assert_response :redirect
+    assert_equal "approved", @project.documents.order(:id).last.status
+    assert_equal 0, @project.quizzes.count
+    assert_equal 0, @project.dumps.count
   end
 
-  test "create allows blank use case for project-level draft" do
-    admin = create_admin_user!
-    sign_in_as(admin)
-    project = create_project(key: "docs-create-blank-use-case")
-    create_use_case(project: project, name: "Billing")
-    patch current_project_path, params: { project_id: project.id }
-
-    post documents_path, params: {
-      document: {
-        title: "Project Draft",
-        body: "Project draft body",
-        use_case_id: ""
-      }
-    }
-
-    created = Document.order(:created_at).last
-    assert_redirected_to document_path(created)
-    assert_nil created.use_case_id
+  test "web editing rejects a stale file revision" do
+    revision = @spec.source_hash
+    path = Pathname.new(@project.root_path).join(@spec.relative_path)
+    path.write(path.read + "\nOutside edit\n")
+    patch document_path(@spec), params: {document: {title: "Old edit", body: "Outdated browser content", revision: revision}}
+    assert_response :conflict
+    assert_includes path.read, "Outside edit"
+    assert_not_includes path.read, "Outdated browser content"
   end
 
-  test "update can change and clear draft use case" do
-    admin = create_admin_user!
-    sign_in_as(admin)
-    project = create_project(key: "docs-update-use-case")
-    billing = create_use_case(project: project, name: "Billing")
-    checkout = create_use_case(project: project, name: "Checkout")
-    draft = create_document(project: project, use_case: billing, title: "Scoped Draft")
-
-    patch document_path(draft), params: {
-      document: {
-        title: "Scoped Draft",
-        body: draft.body,
-        use_case_id: checkout.id
-      }
-    }
-
-    assert_redirected_to document_path(draft)
-    assert_equal checkout.id, draft.reload.use_case_id
-
-    patch document_path(draft), params: {
-      document: {
-        title: "Scoped Draft",
-        body: draft.body,
-        use_case_id: ""
-      }
-    }
-
-    assert_redirected_to document_path(draft)
-    assert_nil draft.reload.use_case_id
+  test "web generation calls the wrapped harness without manual document creation" do
+    program = Pathname.new(@project.root_path).join("web-test-harness")
+    program.write(<<~'SCRIPT')
+      #!/usr/bin/env ruby
+      require "json"
+      context = JSON.parse(STDIN.read.split("Context:\n", 2).last)
+      raise "wrong feature" unless context["feature"] == "Add invoice corrections"
+      output = ARGV[ARGV.index("--output-last-message") + 1]
+      File.write(output, JSON.generate({title: "Invoice corrections", body: "# Corrections\n\nPreserve invoice history."}))
+    SCRIPT
+    program.chmod(0o700)
+    previous = ENV["REDWRIGHT_SPEC_HARNESS"]
+    ENV["REDWRIGHT_SPEC_HARNESS"] = program.to_s
+    assert_difference "Document.count", 1 do
+      post generate_documents_path(project_id: @project.id), params: {feature: "Add invoice corrections"}
+    end
+    generated = @project.documents.order(:id).last
+    assert_redirected_to document_path(generated)
+    assert_equal "draft", generated.status
+    assert_equal "Invoice corrections", generated.title
+    assert_includes generated.body, "Preserve invoice history"
+  ensure
+    ENV["REDWRIGHT_SPEC_HARNESS"] = previous
   end
 
-  test "rejects cross-project use case assignment for draft" do
-    admin = create_admin_user!
-    sign_in_as(admin)
-    project = create_project(key: "docs-cross-use-case")
-    other_project = create_project(key: "docs-cross-use-case-other")
-    foreign_use_case = create_use_case(project: other_project, name: "Foreign")
-    patch current_project_path, params: { project_id: project.id }
-
-    post documents_path, params: {
-      document: {
-        title: "Invalid Draft",
-        body: "Invalid draft body",
-        use_case_id: foreign_use_case.id
-      }
-    }
-
+  test "direct spec creation rejects another projects use case" do
+    foreign = create_use_case
+    assert_no_difference "Document.count" do
+      post documents_path(project_id: @project.id), params: {document: {title: "Invalid scope", body: "Content", use_case_id: foreign.id}}
+    end
     assert_response :unprocessable_entity
-    assert_equal 0, project.documents.count
-    assert_includes response.body, "Use case must belong to the same project"
-  end
-
-  test "new renders project-scoped use case selector" do
-    admin = create_admin_user!
-    sign_in_as(admin)
-    project = create_project(key: "docs-new-use-case")
-    other_project = create_project(key: "docs-new-use-case-other")
-    create_use_case(project: project, name: "Billing")
-    create_use_case(project: other_project, name: "Foreign")
-    patch current_project_path, params: { project_id: project.id }
-
-    get new_document_path
-
-    assert_response :success
-    assert_match "Use Case", response.body
-    assert_match "Project-level", response.body
-    assert_match "Billing", response.body
-    refute_match "Foreign", response.body
-  end
-
-  test "index renders top navigation back to board" do
-    admin = create_admin_user!
-    board = create_board(project_key: "docs-nav")
-    sign_in_as(admin)
-
-    patch current_project_path, params: { project_id: board.project_id }
-    get documents_path
-    assert_response :success
-    assert_match "Board", response.body
-    assert_match "href=\"#{board_path(board)}\"", response.body
-  end
-
-  test "promote draft to spec with lineage and relation" do
-    admin = create_admin_user!
-    sign_in_as(admin)
-    draft = create_document(
-      artifact_type: "draft",
-      title: "Draft for Promotion",
-      body: "Draft content"
-    )
-
-    post promote_document_path(draft)
-
-    promoted = Document.order(:created_at).last
-    assert_equal "spec", promoted.artifact_type
-    assert_equal draft.id, promoted.source_draft_id
-    assert_equal false, promoted.editable
-    relation = DocumentRelation.find_by(from_artifact_id: promoted.id, to_artifact_id: draft.id)
-    refute_nil relation
-    assert_equal "derives_from", relation.relation_type
-  end
-
-  test "index filters by artifact type for spec and plan tracker" do
-    admin = create_admin_user!
-    sign_in_as(admin)
-    project = create_project(key: "docs-type-filter")
-    draft = create_document(project: project, artifact_type: "draft", title: "Draft One", body: "draft")
-    create_document(project: project, artifact_type: "spec", title: "Spec One", body: "spec", source_draft: draft, editable: false)
-    create_document(project: project, artifact_type: "plan_tracker", title: "Plan One", body: "plan", editable: false)
-
-    get documents_path(type: "spec")
-    assert_response :success
-    assert_match "Spec One", response.body
-    assert_select "section[aria-label='Document navigation'] h2", text: "Draft One", count: 0
-
-    get documents_path(type: "plan_tracker")
-    assert_response :success
-    assert_match "Plan One", response.body
-    assert_select "section[aria-label='Document navigation'] h2", text: "Draft One", count: 0
-  end
-
-  test "index renders type navigation cards" do
-    admin = create_admin_user!
-    project = create_project(key: "docs-card-nav")
-    create_board(project_key: "docs-card-nav", project: project)
-    sign_in_as(admin)
-
-    patch current_project_path, params: { project_id: project.id }
-    get documents_path
-    assert_response :success
-    assert_match "artifact-type-nav", response.body
-    assert_match "Drafts", response.body
-    assert_match "Specs", response.body
-    assert_match "Plan Trackers", response.body
-    assert_match "href=\"#{ERB::Util.html_escape(documents_path(project_id: project.id, type: "draft"))}\"", response.body
-  end
-
-  test "spec and plan_tracker cannot be edited in phase one" do
-    admin = create_admin_user!
-    sign_in_as(admin)
-    draft = create_document(artifact_type: "draft", title: "Draft for Spec", body: "draft")
-    spec = create_document(project: draft.project, artifact_type: "spec", title: "Spec Locked", body: "spec", source_draft: draft, editable: false)
-    plan = create_document(artifact_type: "plan_tracker", title: "Plan Locked", body: "plan", editable: false)
-
-    get edit_document_path(spec)
-    assert_redirected_to document_path(spec)
-
-    patch document_path(spec), params: { document: { title: "Changed" } }
-    assert_redirected_to document_path(spec)
-    assert_equal "Spec Locked", spec.reload.title
-
-    get edit_document_path(plan)
-    assert_redirected_to document_path(plan)
-  end
-
-  test "show renders related artifacts section and linked entries" do
-    admin = create_admin_user!
-    sign_in_as(admin)
-    draft = create_document(artifact_type: "draft", title: "Draft Base", body: "draft")
-    spec = create_document(project: draft.project, artifact_type: "spec", title: "Spec Derived", body: "spec", source_draft: draft, editable: false)
-    plan = create_document(artifact_type: "plan_tracker", title: "Plan Linked", body: "plan", editable: false)
-    DocumentRelation.create!(from_artifact: spec, to_artifact: draft, relation_type: "derives_from")
-    DocumentRelation.create!(from_artifact: spec, to_artifact: plan, relation_type: "tracks")
-
-    get document_path(spec)
-    assert_response :success
-    assert_match "Related Documents", response.body
-    assert_match "derives_from:", response.body
-    assert_match "Draft Base (draft)", response.body
-    assert_match "tracks:", response.body
-    assert_match "Plan Linked (plan_tracker)", response.body
-  end
-
-  test "index can be scoped by project_id" do
-    admin = create_admin_user!
-    sign_in_as(admin)
-    project_a = create_project(key: "docs-scope-a")
-    project_b = create_project(key: "docs-scope-b")
-    create_document(project: project_a, artifact_type: "draft", title: "Draft A", body: "A")
-    create_document(project: project_b, artifact_type: "draft", title: "Draft B", body: "B")
-
-    get documents_path(type: "draft", project_id: project_a.id)
-    assert_response :success
-    assert_match "Draft A", response.body
-    refute_match "Draft B", response.body
   end
 end

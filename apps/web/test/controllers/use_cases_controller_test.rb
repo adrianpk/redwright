@@ -127,9 +127,9 @@ class UseCasesControllerTest < ActionDispatch::IntegrationTest
     backlog = board.columns.create!(key: "backlog", title: "Backlog", position: 0)
     use_case = create_use_case(project: project, name: "Billing")
     board.tickets.create!(column: backlog, title: "Scoped ticket", use_case: use_case)
-    draft = create_document(project: project, use_case: use_case, artifact_type: "draft", title: "Draft One")
-    create_document(project: project, use_case: use_case, artifact_type: "spec", title: "Spec One", body: "spec", source_draft: draft, editable: false)
-    create_document(project: project, use_case: use_case, artifact_type: "plan_tracker", title: "Plan One", body: "plan", editable: false)
+    draft = create_document(project: project, use_case: use_case, artifact_type: "spec", status: "draft", title: "Draft One")
+    create_document(project: project, use_case: use_case, artifact_type: "spec", title: "Spec One", body: "spec")
+    create_document(project: project, use_case: use_case, artifact_type: "plan_tracker", title: "Plan One", body: "plan")
     quiz = use_case.find_or_create_quiz!
     quiz.entries.create!(question: "What matters?", answer: "Context.")
 
@@ -139,11 +139,11 @@ class UseCasesControllerTest < ActionDispatch::IntegrationTest
     assert_match "Use case metrics", response.body
     assert_select ".use-case-detail-metrics dt", text: "Tickets"
     assert_select ".use-case-detail-metrics dd", text: "1"
-    assert_select ".use-case-detail-metrics dt", text: "Documents"
-    assert_select ".use-case-detail-metrics dd", text: "3"
-    assert_select ".use-case-detail-metrics dt", text: "Drafts"
+    assert_select ".use-case-detail-metrics dt", text: "Documents", count: 0
+    assert_select ".use-case-detail-metrics dd", text: "2"
+    assert_select ".use-case-detail-metrics dt", text: "Drafts", count: 0
     assert_select ".use-case-detail-metrics dt", text: "Specs"
-    assert_select ".use-case-detail-metrics dt", text: "Plans"
+    assert_select ".use-case-detail-metrics dt", text: "Plans", count: 0
     assert_select ".use-case-detail-metrics dt", text: "Quiz Entries"
   end
 
@@ -214,7 +214,7 @@ class UseCasesControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to project_use_cases_path(project)
     use_case.reload
     assert_equal "Invoice Flow", use_case.name
-    assert_equal "invoice-flow", use_case.slug
+    assert_equal "billing", use_case.slug
     assert_equal "Invoice lifecycle behavior.", use_case.description
   end
 
@@ -237,7 +237,7 @@ class UseCasesControllerTest < ActionDispatch::IntegrationTest
     refute_includes response.body, "Slug can&#39;t be blank"
   end
 
-  test "top navigation places cases between protocols and conversation" do
+  test "top navigation follows chryso order" do
     admin = create_admin_user!
     sign_in_as(admin)
     project = create_project(key: "use-cases-nav")
@@ -245,9 +245,7 @@ class UseCasesControllerTest < ActionDispatch::IntegrationTest
     get project_use_cases_path(project)
 
     assert_response :success
-    assert_select ".top-nav-link[href='#{project_protocols_path(project)}']", text: "Protocol"
-    assert_operator response.body.index("Protocol"), :<, response.body.index("Cases")
-    assert_operator response.body.index("Cases"), :<, response.body.index("Conv")
+    assert_equal %w[Cases Dumps Quizzes Specs Board Protocol Settings], css_select(".top-nav-link").map(&:text)
     assert_match "href=\"#{project_use_cases_path(project)}\"", response.body
   end
 end

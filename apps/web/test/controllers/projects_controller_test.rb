@@ -102,7 +102,7 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_match "Protocols", response.body
-    assert_match "Documents", response.body
+    assert_match "Specs", response.body
     assert_match "Board", response.body
     assert_match "href=\"#{project_protocols_path(project)}\"", response.body
     assert_match "href=\"#{board_path(board)}\"", response.body

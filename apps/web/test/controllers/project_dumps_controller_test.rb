@@ -17,15 +17,21 @@ class ProjectDumpsControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to new_session_path
   end
 
-  test "conversation links to dumps" do
+  test "top navigation lists dumps before quizzes" do
     admin = create_admin_user!
     sign_in_as(admin)
-    project = create_project(key: "dump-controller-conversation")
+    project = create_project(key: "dump-controller-navigation")
 
-    get project_conversation_path(project)
+    [project_dumps_path(project), project_quizzes_path(project)].each do |path|
+      get path
 
-    assert_response :success
-    assert_select "a.artifact-type-card[href='#{project_dumps_path(project)}'] h2", text: "Dump"
+      assert_response :success
+      assert_select ".top-nav-link[href='#{project_dumps_path(project)}']", text: "Dumps"
+      assert_select ".top-nav-link[href='#{project_quizzes_path(project)}']", text: "Quizzes"
+      assert_select ".top-nav-link", text: "Conv", count: 0
+      labels = css_select(".top-nav-link").map(&:text)
+      assert_operator labels.index("Dumps"), :<, labels.index("Quizzes")
+    end
   end
 
   test "index renders dumps and use case start actions" do
@@ -74,6 +80,7 @@ class ProjectDumpsControllerTest < ActionDispatch::IntegrationTest
     get project_dump_path(project, dump)
 
     assert_response :success
+    assert_select ".document-artifact-breadcrumb a[href='#{project_dumps_path(project)}']", text: "Dumps"
     assert_select "#dump-entry-form textarea[name='raw_input']"
     assert_select "button", text: "Add Entry"
 

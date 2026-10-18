@@ -32,7 +32,7 @@ This guide is practical. It explains what a user can do today and points to refe
 - [Use Telegram](use-telegram.md)
 - [Manage Projects](manage-projects.md)
 - [Manage Boards And Tickets](manage-boards-and-tickets.md)
-- [Manage Documents And Protocols](manage-documents-and-protocols.md)
+- [Manage Specs And Protocol](manage-documents-and-protocols.md)
 - [Debug LLM Calls](debug-llm-calls.md)
 - [Runtime Containers In Ticket Work](runtime-containers-in-ticket-work.md)
 

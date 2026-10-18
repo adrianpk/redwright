@@ -60,7 +60,7 @@ module QuizLoops
     def resolve_quiz!
       return project.find_or_create_main_quiz! if use_case_name.to_s.strip.empty?
 
-      use_case = project.use_cases.find_or_create_by!(slug: use_case_slug) do |record|
+      use_case = project.use_cases.find_by(name: use_case_name.to_s.strip) || project.use_cases.find_or_create_by!(slug: use_case_slug) do |record|
         record.name = use_case_name.to_s.strip
         record.description = "Use case created from quiz scope."
       end
@@ -314,7 +314,9 @@ module QuizLoops
     end
 
     def input_for(quiz, force_deep: false)
+      discovery = Specifications::ContextBuilder.new(project: project, use_case: quiz.use_case).to_h
       {
+        "discovery" => discovery,
         "project" => {
           "id" => project.id,
           "name" => project.name,

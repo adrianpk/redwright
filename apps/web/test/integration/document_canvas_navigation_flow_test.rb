@@ -19,9 +19,10 @@ class DocumentCanvasNavigationFlowTest < ActionDispatch::IntegrationTest
 
     follow_redirect!
     assert_response :success
-    assert_match "Docs", response.body
+    assert_match "Specs", response.body
     assert_match "href=\"#{documents_path(project_id: board.project_id)}\"", response.body
 
+    write_protocol_files(project: board.project)
     get documents_path
     assert_response :success
     assert_match "Board", response.body

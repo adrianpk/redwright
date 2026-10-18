@@ -123,7 +123,7 @@ module DumpLoops
     def resolve_use_case
       return nil if use_case_name.to_s.strip.empty?
 
-      project.use_cases.find_or_create_by!(slug: use_case_slug) do |record|
+      project.use_cases.find_by(name: use_case_name.to_s.strip) || project.use_cases.find_or_create_by!(slug: use_case_slug) do |record|
         record.name = use_case_name.to_s.strip
         record.description = "Use case created from dump scope."
       end

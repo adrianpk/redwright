@@ -10,7 +10,9 @@ entry per commit.
 
 ### Added
 
-- Added Conversation as the shared place for Dumps and Quizzes.
+- Generate specification drafts from project context, optional dumps, and quiz
+  answers through a local harness. Review and approve the same specification,
+  or write one directly.
 - Added Dumps so users can capture free-form project or use-case notes, curate
   them, and reuse them as future ticket context.
 - Added an authenticated Codex-backed black-box proof milestone: RedWright can
@@ -19,6 +21,11 @@ entry per commit.
 
 ### Changed
 
+- Navigation now follows Cases, Dumps, Quizzes, Specs, Board, and Protocol,
+  followed by Settings for administrators.
+- Specs replaces the document catalogue and follows the project's Markdown
+  files, including external edits. Outdated saves are rejected. Implementation
+  progress belongs to Board tickets; trackers remain internal.
 - Protocols now reads and edits `AGENTS.md` and Markdown files under `.agents/`
   directly, including custom files and subdirectories. Changes from other
   tools appear without synchronization, and outdated web saves are rejected.

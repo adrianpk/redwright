@@ -508,73 +508,19 @@ module AgentTicketExecution
       end
 
       def documents
-        persisted_documents + repository_ops_documents
+        Specifications::FileStore.new(context.project, root: context.workspace_path).entries.map do |entry|
+          {
+            "source" => "project_document_file", "project_id" => context.project.id,
+            "use_case_id" => entry[:use_case_id], "artifact_type" => entry[:artifact_type],
+            "title" => entry[:title], "path" => entry[:path], "body" => entry[:body],
+            "status" => entry[:status], "updated_at" => entry[:source_modified_at]
+          }
+        end
       end
 
       private
 
       attr_reader :context
-
-      def persisted_documents
-        context.project.documents.order(updated_at: :desc, created_at: :desc).limit(Documents::MAX_DOCUMENTS * 2).map do |document|
-          {
-            "source" => "persisted_document",
-            "id" => document.id,
-            "project_id" => document.project_id,
-            "use_case_id" => document.use_case_id,
-            "artifact_type" => document.artifact_type,
-            "title" => document.title,
-            "body" => document.body.to_s,
-            "updated_at" => document.updated_at
-          }
-        end
-      end
-
-      def repository_ops_documents
-        root = repository_root
-        return [] unless root && File.directory?(root)
-
-        Dir.glob(File.join(root, "ops", "**", "*.md")).filter_map do |path|
-          relative = path.delete_prefix("#{root}/")
-          next unless DOCUMENT_OPS_FILE_PATTERNS.any? { |pattern| pattern.match?(relative) }
-
-          {
-            "source" => "repository_ops_artifact",
-            "artifact_type" => artifact_type_for_path(relative),
-            "title" => File.basename(path, ".md"),
-            "path" => relative,
-            "body" => read_file(path),
-            "updated_at" => File.mtime(path)
-          }
-        end.sort_by { |document| document.fetch("path") }.first(Documents::MAX_DOCUMENTS)
-      end
-
-      def repository_root
-        root = Rails.root.join("..", "..").expand_path.to_s
-        return root if File.directory?(File.join(root, "ops"))
-
-        workspace = context.workspace_path.to_s
-        return workspace if File.directory?(File.join(workspace, "ops"))
-
-        nil
-      end
-
-      def artifact_type_for_path(relative_path)
-        case relative_path
-        when %r{\Aops/specs/}
-          "spec"
-        when %r{\Aops/plans/}, %r{\Aops/trackers/}
-          "plan_tracker"
-        else
-          "draft"
-        end
-      end
-
-      def read_file(path)
-        File.binread(path, Documents::MAX_DOCUMENT_BYTES)
-      rescue StandardError => e
-        "[unreadable: #{e.class.name}]"
-      end
     end
 
     class DocumentContextSelector
@@ -611,6 +557,7 @@ module AgentTicketExecution
       def selected_document?(document)
         return true if context_policy == Redwright::LLM::ContextPolicy::FULL_CONTEXT_FALLBACK
         return false unless matched_use_case_scope?(document)
+        return false if document["artifact_type"] == "spec" && document["status"] == "draft" && context_policy.in?(%w[implementation_default modification_default evaluation_default])
 
         selected_artifact_types.include?(document.fetch("artifact_type").to_s)
       end
@@ -633,6 +580,7 @@ module AgentTicketExecution
       end
 
       def omission_reason(document)
+        return "specification_not_approved" if document["artifact_type"] == "spec" && document["status"] == "draft" && matched_use_case_scope?(document)
         return "unmatched_use_case:#{document.fetch("use_case_id")}" unless matched_use_case_scope?(document)
 
         "unselected_artifact_type:#{document.fetch("artifact_type")}"

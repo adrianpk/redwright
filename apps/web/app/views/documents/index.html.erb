@@ -1,37 +1,24 @@
 <main class="document-artifacts-index">
   <section class="documents-top-shell">
     <div class="board-title-row">
-      <h1>Documents</h1>
-      <%= link_to "New Draft", new_document_path, class: "ticket-action" %>
+      <h1>Specs</h1>
+      <%= link_to "Write spec", new_document_path(project_id: @project.id), class: "ticket-action" %>
     </div>
-    <section class="artifact-type-nav" aria-label="Document type navigation">
-      <% @document_type_cards.each do |card| %>
-        <%= link_to documents_navigation_path(type: card.fetch(:type)), class: "artifact-type-card#{' is-active' if @selected_type == card.fetch(:type)}" do %>
-          <h2><%= card.fetch(:title) %></h2>
-          <% if card.fetch(:preview_lines).any? %>
-            <div class="protocol-card-preview" aria-hidden="true">
-              <% card.fetch(:preview_lines).each do |line| %>
-                <span><%= line %></span>
-              <% end %>
-            </div>
-          <% end %>
-        <% end %>
-      <% end %>
-    </section>
+    <%= form_with url: generate_documents_path(project_id: @project.id), method: :post, class: "document-artifact-form" do |form| %>
+      <%= form.label :use_case_id, "Use case" %>
+      <%= form.collection_select :use_case_id, @available_use_cases, :id, :name, include_blank: "Project-level" %>
+      <%= form.label :feature, "Feature or corrective change" %>
+      <%= form.text_field :feature, maxlength: 4000, placeholder: "Describe the change to specify" %>
+      <%= form.submit "Generate spec", class: "ticket-action", data: { turbo_submits_with: "Generating…" } %>
+    <% end %>
   </section>
-  <section class="artifact-type-nav" aria-label="Document navigation">
+  <section class="artifact-type-nav" aria-label="Specification navigation">
     <% @artifacts.each do |artifact| %>
       <%= link_to document_path(artifact), class: "artifact-type-card" do %>
         <h2><%= artifact.title %></h2>
-        <% preview_lines = artifact.body.to_s.lines.map(&:strip).reject(&:blank?).first(6) %>
-        <% if preview_lines.any? %>
-          <div class="protocol-card-preview" aria-hidden="true">
-            <% preview_lines.each do |line| %>
-              <span><%= line %></span>
-            <% end %>
-          </div>
-        <% end %>
+        <p><%= artifact.status.humanize %><% if artifact.use_case %> · <%= artifact.use_case.name %><% end %></p>
       <% end %>
     <% end %>
+    <% if @artifacts.empty? %><p>No specifications yet. Generate one from the available context or write one directly.</p><% end %>
   </section>
 </main>

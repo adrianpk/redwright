@@ -12,7 +12,6 @@ Rails.application.routes.draw do
   resources :passwords, param: :token
   resources :projects, only: [ :index, :new, :create, :show ]
   resources :projects, only: [] do
-    resource :conversation, controller: "project_conversations", only: [ :show ]
     resources :dumps, controller: "project_dumps", only: [ :index, :show, :create ] do
       member do
         post :append
@@ -79,9 +78,12 @@ Rails.application.routes.draw do
       delete :destroy
     end
   end
-  resources :documents, only: [ :index, :show, :new, :create, :edit, :update ] do
+  resources :documents, path: "specs", only: [ :index, :show, :new, :create, :edit, :update ] do
+    collection do
+      post :generate
+    end
     member do
-      post :promote
+      post :approve
     end
   end
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html

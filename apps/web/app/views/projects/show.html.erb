@@ -15,9 +15,9 @@
       <strong>Protocols</strong>
       <span><%= pluralize(Array(@project.protocol_state["documents"]).size, "document") %></span>
     <% end %>
-    <%= link_to documents_path(project_id: @project.id, type: "draft"), class: "board-list-card" do %>
-      <strong>Documents</strong>
-      <span><%= pluralize(@project.documents.count, "document") %></span>
+    <%= link_to documents_path(project_id: @project.id), class: "board-list-card" do %>
+      <strong>Specs</strong>
+      <span><%= pluralize(@project.documents.specifications.count, "spec") %></span>
     <% end %>
     <% if (board = @project.boards_scope.first) %>
       <%= link_to board_path(board), class: "board-list-card" do %>

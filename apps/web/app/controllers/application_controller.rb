@@ -2,9 +2,12 @@ class ApplicationController < ActionController::Base
   include Authentication
   # Only allow modern browsers supporting webp images, web push, badges, import maps, CSS nesting, and CSS :has.
   allow_browser versions: :modern
+  rescue_from Specifications::Error do |error|
+    render plain: error.message, status: error.code == :conflict ? :conflict : :unprocessable_entity
+  end
   helper_method :current_user, :navigation_project, :current_project, :available_projects,
                 :board_navigation_path, :documents_navigation_path, :use_cases_navigation_path,
-                :conversation_navigation_path, :quizzes_navigation_path
+                :dumps_navigation_path, :quizzes_navigation_path
 
   private
 
@@ -52,10 +55,10 @@ class ApplicationController < ActionController::Base
     project_use_cases_path(current_project)
   end
 
-  def conversation_navigation_path
+  def dumps_navigation_path
     return projects_path unless current_project
 
-    project_conversation_path(current_project)
+    project_dumps_path(current_project)
   end
 
   def quizzes_navigation_path

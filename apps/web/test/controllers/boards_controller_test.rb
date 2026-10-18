@@ -24,7 +24,7 @@ class BoardsControllerTest < ActionDispatch::IntegrationTest
     follow_redirect!
     assert_response :success
     assert_match "Factory", response.body
-    assert_match "Docs", response.body
+    assert_match "Specs", response.body
     assert_match "href=\"#{documents_path(project_id: board.project_id)}\"", response.body
   end
 

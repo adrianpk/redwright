@@ -1,39 +1,51 @@
-# Manage Documents And Protocols
+# Manage Specs And Protocol
 
 ## Purpose
 
-Use documents for project knowledge and protocols for agent operating guidance.
+Use Specs for feature contracts and Protocol for agent operating guidance.
 
 ## Before You Start
 
 - Create or select a project.
-- Make the project workspace available locally before editing protocols.
+- Make the project workspace available locally before working with Specs or Protocol.
 - Use the web app for Markdown editing.
 - Keep the distinction between documents and protocols clear.
 
 ## Steps
 
-1. Open documents.
+1. Generate a specification.
 
-The documents area is organized by artifact type:
+Open `Specs`. Select a use case when the feature belongs to one, describe the
+feature or corrective change, and select `Generate spec`. RW invokes the local
+wrapped harness with project context, relevant dumps, and quiz answers. A dump
+is optional, and a quiz can start without one.
 
-- drafts
-- specs
-- plan trackers
+2. Review and approve.
 
-2. Create or edit a draft.
+Generated specifications start as `draft`. Read the result and select `Approve`
+to change that same specification to `approved`. Use `Edit spec` for revisions.
+Saving a revision as a draft returns it to review; `Save and approve` approves
+that revision immediately. Approval does not start ticket execution.
 
-Drafts support Markdown editing.
+3. Write a specification directly when the behavior is already clear.
 
-3. Promote a draft to a spec.
+Select `Write spec`, fill in the title and Markdown body, and choose `Save draft`
+or `Save and approve`. A use case can contain several specifications for
+features and corrective work. No dump, quiz, or separate draft document is
+required for manual authoring.
 
-From a draft page, use `Promote to Spec`.
+Specification files remain authoritative. External changes appear when the
+section is refreshed. If another tool changes a file while you edit it, RW
+rejects the outdated save. Reload and reconcile the changes. Removed files
+are not recreated from the database.
 
-After promotion, the spec is read-only in the current web surface.
+Implementation progress is managed through tickets in Board. Generated internal
+trackers reference those same tickets and order execution; they have no web
+management surface.
 
 4. Open project protocols.
 
-From a project page, select `Protocols`.
+Select `Protocol` in the navigation.
 
 Protocols are the operational instructions for agents and LLMs. They are distinct from project documents.
 
@@ -70,8 +82,8 @@ an existing project's files, add missing defaults, or restore removed files.
 
 ## Verify
 
-- Draft changes are visible after save.
-- Promoted specs appear under `Specs`.
+- Generated and directly authored specifications appear under `Specs`.
+- Approval updates the same specification and its file metadata.
 - Web edits appear directly in the selected project file.
 - External edits appear after reloading the web editor and in subsequent agent context.
 - Added and removed Markdown files change the Protocols list without re-import.
@@ -79,7 +91,8 @@ an existing project's files, add missing defaults, or restore removed files.
 
 ## Troubleshooting
 
-- If a document cannot be edited, confirm it is a draft.
+- If specification generation fails, verify the local harness is installed and its session is available.
+- If Specs reports unavailable or invalid files, correct the workspace path or Markdown metadata.
 - If Protocols is empty, check the project workspace path and its `AGENTS.md` and `.agents/` files.
 - If a save reports an external change, reload the current file before applying your edits.
 - Template edits apply to new projects; existing files remain under project control.

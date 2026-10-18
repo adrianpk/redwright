@@ -25,7 +25,8 @@ module AgentTicketExecution
       return failure("board_not_found", "board was not found") unless relation
 
       relation = relation.where(assignee: assignee.to_s.strip) if assignee.to_s.strip.present?
-      ticket = relation.ordered_for_board.first
+      project = board&.project || Project.find_by(id: project_id)
+      ticket = project ? Specifications::Tracker.new(project: project).pick(relation) : relation.ordered_for_board.first
       return failure("ticket_not_found", "no eligible ticket was found") unless ticket
 
       success(ticket)

@@ -27,13 +27,13 @@ module UseCases
       assert updated.ok?, updated.errors.inspect
       use_case.reload
       assert_equal "Invoice Flow", use_case.name
-      assert_equal "invoice-flow", use_case.slug
+      assert_equal "billing-flow", use_case.slug
       assert_equal "Manage invoice lifecycle behavior.", use_case.description
       assert_equal "use_case_updated", updated.effects.first.fetch("type")
 
       retrieved = dispatcher.call(query("GetUseCase", {
         project_id: project.id,
-        slug: "invoice-flow"
+        slug: "billing-flow"
       }, request_id: "req-use-case-get"))
 
       assert retrieved.ok?, retrieved.errors.inspect

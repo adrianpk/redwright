@@ -34,12 +34,12 @@ class UseCaseTest < ActiveSupport::TestCase
     assert_includes duplicate.errors[:slug], "has already been taken"
   end
 
-  test "regenerates slug when name changes" do
+  test "keeps the case identifier when its name changes" do
     use_case = create_use_case(name: "Billing")
 
     use_case.update!(name: "Invoice Flow")
 
-    assert_equal "invoice-flow", use_case.slug
+    assert_equal "billing", use_case.slug
   end
 
   test "uses slug as route param" do
@@ -84,17 +84,16 @@ class UseCaseTest < ActiveSupport::TestCase
     backlog = board.columns.create!(key: "backlog", title: "Backlog", position: 0)
     use_case = create_use_case(project: project, name: "Billing")
     board.tickets.create!(column: backlog, title: "Scoped ticket", use_case: use_case)
-    draft = create_document(project: project, use_case: use_case, artifact_type: "draft", title: "Draft One")
-    create_document(project: project, use_case: use_case, artifact_type: "spec", title: "Spec One", body: "spec", source_draft: draft, editable: false)
-    create_document(project: project, use_case: use_case, artifact_type: "plan_tracker", title: "Plan One", body: "plan", editable: false)
+    draft = create_document(project: project, use_case: use_case, artifact_type: "spec", status: "draft", title: "Draft One")
+    create_document(project: project, use_case: use_case, artifact_type: "spec", title: "Spec One", body: "spec")
+    create_document(project: project, use_case: use_case, artifact_type: "plan_tracker", title: "Plan One", body: "plan")
     quiz = use_case.find_or_create_quiz!
     quiz.entries.create!(question: "What matters?", answer: "Context.")
 
     metrics = use_case.detail_metrics
 
     assert_equal 1, metrics.fetch("tickets")
-    assert_equal 1, metrics.fetch("documents").fetch("draft")
-    assert_equal 1, metrics.fetch("documents").fetch("spec")
+    assert_equal 2, metrics.fetch("documents").fetch("spec")
     assert_equal 1, metrics.fetch("documents").fetch("plan_tracker")
     assert_equal 1, metrics.fetch("plans")
     assert_equal 1, metrics.fetch("quiz_entries")

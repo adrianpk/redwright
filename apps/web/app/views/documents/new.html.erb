@@ -1,11 +1,5 @@
 <main class="document-artifacts-new">
-  <p class="document-artifact-breadcrumb">
-    <%= link_to "Drafts", documents_path(type: "draft") %>
-  </p>
-  <header class="document-artifacts-header">
-    <h1>New Draft</h1>
-  </header>
-  <section class="document-artifact-panel">
-    <%= render "form", artifact: @artifact, submit_label: "Create" %>
-  </section>
+  <p class="document-artifact-breadcrumb"><%= link_to "Specs", documents_path(project_id: @project.id) %></p>
+  <header class="document-artifacts-header"><h1>Write Spec</h1></header>
+  <section class="document-artifact-panel"><%= render "form", artifact: @artifact %></section>
 </main>

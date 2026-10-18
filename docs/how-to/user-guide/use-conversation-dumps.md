@@ -2,19 +2,17 @@
 
 ## Purpose
 
-Use Conversation to capture project knowledge through two complementary loops.
+Use Dumps and Quizzes to capture project knowledge through two complementary loops.
 
 ## Concepts
 
-`Conv` is the navigation entry for conversation-based context capture.
+Dumps and Quizzes have separate entries in the top navigation, in that order:
 
-Conversation contains two related tools:
-
-- `Quiz`: a RedWright-led questionnaire. Use it when you want RedWright to ask
-  structured questions and help uncover missing project or use-case context.
-- `Dump`: a user-led capture flow. Use it when you already have context in your
+- `Dumps`: a user-led capture flow. Use it when you already have context in your
   head and want to write it down as short notes without turning it into a spec,
   ticket, or plan yet.
+- `Quizzes`: a RedWright-led questionnaire. Use it when you want RedWright to ask
+  structured questions and help uncover missing project or use-case context.
 
 Quiz is for discovery. Dump is for preserving what you already know.
 
@@ -27,7 +25,7 @@ Closed and curated dumps can become context for later ticket execution. Active
 or uncurated dumps are kept visible to the user but are not silently injected
 into unrelated work.
 
-Later, Conversation captures can become source material for drafts, specs,
+Later, captured context can become source material for drafts, specs,
 plans, trackers, or derived tickets. Today, they are preserved as reusable
 context and can inform ticket execution once curated.
 
@@ -39,29 +37,25 @@ context and can inform ticket execution once curated.
 
 ## Steps
 
-1. Open `Conv` from the top navigation.
-
-`Conv` is the entry point for both Dump and Quiz.
-
-2. Open Dump.
+1. Open `Dumps` from the top navigation.
 
 Use `New Dump` for project-wide context, or `For Use Case` when the notes belong to a specific use case.
 
-3. Add entries while the dump is capturing.
+2. Add entries while the dump is capturing.
 
 Each entry is stored as raw input and a polished version. The polishing step keeps the user intent, corrects wording, redacts obvious secrets, and stores possible tags.
 
-4. Finish or cancel the dump.
+3. Finish or cancel the dump.
 
 Use `Done` to close capture. Use `Cancel` when the dump should not be used.
 
-5. Curate a completed dump.
+4. Curate a completed dump.
 
 Use `Curate` after capture is closed. Curated dumps receive a central topic, summary, key concepts, decisions or preferences, tradeoffs, assumptions, downstream artifact hints, open questions, and tags.
 
 ## Verify
 
-- Conversation shows separate cards for Dump and Quiz.
+- The top navigation opens Dumps and Quizzes directly, with Dumps first.
 - Active dumps show `capturing` capture status.
 - Completed dumps show `closed` capture status.
 - Curated dumps show `curated` curation status and include curated body content.

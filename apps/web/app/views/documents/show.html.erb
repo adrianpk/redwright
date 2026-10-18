@@ -1,40 +1,18 @@
 <main class="document-artifacts-show">
-  <p class="document-artifact-breadcrumb">
-    <%= link_to "Drafts", documents_path(type: "draft") %>
-  </p>
+  <p class="document-artifact-breadcrumb"><%= link_to "Specs", documents_path(project_id: @project.id) %></p>
   <header class="document-artifacts-header">
     <h1><%= @artifact.title %></h1>
-    <p class="board-key">Type: <%= @artifact.artifact_type %></p>
+    <p class="board-key"><%= @artifact.status.humanize %><% if @artifact.use_case %> · <%= @artifact.use_case.name %><% end %></p>
   </header>
-  <article class="document-artifact-panel">
-    <pre><%= @artifact.body %></pre>
-  </article>
-
-  <section class="artifact-relations">
-    <h2>Related Documents</h2>
-    <% if @related_artifacts.empty? %>
-      <p>No related documents.</p>
-    <% else %>
-      <ul class="artifact-relations-list">
-        <% @related_artifacts.each do |relation_type, related_artifact| %>
-          <li>
-            <%= relation_type %>:
-            <%= link_to "#{related_artifact.title} (#{related_artifact.artifact_type})", document_path(related_artifact) %>
-          </li>
-        <% end %>
-      </ul>
-    <% end %>
-  </section>
-
-  <% if @artifact.artifact_type == "draft" %>
-    <p class="document-artifact-inline-actions"><%= link_to "Edit Draft", edit_document_path(@artifact), class: "ticket-action" %></p>
-    <p class="document-artifact-inline-actions">
-      <%= button_to "Promote to Spec",
-                    promote_document_path(@artifact),
-                    method: :post,
-                    class: "ticket-action",
-                    form: { data: { turbo_confirm: "Promote this draft to a spec?" } } %>
-    </p>
+  <article class="document-artifact-panel"><pre><%= @artifact.body %></pre></article>
+  <p class="document-artifact-inline-actions"><%= link_to "Edit spec", edit_document_path(@artifact), class: "ticket-action" %></p>
+  <% if @artifact.status == "draft" %>
+    <%= button_to "Approve", approve_document_path(@artifact), params: {revision: @artifact.source_hash}, class: "ticket-action" %>
   <% end %>
-
+  <% if @related_artifacts.any? %>
+    <section class="artifact-relations">
+      <h2>Related Specs</h2>
+      <ul><% @related_artifacts.each do |relation_type, related| %><li><%= relation_type %>: <%= link_to related.title, document_path(related) %></li><% end %></ul>
+    </section>
+  <% end %>
 </main>

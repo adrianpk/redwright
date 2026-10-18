@@ -123,7 +123,7 @@ class Ticket < ApplicationRecord
     relation = board.tickets.active
     assigned = assignee.to_s.strip.empty? ? Ticket.none : relation.where(assignee: assignee.to_s.strip)
     pool = assigned.exists? ? assigned : relation
-    pool.ordered_for_board.first
+    board.project ? Specifications::Tracker.new(project: board.project).pick(pool) : pool.ordered_for_board.first
   end
 
   def self.resolve_ref(ref)

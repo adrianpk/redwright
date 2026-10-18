@@ -1,11 +1,5 @@
 <main class="document-artifacts-edit">
-  <p class="document-artifact-breadcrumb">
-    <%= link_to "Draft", document_path(@artifact) %>
-  </p>
-  <header class="document-artifacts-header">
-    <h1>Edit Draft</h1>
-  </header>
-  <section class="document-artifact-panel">
-    <%= render "form", artifact: @artifact, submit_label: "Update" %>
-  </section>
+  <p class="document-artifact-breadcrumb"><%= link_to "Spec", document_path(@artifact) %></p>
+  <header class="document-artifacts-header"><h1>Edit Spec</h1></header>
+  <section class="document-artifact-panel"><%= render "form", artifact: @artifact %></section>
 </main>

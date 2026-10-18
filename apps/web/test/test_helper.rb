@@ -26,11 +26,12 @@ module ProjectBoardTestHelper
 
   def create_document(project: nil, **attrs)
     document_project = project || create_project(name: "Docs Project", key: "docs-#{SecureRandom.hex(4)}")
+    write_protocol_files(project: document_project) unless File.directory?(document_project.root_path)
     defaults = {
-      artifact_type: "draft",
+      artifact_type: "spec",
+      status: attrs.fetch(:status, attrs[:artifact_type] == "plan_tracker" ? "tracking" : (attrs[:artifact_type] == "spec" ? "approved" : "draft")),
       title: "Draft #{SecureRandom.hex(3)}",
       body: "Draft body",
-      editable: true,
       project: document_project
     }
     Document.create!(defaults.merge(attrs))

@@ -226,7 +226,7 @@ class Api::V1::CommandQueriesControllerTest < ActionDispatch::IntegrationTest
     assert_equal 6, session.reload.turn_counter
     assert_equal "pocket-ledger", session.project.name
     assert_equal "ruby-3.4", session.project.stack_slug
-    assert session.project.documents.exists?(title: "Project Setup Summary", artifact_type: "draft")
+    assert session.project.documents.exists?(title: "Project Setup Summary", artifact_type: "internal", status: "active")
     assert session.project.boards.exists?(name: "pocket-ledger Board")
     assert_equal %w[backlog in_progress review approved merged], session.project.boards.first.columns.order(:position).pluck(:key)
     assert_equal(
@@ -536,7 +536,7 @@ class Api::V1::CommandQueriesControllerTest < ActionDispatch::IntegrationTest
     session.reload
     assert_equal 3, session.turn_counter
     assert_equal 3, session.project.project_attributes.where(source: "guided_alignment").count
-    assert session.project.documents.exists?(title: "Guided Alignment Summary", artifact_type: "draft")
+    assert session.project.documents.exists?(title: "Guided Alignment Summary", artifact_type: "internal", status: "active")
 
     post "/api/v1/commands",
       params: {
@@ -653,12 +653,14 @@ class Api::V1::CommandQueriesControllerTest < ActionDispatch::IntegrationTest
     assert_includes project_ids, project.id
   end
 
-  test "creates and promotes documents through command api" do
+  test "creates and approves specifications through command api" do
     project = create_project(key: "api-docs-#{SecureRandom.hex(4)}")
+
+    write_protocol_files(project: project)
 
     post "/api/v1/commands",
       params: {
-        name: "CreateDocument",
+        name: "CreateSpecification",
         payload: {
           project_id: project.id,
           title: "API Draft",
@@ -674,9 +676,10 @@ class Api::V1::CommandQueriesControllerTest < ActionDispatch::IntegrationTest
 
     post "/api/v1/commands",
       params: {
-        name: "PromoteDraftToSpec",
+        name: "ApproveSpecification",
         payload: {
-          document_id: draft_id
+          document_id: draft_id,
+          revision: Document.find(draft_id).source_hash
         },
         request_id: "req-api-doc-promote"
       },
@@ -685,9 +688,10 @@ class Api::V1::CommandQueriesControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     body = json_body
-    assert_equal "Document draft promoted to spec.", body.fetch("summary")
+    assert_equal "Specification saved.", body.fetch("summary")
     assert_equal "spec", body.fetch("data").fetch("document").fetch("artifact_type")
-    assert_equal "document_promoted", body.fetch("effects").first.fetch("type")
+    assert_equal draft_id, body.fetch("data").fetch("document_id")
+    assert_equal "approved", body.fetch("data").fetch("document").fetch("status")
   end
 
   test "creates moves and snapshots tickets through command api" do

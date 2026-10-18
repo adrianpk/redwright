@@ -222,7 +222,7 @@ module ProjectSetup
       assert_equal "completed_without_alignment", session.terminal_reason
       assert_equal "pocket-ledger", session.project.name
       assert_equal "ruby-3.4", session.project.stack_slug
-      assert session.project.documents.exists?(title: "Project Setup Summary", artifact_type: "draft")
+      assert session.project.documents.exists?(title: "Project Setup Summary", artifact_type: "internal", status: "active")
       assert_equal "active", session.project.protocol_state.fetch("status")
       assert_equal "AGENTS.md", session.project.protocol_state.fetch("documents").first.fetch("path")
       assert_equal %w[backlog in_progress review approved merged], session.project.boards.first.columns.order(:position).pluck(:key)
@@ -341,15 +341,15 @@ module ProjectSetup
       expected_values.each do |key, value|
         assert_equal value, actual_values.fetch(key)
       end
-      assert_equal "missing", result.data.fetch("protocols").fetch("status")
-      assert_empty result.data.fetch("protocols").fetch("documents")
+      assert_equal "active", result.data.fetch("protocols").fetch("status")
+      assert result.data.fetch("protocols").fetch("documents").any?
       assert_equal ["ruby"], result.data.fetch("protocols_generation").fetch("stack_keys")
       materialized = session.metadata.fetch("materialized_setup_context")
       assert_equal "context-rich", materialized.fetch("slots").fetch("project_name").fetch("value")
       assert_equal "conventional commits", materialized.fetch("slots").fetch("conventions").fetch("value")
       assert_equal project.id, session.metadata.fetch("project_id")
       assert_equal result.data.fetch("project").fetch("repo_url"), session.metadata.fetch("materialized_repository_url")
-      assert_equal "missing", session.metadata.fetch("protocols").fetch("status")
+      assert_equal "active", session.metadata.fetch("protocols").fetch("status")
       assert_equal false, session.metadata.fetch("protocols_generation").fetch("fallback_used")
     end
 
@@ -439,7 +439,7 @@ module ProjectSetup
         manifest_path = workspace.fetch("manifest_path")
         assert_equal File.join(projects_root, "workspace-rich"), workspace.fetch("path")
         assert_equal "_workspace/Projects/workspace-rich", workspace.fetch("relative_path")
-        assert_equal "/workspace/projects/workspace-rich", workspace.fetch("runtime_root_path")
+        assert_equal File.join(projects_root, "workspace-rich"), workspace.fetch("runtime_root_path")
         assert File.directory?(workspace.fetch("path"))
         assert File.file?(manifest_path)
 
@@ -448,7 +448,7 @@ module ProjectSetup
         assert_equal "workspace-rich", manifest.dig("project", "name")
         assert_equal "rails_project_setup", manifest.dig("project", "created_via")
         assert_equal result.session.project.id, manifest.dig("rails", "project_id")
-        assert_equal "/workspace/projects/workspace-rich", manifest.dig("rails", "root_path")
+        assert_equal File.join(projects_root, "workspace-rich"), manifest.dig("rails", "root_path")
         assert_equal "Ruby 3.4", manifest.dig("setup_context", "slots", "language_runtime", "value")
         assert_equal "Thor and SQLite", manifest.dig("setup_context", "slots", "libraries", "value")
         assert_equal "service objects", manifest.dig("setup_context", "slots", "patterns", "value")

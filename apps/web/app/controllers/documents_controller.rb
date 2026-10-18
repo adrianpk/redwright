@@ -1,124 +1,88 @@
 class DocumentsController < ApplicationController
-  DOCUMENT_TYPE_CARDS = [
-    {type: "draft", title: "Drafts"},
-    {type: "spec", title: "Specs"},
-    {type: "plan_tracker", title: "Plan Trackers"}
-  ].freeze
-
-  before_action :set_document, only: [ :show, :edit, :update, :promote ]
+  before_action :set_project
+  before_action :reconcile
+  before_action :set_document, only: [:show, :edit, :update, :approve]
+  rescue_from Specifications::Error, with: :document_error
 
   def index
-    allowed_types = DOCUMENT_TYPE_CARDS.map { |card| card.fetch(:type) }
-    selected_type = params[:type].to_s
-    selected_type = "draft" unless allowed_types.include?(selected_type)
-    @selected_type = selected_type
-    persist_current_project!(current_project) if current_project.present?
-    scoped_documents = documents_scope_for(active_project_id)
-    @document_type_cards = DOCUMENT_TYPE_CARDS.map { |card| document_type_card(card, scoped_documents) }
-    @artifacts = scoped_documents.where(artifact_type: selected_type).order(updated_at: :desc, created_at: :desc)
+    @artifacts = @project.documents.specifications.order(source_modified_at: :desc, id: :desc)
+    @available_use_cases = @project.use_cases.order(:name)
   end
 
   def show
-    persist_current_project!(@artifact.project)
-    @related_artifacts = @artifact.related_artifacts
+    @related_artifacts = @artifact.related_artifacts.select { |_, document| document.specification? }
   end
 
   def new
-    @artifact = Document.new(artifact_type: "draft", editable: true, project: default_project)
-    load_document_form_context(@artifact.project_id)
+    @artifact = @project.documents.new(artifact_type: "spec", status: "draft")
+    load_form
   end
 
   def create
-    @artifact = Document.new(draft_params.merge(artifact_type: "draft", editable: true, project: default_project))
+    @artifact = @project.documents.new(document_params.except(:revision))
+    @artifact.artifact_type = "spec"
+    @artifact.status = params[:approval] == "approved" ? "approved" : "draft"
     if @artifact.save
-      persist_current_project!(@artifact.project)
-      redirect_to document_path(@artifact), notice: "Draft created."
+      redirect_to document_path(@artifact), notice: "Specification saved."
     else
-      load_document_form_context(@artifact.project_id)
+      load_form
       render :new, status: :unprocessable_entity
     end
   end
 
   def edit
-    if read_only_document?(@artifact)
-      redirect_to document_path(@artifact), alert: "Only drafts are editable in phase one."
-      return
-    end
-
-    load_document_form_context(@artifact.project_id)
+    load_form
   end
 
   def update
-    if read_only_document?(@artifact)
-      redirect_to document_path(@artifact), alert: "Only drafts are editable in phase one."
-      return
-    end
-
-    if @artifact.update(draft_params)
-      redirect_to document_path(@artifact), notice: "Draft updated."
+    params.require(:document).require(:revision)
+    @artifact.assign_attributes(document_params)
+    @artifact.status = params[:approval] == "approved" ? "approved" : "draft"
+    if @artifact.save
+      redirect_to document_path(@artifact), notice: "Specification saved."
     else
-      load_document_form_context(@artifact.project_id)
+      load_form
       render :edit, status: :unprocessable_entity
     end
   end
 
-  def promote
-    if @artifact.artifact_type != "draft"
-      redirect_to document_path(@artifact), alert: "Only drafts can be promoted."
-      return
-    end
+  def approve
+    @artifact.approve!(revision: params.require(:revision))
+    redirect_to document_path(@artifact), notice: "Specification approved."
+  end
 
-    spec = DocumentPromotionService.new(draft: @artifact).call
-    redirect_to document_path(spec), notice: "Draft promoted to spec."
-  rescue DocumentPromotionService::PromotionError => e
-    redirect_to document_path(@artifact), alert: "Promotion failed: #{e.message}"
+  def generate
+    use_case = @project.use_cases.find(params[:use_case_id]) if params[:use_case_id].present?
+    specification = Specifications::Generator.new(project: @project, use_case: use_case, feature: params[:feature]).call
+    redirect_to document_path(specification), notice: "Specification generated. Review it and approve when ready."
   end
 
   private
 
+  def set_project
+    record = Document.find(params[:id]) if params[:id]
+    @project = record&.project || (Project.find(params[:project_id]) if params[:project_id].present?) || current_project
+    raise ActiveRecord::RecordNotFound unless @project
+    persist_current_project!(@project)
+  end
+
+  def reconcile
+    Document.reconcile!(@project)
+  end
+
   def set_document
-    @artifact = Document.find(params[:id])
+    @artifact = @project.documents.specifications.find(params[:id])
   end
 
-  def active_project_id
-    params[:project_id].presence || current_project&.id
+  def document_params
+    params.require(:document).permit(:title, :body, :use_case_id, :revision)
   end
 
-  def documents_scope_for(project_id)
-    artifacts = Document.all
-    artifacts = artifacts.for_project(project_id) if project_id.present?
-    artifacts
+  def load_form
+    @available_use_cases = @project.use_cases.order(:name)
   end
 
-  def document_type_card(card, scoped_documents)
-    documents = scoped_documents
-      .where(artifact_type: card.fetch(:type))
-      .order(updated_at: :desc, created_at: :desc)
-      .limit(6)
-
-    card.merge(preview_lines: documents.map(&:title))
-  end
-
-  def draft_params
-    params.require(:document).permit(:title, :body, :use_case_id)
-  end
-
-  def load_document_form_context(project_id)
-    @available_use_cases = UseCase.where(project_id: project_id).order(:name, :id)
-  end
-
-  def read_only_document?(document)
-    %w[spec plan_tracker].include?(document.artifact_type)
-  end
-
-  def default_project
-    return current_project if current_project.present?
-
-    Project.find_or_create_by!(root_path: "/workspace/projects/documents") do |project|
-      project.name = "Documents"
-      project.description = "Default project context for document flows"
-      project.repo_url = "https://codeberg.org/acme/documents"
-      project.stack_slug = "ruby"
-    end
+  def document_error(error)
+    render plain: error.message, status: error.code == :conflict ? :conflict : :unprocessable_entity
   end
 end

@@ -41,8 +41,8 @@ module ProjectSetup
         "guided_alignment.operators",
         "guided_alignment.primary_outcome"
       ], keys
-      document = session.project.documents.find_by!(title: "Guided Alignment Summary", artifact_type: "draft")
-      assert_equal true, document.editable
+      document = session.project.documents.find_by!(title: "Guided Alignment Summary", artifact_type: "internal", status: "active")
+      assert_equal "active", document.source[:metadata]["status"]
       assert_includes document.body, "Optimize for a reliable operator loop."
       assert_includes document.body, "Keep changes small and preserve manual review gates."
       assert_equal document.id, third.data.fetch("alignment_document_id")
