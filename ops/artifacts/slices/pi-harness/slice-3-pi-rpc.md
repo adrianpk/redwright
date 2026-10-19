@@ -1,6 +1,6 @@
 # Slice 3: Bounded Pi RPC Calls
 
-Status: reviewing
+Status: delivered
 Delivery set: pi-harness
 Plan: [Pi Harness plan](../../../plans/2026-10-19-redwright-pi-harness-cycle-plan.md)
 Tracker: [Pi Harness tracker](../../../trackers/2026-10-19-redwright-pi-harness-cycle-tracker.md)
@@ -93,6 +93,10 @@ scripts/agent/tickets/check.sh
 git diff --name-only --diff-filter=ACMR origin/dev...HEAD -- '*.rb' | xargs -r -n 1 ruby -wc
 git diff --check
 ```
+
+Canonical PR #12 merged at `0fdacc95f05b19078f24eb23218a9a4983f4209e`.
+Retained controller evidence passed all four commands above: 583 Rails tests,
+4,565 assertions, zero failures, errors or skips; 67.33 seconds for the Rails suite.
 
 ## Risks and Follow-ups
 

@@ -14,8 +14,8 @@ Approved: maintainer, 2026-10-19; explicit approval of the seven-slice plan, dep
 - created: `2026-10-19`
 - goal: `Use prepared Pi or Codex profiles through Rails authoring and bounded ticket proposals while retaining host validation and workflow authority.`
 - scope: `feature`
-- active_slice: `Slice 3 - Bounded Pi RPC calls (reviewing)`
-- active_task: `none (awaiting canonical Slice 3 integration)`
+- active_slice: `Slice 4 - Linux containment and real Pi proof (implementing)`
+- active_task: `T4.1 (in progress)`
 - merge_target: `dev`
 - observed_base: `8d63f6fbe6fb67e0bd7ef26bbfb474735ae43cf1`
 
@@ -215,12 +215,12 @@ Planned task commits:
 
 ### Slice 3: Bounded Pi RPC calls
 
-- status: `reviewing`
+- status: `delivered`
 - dependencies: Slice 2 integrated and closed
 - branch: `fix/slice-3-pi-pi-rpc`
 - expected_pr_title: `feat(slice-3): bounded pi rpc calls`
 - report: `ops/artifacts/slices/pi-harness/slice-3-pi-rpc.md`
-- ticket: [TKT-20261019165603](../tickets/reviewing/20261019165603-add-a-bounded-pi-rpc-adapter-for-structured-generation.md)
+- ticket: [TKT-20261019165603](../tickets/solved/20261019165603-add-a-bounded-pi-rpc-adapter-for-structured-generation.md)
 - objective: A pinned Pi adapter handles correlated setup, settlement, final output and owned-process cleanup through the shared Rails call contract.
 - acceptance_mapping: `PI-02, PI-05, PI-06, PI-07, PI-11, PI-12`
 
@@ -255,7 +255,7 @@ Planned task commits:
 
 ### Slice 4: Linux containment and real Pi proof
 
-- status: `pending`
+- status: `implementing`
 - dependencies: Slice 3 integrated and closed
 - branch: `fix/slice-4-pi-pi-linux-containment`
 - expected_pr_title: `feat(slice-4): linux containment and real pi proof`

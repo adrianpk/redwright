@@ -1,7 +1,7 @@
 ---
 id: TKT-20261019165603
 title: Add a bounded Pi RPC adapter for structured generation
-status: reviewing
+status: solved
 kind: task
 severity: unclassified
 priority: normal
@@ -12,8 +12,8 @@ reported_at: 2026-10-19T16:56:03Z
 ready_at: 2026-10-19T17:08:55Z
 started_at: 2026-10-19T17:51:32Z
 reviewed_at: 2026-10-19T18:05:07Z
-closed_at:
-resolution:
+closed_at: 2026-10-19T18:09:00Z
+resolution: fixed
 owner:
 branch: fix/slice-3-pi-pi-rpc
 pr: https://forge.adrianpk.com/adrianpk/redwrigh/pulls/12
@@ -84,3 +84,5 @@ gate. These commands are planned, not reported as passed.
 Implemented in the dedicated Slice 3 worktree. The canonical report is
 [Slice 3](../../artifacts/slices/pi-harness/slice-3-pi-rpc.md). Canonical PR [#12](https://forge.adrianpk.com/adrianpk/redwrigh/pulls/12) is open. Final exact-head
 controller validation follows this PR-reference commit before readiness.
+
+Canonical PR #12 merged at `0fdacc95f05b19078f24eb23218a9a4983f4209e`. Retained controller evidence passed all four ordered checks, including 583 Rails tests and 4,565 assertions; no failures, errors or skips.

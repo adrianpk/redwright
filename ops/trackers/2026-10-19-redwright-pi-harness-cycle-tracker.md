@@ -8,13 +8,13 @@ Approved: maintainer, 2026-10-19; explicit approval of the seven-slice plan, dep
 - cycle_id: `2026-10-19-redwright-pi-harness`
 - delivery_set: `pi-harness`
 - status: `approved`
-- state: `reviewing`
+- state: `implementing`
 - approval: `maintainer approved, 2026-10-19`
 - execution_authority: `autonomous execution of this delivery set approved`
 - updated: `2026-10-19`
-- active_slice: `Slice 3 - Bounded Pi RPC calls (reviewing)`
-- active_task: `none (awaiting canonical Slice 3 integration)`
-- completed_slices: `2/7`
+- active_slice: `Slice 4 - Linux containment and real Pi proof (implementing)`
+- active_task: `T4.1 (in progress)`
+- completed_slices: `3/7`
 - completed_tasks: `9/21`
 - controller: `external Looper controller`
 - plan: [Pi Harness plan](../plans/2026-10-19-redwright-pi-harness-cycle-plan.md)
@@ -97,14 +97,14 @@ Validation:
 
 ### Slice 3: Bounded Pi RPC calls
 
-- status: `reviewing`
+- status: `delivered`
 - branch: `fix/slice-3-pi-pi-rpc`
 - expected_pr_title: `feat(slice-3): bounded pi rpc calls`
 - report: `ops/artifacts/slices/pi-harness/slice-3-pi-rpc.md`
-- ticket: [TKT-20261019165603](../tickets/reviewing/20261019165603-add-a-bounded-pi-rpc-adapter-for-structured-generation.md)
+- ticket: [TKT-20261019165603](../tickets/solved/20261019165603-add-a-bounded-pi-rpc-adapter-for-structured-generation.md)
 - merge_target: `dev`
 - PR: [#12](https://forge.adrianpk.com/adrianpk/redwrigh/pulls/12)
-- last_sync_commit: `bdabeda2de5f4a38e03a2238d4ba1c399a54bae4`
+- last_sync_commit: `0fdacc95f05b19078f24eb23218a9a4983f4209e`
 
 Tasks:
 
@@ -121,14 +121,14 @@ Commits:
 Validation:
 
 - [x] Planned focused suite passed: 16 tests, 308 assertions; no failures, errors or skips.
-- [ ] Full Rails suite before canonical merge.
-- [ ] Changed Ruby syntax and `git diff --check`.
+- [x] Exact-head full Rails suite passed: 583 tests, 4,565 assertions at `0fdacc95f05b19078f24eb23218a9a4983f4209e`.
+- [x] Changed Ruby syntax, ticket metadata and `git diff --check` passed.
 - [x] Report complete and canonical PR #12 opened.
-- [ ] Canonical PR verified merged by the external controller.
+- [x] Canonical PR #12 verified merged by the external controller.
 
 ### Slice 4: Linux containment and real Pi proof
 
-- status: `pending`
+- status: `implementing`
 - branch: `fix/slice-4-pi-pi-linux-containment`
 - expected_pr_title: `feat(slice-4): linux containment and real pi proof`
 - report: `ops/artifacts/slices/pi-harness/slice-4-pi-linux-containment.md`
@@ -245,7 +245,7 @@ Validation:
 ## Approval / Blockers
 
 The maintainer approved the plan, dependency and Pi-only autonomous commit,
-push, PR and controller-merge authority on 2026-10-19. Slices 1 and 2 are delivered; Slice 3 is implemented in its dedicated worktree; the external controller owns
+push, PR and controller-merge authority on 2026-10-19. Slices 1 through 3 are delivered; Slice 4 is active; the external controller owns
 validation evidence and all merge mutations.
 
 Before startup, prepare the independent clean execution checkout described in
@@ -284,3 +284,5 @@ Linux acceptance. No result here claims either was verified.
 - `2026-10-19T17:47:04Z` state=`implementing`: verified PR #11 merged at its validated head; closed Slice 2 and activated Slice 3.
 
 - `2026-10-19T18:05:44Z` state=`reviewing`: Slice 3 tasks implemented; focused validation passed (16 tests, 308 assertions). Canonical PR #12 is open; final clean-head controller validation follows the PR-reference commit.
+
+- `2026-10-19T18:09:00Z` state=`implementing`: verified PR #12 merged at its validated head; closed Slice 3 and activated Slice 4.
