@@ -5,7 +5,7 @@ Delivery set: pi-harness
 Plan: [Pi Harness plan](../../../plans/2026-10-19-redwright-pi-harness-cycle-plan.md)
 Tracker: [Pi Harness tracker](../../../trackers/2026-10-19-redwright-pi-harness-cycle-tracker.md)
 Branch: `fix/slice-4-pi-pi-linux-containment`
-PR: pending
+PR: [#13](https://forge.adrianpk.com/adrianpk/redwrigh/pulls/13)
 
 ## Purpose
 

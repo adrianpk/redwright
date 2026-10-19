@@ -16,8 +16,8 @@ closed_at:
 resolution:
 owner:
 branch: fix/slice-4-pi-pi-linux-containment
-pr:
-commits: []
+pr: https://forge.adrianpk.com/adrianpk/redwrigh/pulls/13
+commits: [687c3c818285c0e6632ebd04f90b952c50634ff9, 96cb256e38eae1a6789b27610b85d37eb09c2f59, 5ff9b6268096f1bb81723c27c1bfb91b38dc8e81]
 ---
 
 # Contain Pi authoring on Linux and prove the real binary boundary
@@ -85,5 +85,5 @@ gate. These commands are planned, not reported as passed.
 
 Implemented in the dedicated Slice 4 worktree. The canonical report is
 [Slice 4](../../artifacts/slices/pi-harness/slice-4-pi-linux-containment.md).
-Canonical PR references and final exact-head controller validation follow before
-readiness.
+Canonical PR [#13](https://forge.adrianpk.com/adrianpk/redwrigh/pulls/13) is open. Final exact-head
+controller validation follows this PR-reference commit before readiness.

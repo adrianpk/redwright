@@ -134,8 +134,8 @@ Validation:
 - report: `ops/artifacts/slices/pi-harness/slice-4-pi-linux-containment.md`
 - ticket: [TKT-20261019165604](../tickets/reviewing/20261019165604-contain-pi-authoring-on-linux-and-prove-the-real-binary-boundary.md)
 - merge_target: `dev`
-- PR: `pending`
-- last_sync_commit: `none`
+- PR: [#13](https://forge.adrianpk.com/adrianpk/redwrigh/pulls/13)
+- last_sync_commit: `5ff9b6268096f1bb81723c27c1bfb91b38dc8e81`
 
 Tasks:
 
@@ -147,7 +147,7 @@ Commits:
 
 - `T4.1`: `687c3c818285c0e6632ebd04f90b952c50634ff9` - explicit Linux namespaces, mounts, OS admission probe and cleanup.
 - `T4.2`: `96cb256e38eae1a6789b27610b85d37eb09c2f59` - isolated static resources, retained identities and local readiness.
-- `T4.3`: real native Pi proof task commit in branch history; report introduction.
+- `T4.3`: `5ff9b6268096f1bb81723c27c1bfb91b38dc8e81` - real native Pi generation, failure/lifetime, isolation proof and report introduction.
 
 Validation:
 
@@ -155,7 +155,8 @@ Validation:
 - [x] Real Pi 1.3.0/Bubblewrap 0.12.0 loopback proof passed: 4 tests, 55 assertions; no failures, errors or skips.
 - [ ] Full Rails suite before canonical merge.
 - [ ] Changed Ruby syntax and `git diff --check`.
-- [ ] Report reviewed and canonical PR verified merged.
+- [x] Report complete and canonical PR #13 opened.
+- [ ] Canonical PR verified merged by the external controller.
 
 ### Slice 5: Selectable Pi authoring in the web app
 
@@ -290,3 +291,5 @@ Linux acceptance. No result here claims either was verified.
 - `2026-10-19T18:05:44Z` state=`reviewing`: Slice 3 tasks implemented; focused validation passed (16 tests, 308 assertions). Canonical PR #12 is open; final clean-head controller validation follows the PR-reference commit.
 
 - `2026-10-19T18:09:00Z` state=`implementing`: verified PR #12 merged at its validated head; closed Slice 3 and activated Slice 4.
+
+- `2026-10-19T18:24:02Z` state=`reviewing`: Slice 4 tasks implemented; OS/resource checks passed (11 tests, 98 assertions) and real Pi loopback proof passed (4 tests, 55 assertions). Canonical PR #13 is open; final clean-head controller validation follows the PR-reference commit.
