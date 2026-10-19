@@ -9,6 +9,8 @@ class Project < ApplicationRecord
   has_many :dumps, dependent: :restrict_with_error
   has_many :taggings, dependent: :restrict_with_error
   has_one :runtime_container, class_name: "ProjectRuntimeContainer", dependent: :destroy
+  has_one :harness_setting, class_name: "ProjectHarnessSetting", dependent: :destroy
+  has_many :harness_operations, dependent: :restrict_with_error
 
   validates :name, presence: true
   validates :description, presence: true

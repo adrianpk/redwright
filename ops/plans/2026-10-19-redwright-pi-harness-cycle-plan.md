@@ -15,7 +15,7 @@ Approved: maintainer, 2026-10-19; explicit approval of the seven-slice plan, dep
 - goal: `Use prepared Pi or Codex profiles through Rails authoring and bounded ticket proposals while retaining host validation and workflow authority.`
 - scope: `feature`
 - active_slice: `Slice 2 - Rails selection and retained operations (implementing)`
-- active_task: `T2.1 (in progress)`
+- active_task: `T2.2 (in progress)`
 - merge_target: `dev`
 - observed_base: `8d63f6fbe6fb67e0bd7ef26bbfb474735ae43cf1`
 
@@ -179,13 +179,13 @@ Planned task commits:
 - branch: `fix/slice-2-pi-rails-harness-selection`
 - expected_pr_title: `feat(slice-2): rails selection and retained operations`
 - report: `ops/artifacts/slices/pi-harness/slice-2-rails-harness-selection.md`
-- ticket: [TKT-20261019165601](../tickets/ready/20261019165601-persist-project-harness-selection-and-logical-operation-bindings.md)
+- ticket: [TKT-20261019165601](../tickets/in_progress/20261019165601-persist-project-harness-selection-and-logical-operation-bindings.md)
 - objective: One Active Record owner serializes each project's authoring/ticket-proposal defaults, while each logical operation keeps an immutable resolved binding.
 - acceptance_mapping: `PI-02, PI-10, PI-11, PI-12`
 
 Tasks:
 
-- [ ] `T2.1` Add ProjectHarnessSetting and HarnessOperation with original create-table migrations, constraints, data-preserving database preparation and private named-profile resolution.
+- [x] `T2.1` Add ProjectHarnessSetting and HarnessOperation with original create-table migrations, constraints, data-preserving database preparation and private named-profile resolution.
 - [ ] `T2.2` Implement one Rails selection/admission service with optimistic revisions, bounded idempotency receipts and immutable bindings across nested calls/retries.
 - [ ] `T2.3` Verify separate-process selection races, stale requests, private projections, operation capacity and legacy defaults on owned SQLite fixtures.
 

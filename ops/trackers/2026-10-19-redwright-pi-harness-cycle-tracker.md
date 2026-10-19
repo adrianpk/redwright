@@ -13,9 +13,9 @@ Approved: maintainer, 2026-10-19; explicit approval of the seven-slice plan, dep
 - execution_authority: `autonomous execution of this delivery set approved`
 - updated: `2026-10-19`
 - active_slice: `Slice 2 - Rails selection and retained operations (implementing)`
-- active_task: `T2.1 (in progress)`
+- active_task: `T2.2 (in progress)`
 - completed_slices: `1/7`
-- completed_tasks: `3/21`
+- completed_tasks: `4/21`
 - controller: `external Looper controller`
 - plan: [Pi Harness plan](../plans/2026-10-19-redwright-pi-harness-cycle-plan.md)
 - spec: [Pi Harness specification](../specs/specs/2026-10-19-redwright-pi-harness-spec.md)
@@ -71,14 +71,14 @@ Validation:
 - branch: `fix/slice-2-pi-rails-harness-selection`
 - expected_pr_title: `feat(slice-2): rails selection and retained operations`
 - report: `ops/artifacts/slices/pi-harness/slice-2-rails-harness-selection.md`
-- ticket: [TKT-20261019165601](../tickets/ready/20261019165601-persist-project-harness-selection-and-logical-operation-bindings.md)
+- ticket: [TKT-20261019165601](../tickets/in_progress/20261019165601-persist-project-harness-selection-and-logical-operation-bindings.md)
 - merge_target: `dev`
 - PR: `pending`
 - last_sync_commit: `none`
 
 Tasks:
 
-- [ ] `T2.1` Add ProjectHarnessSetting and HarnessOperation with original create-table migrations, constraints, data-preserving database preparation and private named-profile resolution.
+- [x] `T2.1` Add ProjectHarnessSetting and HarnessOperation with original create-table migrations, constraints, data-preserving database preparation and private named-profile resolution.
 - [ ] `T2.2` Implement one Rails selection/admission service with optimistic revisions, bounded idempotency receipts and immutable bindings across nested calls/retries.
 - [ ] `T2.3` Verify separate-process selection races, stale requests, private projections, operation capacity and legacy defaults on owned SQLite fixtures.
 

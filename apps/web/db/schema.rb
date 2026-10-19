@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_10_100000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_19_173100) do
   create_table "boards", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "name", null: false
@@ -84,6 +84,36 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_10_100000) do
     t.index ["use_case_id"], name: "index_dumps_on_use_case_id"
   end
 
+  create_table "harness_operations", force: :cascade do |t|
+    t.text "attempts_json", default: "[]", null: false
+    t.string "binding_digest", null: false
+    t.text "binding_json", null: false
+    t.string "contract_digest", null: false
+    t.datetime "created_at", null: false
+    t.datetime "finished_at"
+    t.string "operation_key", null: false
+    t.string "private_run_ref", null: false
+    t.integer "project_id", null: false
+    t.string "purpose", null: false
+    t.string "role", null: false
+    t.integer "selection_revision", null: false
+    t.datetime "started_at"
+    t.string "state", default: "prepared", null: false
+    t.datetime "updated_at", null: false
+    t.text "workspace_revision_json", default: "{}", null: false
+    t.index ["project_id", "operation_key"], name: "index_harness_operations_on_project_id_and_operation_key", unique: true
+    t.index ["project_id", "state", "created_at"], name: "idx_harness_operations_admission"
+    t.index ["project_id"], name: "index_harness_operations_on_project_id"
+    t.check_constraint "json_valid(attempts_json) AND json_type(attempts_json) = 'array' AND json_array_length(attempts_json) <= CASE WHEN role = 'ticket_proposal' THEN 3 ELSE 1 END AND length(CAST(attempts_json AS BLOB)) <= 65536", name: "harness_operation_attempts"
+    t.check_constraint "json_valid(binding_json) AND json_type(binding_json) = 'object' AND length(CAST(binding_json AS BLOB)) <= 16384", name: "harness_operation_binding"
+    t.check_constraint "json_valid(workspace_revision_json) AND json_type(workspace_revision_json) = 'object' AND length(CAST(workspace_revision_json AS BLOB)) <= 16384", name: "harness_operation_workspace"
+    t.check_constraint "length(CAST(operation_key AS BLOB)) BETWEEN 1 AND 128", name: "harness_operation_key_size"
+    t.check_constraint "length(binding_digest) = 64 AND length(contract_digest) = 64 AND length(private_run_ref) = 36", name: "harness_operation_identity"
+    t.check_constraint "purpose IN ('specification','slicing','curation','references','ticket_proposal') AND ((role = 'ticket_proposal' AND purpose = 'ticket_proposal') OR (role = 'authoring' AND purpose != 'ticket_proposal'))", name: "harness_operation_purpose_role"
+    t.check_constraint "selection_revision >= 0", name: "harness_operation_revision"
+    t.check_constraint "state IN ('prepared','running','completed','failed','cancelled','timed_out','uncertain')", name: "harness_operation_state"
+  end
+
   create_table "labels", force: :cascade do |t|
     t.integer "board_id", null: false
     t.string "color", default: "#3b82f6", null: false
@@ -105,6 +135,24 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_10_100000) do
     t.index ["project_id", "key"], name: "index_project_attributes_on_project_id_and_key"
     t.index ["project_id", "weight"], name: "index_project_attributes_on_project_id_and_weight"
     t.index ["project_id"], name: "index_project_attributes_on_project_id"
+  end
+
+  create_table "project_harness_settings", force: :cascade do |t|
+    t.string "authoring_profile"
+    t.datetime "changed_at"
+    t.integer "changed_by_id"
+    t.datetime "created_at", null: false
+    t.integer "lock_version", default: 0, null: false
+    t.text "mutation_receipts_json", default: "[]", null: false
+    t.integer "project_id", null: false
+    t.string "ticket_proposal_profile"
+    t.datetime "updated_at", null: false
+    t.index ["changed_by_id"], name: "index_project_harness_settings_on_changed_by_id"
+    t.index ["project_id"], name: "index_project_harness_settings_on_project_id", unique: true
+    t.check_constraint "authoring_profile IS NULL OR length(CAST(authoring_profile AS BLOB)) BETWEEN 1 AND 128", name: "harness_authoring_profile_size"
+    t.check_constraint "json_valid(mutation_receipts_json) AND json_type(mutation_receipts_json) = 'array' AND json_array_length(mutation_receipts_json) <= 128 AND length(CAST(mutation_receipts_json AS BLOB)) <= 131072", name: "harness_selection_receipts"
+    t.check_constraint "lock_version >= 0", name: "harness_selection_revision"
+    t.check_constraint "ticket_proposal_profile IS NULL OR length(CAST(ticket_proposal_profile AS BLOB)) BETWEEN 1 AND 128", name: "harness_ticket_profile_size"
   end
 
   create_table "project_protocol_template_documents", force: :cascade do |t|
@@ -429,8 +477,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_10_100000) do
   add_foreign_key "documents", "use_cases"
   add_foreign_key "dumps", "projects"
   add_foreign_key "dumps", "use_cases"
+  add_foreign_key "harness_operations", "projects"
   add_foreign_key "labels", "boards"
   add_foreign_key "project_attributes", "projects"
+  add_foreign_key "project_harness_settings", "projects"
+  add_foreign_key "project_harness_settings", "users", column: "changed_by_id"
   add_foreign_key "project_protocol_template_documents", "project_protocol_templates"
   add_foreign_key "project_runtime_containers", "projects"
   add_foreign_key "project_setup_sessions", "projects"

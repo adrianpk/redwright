@@ -1,7 +1,7 @@
 ---
 id: TKT-20261019165601
 title: Persist project harness selection and logical operation bindings
-status: ready
+status: in_progress
 kind: task
 severity: unclassified
 priority: normal
@@ -10,12 +10,12 @@ tags: pi-harness, slice-delivery, rails
 source: chat
 reported_at: 2026-10-19T16:56:01Z
 ready_at: 2026-10-19T17:08:55Z
-started_at:
+started_at: 2026-10-19T17:31:08Z
 reviewed_at:
 closed_at:
 resolution:
 owner:
-branch:
+branch: fix/slice-2-pi-rails-harness-selection
 pr:
 commits: []
 ---
@@ -46,13 +46,13 @@ One Active Record owner serializes each project's authoring/ticket-proposal defa
 
 ## Actual
 
-Implementation has not started. The maintainer approved this slice and its
+Persistence, bounded private profiles and data-preserving preparation are implemented. The maintainer approved this slice and its
 dependency/platform choices under the linked plan. Respect preceding slice
 dependencies; only this Pi delivery has autonomous commit/integration authority.
 
 ## Tasks
 
-- [ ] `T2.1` Add ProjectHarnessSetting and HarnessOperation with original create-table migrations, constraints, data-preserving database preparation and private named-profile resolution.
+- [x] `T2.1` Add ProjectHarnessSetting and HarnessOperation with original create-table migrations, constraints, data-preserving database preparation and private named-profile resolution.
 - [ ] `T2.2` Implement one Rails selection/admission service with optimistic revisions, bounded idempotency receipts and immutable bindings across nested calls/retries.
 - [ ] `T2.3` Verify separate-process selection races, stale requests, private projections, operation capacity and legacy defaults on owned SQLite fixtures.
 

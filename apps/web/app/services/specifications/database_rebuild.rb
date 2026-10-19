@@ -3,6 +3,8 @@ require "fileutils"
 
 module Specifications
   class DatabaseRebuild
+    # Harness settings and retained operations are domain data copied verbatim,
+    # including their private opaque references; they must not be rebuilt as indexes.
     INDEX_TABLES = %w[dumps dump_entries tickets documents document_relations schema_migrations ar_internal_metadata].freeze
 
     def self.prepare!(output_path:)
