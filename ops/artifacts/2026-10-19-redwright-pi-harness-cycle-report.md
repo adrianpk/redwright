@@ -7,11 +7,11 @@ Tracker: [Pi Harness tracker](../trackers/2026-10-19-redwright-pi-harness-cycle-
 
 ## Delivery State
 
-Slices 1 through 6 are integrated into canonical `dev`. Slice 7 prepares
-operator guidance, integrated journey coverage and this evidence map. Its PR
-and the controller's final integrated-candidate gate must finish before the
-cycle can be closed. T7.3 remains open; focused and pre-merge results are not
-substitutes for the exact integrated gate.
+All seven canonical slice PRs are integrated into `dev`. Slice 7 delivered
+operator guidance, integrated journey coverage and this evidence map.
+Integration entries are closed. T7.3 remains open until the external controller
+runs the unchanged full gate on the prepared candidate and its exact evidence
+supports documentation closure. Pre-merge checks do not replace that gate.
 
 | Slice | Canonical PR | Integrated commit |
 | --- | --- | --- |
@@ -21,7 +21,7 @@ substitutes for the exact integrated gate.
 | Slice 4 | [#13](https://forge.adrianpk.com/adrianpk/redwrigh/pulls/13) | `cdeb6dbbffcda5cff44fab6b95c4c07a802fb2b1` |
 | Slice 5 | [#14](https://forge.adrianpk.com/adrianpk/redwrigh/pulls/14) | `c54eaa3cca7da2673218c7cc9a070afea4cdce39` |
 | Slice 6 | [#15](https://forge.adrianpk.com/adrianpk/redwrigh/pulls/15) | `ae01006350d550fca8ad92dd79ab58e895d76ef8` |
-| Slice 7 | [#16](https://forge.adrianpk.com/adrianpk/redwrigh/pulls/16) | pending controller integration |
+| Slice 7 | [#16](https://forge.adrianpk.com/adrianpk/redwrigh/pulls/16) | `a5b4120ee1849dd9dd2903f5450081f1234056f2` |
 
 ## Acceptance Evidence Map
 
@@ -55,6 +55,13 @@ passed its ordered controller checks: Rails 619 tests/5,013 assertions in
 metadata, changed Ruby syntax and whitespace. This evidence belongs to that
 head, not the future Slice 7 integrated candidate.
 
+The Slice 7 integrated head `a5b4120ee1849dd9dd2903f5450081f1234056f2`
+passed its six ordered pre-merge controller checks: Rails 621 tests/5,076
+assertions in 80.38 seconds; native Pi 6 tests/77 assertions in 10.74 seconds;
+documentation rendering, ticket metadata, changed Ruby syntax and whitespace.
+The following preparation commit changes only approved delivery records;
+its full-gate candidate and results remain the controller's responsibility.
+
 The new Slice 7 integrated workflow check passed during implementation:
 
 ```sh
@@ -73,9 +80,38 @@ fixtures. Provider completion is injected; no paid call is made.
 Documentation checks rendered six Markdown files and validated their fenced
 JSON examples, balanced fences and 57 local links.
 
+## Gate Prerequisites
+
+Prepared without running the full gate:
+
+- Both locked bundles pass `bundle check`; root Minitest/SQLite/Rake and Rails
+  8.1.3/SQLite/JSONSchemer 2.5.0 load successfully through the existing local
+  launcher and ignored bundle configuration.
+- Pi reports 1.3.0, its prepared native distribution and package metadata are
+  present, Go is available and a bounded Bubblewrap namespace probe succeeds.
+  This availability probe is not substituted for the production policy proof.
+- The primary checkout's separate SQLite test configuration was verified before
+  fixture preparation. Its initially absent test database now contains the
+  current empty schema, including the selection/operation tables. No running
+  application database was reset or migrated.
+- An initial `RAILS_ENV=test bundle exec rails db:prepare` reached demo seeds and
+  failed with an unrelated existing demo artifact's `Unknown use case` error.
+  The newly created, owned test fixture was then prepared without seeds using
+  `RAILS_ENV=test bundle exec rails db:schema:load`; the harness tables and empty
+  project/user state were verified. Demo files and shared workspaces were not
+  changed.
+- Native acceptance creates and closes its own loopback endpoint, static dummy
+  resources and private scratch. Process/database/workspace fixtures remain
+  owned by their checks. No additional fixture service needs to stay running.
+
+The frozen configuration and full-gate command are unchanged. The worker
+leaves primary `dev` clean and pushed for the controller to capture its exact
+candidate. T7.3 and the delivery set remain open until matching gate evidence
+is available.
+
 ## Exact Integrated Gate
 
-Candidate: pending controller integration.
+Candidate: pending controller capture after preparation.
 Gate evidence: pending controller execution.
 T7.3: pending exact matching gate evidence and documentation closure.
 

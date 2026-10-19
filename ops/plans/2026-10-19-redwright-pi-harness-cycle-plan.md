@@ -14,8 +14,8 @@ Approved: maintainer, 2026-10-19; explicit approval of the seven-slice plan, dep
 - created: `2026-10-19`
 - goal: `Use prepared Pi or Codex profiles through Rails authoring and bounded ticket proposals while retaining host validation and workflow authority.`
 - scope: `feature`
-- active_slice: `Slice 7 - Operator guidance and integrated acceptance (reviewing)`
-- active_task: `T7.3 (awaiting controller integration, gate evidence and closure)`
+- active_slice: `none (all 7 canonical slices integrated; delivery-set gate pending)`
+- active_task: `T7.3 (awaiting controller gate evidence and closure)`
 - merge_target: `dev`
 - observed_base: `8d63f6fbe6fb67e0bd7ef26bbfb474735ae43cf1`
 
@@ -377,7 +377,7 @@ Planned task commits:
 
 ### Slice 7: Operator guidance and integrated acceptance
 
-- status: `reviewing`
+- status: `delivered`
 - dependencies: Slice 6 integrated and closed
 - branch: `fix/slice-7-pi-pi-harness-acceptance`
 - expected_pr_title: `feat(slice-7): operator guidance and integrated acceptance`

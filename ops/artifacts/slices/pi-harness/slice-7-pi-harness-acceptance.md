@@ -1,6 +1,6 @@
 # Slice 7: Operator Guidance and Integrated Acceptance
 
-Status: reviewing
+Status: delivered
 Delivery set: pi-harness
 Plan: [Pi Harness plan](../../../plans/2026-10-19-redwright-pi-harness-cycle-plan.md)
 Tracker: [Pi Harness tracker](../../../trackers/2026-10-19-redwright-pi-harness-cycle-tracker.md)
@@ -91,3 +91,13 @@ T7.3 and delivery-set closure require the controller's exact integrated gate
 candidate and green evidence. The cycle report is prepared for that evidence
 and is not marked delivered. Unknown usage and provider authentication remain
 truthfully distinct from local readiness and owned loopback proof.
+
+## Integration
+
+Canonical PR #16 was verified merged into `dev` at
+`a5b4120ee1849dd9dd2903f5450081f1234056f2`. Its six ordered controller checks
+passed: Rails 621 tests/5,076 assertions (80.38 seconds), native Pi
+6 tests/77 assertions (10.74 seconds), documentation rendering, ticket
+metadata, changed Ruby syntax and whitespace. Acta records integration.
+All seven slice PRs are integrated. T7.3 remains open until the controller
+runs the unchanged full gate and its exact evidence supports final closure.

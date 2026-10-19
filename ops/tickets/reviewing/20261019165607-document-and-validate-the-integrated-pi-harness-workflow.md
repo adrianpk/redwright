@@ -46,12 +46,12 @@ An operator can configure prepared Pi profiles, switch a project, understand fai
 
 ## Actual
 
-T7.1 and T7.2 are implemented. The existing guide and configuration reference
+T7.1 and T7.2 are integrated through canonical PR #16. The existing guide and configuration reference
 cover prepared profiles, independent choices, containment, limits, evidence and
 recovery. Integrated switching/recovery and feature-to-ticket journeys passed:
 2 tests, 63 assertions. Six documentation files rendered; JSON examples,
 fences and 57 local links passed. The cycle report maps every PI requirement.
-T7.3 stays open for controller integration, exact full-gate evidence and closure.
+T7.3 stays open for the controller's exact full-gate evidence and closure.
 
 ## Tasks
 
@@ -84,6 +84,8 @@ gate. These commands are planned, not reported as passed.
 Prepared in the dedicated Slice 7 worktree. The canonical
 [Slice 7 report](../../artifacts/slices/pi-harness/slice-7-pi-harness-acceptance.md)
 and [cycle report](../../artifacts/2026-10-19-redwright-pi-harness-cycle-report.md)
-retain the evidence boundary. Canonical PR [#16](https://forge.adrianpk.com/adrianpk/redwrigh/pulls/16) is open.
-Exact-head pre-merge checks follow this reference commit before readiness; the
-controller owns integration and the full gate.
+retain the evidence boundary. Canonical PR [#16](https://forge.adrianpk.com/adrianpk/redwrigh/pulls/16) merged
+into `dev` at `a5b4120ee1849dd9dd2903f5450081f1234056f2` after six controller checks
+passed, including Rails 621 tests/5,076 assertions and native Pi 6/77.
+Integration is closed. T7.3 remains pending the controller-owned full gate and
+final documentation closure; the ticket stays reviewing until that work ends.
