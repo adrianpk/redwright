@@ -126,4 +126,56 @@ class HarnessesAuthoringIntegrationTest < ActiveSupport::TestCase
     assert_equal "approved", spec.reload.status
     assert_equal "failed", @project.harness_operations.sole.state
   end
+
+  test "a missing selected profile never falls back" do
+    # Readiness is rechecked for new admission without touching the previous approved file or invoking the adapter.
+    spec = create_document(project: @project, status: "approved")
+    original = spec.source
+    File.write(ENV.fetch("REDWRIGHT_HARNESS_PROFILES"), JSON.generate(version: 1, profiles: []), perm: 0o600)
+    error = assert_raises(Specifications::Error) {
+      Specifications::Generator.new(project: @project, use_case: spec.use_case, authoring: @authoring).call
+    }
+    assert_equal :unknown_profile, error.code
+    assert_empty @adapter.requests
+    assert_equal original, spec.source
+    assert_equal "approved", spec.reload.status
+  end
+
+  test "body edits remain independent of harness readiness" do
+    # Lazy admission preserves ordinary file editing even when the configured authoring profile is unavailable.
+    File.write(ENV.fetch("REDWRIGHT_HARNESS_PROFILES"), JSON.generate(version: 1, profiles: []), perm: 0o600)
+    store = @project.protocol_files
+    store.create("AGENTS.md", "# Rules\n")
+    store.create(".agents/CARE.md", "# Original\n")
+    document = store.find_path(".agents/CARE.md")
+    ProjectProtocols::Documents.new(store: store, authoring: @authoring).update(document, body: "# Revised\n", revision: document.revision)
+    assert_equal "# Revised\n", document.body
+    assert_empty @adapter.requests
+    assert_equal 0, @project.harness_operations.count
+  end
+
+  test "finalization uncertainty retains capacity without replay" do
+    # Once publication returns, a failed durable completion must not repeat inference or pretend the call is safely terminal.
+    adapter = @adapter
+    lifecycle = Class.new(Harnesses::Operation) do
+      def finish!(**options)
+        raise ActiveRecord::ConnectionNotEstablished, "Owned finalization fixture" if options.fetch(:outcome) == "completed"
+        super
+      end
+    end.new
+    factory = Object.new
+    factory.define_singleton_method(:new) do |**options|
+      Harnesses::Authoring.new(**options, lifecycle: lifecycle, structured_call: Harnesses::StructuredCall.new(adapter: adapter))
+    end
+    use_case = create_use_case(project: @project)
+    assert_raises(ActiveRecord::ConnectionNotEstablished) {
+      Specifications::Generator.new(project: @project, use_case: use_case, authoring: factory).call
+    }
+    assert_equal "draft", use_case.reload.specification.status
+    assert_equal 1, @adapter.requests.size
+    operation = @project.harness_operations.sole
+    assert_equal "uncertain", operation.state
+    assert_equal 1, operation.attempts.size
+    assert_nil operation.finished_at
+  end
 end

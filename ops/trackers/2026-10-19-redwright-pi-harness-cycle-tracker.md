@@ -8,14 +8,14 @@ Approved: maintainer, 2026-10-19; explicit approval of the seven-slice plan, dep
 - cycle_id: `2026-10-19-redwright-pi-harness`
 - delivery_set: `pi-harness`
 - status: `approved`
-- state: `implementing`
+- state: `reviewing`
 - approval: `maintainer approved, 2026-10-19`
 - execution_authority: `autonomous execution of this delivery set approved`
 - updated: `2026-10-19`
-- active_slice: `Slice 5 - Selectable Pi authoring in the web app (implementing)`
-- active_task: `T5.3 (in progress)`
+- active_slice: `Slice 5 - Selectable Pi authoring in the web app (reviewing)`
+- active_task: `none (awaiting canonical Slice 5 integration)`
 - completed_slices: `4/7`
-- completed_tasks: `14/21`
+- completed_tasks: `15/21`
 - controller: `external Looper controller`
 - plan: [Pi Harness plan](../plans/2026-10-19-redwright-pi-harness-cycle-plan.md)
 - spec: [Pi Harness specification](../specs/specs/2026-10-19-redwright-pi-harness-spec.md)
@@ -160,11 +160,11 @@ Validation:
 
 ### Slice 5: Selectable Pi authoring in the web app
 
-- status: `implementing`
+- status: `reviewing`
 - branch: `fix/slice-5-pi-pi-authoring-settings`
 - expected_pr_title: `feat(slice-5): selectable pi authoring in the web app`
 - report: `ops/artifacts/slices/pi-harness/slice-5-pi-authoring-settings.md`
-- ticket: [TKT-20261019165605](../tickets/in_progress/20261019165605-expose-prepared-profiles-and-wire-pi-into-rails-authoring.md)
+- ticket: [TKT-20261019165605](../tickets/reviewing/20261019165605-expose-prepared-profiles-and-wire-pi-into-rails-authoring.md)
 - merge_target: `dev`
 - PR: `pending`
 - last_sync_commit: `none`
@@ -173,16 +173,19 @@ Tasks:
 
 - [x] `T5.1` Inject one retained authoring operation into Specs, slicing, Dumps and protocol references; preserve current revisions, semantic checks and atomic publication.
 - [x] `T5.2` Add a project-scoped Harness settings resource with compact controls for prepared profiles, clear-to-default, active bindings and local readiness.
-- [ ] `T5.3` Verify authenticated and stale/conflicting changes, independent process visibility, responsive rendering and all four authoring consumer boundaries.
+- [x] `T5.3` Verify authenticated and stale/conflicting changes, independent process visibility, responsive rendering and all four authoring consumer boundaries.
 
 Commits:
 
 - `T5.1`: `3c155dbfc4f2f680c877cf97f0e4238ec51fd1cf` - retained authoring admission, shared deadline, publication outcomes and legacy overrides.
-- `T5.2`: Harness settings resource task commit in branch history.
+- `T5.2`: `bf117bec6d674fa02276c94a9c8bbf9edf7cc6c1` - authenticated Harness settings, safe readiness and active bindings.
+- `T5.3`: switching, authoring, native Pi and viewport proof task commit in branch history; report introduction.
 
 Validation:
 
-- [ ] Planned focused checks from the plan's corresponding slice.
+- [x] Planned focused suite passed: 37 tests, 484 assertions; no failures, errors or skips.
+- [x] Native Pi acceptance passed: 5 tests, 65 assertions.
+- [x] Compiled Sass and Chromium 390/1280 viewport checks passed: 1 test, 26 assertions.
 - [ ] Full Rails suite before canonical merge.
 - [ ] Changed Ruby syntax and `git diff --check`.
 - [ ] Report reviewed and canonical PR verified merged.

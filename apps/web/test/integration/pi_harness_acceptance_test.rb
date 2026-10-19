@@ -6,6 +6,32 @@ class PiHarnessAcceptanceTest < ActiveSupport::TestCase
 
   # Explicit opt-in keeps real-binary proof separate from the ordinary Rails suite; opt-in never skips missing prerequisites.
   if ENV["REDWRIGHT_PI_ACCEPTANCE"] == "1"
+    test "a saved Pi selection generates a Rails draft" do
+      # Exercise the production consumer, admission, native contained transport and existing file publication together.
+      previous_profiles = ENV["REDWRIGHT_HARNESS_PROFILES"]
+      project = create_project
+      endpoint = Endpoint.new
+      _, root = acceptance_request(project, endpoint)
+      ENV["REDWRIGHT_HARNESS_PROFILES"] = File.join(root, "profiles.json")
+      actor = User.create!(email_address: "pi-author@example.test", password: "password-123")
+      Harnesses::Selection.new(project: project).change!(actor: actor, request_id: "native-authoring", expected_revision: 0, changes: {authoring_profile: "loopback"})
+      use_case = create_use_case(project: project)
+      document = Specifications::Generator.new(project: project, use_case: use_case).call
+      assert_equal "draft", document.status
+      assert_equal "Bounded alpha", document.title
+      assert_includes document.body, "Owned loopback behavior."
+      assert_equal "draft", document.source[:metadata].fetch("status")
+      operation = project.harness_operations.sole
+      assert_equal "completed", operation.state
+      assert_equal "pi", operation.binding.fetch("harness")
+      assert_equal "loopback", operation.binding.fetch("profile")
+      assert_equal 1, operation.attempts.size
+      assert_equal 1, endpoint.requests.size
+    ensure
+      ENV["REDWRIGHT_HARNESS_PROFILES"] = previous_profiles
+      endpoint&.close
+    end
+
     test "native Pi generates within verified containment" do
       # A real pinned binary receives only selected resources despite poisoned host/project discovery paths.
       previous_agent_dir = ENV["PI_CODING_AGENT_DIR"]

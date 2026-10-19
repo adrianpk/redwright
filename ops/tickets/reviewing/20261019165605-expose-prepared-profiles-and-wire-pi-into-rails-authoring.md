@@ -1,7 +1,7 @@
 ---
 id: TKT-20261019165605
 title: Expose prepared profiles and wire Pi into Rails authoring
-status: in_progress
+status: reviewing
 kind: task
 severity: unclassified
 priority: normal
@@ -11,7 +11,7 @@ source: chat
 reported_at: 2026-10-19T16:56:05Z
 ready_at: 2026-10-19T17:08:55Z
 started_at: 2026-10-19T18:38:14Z
-reviewed_at:
+reviewed_at: 2026-10-19T18:51:31Z
 closed_at:
 resolution:
 owner:
@@ -46,15 +46,20 @@ Users can inspect/change project harness defaults through a compact authenticate
 
 ## Actual
 
-All four Rails authoring owners now use lazy retained admission, a shared deadline and one owned lease through nested calls and publication. Focused integration and regression checks passed (25 tests, 280 assertions). The maintainer approved this slice and its
-dependency/platform choices under the linked plan. Respect preceding slice
-dependencies; only this Pi delivery has autonomous commit/integration authority.
+All three tasks are implemented. The four Rails authoring consumers retain one
+selected binding, deadline and owned lease through nested calls and existing
+host publication. The authenticated Harness page provides separate role
+controls, local readiness and active bindings with private data excluded.
+Focused checks passed (37 tests, 484 assertions), including a separate Rails
+process changing selections. Native Pi produced a Rails draft in owned loopback
+acceptance (5 tests, 65 assertions). Compiled styles and Chromium viewport proof
+passed at 390 and 1280 pixels (1 test, 26 assertions).
 
 ## Tasks
 
 - [x] `T5.1` Inject one retained authoring operation into Specs, slicing, Dumps and protocol references; preserve current revisions, semantic checks and atomic publication.
 - [x] `T5.2` Add a project-scoped Harness settings resource with compact controls for prepared profiles, clear-to-default, active bindings and local readiness.
-- [ ] `T5.3` Verify authenticated and stale/conflicting changes, independent process visibility, responsive rendering and all four authoring consumer boundaries.
+- [x] `T5.3` Verify authenticated and stale/conflicting changes, independent process visibility, responsive rendering and all four authoring consumer boundaries.
 
 ## Planned Commits
 
@@ -77,5 +82,7 @@ gate. These commands are planned, not reported as passed.
 
 ## Outcome
 
-Ready under the approved plan; implementation pending. Existing Settings/Setup changes,
-preview services, credentials and active databases remain outside this ticket.
+Implemented in the dedicated Slice 5 worktree. The canonical report is
+[Slice 5](../../artifacts/slices/pi-harness/slice-5-pi-authoring-settings.md).
+Canonical PR references and final exact-head controller validation follow before
+readiness.

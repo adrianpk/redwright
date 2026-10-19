@@ -14,8 +14,8 @@ Approved: maintainer, 2026-10-19; explicit approval of the seven-slice plan, dep
 - created: `2026-10-19`
 - goal: `Use prepared Pi or Codex profiles through Rails authoring and bounded ticket proposals while retaining host validation and workflow authority.`
 - scope: `feature`
-- active_slice: `Slice 5 - Selectable Pi authoring in the web app (implementing)`
-- active_task: `T5.3 (in progress)`
+- active_slice: `Slice 5 - Selectable Pi authoring in the web app (reviewing)`
+- active_task: `none (awaiting canonical Slice 5 integration)`
 - merge_target: `dev`
 - observed_base: `8d63f6fbe6fb67e0bd7ef26bbfb474735ae43cf1`
 
@@ -296,12 +296,12 @@ Planned task commits:
 
 ### Slice 5: Selectable Pi authoring in the web app
 
-- status: `implementing`
+- status: `reviewing`
 - dependencies: Slice 4 integrated and closed
 - branch: `fix/slice-5-pi-pi-authoring-settings`
 - expected_pr_title: `feat(slice-5): selectable pi authoring in the web app`
 - report: `ops/artifacts/slices/pi-harness/slice-5-pi-authoring-settings.md`
-- ticket: [TKT-20261019165605](../tickets/in_progress/20261019165605-expose-prepared-profiles-and-wire-pi-into-rails-authoring.md)
+- ticket: [TKT-20261019165605](../tickets/reviewing/20261019165605-expose-prepared-profiles-and-wire-pi-into-rails-authoring.md)
 - objective: Users can inspect/change project harness defaults through a compact authenticated Rails page and use Pi for each existing authoring action.
 - acceptance_mapping: `PI-02, PI-03, PI-04, PI-08, PI-10, PI-15`
 
@@ -309,7 +309,7 @@ Tasks:
 
 - [x] `T5.1` Inject one retained authoring operation into Specs, slicing, Dumps and protocol references; preserve current revisions, semantic checks and atomic publication.
 - [x] `T5.2` Add a project-scoped Harness settings resource with compact controls for prepared profiles, clear-to-default, active bindings and local readiness.
-- [ ] `T5.3` Verify authenticated and stale/conflicting changes, independent process visibility, responsive rendering and all four authoring consumer boundaries.
+- [x] `T5.3` Verify authenticated and stale/conflicting changes, independent process visibility, responsive rendering and all four authoring consumer boundaries.
 
 Acceptance:
 

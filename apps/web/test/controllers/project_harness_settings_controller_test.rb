@@ -1,6 +1,8 @@
 require "test_helper"
+require_relative "../support/harness_database_fixture"
 
 class ProjectHarnessSettingsControllerTest < ActionDispatch::IntegrationTest
+  include HarnessDatabaseFixture
   setup do
     @project = create_project
     @user = User.create!(email_address: "profile-owner@example.test", password: "password-123")
@@ -35,6 +37,17 @@ class ProjectHarnessSettingsControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "No active harness operations."
     assert_private_projection
     assert_not File.exist?(@marker)
+    if ENV["REDWRIGHT_HARNESS_VIEWPORT"] == "1"
+      # Opt-in exercises the actual compiled layout in an owned Chromium profile, without another app server.
+      Dir.mktmpdir("harness-viewport-") do |root|
+        File.write(File.join(root, "page.html"), response.body, perm: 0o600)
+        result = Harnesses::ProcessSupervisor.new(stdout_limit: 8192, stderr_limit: 8192).run(
+          command: ["node", Rails.root.join("test/support/harness_viewport_fixture.mjs").to_s, root],
+          workspace: Rails.root.to_s, deadline: Process.clock_gettime(Process::CLOCK_MONOTONIC) + 20,
+          capture_stdout: 8192)
+        assert result.status.success?, "Owned viewport check failed: #{result.diagnostics.to_json}"
+      end
+    end
   end
 
   test "profile changes and clears use coherent retry receipts" do
@@ -89,6 +102,69 @@ class ProjectHarnessSettingsControllerTest < ActionDispatch::IntegrationTest
     assert_select "[data-harness-active]", text: /Specification · Running/
     assert_not_includes response.body, lease.owner_token
     assert_not_includes response.body, operation.private_run_ref
+    assert_private_projection
+    assert_not File.exist?(@marker)
+  end
+
+  test "authentication precedes reads and mutations" do
+    # The same existing session boundary protects HTML, JSON and updates.
+    delete session_path
+    get project_harness_setting_path(@project)
+    assert_redirected_to new_session_path
+    assert_no_difference "ProjectHarnessSetting.count" do
+      patch project_harness_setting_path(@project), params: {harness_setting: {authoring_profile: "blue", expected_revision: 0, request_id: "anonymous"}}, as: :json
+    end
+    assert_redirected_to new_session_path
+    assert_not File.exist?(@marker)
+  end
+
+  test "stale requests and changed retries cannot overwrite selections" do
+    # One saved revision wins; a request identity cannot be reused with different intent.
+    values = {authoring_profile: "blue", expected_revision: 0, request_id: "saved"}
+    patch project_harness_setting_path(@project), params: {harness_setting: values}, as: :json
+    assert_response :success
+    {"conflict" => values.merge(authoring_profile: "green"),
+      "stale_revision" => values.merge(request_id: "stale", authoring_profile: "green")}.each do |code, attributes|
+      patch project_harness_setting_path(@project), params: {harness_setting: attributes}, as: :json
+      assert_response :conflict
+      assert_equal code, response.parsed_body.fetch("error")
+    end
+    assert_equal "blue", ProjectHarnessSetting.find_by!(project: @project).authoring_profile
+    assert_equal 1, ProjectHarnessSetting.find_by!(project: @project).lock_version
+  end
+
+  test "invalid web inputs never gain configuration authority" do
+    # Strong parameters and service validation reject paths, unknown profile keys and malformed metadata before mutation.
+    base = {authoring_profile: "blue", expected_revision: 0, request_id: "invalid"}
+    cases = {"executable" => base.merge(executable_ref: "/bin/true"), "credential" => base.merge(credential_ref: "/private/auth"),
+      "revision" => base.merge(expected_revision: "1x"), "unknown" => base.merge(authoring_profile: "missing"),
+      "array" => base.merge(authoring_profile: ["blue"]), "project" => base.merge(project_id: @project.id)}
+    cases.each do |name, attributes|
+      assert_no_difference "ProjectHarnessSetting.count", name do
+        patch project_harness_setting_path(@project), params: {harness_setting: attributes}, as: :json
+      end
+      assert_response :unprocessable_entity
+      assert_private_projection
+    end
+    patch project_harness_setting_path(@project), params: {}, as: :json
+    assert_response :unprocessable_entity
+    assert_not File.exist?(@marker)
+  end
+
+  test "a separate web process changes the next request" do
+    # An owned SQLite database and a second authenticated Rails session prove that no in-process selection cache owns state.
+    get project_harness_setting_path(@project), as: :json
+    assert_nil response.parsed_body.dig("selection", "authoring_profile")
+    results = harness_processes(1) do |_index|
+      client = ActionDispatch::Integration::Session.new(Rails.application)
+      client.post(session_path, params: {email_address: @user.email_address, password: "password-123"})
+      client.patch(project_harness_setting_path(@project), params: {harness_setting: {authoring_profile: "blue", expected_revision: 0, request_id: "other-process"}}, as: :json)
+      {"status" => client.response.status, "body" => client.response.parsed_body}
+    end
+    assert_equal 200, results.sole.dig("value", "status")
+    get project_harness_setting_path(@project), as: :json
+    assert_equal "blue", response.parsed_body.dig("selection", "authoring_profile")
+    assert_equal 1, response.parsed_body.dig("selection", "revision")
     assert_private_projection
     assert_not File.exist?(@marker)
   end
