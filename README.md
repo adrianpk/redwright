@@ -27,7 +27,7 @@ For now, a single agent handles execution. The plan is to support multiple agent
 
 Execution can be triggered per ticket or run continuously, picking up the next ticket by priority. Everything goes through the board. If incoming work has no ticket, one is created.
 
-Telegram is currently the main control channel, while a minimal local TUI provides direct access to the board. More interfaces can come later.
+The web interface is currently the most developed part of the system. Telegram provides an additional control channel, while a minimal local TUI offers direct access to the board. More interfaces can come later.
 
 Much of the system already works, but it's still a work in progress. The TUI is rough, the execution model is evolving, and there's plenty left to build.
 
