@@ -18,7 +18,7 @@ class ProjectProtocolsController < ApplicationController
   end
 
   def new
-    @protocol_document = ProjectProtocols::FileDocument.new(store: @catalog)
+    @protocol_document = ProjectProtocols::FileDocument.new(store: @catalog, collection: params[:collection])
   end
 
   def create
@@ -35,7 +35,7 @@ class ProjectProtocolsController < ApplicationController
   end
 
   def update
-    attributes = protocol_document_params
+    attributes = protocol_document_params.except(:collection)
     @protocol_document = document_service.update(@protocol_document, **attributes.to_h.symbolize_keys)
     respond_to do |format|
       format.json do
@@ -43,7 +43,8 @@ class ProjectProtocolsController < ApplicationController
           id: @protocol_document.id,
           updated_at: @protocol_document.updated_at&.iso8601,
           revision: @protocol_document.revision,
-          agents_revision: @protocol_document.agents_revision
+          agents_revision: @protocol_document.agents_revision,
+          index_revision: @protocol_document.index_revision
         }
       end
       format.html { redirect_to project_protocol_path(@project, @protocol_document), notice: "Protocol updated." }
@@ -55,7 +56,7 @@ class ProjectProtocolsController < ApplicationController
 
   def destroy
     redirect_path = @protocol_document.path.start_with?(".agents/playbooks/") ? playbooks_project_protocols_path(@project) : project_protocols_path(@project)
-    document_service.delete(@protocol_document, **protocol_document_params.to_h.symbolize_keys.slice(:revision, :agents_revision))
+    document_service.delete(@protocol_document, **protocol_document_params.to_h.symbolize_keys.slice(:revision, :agents_revision, :index_revision))
     redirect_to redirect_path, notice: "Protocol deleted."
   rescue Specifications::Error => error
     render_document_error(error, :show)
@@ -67,7 +68,8 @@ class ProjectProtocolsController < ApplicationController
     render json: {
       body: @protocol_document.body,
       revision: @protocol_document.revision,
-      agents_revision: @protocol_document.agents_revision
+      agents_revision: @protocol_document.agents_revision,
+      index_revision: @protocol_document.index_revision
     }
   rescue Specifications::Error => error
     render_document_error(error, :show)
@@ -88,7 +90,7 @@ class ProjectProtocolsController < ApplicationController
   end
 
   def protocol_document_params
-    params.require(:protocol_document).permit(:name, :description, :body, :revision, :agents_revision)
+    params.require(:protocol_document).permit(:name, :description, :body, :revision, :agents_revision, :index_revision, :collection)
   end
 
   def document_service

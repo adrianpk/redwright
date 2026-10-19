@@ -9,6 +9,8 @@
               } do |f| %>
   <%= f.hidden_field :revision %>
   <%= f.hidden_field :agents_revision %>
+  <%= f.hidden_field :index_revision %>
+  <%= f.hidden_field :collection unless protocol_document.persisted? %>
   <% if protocol_document.errors.any? %>
     <div class="document-artifact-errors">
       <h2><%= pluralize(protocol_document.errors.count, "error") %> blocked this protocol:</h2>
@@ -20,7 +22,7 @@
     </div>
   <% end %>
 
-  <% unless protocol_document.root? %>
+  <% unless protocol_document.reference_index? %>
     <div class="document-artifact-field">
       <%= f.label :name, "Name" %>
       <%= f.text_field :name, required: true, maxlength: 80, placeholder: "Invariants" %>

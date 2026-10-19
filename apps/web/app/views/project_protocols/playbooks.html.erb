@@ -2,14 +2,12 @@
   <section class="documents-top-shell">
     <div class="board-title-row">
       <h1>Playbooks</h1>
-      <% if @playbooks_index %>
-        <%= link_to "Edit PLAYBOOKS.md", project_protocol_path(@project, @playbooks_index), class: "ticket-action" %>
-      <% end %>
+      <%= link_to "New", new_project_protocol_path(@project, collection: "playbooks"), class: "ticket-action", data: {turbo_frame: "modal"} %>
     </div>
   </section>
 
   <section class="artifact-type-nav" aria-label="Playbook navigation">
-    <% @playbook_entries.each do |entry| %>
+    <% [@playbooks_index, *@playbook_entries].compact.each do |entry| %>
       <%= link_to project_protocol_path(@project, entry), class: "artifact-type-card" do %>
         <h2><%= entry.title %></h2>
         <% preview_lines = entry.body.to_s.lines.map(&:strip).reject(&:blank?).first(6) %>
@@ -24,3 +22,4 @@
     <% end %>
   </section>
 </main>
+<%= turbo_frame_tag "modal" %>

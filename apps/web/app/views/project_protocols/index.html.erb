@@ -7,22 +7,12 @@
   </section>
 
   <section class="artifact-type-nav" aria-label="Protocol navigation">
-    <% if @protocol_entries.empty? %>
+    <% if @protocol_entries.empty? && @playbook_entries.empty? %>
       <p>No protocol files found in the local project workspace.</p>
     <% end %>
     <% @protocol_entries.each do |entry| %>
       <% if entry.playbooks_index? %>
-        <%= link_to playbooks_project_protocols_path(@project), class: "artifact-type-card" do %>
-          <h2><%= entry.title %></h2>
-          <% preview_lines = @playbook_listing_lines.first(6) %>
-          <% if preview_lines.any? %>
-            <div class="protocol-card-preview" aria-hidden="true">
-              <% preview_lines.each do |line| %>
-                <span><%= line %></span>
-              <% end %>
-            </div>
-          <% end %>
-        <% end %>
+        <%= render "playbooks_card" %>
       <% else %>
         <%= link_to project_protocol_path(@project, entry), class: "artifact-type-card" do %>
           <h2><%= entry.title %></h2>
@@ -36,6 +26,9 @@
           <% end %>
         <% end %>
       <% end %>
+    <% end %>
+    <% if @playbook_entries.any? && @protocol_entries.none?(&:playbooks_index?) %>
+      <%= render "playbooks_card" %>
     <% end %>
   </section>
 </main>

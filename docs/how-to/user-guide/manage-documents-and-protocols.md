@@ -75,6 +75,12 @@ underscores, and adds `.md` under `.agents/`. The body is the document's content
 The configured local harness adds its reference and description to `AGENTS.md`.
 The new document appears as a card. Protocol has no database index or content copy.
 
+The `Playbooks` card has a folder icon, a different background, and a document
+count. Open it to edit procedures or select `New` to create a playbook under
+`.agents/playbooks/`. The first card, `PLAYBOOKS`, opens `.agents/PLAYBOOKS.md`.
+Playbook references and descriptions belong in that index. AGENTS references
+the index rather than listing every procedure.
+
 5. Edit a project protocol document.
 
 The web editor reads and saves the selected file directly. RW and external
@@ -86,9 +92,16 @@ AGENTS.md
 ```
 
 Edit Name to rename a concern, or Description to change what its reference says.
-Select `Save` to update the document and its references in `AGENTS.md`. `Delete`
-removes both the selected document and its references after confirmation. AGENTS
-is the entrypoint and cannot be renamed or deleted from the web interface.
+Select `Save` to update the document and its reference in the owning index:
+`AGENTS.md` for concerns, or `.agents/PLAYBOOKS.md` for playbooks. `Delete`
+removes both the selected document and its reference after confirmation. AGENTS
+and the playbook index cannot be renamed or deleted from the web interface.
+
+Both indexes have a separate `Sync` action for files added outside RW. Syncing
+AGENTS also refreshes the playbook index and moves existing direct playbook
+references into it, preserving their descriptions. Syncing the playbook index
+refreshes its procedure list and ensures AGENTS references the index. Pending
+editor text is preserved; conflicting external edits prevent the update.
 
 Body-only saves write the selected file without invoking the harness. If another tool changes the file
 while the editor is open, RW rejects the outdated save. Reload the file and

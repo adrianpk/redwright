@@ -1,24 +1,33 @@
 module ProjectProtocols
   class Documents
+    PLAYBOOKS_PATH = ".agents/PLAYBOOKS.md"
+
     def initialize(store:, harness: ReferenceHarness.new)
       @store, @harness = store, harness
     end
 
-    def create(name: "", body: "", description: "", agents_revision: nil)
-      path = ".agents/#{filename(name)}"
+    def create(name: "", body: "", description: "", agents_revision: nil, index_revision: nil, collection: "protocols")
+      unless ["protocols", "playbooks"].include?(collection)
+        raise Specifications::Error, "Invalid protocol collection."
+      end
+      directory = collection == "playbooks" ? ".agents/playbooks" : ".agents"
+      path = "#{directory}/#{filename(name)}"
       ensure_available!(path)
-      agents = entrypoint(agents_revision)
-      description = normalize_description(description)
-      updated = references("create", agents, path: path, description: description)
-      @store.apply({path => body.to_s, "AGENTS.md" => updated},
-        expected: {path => nil, "AGENTS.md" => agents&.fetch(:revision)})
+      index_path = reference_index(path)
+      index = checked_index(index_path, index_path == "AGENTS.md" ? agents_revision : index_revision)
+      updated = references("create", index, index_path: index_path, path: path, description: normalize_description(description))
+      changes = {path => body.to_s, index_path => updated}
+      expected = {path => nil, index_path => index&.fetch(:revision)}
+      connect_playbooks(changes, expected, agents_revision) if index_path == PLAYBOOKS_PATH
+      @store.apply(changes, expected: expected)
       @store.find_path(path)
     end
 
-    def update(document, body: document.body, revision: nil, name: document.name, description: document.description, agents_revision: nil)
+    def update(document, body: document.body, revision: nil, name: document.name, description: document.description,
+      agents_revision: nil, index_revision: nil)
       current = checked_document(document, revision)
-      if document.root?
-        raise Specifications::Error, "AGENTS cannot be renamed." unless name == document.name
+      if document.reference_index?
+        raise Specifications::Error, "Protocol indexes cannot be renamed." unless name == document.name
         @store.apply({document.path => body.to_s}, expected: {document.path => current.fetch(:revision)})
         return document.reload
       end
@@ -29,57 +38,143 @@ module ProjectProtocols
         return document.reload
       end
       ensure_available!(path) unless path == document.path
-      agents = entrypoint(agents_revision)
-      updated = references("update", agents, old_path: document.path, path: path, description: description)
-      changes = {path => body.to_s, "AGENTS.md" => updated}
-      expected = {document.path => current.fetch(:revision), "AGENTS.md" => agents&.fetch(:revision)}
+      index_path = document.reference_index_path
+      index = checked_index(index_path, index_path == "AGENTS.md" ? agents_revision : index_revision)
+      updated = references("update", index, index_path: index_path, old_path: document.path, path: path, description: description)
+      changes = {path => body.to_s, index_path => updated}
+      expected = {document.path => current.fetch(:revision), index_path => index&.fetch(:revision)}
       if path != document.path
         changes[document.path] = nil
         expected[path] = nil
       end
+      connect_playbooks(changes, expected, agents_revision) if index_path == PLAYBOOKS_PATH
       @store.apply(changes, expected: expected)
       @store.find_path(path)
     end
 
-    def delete(document, revision: nil, agents_revision: nil)
-      raise Specifications::Error, "AGENTS is the protocol entrypoint and cannot be deleted." if document.root?
+    def delete(document, revision: nil, agents_revision: nil, index_revision: nil)
+      raise Specifications::Error, "Protocol indexes cannot be deleted." if document.reference_index?
       current = checked_document(document, revision)
-      agents = entrypoint(agents_revision)
-      updated = references("delete", agents, old_path: document.path)
-      @store.apply({"AGENTS.md" => updated, document.path => nil},
-        expected: {document.path => current.fetch(:revision), "AGENTS.md" => agents&.fetch(:revision)})
+      index_path = document.reference_index_path
+      index = checked_index(index_path, index_path == "AGENTS.md" ? agents_revision : index_revision)
+      updated = references("delete", index, index_path: index_path, old_path: document.path)
+      changes = {index_path => updated, document.path => nil}
+      expected = {document.path => current.fetch(:revision), index_path => index&.fetch(:revision)}
+      connect_playbooks(changes, expected, agents_revision) if index_path == PLAYBOOKS_PATH
+      @store.apply(changes, expected: expected)
     end
 
     def sync_references(document, body: document.body, revision: nil)
-      raise Specifications::Error, "References can only be synced from AGENTS." unless document.root?
+      raise Specifications::Error, "References can only be synced from a protocol index." unless document.reference_index?
       current = checked_document(document, revision)
-      body = body.to_s
-      missing = @store.documents.reject { |entry| entry.root? || body.include?(entry.path) }
-        .to_h do |entry|
-          source = @store.snapshot(entry.path)
-          raise Specifications::Error.new("Protocol files changed. Try syncing again.", code: :conflict) unless source
-          [entry.path, source]
-        end
-      updated = body
-      if missing.any?
-        documents = missing.map { |path, source| {path: path, body: source.fetch(:body)} }
-        updated = references("sync", current.merge(body: body), documents: documents)
-        unless updated.start_with?(body)
-          raise Specifications::Error, "Reference sync must preserve the current AGENTS content."
-        end
-        appended_paths = updated.delete_prefix(body).scan(/^\s*[-*+]\s+`(\.agents\/[^`\n]+\.md)`(?:\s|$)/).flatten
-        unless appended_paths.sort == missing.keys.sort
-          raise Specifications::Error, "The harness must append exactly one reference to each missing document."
-        end
+      sources = @store.documents.to_h do |entry|
+        source = @store.snapshot(entry.path)
+        raise Specifications::Error.new("Protocol files changed. Try syncing again.", code: :conflict) unless source
+        [entry.path, source]
       end
-      unless updated == current.fetch(:body)
-        expected = missing.transform_values { |source| source.fetch(:revision) }.merge("AGENTS.md" => current.fetch(:revision))
-        @store.apply({"AGENTS.md" => updated}, expected: expected)
+      playbooks = sources.select { |path, _| path.start_with?(".agents/playbooks/") }
+      agents_body = document.root? ? body.to_s : sources["AGENTS.md"]&.fetch(:body).to_s
+      preserve_descriptions(playbooks, agents_body)
+      changes, expected = {}, {document.path => current.fetch(:revision)}
+      if document.root?
+        if sources.key?(PLAYBOOKS_PATH) || playbooks.any?
+          stage_sync(PLAYBOOKS_PATH, playbooks, changes, expected)
+          sources[PLAYBOOKS_PATH] = {body: changes[PLAYBOOKS_PATH] || sources.fetch(PLAYBOOKS_PATH).fetch(:body),
+            revision: sources[PLAYBOOKS_PATH]&.fetch(:revision)}
+        end
+        concerns = sources.reject { |path, _| path == "AGENTS.md" || path.start_with?(".agents/playbooks/") }
+        stage_sync("AGENTS.md", concerns, changes, expected, body: body.to_s)
+      else
+        stage_sync(PLAYBOOKS_PATH, playbooks, changes, expected, body: body.to_s)
+        connect_playbooks(changes, expected)
       end
+      @store.apply(changes, expected: expected) if changes.any?
       document.reload
     end
 
     private
+
+    def reference_index(path)
+      path.start_with?(".agents/playbooks/") ? PLAYBOOKS_PATH : "AGENTS.md"
+    end
+
+    def default_index(path)
+      path == PLAYBOOKS_PATH ? "# Playbooks Index\n\nThis file indexes the project playbooks.\n" : "# Agent Operating Contract\n"
+    end
+
+    def checked_index(path, revision = nil)
+      current = @store.snapshot(path)
+      if !revision.nil? && revision.to_s != current&.fetch(:revision).to_s
+        raise Specifications::Error.new("The reference index changed outside this editor. Reload it before saving.", code: :conflict)
+      end
+      current
+    end
+
+    def stage_sync(path, sources, changes, expected, body: nil)
+      current = @store.snapshot(path)
+      updated = synced_body(path, body || current&.fetch(:body) || default_index(path), sources)
+      return if updated == current&.fetch(:body)
+      changes[path] = updated
+      expected[path] = current&.fetch(:revision) unless expected.key?(path)
+      sources.each { |source_path, source| expected[source_path] = source.fetch(:revision) unless expected.key?(source_path) }
+    end
+
+    def connect_playbooks(changes, expected, agents_revision = nil)
+      agents = checked_index("AGENTS.md", agents_revision)
+      index = @store.snapshot(PLAYBOOKS_PATH)
+      if delegated_paths(agents&.fetch(:body).to_s).any?
+        sources = @store.playbook_entries.to_h do |entry|
+          source = @store.snapshot(entry.path)
+          raise Specifications::Error.new("Playbooks changed. Reload before saving.", code: :conflict) unless source
+          [entry.path, source]
+        end
+        changes.each do |path, body|
+          next unless path.start_with?(".agents/playbooks/")
+          if body.nil?
+            sources.delete(path)
+          else
+            sources[path] = {body: body, revision: expected.fetch(path)}
+          end
+        end
+        preserve_descriptions(sources, agents.fetch(:body))
+        stage_sync(PLAYBOOKS_PATH, sources, changes, expected, body: changes[PLAYBOOKS_PATH] || index&.fetch(:body))
+      end
+      source = {PLAYBOOKS_PATH => {body: changes[PLAYBOOKS_PATH] || index.fetch(:body), revision: index&.fetch(:revision)}}
+      stage_sync("AGENTS.md", source, changes, expected)
+    end
+
+    def synced_body(path, body, sources)
+      missing = sources.reject { |source_path, _| body.include?(source_path) }
+      removed = path == "AGENTS.md" ? delegated_paths(body) : []
+      return body if missing.empty? && removed.empty?
+      documents = missing.map { |source_path, source| source.slice(:body, :description).merge(path: source_path) }
+      updated = references("sync", {body: body}, index_path: path, documents: documents, removed_paths: removed)
+      preserved = body.lines.reject { |line| removed.include?(listed_path(line)) }.join
+      unless updated.start_with?(preserved)
+        raise Specifications::Error, "Reference sync must preserve unrelated index content."
+      end
+      appended = updated.delete_prefix(preserved).lines.filter_map { |line| listed_path(line) }
+      unless appended.sort == missing.keys.sort
+        raise Specifications::Error, "The harness must append exactly one reference to each missing document."
+      end
+      updated
+    end
+
+    def listed_path(line)
+      line[/\A\s*[-*+]\s+`(\.agents\/[^`\r\n]+\.md)`(?:\s|$)/, 1]
+    end
+
+    def delegated_paths(body)
+      body.lines.filter_map { |line| listed_path(line) }.select { |path| path.start_with?(".agents/playbooks/") }
+    end
+
+    def preserve_descriptions(sources, body)
+      body.lines.each do |line|
+        path = listed_path(line)
+        next unless sources.key?(path)
+        sources.fetch(path)[:description] = line.split(/\s+—\s+/, 2)[1].to_s.strip
+      end
+    end
 
     def filename(name)
       value = name.to_s.strip.sub(/\.md\z/i, "").upcase.gsub(/\s+/, "_")
@@ -110,19 +205,12 @@ module ProjectProtocols
       current
     end
 
-    def entrypoint(revision)
-      current = @store.snapshot("AGENTS.md")
-      if !revision.nil? && revision.to_s != current&.fetch(:revision).to_s
-        raise Specifications::Error.new("AGENTS changed outside this editor. Reload it before saving.", code: :conflict)
-      end
-      current
-    end
-
-    def references(operation, agents, **change)
-      context = {"operation" => operation, "agents_body" => agents&.fetch(:body) || "# Agent Operating Contract\n"}.merge(change.stringify_keys)
+    def references(operation, index, index_path:, **change)
+      context = {"operation" => operation, "index_path" => index_path,
+        "index_body" => index&.fetch(:body) || default_index(index_path)}.merge(change.stringify_keys)
       body = @harness.generate(context: context, workspace: @store.root.to_s).fetch("body")
       path, old_path = change.values_at(:path, :old_path)
-      if path && body.lines.count { |line| line.match?(/\A\s*[-*+]\s+`#{Regexp.escape(path)}`(?:\s|$)/) } != 1
+      if path && body.lines.count { |line| listed_path(line) == path } != 1
         raise Specifications::Error, "The harness must include exactly one reference to the document."
       end
       if old_path && old_path != path && body.include?(old_path)

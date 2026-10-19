@@ -6,21 +6,23 @@ module ProjectProtocols
     include ActiveModel::Model
 
     attr_reader :store, :path, :position, :updated_at
-    attr_accessor :body, :revision, :name, :description, :agents_revision
+    attr_accessor :body, :revision, :name, :description, :agents_revision, :index_revision, :collection
 
     def self.model_name
       ActiveModel::Name.new(self, nil, "ProtocolDocument")
     end
 
-    def initialize(store:, path: nil, position: 0)
+    def initialize(store:, path: nil, position: 0, collection: "protocols")
       @store = store
       @path = path
       @position = position
+      @collection = path&.start_with?(".agents/playbooks/") ? "playbooks" : collection.presence || "protocols"
       if path
         reload
       else
         @name, @description, @body = "", "", ""
         @agents_revision = store.snapshot("AGENTS.md")&.fetch(:revision)
+        @index_revision = store.snapshot(reference_index_path)&.fetch(:revision)
       end
     end
 
@@ -31,7 +33,9 @@ module ProjectProtocols
       @name = File.basename(path, ".md")
       agents = store.snapshot("AGENTS.md")
       @agents_revision = agents&.fetch(:revision)
-      reference = agents&.fetch(:body)&.lines&.find { |line| line.match?(/\A\s*[-*+]\s+`#{Regexp.escape(path)}`(?:\s|$)/) }
+      index = store.snapshot(reference_index_path)
+      @index_revision = index&.fetch(:revision)
+      reference = index&.fetch(:body)&.lines&.find { |line| line.match?(/\A\s*[-*+]\s+`#{Regexp.escape(path)}`(?:\s|$)/) }
       @description = reference.to_s.split(/\s+—\s+/, 2)[1].to_s.strip
       self
     end
@@ -59,6 +63,7 @@ module ProjectProtocols
 
     def title
       return "AGENTS" if path == "AGENTS.md"
+      return "PLAYBOOKS" if playbooks_index?
 
       path.delete_prefix(".agents/").delete_suffix(".md").split("/").map { |part| part.tr("_-", "  ").titleize }.join(" / ")
     end
@@ -73,6 +78,14 @@ module ProjectProtocols
 
     def playbook?
       path.start_with?(".agents/playbooks/")
+    end
+
+    def reference_index?
+      root? || playbooks_index?
+    end
+
+    def reference_index_path
+      collection == "playbooks" ? ".agents/PLAYBOOKS.md" : "AGENTS.md"
     end
 
     def update(body:, revision:)

@@ -5,13 +5,17 @@ module ProtocolReferenceHarnessFixture
       #!/usr/bin/env ruby
       require "json"
       prompt = STDIN.read
-      raise "wrong task" unless prompt.include?("Update references in the supplied AGENTS.md")
+      raise "wrong task" unless prompt.include?("Update references in the supplied protocol index")
       context = JSON.parse(prompt.split("Context:\n", 2).last)
-      body = context.fetch("agents_body")
+      body = context.fetch("index_body")
       if context.fetch("operation") == "sync"
+        removed = context.fetch("removed_paths", [])
+        body = body.lines.reject { |line| removed.include?(line[/\A\s*[-*+]\s+`([^`]+)`/, 1]) }.join
         context.fetch("documents").each do |document|
-          description = document.fetch("body").lines.first.to_s.delete_prefix("# ").strip
-          body += "\n\n- `#{document.fetch('path')}` — #{description}\n"
+          description = document.fetch("description") { document.fetch("body").lines.first.to_s.delete_prefix("# ").strip }
+          body += "\n\n- `#{document.fetch('path')}`"
+          body += " — #{description}" unless description.empty?
+          body += "\n"
         end
       else
         old_path = context["old_path"] || context["path"]

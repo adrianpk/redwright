@@ -19,9 +19,11 @@
     function updateRevisions(payload) {
       form.querySelector("[name='protocol_document[revision]']").value = payload.revision;
       form.querySelector("[name='protocol_document[agents_revision]']").value = payload.agents_revision || "";
+      form.querySelector("[name='protocol_document[index_revision]']").value = payload.index_revision || "";
       document.querySelectorAll("form[data-protocol-delete] input").forEach(function (field) {
         if (field.name === "protocol_document[revision]") field.value = payload.revision;
         if (field.name === "protocol_document[agents_revision]") field.value = payload.agents_revision || "";
+        if (field.name === "protocol_document[index_revision]") field.value = payload.index_revision || "";
       });
     }
 

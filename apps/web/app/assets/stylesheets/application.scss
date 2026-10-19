@@ -598,6 +598,31 @@ body {
   overflow-wrap: anywhere;
 }
 
+.protocol-collection-card {
+  background: #f3f5f7;
+}
+
+.protocol-collection-title {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.protocol-collection-title svg {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+  color: var(--muted);
+}
+
+.protocol-collection-count {
+  margin-left: auto;
+  flex-shrink: 0;
+  white-space: nowrap;
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+
 .artifact-type-card p {
   margin: 6px 0 0;
   font-size: 0.78rem;

@@ -1,0 +1,16 @@
+<%= link_to playbooks_project_protocols_path(@project), class: "artifact-type-card protocol-collection-card" do %>
+  <div class="protocol-collection-title">
+    <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5">
+      <path d="M3 7a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v10H3Z" />
+    </svg>
+    <h2>Playbooks</h2>
+    <span class="protocol-collection-count"><%= pluralize(@playbook_entries.size, "doc") %></span>
+  </div>
+  <% if @playbook_listing_lines.any? %>
+    <div class="protocol-card-preview" aria-hidden="true">
+      <% @playbook_listing_lines.first(6).each do |line| %>
+        <span><%= line %></span>
+      <% end %>
+    </div>
+  <% end %>
+<% end %>

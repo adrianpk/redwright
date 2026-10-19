@@ -120,6 +120,47 @@ class ProjectProtocolsControllerTest < ActionDispatch::IntegrationTest
     ENV["REDWRIGHT_PROTOCOL_HARNESS"] = previous
   end
 
+  test "manages playbooks through their collection and index" do
+    # The collection selects the destination and the editor uses the corresponding file revisions.
+    sign_in_as(@admin)
+    previous = ENV["REDWRIGHT_PROTOCOL_HARNESS"]
+    ENV["REDWRIGHT_PROTOCOL_HARNESS"] = protocol_reference_harness(@store.root)
+    get playbooks_project_protocols_path(@project)
+    assert_select "a[href=?]", new_project_protocol_path(@project, collection: "playbooks"), text: "New"
+    get new_project_protocol_path(@project, collection: "playbooks")
+    assert_select "input[name='protocol_document[collection]'][value='playbooks']"
+    post project_protocols_path(@project), params: {protocol_document: {
+      collection: "playbooks", name: "delivery", description: "Delivery procedure.", body: "# Delivery steps\n"
+    }}
+    document = @store.find_path(".agents/playbooks/DELIVERY.md")
+    assert_redirected_to project_protocol_path(@project, document)
+    follow_redirect!
+    assert_select "input[name='protocol_document[description]'][value='Delivery procedure.']"
+    assert_select "input[name='protocol_document[index_revision]'][value=?]", document.index_revision
+    get project_protocols_path(@project)
+    assert_select "a.protocol-collection-card[href=?]", playbooks_project_protocols_path(@project)
+    assert_select ".protocol-collection-title .protocol-collection-count", text: "1 doc"
+    index = @store.find_path(".agents/PLAYBOOKS.md")
+    get playbooks_project_protocols_path(@project)
+    assert_select ".artifact-type-card:first-child[href=?] h2", project_protocol_path(@project, index), text: "PLAYBOOKS"
+    assert_select "a", text: "Index", count: 0
+    get project_protocol_path(@project, index)
+    assert_select "button[data-protocol-sync]", text: "Sync"
+    assert_select "input[name='protocol_document[name]']", count: 0
+    assert_select "button", text: "Delete", count: 0
+    @store.create(".agents/playbooks/EXTERNAL.md", "# External procedure")
+    post sync_references_project_protocol_path(@project, index), params: {
+      protocol_document: {revision: index.revision}
+    }, as: :json
+    assert_response :success
+    assert_includes response.parsed_body.fetch("body"), "`.agents/playbooks/EXTERNAL.md`"
+    assert_equal @store.find_path(".agents/PLAYBOOKS.md").revision, response.parsed_body.fetch("revision")
+    assert_equal @store.find_path("AGENTS.md").revision, response.parsed_body.fetch("index_revision")
+    assert_no_match ".agents/playbooks/", @store.snapshot("AGENTS.md").fetch(:body)
+  ensure
+    ENV["REDWRIGHT_PROTOCOL_HARNESS"] = previous
+  end
+
   # The index must reflect additions and removals without a canonical slot list.
   test "lists the actual project files" do
     sign_in_as(@admin)
@@ -228,10 +269,10 @@ class ProjectProtocolsControllerTest < ActionDispatch::IntegrationTest
 
   test "keeps playbooks reachable without an index file" do
     sign_in_as(@admin)
-    document = @store.create(".agents/playbooks/custom.md", "# Custom playbook")
+    @store.create(".agents/playbooks/custom.md", "# Custom playbook")
     get project_protocols_path(@project)
     assert_response :success
-    assert_match project_protocol_path(@project, document), response.body
+    assert_select "a.protocol-collection-card[href=?]", playbooks_project_protocols_path(@project)
     get playbooks_project_protocols_path(@project)
     assert_response :success
     assert_match "Custom playbook", response.body

@@ -32,8 +32,7 @@ module ProjectProtocols
     end
 
     def top_level_entries
-      entries = documents
-      entries.any?(&:playbooks_index?) ? entries.reject(&:playbook?) : entries
+      documents.reject(&:playbook?)
     end
 
     def playbook_entries
