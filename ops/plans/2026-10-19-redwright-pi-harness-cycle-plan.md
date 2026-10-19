@@ -180,6 +180,7 @@ Planned task commits:
 - expected_pr_title: `feat(slice-2): rails selection and retained operations`
 - report: `ops/artifacts/slices/pi-harness/slice-2-rails-harness-selection.md`
 - ticket: [TKT-20261019165601](../tickets/reviewing/20261019165601-persist-project-harness-selection-and-logical-operation-bindings.md)
+- PR: [#11](https://forge.adrianpk.com/adrianpk/redwrigh/pulls/11)
 - objective: One Active Record owner serializes each project's authoring/ticket-proposal defaults, while each logical operation keeps an immutable resolved binding.
 - acceptance_mapping: `PI-02, PI-10, PI-11, PI-12`
 

@@ -16,8 +16,8 @@ closed_at:
 resolution:
 owner:
 branch: fix/slice-2-pi-rails-harness-selection
-pr:
-commits: []
+pr: https://forge.adrianpk.com/adrianpk/redwrigh/pulls/11
+commits: [b3e172d4b129baf4d89bb3350ad5ef41854f2914, a84be2f7b18aed217de4b16210a42ee69b41f97c, 4e82dded7c0bc56674149f8082690492799fd396]
 ---
 
 # Persist project harness selection and logical operation bindings

@@ -73,7 +73,7 @@ Validation:
 - report: `ops/artifacts/slices/pi-harness/slice-2-rails-harness-selection.md`
 - ticket: [TKT-20261019165601](../tickets/reviewing/20261019165601-persist-project-harness-selection-and-logical-operation-bindings.md)
 - merge_target: `dev`
-- PR: `pending`
+- PR: [#11](https://forge.adrianpk.com/adrianpk/redwrigh/pulls/11)
 - last_sync_commit: `none`
 
 Tasks:
@@ -86,6 +86,7 @@ Commits:
 
 - `T2.1`: `b3e172d4b129baf4d89bb3350ad5ef41854f2914` - constrained persistence, private profiles and database preservation.
 - `T2.2`: `a84be2f7b18aed217de4b16210a42ee69b41f97c` - retained selections, bindings and owned call lifecycle.
+- `T2.3`: `4e82dded7c0bc56674149f8082690492799fd396` - process races, capacity/retention, damaged-binding rejection and report introduction.
 
 Validation:
 
@@ -273,4 +274,4 @@ Linux acceptance. No result here claims either was verified.
 
 - `2026-10-19T17:27:34Z` state=`implementing`: verified PR #10 merged at its validated head; closed Slice 1 and activated Slice 2.
 
-- `2026-10-19T17:40:52Z` state=`reviewing`: Slice 2 tasks implemented; focused validation passed (18 tests, 214 assertions). Canonical PR preparation and final clean-head controller validation are pending.
+- `2026-10-19T17:40:52Z` state=`reviewing`: Slice 2 tasks implemented; focused validation passed (18 tests, 214 assertions). Canonical PR #11 is open; final clean-head controller validation follows the PR-reference commit.
