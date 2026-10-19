@@ -12,6 +12,7 @@ Rails.application.routes.draw do
   resources :passwords, param: :token
   resources :projects, only: [ :index, :new, :create, :show ]
   resources :projects, only: [] do
+    resource :harness_setting, controller: "project_harness_settings", path: "harness", only: [:show, :update]
     resources :dumps, controller: "project_dumps", only: [:index, :new, :show, :create, :update] do
       post :curate, on: :member
     end

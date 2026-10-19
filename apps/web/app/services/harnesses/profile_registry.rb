@@ -44,6 +44,15 @@ module Harnesses
       load_profiles.map { |row| resolve_profile(row).public_values }
     end
 
+    def catalog
+      load_profiles.map do |row|
+        profile = resolve_profile(row).ready!
+        profile.public_values.merge("ready" => true, "readiness" => "Available locally")
+      rescue Harnesses::Error => error
+        row.slice(*PUBLIC_FIELDS).merge("ready" => false, "readiness" => error.message, "readiness_code" => error.code.to_s)
+      end
+    end
+
     private
 
     def load_profiles

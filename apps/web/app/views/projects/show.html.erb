@@ -11,6 +11,10 @@
   </section>
 
   <section class="projects-list">
+    <%= link_to project_harness_setting_path(@project), class: "board-list-card" do %>
+      <strong>Harness</strong>
+      <span>Prepared profiles and active bindings</span>
+    <% end %>
     <%= link_to project_protocols_path(@project), class: "board-list-card" do %>
       <strong>Protocols</strong>
       <span><%= pluralize(Array(@project.protocol_state["documents"]).size, "document") %></span>

@@ -13,9 +13,9 @@ Approved: maintainer, 2026-10-19; explicit approval of the seven-slice plan, dep
 - execution_authority: `autonomous execution of this delivery set approved`
 - updated: `2026-10-19`
 - active_slice: `Slice 5 - Selectable Pi authoring in the web app (implementing)`
-- active_task: `T5.2 (in progress)`
+- active_task: `T5.3 (in progress)`
 - completed_slices: `4/7`
-- completed_tasks: `13/21`
+- completed_tasks: `14/21`
 - controller: `external Looper controller`
 - plan: [Pi Harness plan](../plans/2026-10-19-redwright-pi-harness-cycle-plan.md)
 - spec: [Pi Harness specification](../specs/specs/2026-10-19-redwright-pi-harness-spec.md)
@@ -172,12 +172,13 @@ Validation:
 Tasks:
 
 - [x] `T5.1` Inject one retained authoring operation into Specs, slicing, Dumps and protocol references; preserve current revisions, semantic checks and atomic publication.
-- [ ] `T5.2` Add a project-scoped Harness settings resource with compact controls for prepared profiles, clear-to-default, active bindings and local readiness.
+- [x] `T5.2` Add a project-scoped Harness settings resource with compact controls for prepared profiles, clear-to-default, active bindings and local readiness.
 - [ ] `T5.3` Verify authenticated and stale/conflicting changes, independent process visibility, responsive rendering and all four authoring consumer boundaries.
 
 Commits:
 
-- `T5.1`: selected authoring operation task commit in branch history.
+- `T5.1`: `3c155dbfc4f2f680c877cf97f0e4238ec51fd1cf` - retained authoring admission, shared deadline, publication outcomes and legacy overrides.
+- `T5.2`: Harness settings resource task commit in branch history.
 
 Validation:
 

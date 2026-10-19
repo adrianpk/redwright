@@ -80,6 +80,7 @@
             <%= primary_navigation_link "Board", board_navigation_path, controllers: %w[boards tickets columns] %>
             <% if current_project %>
               <%= primary_navigation_link "Protocol", project_protocols_path(current_project), controllers: "project_protocols" %>
+              <%= primary_navigation_link "Harness", project_harness_setting_path(current_project), controllers: "project_harness_settings" %>
             <% end %>
             <% if current_user&.admin? %>
               <%= primary_navigation_link "Settings", protocol_templates_path, controllers: %w[project_protocol_templates project_protocol_template_documents] %>
