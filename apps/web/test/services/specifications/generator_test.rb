@@ -46,6 +46,7 @@ class SpecificationsGeneratorTest < ActiveSupport::TestCase
 
   test "a harness deadline leaves no partially generated specification" do
     document = create_document
+    original = document.source
     program = Pathname.new(document.project.root_path).join("slow-test-harness")
     program.write("#!/usr/bin/env ruby\nsleep 30\n")
     program.chmod(0o700)
@@ -53,6 +54,32 @@ class SpecificationsGeneratorTest < ActiveSupport::TestCase
     assert_no_difference "Document.count" do
       error = assert_raises(Specifications::Error) { Specifications::Generator.new(project: document.project, use_case: document.use_case, harness: harness).call }
       assert_includes error.message, "timed out"
+    end
+    assert_equal original, document.source
+  end
+
+  test "rejected results preserve an approved specification" do
+    # Both schema rejection and existing nonblank domain checks precede publication.
+    document = create_document(status: "approved")
+    original = document.source
+    program = Pathname.new(document.project.root_path).join("invalid-harness")
+    cases = {
+      "invalid JSON" => "{",
+      "unknown field" => JSON.generate(title: "Changed", body: "Changed", approved: true),
+      "wrong type" => JSON.generate(title: "Changed", body: 7),
+      "blank domain value" => JSON.generate(title: "Changed", body: " ")
+    }
+    cases.each do |name, output|
+      program.write("#!/usr/bin/env ruby\nFile.binwrite(ARGV[ARGV.index('--output-last-message') + 1], #{output.dump})\n")
+      program.chmod(0o700)
+      harness = Specifications::Harness.new(program: program.to_s)
+      assert_no_difference "Document.count" do
+        assert_raises(Specifications::Error, name) do
+          Specifications::Generator.new(project: document.project, use_case: document.use_case, harness: harness).call
+        end
+      end
+      assert_equal original, document.source, name
+      assert_equal "approved", document.reload.status, name
     end
   end
 

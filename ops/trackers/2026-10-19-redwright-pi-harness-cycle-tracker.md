@@ -8,14 +8,14 @@ Approved: maintainer, 2026-10-19; explicit approval of the seven-slice plan, dep
 - cycle_id: `2026-10-19-redwright-pi-harness`
 - delivery_set: `pi-harness`
 - status: `approved`
-- state: `implementing`
+- state: `reviewing`
 - approval: `maintainer approved, 2026-10-19`
 - execution_authority: `autonomous execution of this delivery set approved`
 - updated: `2026-10-19`
-- active_slice: `Slice 1 - Validated Codex structured calls (implementing)`
-- active_task: `T1.3 (in progress)`
+- active_slice: `Slice 1 - Validated Codex structured calls (reviewing)`
+- active_task: `T1.3 (implemented; PR preparation)`
 - completed_slices: `0/7`
-- completed_tasks: `2/21`
+- completed_tasks: `3/21`
 - controller: `external Looper controller`
 - plan: [Pi Harness plan](../plans/2026-10-19-redwright-pi-harness-cycle-plan.md)
 - spec: [Pi Harness specification](../specs/specs/2026-10-19-redwright-pi-harness-spec.md)
@@ -37,11 +37,11 @@ Approved: maintainer, 2026-10-19; explicit approval of the seven-slice plan, dep
 
 ### Slice 1: Validated Codex structured calls
 
-- status: `implementing`
+- status: `reviewing`
 - branch: `fix/slice-1-pi-validated-codex`
 - expected_pr_title: `feat(slice-1): validated codex structured calls`
 - report: `ops/artifacts/slices/pi-harness/slice-1-validated-codex.md`
-- ticket: [TKT-20261019165600](../tickets/in_progress/20261019165600-preserve-codex-authoring-through-validated-rails-calls.md)
+- ticket: [TKT-20261019165600](../tickets/reviewing/20261019165600-preserve-codex-authoring-through-validated-rails-calls.md)
 - merge_target: `dev`
 - PR: `pending`
 - last_sync_commit: `none`
@@ -50,19 +50,19 @@ Tasks:
 
 - [x] `T1.1` Introduce Harnesses request/result values, StructuredCall and host JSON-Schema validation; add the approved json_schemer 2.5.0 to the Rails bundle.
 - [x] `T1.2` Extract a CodexAdapter and route Specifications, Slicing, Dumps and protocol references through it without changing their prompts, defaults, deadlines or file authority.
-- [ ] `T1.3` Cover real subprocess success/failure, nested schema rejection and preservation of existing artifacts/statuses.
+- [x] `T1.3` Cover real subprocess success/failure, nested schema rejection and preservation of existing artifacts/statuses.
 
 Commits:
 
 - `T1.1`: `6908a8c2d403` - host structured-call validation.
-- `T1.2`: adapter extraction task commit in branch history.
+- `T1.2`: `89dac88b963a` - shared Codex adapter and consumer routing.
 
 Validation:
 
-- [x] Planned focused checks: 28 tests, 281 assertions; no failures, errors or skips.
-- [ ] Full Rails suite before canonical merge.
+- [x] Planned focused checks: 35 tests, 389 assertions; no failures, errors or skips.
+- [ ] Exact clean-HEAD full Rails suite recorded by the controller before integration.
 - [ ] Changed Ruby syntax and `git diff --check`.
-- [ ] Report reviewed and canonical PR verified merged.
+- [ ] Canonical PR prepared and verified merged by the external controller.
 
 ### Slice 2: Rails selection and retained operations
 
@@ -235,8 +235,8 @@ Validation:
 ## Approval / Blockers
 
 The maintainer approved the plan, dependency and Pi-only autonomous commit,
-push, PR and controller-merge authority on 2026-10-19. Execution has not yet
-started. Publish these artifacts before configuring the controller.
+push, PR and controller-merge authority on 2026-10-19. Slice 1 is implemented in its dedicated worktree; the external controller owns
+validation evidence and all merge mutations.
 
 Before startup, prepare the independent clean execution checkout described in
 the plan and publish only the approved Pi artifacts. Preserve the existing
@@ -264,3 +264,5 @@ Linux acceptance. No result here claims either was verified.
 - `2026-10-19` state=`planning`: prepared 7 ordered slices and 21 tasks; all implementation remains pending.
 
 - `2026-10-19` state=`idle`: maintainer approved the complete contract and autonomous Pi-only integration.
+
+- `2026-10-19` state=`reviewing`: Slice 1 tasks implemented; focused validation passed (35 tests, 389 assertions). Canonical PR preparation and final controller validation are pending.

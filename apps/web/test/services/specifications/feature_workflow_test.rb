@@ -79,6 +79,33 @@ class FeatureWorkflowTest < ActiveSupport::TestCase
     assert_raises(Specifications::Error) { Document.reconcile!(@project) }
   end
 
+  test "schema rejection preserves slicing artifacts" do
+    # Nested validation must run before tracker invalidation or ticket materialization.
+    ticket = @board.tickets.create!(column: @ready, title: "Keep", use_case: @feature)
+    entry = @tracker.generate!(specification: @specification, tickets: [ticket])
+    tracker_path = Pathname.new(@project.root_path).join(entry[:path])
+    original_tracker = tracker_path.binread
+    original_ticket = ticket.source
+    original_specification = @specification.source
+    cases = {
+      "nested type" => '{tickets: [{key: nil, title: 7, body: "Invalid"}]}',
+      "missing key" => '{tickets: [{title: "New", body: "Missing key"}]}',
+      "nested extra field" => '{tickets: [{key: nil, title: "New", body: "Text", execute: true}]}',
+      "empty tickets" => '{tickets: []}',
+      "too many tickets" => '{tickets: Array.new(21) { {key: nil, title: "New", body: "Text"} }}'
+    }
+    cases.each do |name, expression|
+      harness = Specifications::Slicing::Harness.new(program: harness_program(expression))
+      assert_no_difference "Ticket.count" do
+        assert_raises(Specifications::Error, name) { Specifications::Slicing.new(specification: @specification, harness: harness).call }
+      end
+      assert_equal original_tracker, tracker_path.binread, name
+      assert_equal original_ticket, ticket.source, name
+      assert_equal original_specification, @specification.source, name
+      assert_equal "tracking", Features::Workflow.new(@feature).tracker_entry[:status], name
+    end
+  end
+
   test "a feature dump can resume without creating another artifact" do
     runtime = Dumps::Documents.new(@project)
     dump = runtime.open(use_case_name: @feature.name)

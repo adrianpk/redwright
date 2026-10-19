@@ -40,4 +40,26 @@ class DumpCurationTest < ActiveSupport::TestCase
     assert_equal :conflict, error.code
     assert_equal "External edit", dump.source[:body]
   end
+
+  test "invalid output preserves dump bytes and status" do
+    # A schema-valid blank body still fails the existing domain validator.
+    project = create_project
+    dump = project.dumps.create!(body: "Original notes", status: "ready")
+    original = dump.source
+    program = Pathname.new(project.root_path).join("invalid-harness")
+    cases = {
+      "invalid JSON" => "{",
+      "extra field" => JSON.generate(title: dump.title, body: "Changed", extra: true),
+      "blank body" => JSON.generate(title: dump.title, body: " ")
+    }
+    cases.each do |name, output|
+      program.write("#!/usr/bin/env ruby\nFile.binwrite(ARGV[ARGV.index('--output-last-message') + 1], #{output.dump})\n")
+      program.chmod(0o700)
+      assert_raises(Specifications::Error, name) do
+        Dumps::Documents.new(project).curate(dump, revision: dump.source_hash, harness: Dumps::Harness.new(program: program.to_s))
+      end
+      assert_equal original, dump.source, name
+      assert_equal "ready", dump.reload.status, name
+    end
+  end
 end

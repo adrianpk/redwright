@@ -14,8 +14,8 @@ Approved: maintainer, 2026-10-19; explicit approval of the seven-slice plan, dep
 - created: `2026-10-19`
 - goal: `Use prepared Pi or Codex profiles through Rails authoring and bounded ticket proposals while retaining host validation and workflow authority.`
 - scope: `feature`
-- active_slice: `Slice 1 - Validated Codex structured calls (implementing)`
-- active_task: `T1.3 (in progress)`
+- active_slice: `Slice 1 - Validated Codex structured calls (reviewing)`
+- active_task: `T1.3 (implemented; PR preparation)`
 - merge_target: `dev`
 - observed_base: `8d63f6fbe6fb67e0bd7ef26bbfb474735ae43cf1`
 
@@ -133,12 +133,12 @@ supporting slice records; plan and tracker remain the execution authority.
 
 ### Slice 1: Validated Codex structured calls
 
-- status: `implementing`
+- status: `reviewing`
 - dependencies: approved and committed delivery artifacts; clean execution checkout
 - branch: `fix/slice-1-pi-validated-codex`
 - expected_pr_title: `feat(slice-1): validated codex structured calls`
 - report: `ops/artifacts/slices/pi-harness/slice-1-validated-codex.md`
-- ticket: [TKT-20261019165600](../tickets/in_progress/20261019165600-preserve-codex-authoring-through-validated-rails-calls.md)
+- ticket: [TKT-20261019165600](../tickets/reviewing/20261019165600-preserve-codex-authoring-through-validated-rails-calls.md)
 - objective: All existing authoring operations keep working through one Rails structured-call service with full host schema validation and unchanged domain publication.
 - acceptance_mapping: `PI-01, PI-03, PI-04, PI-05`
 
@@ -146,7 +146,7 @@ Tasks:
 
 - [x] `T1.1` Introduce Harnesses request/result values, StructuredCall and host JSON-Schema validation; add the approved json_schemer 2.5.0 to the Rails bundle.
 - [x] `T1.2` Extract a CodexAdapter and route Specifications, Slicing, Dumps and protocol references through it without changing their prompts, defaults, deadlines or file authority.
-- [ ] `T1.3` Cover real subprocess success/failure, nested schema rejection and preservation of existing artifacts/statuses.
+- [x] `T1.3` Cover real subprocess success/failure, nested schema rejection and preservation of existing artifacts/statuses.
 
 Acceptance:
 

@@ -102,6 +102,31 @@ module ProjectProtocols
       assert_raises(Specifications::Error) { @service.delete(index, revision: index.revision) }
     end
 
+    test "invalid output preserves protocol files" do
+      # Reject invalid reference data before either side of the file transaction changes.
+      document = @service.create(name: "invariants", description: "Rules.", body: "Original")
+      original_index = @store.snapshot("AGENTS.md")
+      original_document = @store.snapshot(document.path)
+      program = @store.root.join("invalid-harness")
+      cases = {
+        "invalid JSON" => "{",
+        "wrong type" => JSON.generate(body: []),
+        "unknown field" => JSON.generate(body: "Changed", extra: true),
+        "blank body" => JSON.generate(body: " ")
+      }
+      cases.each do |name, output|
+        program.write("#!/usr/bin/env ruby\nFile.binwrite(ARGV[ARGV.index('--output-last-message') + 1], #{output.dump})\n")
+        program.chmod(0o700)
+        service = Documents.new(store: @store, harness: ReferenceHarness.new(program: program.to_s))
+        assert_raises(Specifications::Error, name) do
+          service.update(document, name: "renamed", body: "Unsaved", revision: document.revision, agents_revision: document.agents_revision)
+        end
+        assert_equal original_index, @store.snapshot("AGENTS.md"), name
+        assert_equal original_document, @store.snapshot(document.path), name
+        assert_not @store.root.join(".agents/RENAMED.md").exist?, name
+      end
+    end
+
     test "sync delegates playbooks while preserving other instructions" do
       # Reconcile the former flat list and keep nested procedures discoverable through their index.
       @store.create(".agents/PLAYBOOKS.md", "# Playbooks Index\n\nKeep these index instructions.\n\n")

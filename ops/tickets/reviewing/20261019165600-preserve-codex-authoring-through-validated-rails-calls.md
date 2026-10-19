@@ -1,7 +1,7 @@
 ---
 id: TKT-20261019165600
 title: Preserve Codex authoring through validated Rails calls
-status: in_progress
+status: reviewing
 kind: task
 severity: unclassified
 priority: normal
@@ -11,7 +11,7 @@ source: chat
 reported_at: 2026-10-19T16:56:00Z
 ready_at: 2026-10-19T17:08:55Z
 started_at: 2026-10-19T17:17:00Z
-reviewed_at:
+reviewed_at: 2026-10-19T17:20:00Z
 closed_at:
 resolution:
 owner:
@@ -46,15 +46,16 @@ All existing authoring operations keep working through one Rails structured-call
 
 ## Actual
 
-Host schema validation and the shared Codex adapter are implemented. The four
-existing authoring consumers passed their focused subprocess regressions.
-Additional failure and artifact-preservation coverage is in progress.
+All three Slice 1 tasks are implemented. The four existing authoring consumers
+use the shared Codex adapter, host schema validation and unchanged domain/file
+owners. Focused validation passed: 35 tests and 389 assertions. Final clean-HEAD
+checks are retained by the external controller before PR readiness.
 
 ## Tasks
 
 - [x] `T1.1` Introduce Harnesses request/result values, StructuredCall and host JSON-Schema validation; add the approved json_schemer 2.5.0 to the Rails bundle.
 - [x] `T1.2` Extract a CodexAdapter and route Specifications, Slicing, Dumps and protocol references through it without changing their prompts, defaults, deadlines or file authority.
-- [ ] `T1.3` Cover real subprocess success/failure, nested schema rejection and preservation of existing artifacts/statuses.
+- [x] `T1.3` Cover real subprocess success/failure, nested schema rejection and preservation of existing artifacts/statuses.
 
 ## Planned Commits
 
@@ -77,5 +78,5 @@ gate. These commands are planned, not reported as passed.
 
 ## Outcome
 
-Implementation is in progress under the approved plan. Existing Settings/Setup changes,
+Implementation is ready for canonical PR preparation and controller validation. Existing Settings/Setup changes,
 preview services, credentials and active databases remain outside this ticket.
