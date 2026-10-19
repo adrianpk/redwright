@@ -1,9 +1,6 @@
 default: &default
-  max_tags: 5
   max_context_dumps: 8
   max_context_dump_bytes: 20000
-  entry_polishing_enabled: true
-  curation_enabled: true
 
 development:
   <<: *default

@@ -125,7 +125,12 @@ Agent ticket execution composes policy-selectable context from:
 
 Quiz generation supplies project and quiz context sections. Project setup prompt rendering supplies setup summary, next prompt intent, setup context, and current user text sections.
 
-Dump context can come from repository conversation artifacts under `ops/conv/dump` and from database-backed Conversation dumps captured through the web app or Telegram. Agent ticket execution selects only dumps that are closed, curated, allowed by the effective context policy, and matched to the ticket or project scope. Active or uncurated dumps are omitted with an explicit diagnostic reason.
+Dump context comes from the selected project's Markdown documents. The database
+indexes their metadata and paths; it does not supply a second body. Agent ticket
+execution selects non-empty, non-archived dumps allowed by the effective context
+policy and matched to the ticket's case and topic. Omitted documents carry an
+explicit diagnostic reason. Quiz and spec generation also read the current file.
+
 
 Protocols are read from the project's root `AGENTS.md` and Markdown files under
 `.agents/`. The dedicated `protocol_files` section uses those same files as the

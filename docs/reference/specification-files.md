@@ -99,8 +99,9 @@ External edits refresh before board reads and pickup. Forms reject stale source
 revisions. Missing files require restoration and never authorize deleting
 history. Delivery tickets cannot be hard deleted.
 
-Comments, project context, use cases, dumps, and quizzes retain their existing
-database storage. They do not duplicate the authoritative ticket body. Slicing
+Comments, project context, use cases, and quizzes retain their existing
+database storage. Dump bodies live in project Markdown files; their database
+rows are rebuildable metadata indexes. They do not duplicate the authoritative ticket body. Slicing
 is limited to 20 tickets and 128 KB of input context; the harness execution and
 output bounds also apply.
 
@@ -120,7 +121,9 @@ bundle exec rake 'specifications:prepare_database[/path/to/rebuilt.sqlite3]'
 The task takes a consistent SQLite snapshot, builds the separate database from
 the original migrations, copies unchanged domain tables, exports legacy
 Markdown bodies into the owning project workspaces, and rebuilds document and
-relation indexes. It exports ticket files, preserving ticket IDs, prior metadata,
+relation indexes. It exports legacy dump notes and useful synthesis into one
+editable file per dump, retaining IDs, scope, tags, and a single document status.
+It exports ticket files, preserving ticket IDs, prior metadata,
 comments, and relationships, and validates foreign keys. Legacy standalone drafts
 that fed approved specifications become internal historical reports with exact
 bodies and relation edges intact. Unscoped specifications receive a feature case.

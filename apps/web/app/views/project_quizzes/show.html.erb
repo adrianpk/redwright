@@ -1,8 +1,5 @@
 <main class="document-artifacts-show">
   <header class="document-artifacts-header">
-    <p class="document-artifact-breadcrumb">
-      <%= link_to "Quizzes", project_quizzes_path(@project) %>
-    </p>
     <div class="quiz-header-row">
       <h1><%= @quiz.use_case&.name || "Project Quiz" %></h1>
       <div class="quiz-mode-switch" aria-label="Quiz mode">

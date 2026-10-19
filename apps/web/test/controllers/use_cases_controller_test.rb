@@ -237,7 +237,7 @@ class UseCasesControllerTest < ActionDispatch::IntegrationTest
     refute_includes response.body, "Slug can&#39;t be blank"
   end
 
-  test "top navigation follows chryso order" do
+  test "top navigation preserves order and identifies the current section" do
     admin = create_admin_user!
     sign_in_as(admin)
     project = create_project(key: "use-cases-nav")
@@ -247,5 +247,21 @@ class UseCasesControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_equal %w[Cases Dumps Quizzes Specs Board Protocol Settings], css_select(".top-nav-link").map(&:text)
     assert_match "href=\"#{project_use_cases_path(project)}\"", response.body
+
+    board = create_board(project: project)
+    [
+      [project_use_cases_path(project), "Cases"],
+      [project_dumps_path(project), "Dumps"],
+      [project_quizzes_path(project), "Quizzes"],
+      [documents_path(project_id: project.id), "Specs"],
+      [board_path(board), "Board"],
+      [project_protocols_path(project), "Protocol"],
+      [protocol_templates_path, "Settings"]
+    ].each do |path, section|
+      get path
+
+      assert_response :success
+      assert_select ".top-nav-link[aria-current='page']", count: 1, text: section
+    end
   end
 end

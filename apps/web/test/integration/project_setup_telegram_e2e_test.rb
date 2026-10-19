@@ -318,7 +318,7 @@ class ProjectSetupTelegramE2eTest < ActiveSupport::TestCase
     assert_match "Support", listed.message
   end
 
-  test "telegram dump opens appends and completes project dump" do
+  test "telegram replaces one dump document and marks it ready" do
     adapter = adapter_for_chat
     project = create_project(key: "telegram-dump-project")
     adapter.instance_variable_get(:@project_ids_by_chat)[90_001] = project.id
@@ -331,18 +331,18 @@ class ProjectSetupTelegramE2eTest < ActiveSupport::TestCase
     assert appended.handled?
     assert completed.handled?
     assert_equal "dump_open", opened.command
-    assert_equal "dump_append", appended.command
+    assert_equal "dump_update", appended.command
     assert_equal "dump_done", completed.command
     assert_match "Controls: /dump done, /dump cancel", opened.message
-    assert_match "Dump entry captured.", appended.message
-    refute_match "Capture concise dump notes.", appended.message
-    assert_match "Dump capture completed and curated.", completed.message
+    assert_match "Dump saved.", appended.message
+    assert_match "Capture concise dump notes.", appended.message
+    assert_match "Status: ready", completed.message
 
     dump = project.dumps.first
-    assert_equal "closed", dump.capture_status
-    assert_includes %w[curated needs_review], dump.curation_status
-    assert dump.curated_body.present?
-    assert_equal "Capture concise dump notes.", dump.entries.first.raw_input
+    assert_equal "ready", dump.status
+    assert_equal "Capture concise dump notes.", dump.body
+    assert_equal 1, project.dumps.count
+
   end
 
   test "telegram dump for use case list show and cancel are scoped" do
@@ -367,7 +367,7 @@ class ProjectSetupTelegramE2eTest < ActiveSupport::TestCase
     assert_equal "Billing Flow", dump.use_case.name
     assert_match "Billing Flow", listed.message
     assert_match dump.title, shown.message
-    assert_equal "cancelled", dump.reload.status
+    assert_equal "draft", dump.reload.status
   end
 
   private

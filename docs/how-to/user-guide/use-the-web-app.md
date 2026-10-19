@@ -48,7 +48,7 @@ The top navigation provides separate entries, in this order:
 - `Dumps` for user-led knowledge capture
 - `Quizzes` for RedWright-led questionnaire capture
 
-Closed and curated dumps can be selected as ticket execution context when the context policy and scope match.
+Non-archived dump documents can be selected as ticket execution context when the context policy, scope, and topic match.
 
 5. Use the board.
 

@@ -800,7 +800,7 @@ module AgentTicketExecution
     end
 
     class Dumps < Base
-      def initialize(configuration: DumpLoops::Configuration.current)
+      def initialize(configuration: ::Dumps::Configuration.current)
         @configuration = configuration
       end
 
@@ -857,8 +857,7 @@ module AgentTicketExecution
           "id" => dump["id"],
           "project_id" => dump["project_id"],
           "use_case_id" => dump["use_case_id"],
-          "curation_status" => dump["curation_status"],
-          "capture_status" => dump["capture_status"],
+          "status" => dump["status"],
           "tags" => dump["tags"],
           "selection_reason" => dump["selection_reason"],
           "omission_reason" => dump["omission_reason"]
@@ -877,90 +876,26 @@ module AgentTicketExecution
       end
 
       def dumps
-        root = repository_root
-        (repository_dumps(root) + database_dumps).sort_by { |dump| dump.fetch("updated_at") }.reverse.first(inventory_limit)
+        Dump.reconcile!(context.project)
+        context.project.dumps.includes(:use_case, :tags).order(source_modified_at: :desc, id: :desc).limit(configuration.max_context_dumps * 3).map do |dump|
+          {
+            "source" => "repository_dump_artifact", "id" => dump.id,
+            "project_id" => dump.project_id, "use_case_id" => dump.use_case_id,
+            "title" => dump.title, "topic" => dump.title, "path" => dump.relative_path,
+            "body" => dump.body, "status" => dump.status, "tags" => dump.tags.map(&:name).sort
+          }
+        end
       end
 
       private
 
       attr_reader :context, :configuration
-
-      def inventory_limit
-        configuration.max_context_dumps * 3
-      end
-
-      def repository_dumps(root)
-        return [] unless root
-
-        Dir.glob(File.join(root, "ops", "conv", "dump", "*-dump.md")).filter_map do |path|
-          relative = path.delete_prefix("#{root}/")
-          next if relative.end_with?("-dump-raw.md")
-
-          {
-            "source" => "repository_dump_artifact",
-            "title" => title_for(path),
-            "topic" => topic_for(path),
-            "path" => relative,
-            "body" => read_file(path),
-            "curation_status" => "curated",
-            "capture_status" => "closed",
-            "tags" => [],
-            "updated_at" => File.mtime(path)
-          }
-        end
-      end
-
-      def database_dumps
-        context.project.dumps.includes(:use_case, :tags).order(updated_at: :desc, created_at: :desc).limit(inventory_limit).map do |dump|
-          {
-            "source" => "database_dump",
-            "id" => dump.id,
-            "project_id" => dump.project_id,
-            "use_case_id" => dump.use_case_id,
-            "title" => dump.title,
-            "topic" => dump.summary.presence || dump.title,
-            "path" => "database:dumps/#{dump.slug}",
-            "body" => dump.curated_body.presence || dump.raw_body,
-            "curation_status" => dump.curation_status,
-            "capture_status" => dump.capture_status,
-            "tags" => dump.tags.map(&:name).sort,
-            "updated_at" => dump.updated_at
-          }
-        end
-      end
-
-      def repository_root
-        workspace = context.workspace_path.to_s
-        return workspace if File.directory?(File.join(workspace, "ops", "conv", "dump"))
-
-        root = Rails.root.join("..", "..").expand_path.to_s
-        return root if File.directory?(File.join(root, "ops", "conv", "dump"))
-
-        nil
-      end
-
-      def title_for(path)
-        first_heading = File.foreach(path).find { |line| line.start_with?("# ") }
-        first_heading ? first_heading.delete_prefix("# ").strip : File.basename(path, ".md")
-      rescue StandardError
-        File.basename(path, ".md")
-      end
-
-      def topic_for(path)
-        File.basename(path, "-dump.md").sub(/\A\d{4}-\d{2}-\d{2}-/, "")
-      end
-
-      def read_file(path)
-        File.binread(path, configuration.max_context_dump_bytes)
-      rescue StandardError => e
-        "[unreadable: #{e.class.name}]"
-      end
     end
 
     class DumpContextSelector
       attr_reader :dumps, :ticket, :project, :context_policy
 
-      def initialize(dumps:, ticket:, project:, context_policy:, configuration: DumpLoops::Configuration.current)
+      def initialize(dumps:, ticket:, project:, context_policy:, configuration: ::Dumps::Configuration.current)
         @dumps = dumps
         @ticket = ticket
         @project = project
@@ -990,7 +925,7 @@ module AgentTicketExecution
 
       def selected_dump?(dump)
         return false unless context_policy_allows_dumps?
-        return false unless curated_dump?(dump)
+        return false unless available_dump?(dump)
         return false unless matched_use_case_scope?(dump)
 
         relevant_to_ticket?(dump) || relevant_to_project?(dump)
@@ -1008,8 +943,8 @@ module AgentTicketExecution
         project_terms.any? { |term| dump_terms(dump).include?(term) }
       end
 
-      def curated_dump?(dump)
-        dump.fetch("curation_status", "curated") == "curated" && dump.fetch("capture_status", "closed") == "closed"
+      def available_dump?(dump)
+        dump["status"] != "archived" && dump["body"].present?
       end
 
       def matched_use_case_scope?(dump)
@@ -1054,7 +989,7 @@ module AgentTicketExecution
       def omission_reason(dump)
         return "policy_excludes_dumps:#{context_policy}" unless context_policy_allows_dumps?
         return "unmatched_use_case:#{dump.fetch("use_case_id")}" unless matched_use_case_scope?(dump)
-        return "uncurated_or_active_dump" unless curated_dump?(dump)
+        return "empty_or_archived_dump" unless available_dump?(dump)
 
         "no_topic_match"
       end

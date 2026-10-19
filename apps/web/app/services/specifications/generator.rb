@@ -21,14 +21,14 @@ module Specifications
       context["request_id"] = request_id
       output = @harness.generate(context: context, workspace: store.root.to_s)
       sources = ["- project: #{@project.id}"]
-      sources += context.fetch("dumps").map { |dump| "- dump: #{dump.fetch("id")}" }
+      sources += context.fetch("dumps").map { |dump| "- dump: #{dump.fetch("relative_path")}" }
       sources += context.fetch("quiz_answers").map { |entry| entry.fetch("quiz_id") }.uniq.map { |id| "- quiz: #{id}" }
       body = output.fetch("body") + "\n\n## Provenance\n\n" + sources.join("\n") + "\n"
       document ||= @project.documents.new(artifact_type: "spec", use_case: @use_case)
       document.assign_attributes(title: output.fetch("title"), body: body, status: "draft")
       document.revision = revision
       document.provenance = {"source_request_id" => request_id, "source_response_id" => Digest::SHA256.hexdigest(output.to_json),
-        "generation_source" => "wrapped_harness", "discovery_dump_ids" => context.fetch("dumps").map { |dump| dump.fetch("id") }}
+        "generation_source" => "wrapped_harness", "discovery_dump_paths" => context.fetch("dumps").map { |dump| dump.fetch("relative_path") }}
       workflow.with_lock do
         workflow.ensure_mutable!
         document.save!

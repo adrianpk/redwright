@@ -7,7 +7,6 @@ class Project < ApplicationRecord
   has_many :quizzes, dependent: :restrict_with_error
   has_many :quiz_entries, dependent: :restrict_with_error
   has_many :dumps, dependent: :restrict_with_error
-  has_many :dump_entries, dependent: :restrict_with_error
   has_many :taggings, dependent: :restrict_with_error
   has_one :runtime_container, class_name: "ProjectRuntimeContainer", dependent: :destroy
 

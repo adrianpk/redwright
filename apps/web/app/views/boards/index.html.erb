@@ -1,5 +1,5 @@
 <main class="boards-index">
-  <h1>Boards</h1>
+  <h1 class="visually-hidden">Boards</h1>
   <section class="boards-list">
     <% @boards.each do |board| %>
       <%= link_to board_path(board), class: "board-list-card" do %>

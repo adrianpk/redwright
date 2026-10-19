@@ -3,7 +3,7 @@ require "fileutils"
 
 module Specifications
   class DatabaseRebuild
-    INDEX_TABLES = %w[tickets documents document_relations schema_migrations ar_internal_metadata].freeze
+    INDEX_TABLES = %w[dumps dump_entries tickets documents document_relations schema_migrations ar_internal_metadata].freeze
 
     def self.prepare!(output_path:)
       original = ActiveRecord::Base.connection_db_config.configuration_hash
@@ -21,6 +21,7 @@ module Specifications
         ActiveRecord::Base.connection_pool.migration_context.migrate
         ActiveRecord::Base.descendants.each(&:reset_column_information)
         copy_domain_tables!(snapshot, output)
+        import_dumps!(snapshot)
         import_tickets!(snapshot)
         import_documents!(snapshot)
         violations = ActiveRecord::Base.connection.select_all("PRAGMA foreign_key_check")
@@ -63,6 +64,31 @@ module Specifications
       end
     ensure
       target&.close
+      source&.close
+    end
+
+    def self.import_dumps!(snapshot)
+      source = SQLite3::Database.new(snapshot)
+      source.results_as_hash = true
+      tables = source.execute("SELECT name FROM sqlite_master WHERE type = 'table'").map { |row| row["name"] }
+      return unless tables.include?("dumps")
+      Project.find_each do |project|
+        rows = source.execute("SELECT * FROM dumps WHERE project_id = ?", [project.id])
+        next if rows.empty?
+        entries = if rows.first.key?("relative_path")
+          rows.map { |row| Dumps::FileStore.new(project).read(row.fetch("relative_path")) }
+        else
+          notes = tables.include?("dump_entries") ? source.execute("SELECT * FROM dump_entries WHERE project_id = ?", [project.id]) : []
+          tags = rows.to_h { |row| [row["id"], Tag.joins(:taggings).where(taggings: {taggable_type: "Dump", taggable_id: row["id"]}).pluck(:name)] }
+          Dumps::LegacyExporter.new(project: project, dumps: rows, entries: notes, tags: tags).export!
+        end
+        entries.zip(rows).each do |entry, row|
+          Dump.insert_all!([Dump.index_values(entry).merge(id: row.fetch("id"), project_id: project.id,
+            created_at: row.fetch("created_at"), updated_at: row.fetch("updated_at"))])
+        end
+        Dump.reconcile!(project)
+      end
+    ensure
       source&.close
     end
 
@@ -128,6 +154,6 @@ module Specifications
       source&.close
     end
 
-    private_class_method :backup!, :copy_domain_tables!, :import_documents!, :import_tickets!
+    private_class_method :backup!, :copy_domain_tables!, :import_documents!, :import_tickets!, :import_dumps!
   end
 end

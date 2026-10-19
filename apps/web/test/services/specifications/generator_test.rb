@@ -7,7 +7,7 @@ class SpecificationsGeneratorTest < ActiveSupport::TestCase
     project = document.project
     use_case = create_use_case(project: project)
     dump = project.dumps.create!(title: "Billing ideas", use_case: use_case)
-    dump.entries.create!(raw_input: "Allow consolidated invoices")
+    dump.update!(body: "Allow consolidated invoices")
     quiz = use_case.find_or_create_quiz!
     quiz.entries.create!(question: "Which currency?", answer: "USD only", status: "answered")
     program = Pathname.new(project.root_path).join("test-harness")
@@ -15,7 +15,7 @@ class SpecificationsGeneratorTest < ActiveSupport::TestCase
       #!/usr/bin/env ruby
       require "json"
       context = JSON.parse(STDIN.read.split("Context:\n", 2).last)
-      raise "missing dump" unless context["dumps"].first["entries"].first["raw_input"].include?("consolidated")
+      raise "missing dump" unless context["dumps"].first["body"].include?("consolidated")
       raise "missing decision" unless context["quiz_answers"].first["answer"] == "USD only"
       path = ARGV[ARGV.index("--output-last-message") + 1]
       File.write(path, JSON.generate({title: "Consolidated invoices", body: "# Invoice behavior\n\nUSD invoices only."}))
@@ -29,6 +29,8 @@ class SpecificationsGeneratorTest < ActiveSupport::TestCase
     assert_match %r{\Aops/default/spec/\d{5}-consolidated-invoices/artifact.md\z}, generated.relative_path
     metadata = generated.source[:metadata]
     assert_equal "wrapped_harness", metadata["generation_source"]
+    assert_equal [dump.relative_path], metadata["discovery_dump_paths"]
+    assert_includes generated.body, "- dump: #{dump.relative_path}"
     assert metadata["source_request_id"].present?
     generated.approve!(revision: generated.source_hash)
     assert_equal metadata["source_response_id"], generated.source[:metadata]["source_response_id"]
@@ -59,7 +61,7 @@ class SpecificationsGeneratorTest < ActiveSupport::TestCase
     project = document.project
     use_case = create_use_case(project: project)
     foreign = create_use_case(project: project, name: "Unrelated")
-    project.dumps.create!(title: "Unrelated notes", use_case: foreign, raw_body: "Do not inject")
+    project.dumps.create!(title: "Unrelated notes", use_case: foreign, body: "Do not inject")
     context = Specifications::ContextBuilder.new(project: project, use_case: use_case).to_h
     assert_empty context.fetch("dumps")
     assert_empty context.fetch("quiz_answers")

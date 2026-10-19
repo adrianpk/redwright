@@ -17,6 +17,18 @@
   box-sizing: border-box;
 }
 
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
 body {
   margin: 0;
   font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
@@ -79,6 +91,8 @@ body {
   align-items: center;
   justify-content: center;
   gap: 14px;
+  flex-wrap: wrap;
+  max-width: 100%;
 }
 
 .top-nav-link {
@@ -87,6 +101,12 @@ body {
   font-weight: 600;
   text-decoration: none;
   padding: 2px 0;
+  border-bottom: 2px solid transparent;
+}
+
+.top-nav-link[aria-current="page"] {
+  color: var(--accent-red);
+  border-bottom-color: currentColor;
 }
 
 .top-nav-link:hover {
@@ -1061,6 +1081,23 @@ body {
   align-self: flex-start;
 }
 
+.artifact-metadata {
+  margin-bottom: 0;
+}
+
+.artifact-metadata .artifact-context-chip {
+  gap: 6px;
+}
+
+.artifact-metadata dt {
+  color: var(--muted);
+  font-weight: 400;
+}
+
+.artifact-metadata dd {
+  margin: 0;
+}
+
 .artifact-relations {
   margin-top: 12px;
 }
@@ -1125,6 +1162,11 @@ body {
   align-items: center;
   justify-content: space-between;
   gap: 10px;
+}
+
+.board-title-row.catalog-actions {
+  justify-content: flex-end;
+  align-items: flex-end;
 }
 
 .board-key {
@@ -2113,3 +2155,16 @@ body {
   color: var(--navy-soft);
   border: 1px solid rgba(58, 74, 99, 0.24);
 }
+
+.dump-document-view {
+  min-height: 12rem;
+  cursor: text;
+  overflow-wrap: anywhere;
+}
+.dump-document-view:focus-visible { outline: 2px solid currentColor; outline-offset: 6px; }
+.dump-document-placeholder, .dump-document-feedback { color: #65707c; }
+.dump-document-feedback { min-height: 1.4em; margin: 0.75rem 0 0; font-size: 0.85rem; }
+.dump-document-toolbar { display: flex; align-items: center; gap: 0.75rem; }
+.dump-document-toolbar button { margin-left: auto; }
+.dump-document-error { color: #a52d33; }
+.dump-document-editor[hidden], .dump-document-view[hidden] { display: none; }

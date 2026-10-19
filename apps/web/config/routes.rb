@@ -12,14 +12,8 @@ Rails.application.routes.draw do
   resources :passwords, param: :token
   resources :projects, only: [ :index, :new, :create, :show ]
   resources :projects, only: [] do
-    resources :dumps, controller: "project_dumps", only: [ :index, :new, :show, :create ] do
-      member do
-        post :reopen
-        post :append
-        post :done
-        post :cancel
-        post :curate
-      end
+    resources :dumps, controller: "project_dumps", only: [:index, :new, :show, :create, :update] do
+      post :curate, on: :member
     end
     resources :use_cases, only: [ :index, :new, :create, :edit, :update, :destroy ], param: :slug
     resources :quizzes, controller: "project_quizzes", only: [ :index, :show ] do

@@ -16,12 +16,12 @@ class FeatureWorkflowTest < ActiveSupport::TestCase
     ticket = @board.tickets.create!(column: @ready, title: "Existing work", use_case: @feature)
     @tracker.generate!(specification: @specification, tickets: [ticket])
     dump = @project.dumps.create!(use_case: @feature, title: "Later context")
-    dump.entries.create!(raw_input: "Consolidate invoices")
+    dump.update!(body: "Consolidate invoices")
     quiz = @feature.find_or_create_quiz!
     quiz.entries.create!(question: "Currency?", answer: "USD", status: "answered")
     program = harness_program(<<~'RUBY')
       raise "missing original" unless context.fetch("current_specification").fetch("body").include?("Manual contract")
-      raise "missing dump" unless context.fetch("dumps").first.fetch("entries").first.fetch("raw_input") == "Consolidate invoices"
+      raise "missing dump" unless context.fetch("dumps").first.fetch("body") == "Consolidate invoices"
       raise "missing answer" unless context.fetch("quiz_answers").first.fetch("answer") == "USD"
       {title: "Revised contract", body: "# Revised\n\nConsolidated USD invoices."}
     RUBY
@@ -80,13 +80,13 @@ class FeatureWorkflowTest < ActiveSupport::TestCase
   end
 
   test "a feature dump can resume without creating another artifact" do
-    runtime = DumpLoops::Runtime.new(project: @project, use_case_name: @feature.name)
-    dump = runtime.open.dump
-    dump.update!(status: "completed", capture_status: "closed")
+    runtime = Dumps::Documents.new(@project)
+    dump = runtime.open(use_case_name: @feature.name)
+    dump.update!(status: "ready")
     assert_no_difference "Dump.count" do
-      resumed = DumpLoops::Runtime.new(project: @project, use_case_name: @feature.name).open.dump
+      resumed = runtime.open(use_case_name: @feature.name)
       assert_equal dump.id, resumed.id
-      assert resumed.capturing?
+      assert_equal "ready", resumed.status
     end
     assert_raises(ActiveRecord::RecordInvalid) { @project.dumps.create!(use_case: @feature, title: "Duplicate") }
   end

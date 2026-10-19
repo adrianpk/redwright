@@ -23,6 +23,7 @@
     <%= javascript_include_tag "board_interactions", defer: true %>
     <%= javascript_include_tag "top_nav_autofold", defer: true %>
     <%= javascript_include_tag "protocol_document_editor", defer: true %>
+    <%= javascript_include_tag "dump_document_editor", defer: true %>
     <%= javascript_include_tag "quiz_processing_feedback", defer: true %>
   </head>
 
@@ -69,17 +70,17 @@
           <% end %>
           <div class="top-nav-links">
             <% if current_project %>
-              <%= link_to "Cases", use_cases_navigation_path, class: "top-nav-link" %>
-              <%= link_to "Dumps", dumps_navigation_path, class: "top-nav-link" %>
-              <%= link_to "Quizzes", quizzes_navigation_path, class: "top-nav-link" %>
+              <%= primary_navigation_link "Cases", use_cases_navigation_path, controllers: "use_cases" %>
+              <%= primary_navigation_link "Dumps", dumps_navigation_path, controllers: "project_dumps" %>
+              <%= primary_navigation_link "Quizzes", quizzes_navigation_path, controllers: "project_quizzes" %>
             <% end %>
-            <%= link_to "Specs", documents_navigation_path, class: "top-nav-link" %>
-            <%= link_to "Board", board_navigation_path, class: "top-nav-link" %>
+            <%= primary_navigation_link "Specs", documents_navigation_path, controllers: "documents" %>
+            <%= primary_navigation_link "Board", board_navigation_path, controllers: %w[boards tickets columns] %>
             <% if current_project %>
-              <%= link_to "Protocol", project_protocols_path(current_project), class: "top-nav-link" %>
+              <%= primary_navigation_link "Protocol", project_protocols_path(current_project), controllers: "project_protocols" %>
             <% end %>
             <% if current_user&.admin? %>
-              <%= link_to "Settings", protocol_templates_path, class: "top-nav-link" %>
+              <%= primary_navigation_link "Settings", protocol_templates_path, controllers: %w[project_protocol_templates project_protocol_template_documents] %>
             <% end %>
           </div>
         </nav>

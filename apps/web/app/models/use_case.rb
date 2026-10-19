@@ -3,7 +3,6 @@ class UseCase < ApplicationRecord
   has_one :quiz, dependent: :restrict_with_error
   has_many :quiz_entries, dependent: :restrict_with_error
   has_many :dumps, dependent: :restrict_with_error
-  has_many :dump_entries, dependent: :restrict_with_error
   has_many :tickets, dependent: :restrict_with_error
   has_many :documents, dependent: :restrict_with_error
   has_one :specification, -> { where(artifact_type: "spec") }, class_name: "Document"
@@ -32,7 +31,6 @@ class UseCase < ApplicationRecord
     {
       "tickets" => tickets.count,
       "dumps" => dumps.count,
-      "dump_entries" => dump_entries.count,
       "corrective_cases" => corrective_cases.count,
       "documents" => documents.count,
       "quiz" => quiz ? 1 : 0,

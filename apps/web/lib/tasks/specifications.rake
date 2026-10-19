@@ -18,6 +18,7 @@ namespace :specifications do
     Project.find_each do |project|
       next unless ProjectProtocols::FileStore.for_project(project).root.directory?
       Document.reconcile!(project)
+      Dump.reconcile!(project)
       puts "Indexed project #{project.id}."
     end
   end

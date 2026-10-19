@@ -1,66 +1,39 @@
-<main class="document-artifacts-show">
+<main class="document-artifacts-show" data-dump-document>
   <header class="document-artifacts-header">
-    <p class="document-artifact-breadcrumb">
-      <%= link_to "Dumps", project_dumps_path(@project) %>
-    </p>
     <div class="quiz-header-row">
       <h1><%= @dump.title %></h1>
-      <div class="quiz-action-group">
-        <% if @dump.capturing? %>
-          <%= button_to "Cancel", cancel_project_dump_path(@project, @dump), method: :post, class: "ticket-action ticket-action-danger" %>
-          <%= button_to "Done", done_project_dump_path(@project, @dump), method: :post, class: "ticket-action" %>
-        <% else %>
-          <%= button_to "Resume", reopen_project_dump_path(@project, @dump), method: :post, class: "ticket-action" %>
-          <%= button_to "Curate", curate_project_dump_path(@project, @dump), method: :post, class: "ticket-action" %>
-        <% end %>
-      </div>
+      <%= button_to "Curate", curate_project_dump_path(@project, @dump), method: :post,
+                    params: {revision: @dump.source_hash}, class: "ticket-action", form: {data: {dump_curate: true, turbo: false}} %>
     </div>
-    <p class="board-key">
-      <%= @dump.use_case&.name || "Project" %> · <%= @dump.status %> · <%= @dump.capture_status %> · <%= @dump.curation_status %>
-    </p>
+    <dl class="artifact-context-row artifact-metadata" aria-label="Dump metadata">
+      <% if @dump.use_case && @dump.use_case.name != @dump.title %>
+        <div class="artifact-context-chip"><dt>Case</dt><dd><%= @dump.use_case.name %></dd></div>
+      <% end %>
+      <div class="artifact-context-chip" data-dump-state data-state="<%= @dump.status %>">
+        <dt>Status</dt><dd data-dump-state-label><%= @dump.status.humanize %></dd>
+      </div>
+    </dl>
   </header>
 
-  <% if @dump.capturing? %>
-    <section class="document-artifact-panel">
-      <%= form_with url: append_project_dump_path(@project, @dump),
-                    method: :post,
-                    class: "document-artifact-form",
-                    id: "dump-entry-form" do |form| %>
-        <div class="document-artifact-field document-artifact-field-body-only">
-          <%= form.text_area :raw_input, rows: 7, placeholder: "Add a dump entry..." %>
-        </div>
-        <div class="document-artifact-actions">
-          <button type="submit" class="ticket-action ticket-action-primary">Add Entry</button>
-        </div>
-      <% end %>
-    </section>
-  <% end %>
-
-  <% if @entries.any? %>
-    <section class="artifact-type-nav" aria-label="Dump entries">
-      <% @entries.each do |entry| %>
-        <article class="artifact-type-card">
-          <h2>Entry <%= entry.position %></h2>
-          <div class="protocol-card-preview" aria-hidden="true">
-            <span><%= entry.polished_input %></span>
-            <% unless entry.derived_thread_hint.blank? %>
-              <span><%= entry.derived_thread_hint %></span>
-            <% end %>
-          </div>
-        </article>
-      <% end %>
-    </section>
-  <% end %>
-
-  <% if @dump.raw_body.present? %>
-    <section class="document-artifact-panel">
-      <pre><%= @dump.raw_body %></pre>
-    </section>
-  <% end %>
-
-  <% if @dump.curated_body.present? %>
-    <section class="document-artifact-panel">
-      <pre><%= @dump.curated_body %></pre>
-    </section>
-  <% end %>
+  <% if flash[:alert] %><p class="dump-document-error" role="alert"><%= flash[:alert] %></p><% end %>
+  <section class="document-artifact-panel">
+    <div class="dump-document-view ticket-markdown" data-dump-view role="button" tabindex="0" aria-label="Edit dump" title="Click to edit">
+      <%= artifact_markdown(@dump.body) %>
+      <% if @dump.body.blank? %><p class="dump-document-placeholder">Click to write.</p><% end %>
+    </div>
+    <%= form_with model: @dump, url: project_dump_path(@project, @dump), method: :patch,
+                  class: "document-artifact-form dump-document-editor", data: {dump_editor: true, turbo: false}, html: {hidden: true} do |form| %>
+      <%= form.hidden_field :revision, value: @dump.source_hash %>
+      <div class="document-artifact-field document-artifact-field-body-only">
+        <%= form.text_area :body, rows: 20, aria: {label: "Dump Markdown"} %>
+      </div>
+      <div class="dump-document-toolbar">
+        <%= form.label :status %>
+        <%= form.select :status, Dump::STATUSES.map { |status| [status.humanize, status] } %>
+        <button type="submit" class="ticket-action">Save</button>
+      </div>
+      <p class="dump-document-error" data-dump-error role="alert" hidden></p>
+    <% end %>
+    <p class="dump-document-feedback" data-dump-feedback role="status" aria-live="polite"></p>
+  </section>
 </main>

@@ -36,9 +36,7 @@ Canonical semantic contract for all ingress surfaces.
 - `OpenQuiz`
 - `AdvanceQuiz`
 - `OpenDump`
-- `AppendDump`
-- `DoneDump`
-- `CancelDump`
+- `UpdateDump`
 - `CurateDump`
 
 ## Queries (v1)
@@ -88,3 +86,13 @@ Recommended error codes:
 - `forbidden_transition`
 - `unsupported_action`
 - `execution_failed`
+
+## Dump Documents
+
+`OpenDump` reuses the case's single dump. `UpdateDump` requires `project_id`,
+`dump_id`, the complete `body`, and its `revision`; `status` is optional.
+`CurateDump` requires the same project, dump, and revision and polishes the
+current document through the wrapped harness. Both writes reject stale revisions.
+`ShowDump` and `ListDumps` refresh the file index and return current Markdown,
+path, status, and revision. Capture, entry, and separate curated-body fields
+are no longer part of the API.

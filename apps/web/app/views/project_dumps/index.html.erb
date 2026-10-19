@@ -1,7 +1,7 @@
 <main class="document-artifacts-index">
   <section class="documents-top-shell">
-    <div class="board-title-row">
-      <h1>Dumps</h1>
+    <div class="board-title-row catalog-actions">
+      <h1 class="visually-hidden">Dumps</h1>
       <%= link_to "New", new_project_dump_path(@project), class: "ticket-action", data: {turbo_frame: "modal"} %>
     </div>
   </section>
@@ -11,8 +11,8 @@
     <% @dumps.each do |dump| %>
       <%= link_to project_dump_path(@project, dump), class: "artifact-type-card" do %>
         <h2><%= dump.title %></h2>
-        <% preview_lines = dump.entries.ordered.last(5).map(&:polished_input) %>
-        <% preview_lines = [dump.summary.presence || "No entries yet"] if preview_lines.empty? %>
+        <% preview_lines = dump.body.lines.map(&:strip).reject(&:blank?).first(5) %>
+        <% preview_lines = ["Empty document"] if preview_lines.empty? %>
         <div class="protocol-card-preview" aria-hidden="true">
           <% preview_lines.each do |line| %>
             <span><%= line %></span>

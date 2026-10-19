@@ -1,5 +1,4 @@
 <main class="document-artifacts-show">
-  <p class="document-artifact-breadcrumb"><%= link_to "Specs", documents_path(project_id: @project.id) %></p>
   <header class="document-artifacts-header">
     <h1><%= @artifact.title %></h1>
     <p class="board-key"><%= @artifact.status.humanize %><% if @artifact.use_case %> · <%= @artifact.use_case.name %><% end %></p>

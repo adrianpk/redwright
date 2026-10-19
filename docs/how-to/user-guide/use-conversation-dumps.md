@@ -2,76 +2,54 @@
 
 ## Purpose
 
-Use Dumps and Quizzes to capture project knowledge through two complementary loops.
+Keep the context for one feature in one editable Markdown document. A quiz can
+then uncover missing decisions, and a specification can use both sources.
 
-## Concepts
+## Edit a Dump
 
-Dumps and Quizzes have separate entries in the top navigation, in that order:
+1. Select the project and open `Dumps`.
+2. Click `New` and choose the feature's use case. Each case has one dump;
+   opening it again reuses the document.
+3. Click the rendered document to edit its Markdown.
+4. Leave the editor or click `Save`. The complete document replaces the previous
+   content. Reading resumes only after a successful save.
 
-- `Dumps`: a user-led capture flow. Use it when you already have context in your
-  head and want to write it down as short notes without turning it into a spec,
-  ticket, or plan yet.
-- `Quizzes`: a RedWright-led questionnaire. Use it when you want RedWright to ask
-  structured questions and help uncover missing project or use-case context.
+The header shows one document status: `Draft`, `Ready`, or `Archived`. Change it
+inside the editor. Ready documents remain editable. Status is stored in the
+file's YAML frontmatter; the database indexes its metadata and path.
 
-Quiz is for discovery. Dump is for preserving what you already know.
+There are no contribution cards, append history, or separate raw and curated
+bodies. Legacy project-level dumps remain accessible.
 
-A dump starts as one or more rough entries. RedWright stores the raw text,
-polishes each entry for readability, and can later curate the completed dump
-into a summary with concepts, decisions, tradeoffs, assumptions, open questions,
-and possible downstream artifacts.
+## Curate the Text
 
-Closed and curated dumps can become context for later ticket execution. Active
-or uncurated dumps are kept visible to the user but are not silently injected
-into unrelated work.
+Click `Curate` to polish spelling, wording, and structure through the local
+wrapped harness. It preserves the document's language, meaning, decisions, and
+open questions, writes the same file, and leaves its status unchanged.
+`REDWRIGHT_DUMP_HARNESS` selects the executable; otherwise the configured
+specification harness or `codex` is used.
 
-Later, captured context can become source material for drafts, specs,
-plans, trackers, or derived tickets. Today, they are preserved as reusable
-context and can inform ticket execution once curated.
+A harness failure leaves the document unchanged. There is no generated fallback
+summary presented as successful curation.
 
-## Before You Start
+## Edit Outside RedWright
 
-- Start the local stack with `bundle exec rake app:run:foreground`.
-- Open the web app at `http://127.0.0.1:3000`.
-- Select the project that should own the captured context.
+New dumps live at `ops/default/dump/<ordinal>-<slug>/artifact.md` inside their
+project workspace. Existing `ops/conv/dump/*-dump.md` documents are also indexed.
+The web app refreshes the index when reading Dumps or building discovery context.
+Quiz and spec generation read the current Markdown file.
 
-## Steps
+If the file changes while you edit or curate it, RedWright refuses to overwrite
+it. The editor keeps your text and displays the conflict. Copy your changes,
+reload the latest file, and reconcile them before saving again.
 
-1. Open `Dumps` from the top navigation.
-
-Use `New` and select the feature's use case in the modal. Each feature has one
-dump. Use `Resume` on a closed dump to add entries to that same artifact.
-
-2. Add entries while the dump is capturing.
-
-Each entry is stored as raw input and a polished version. The polishing step keeps the user intent, corrects wording, redacts obvious secrets, and stores possible tags.
-
-3. Finish or cancel the dump.
-
-Use `Done` to close capture. Use `Cancel` when the dump should not be used.
-
-4. Curate a completed dump.
-
-Use `Curate` after capture is closed. Curated dumps receive a central topic, summary, key concepts, decisions or preferences, tradeoffs, assumptions, downstream artifact hints, open questions, and tags.
-
-## Verify
-
-- The top navigation opens Dumps and Quizzes directly, with Dumps first.
-- Active dumps show `capturing` capture status.
-- Completed dumps show `closed` capture status.
-- Curated dumps show `curated` curation status and include curated body content.
-- Agent ticket context can include only closed and curated dumps whose scope and topic match the request policy.
-
-## Troubleshooting
-
-- If a dump is not available to ticket execution, confirm it is closed and curated.
-- If a dump was captured for a use case, it is selected only for tickets in that use case.
-- If curation falls back, inspect the dump warnings and LLM trace configuration.
-- If sensitive values appear in raw input, edit or remove the source entry before relying on the dump as durable context.
+Non-archived dumps can supply quiz/spec context. Ticket execution also applies
+its context policy, case scope, and topic selection. Archived dumps remain
+visible and editable but are excluded from discovery context.
 
 ## Related Docs
 
 - [Use The Web App](use-the-web-app.md)
 - [Use Telegram](use-telegram.md)
 - [LLM Context Shaping](../../reference/llm-context-shaping.md)
-- [Slash Commands Reference](../../reference/slash-commands.md)
+- [Specification Files](../../reference/specification-files.md)

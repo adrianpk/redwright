@@ -23,11 +23,10 @@ module Specifications
     private
 
     def dumps
-      scope = @project.dumps.where(use_case_id: [nil, @use_case&.id].uniq).where.not(status: %w[cancelled archived]).order(:created_at, :id)
+      Dump.reconcile!(@project)
+      scope = @project.dumps.available.where(use_case_id: [nil, @use_case&.id].uniq).order(:created_at, :id)
       bounded(scope).map do |dump|
-        value = dump.attributes.slice("id", "title", "summary", "raw_body", "curated_body")
-        value["entries"] = bounded(dump.entries.ordered).map { |entry| entry.attributes.slice("raw_input", "polished_input") }
-        value
+        dump.attributes.slice("id", "title", "status", "relative_path").merge("body" => dump.body)
       end
     end
 

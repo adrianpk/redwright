@@ -11,9 +11,10 @@ module Specifications
       properties: {title: {type: "string"}, body: {type: "string"}}
     }.freeze
 
-    def initialize(program: ENV.fetch("REDWRIGHT_SPEC_HARNESS", "codex"), timeout: TIMEOUT_SECONDS, schema: OUTPUT_SCHEMA)
+    def initialize(program: ENV.fetch("REDWRIGHT_SPEC_HARNESS", "codex"), timeout: TIMEOUT_SECONDS, schema: OUTPUT_SCHEMA, artifact_name: "specification")
       @program, @timeout = program, timeout
       @schema = schema
+      @artifact_name = artifact_name
     end
 
     def generate(context:, workspace:)
@@ -31,25 +32,25 @@ module Specifications
         rescue Timeout::Error
           Process.kill("KILL", -pid) rescue Errno::ESRCH
           Process.wait(pid) rescue Errno::ECHILD
-          raise Error, "Specification generation timed out. Try a narrower feature."
+          raise Error, "#{@artifact_name.capitalize} generation timed out. Try again."
         end
-        raise Error, "Specification generation failed. Check the local harness session and try again." unless status.success? && File.file?(output)
-        raise Error, "Generated specification is too large." if File.size(output) > MAX_OUTPUT_BYTES
+        raise Error, "#{@artifact_name.capitalize} generation failed. Check the local harness session and try again." unless status.success? && File.file?(output)
+        raise Error, "Generated #{@artifact_name} is too large." if File.size(output) > MAX_OUTPUT_BYTES
         value = JSON.parse(File.read(output))
         validate_output!(value)
         value
       end
     rescue Errno::ENOENT, Errno::EACCES
-      raise Error, "The specification harness is unavailable. Configure the local harness before generating."
+      raise Error, "The #{@artifact_name} harness is unavailable. Configure the local harness before generating."
     rescue JSON::ParserError
-      raise Error, "The harness returned invalid specification output."
+      raise Error, "The harness returned invalid #{@artifact_name} output."
     end
 
     private
 
     def validate_output!(value)
       unless value.is_a?(Hash) && value.keys.sort == %w[body title] && value.values.all? { |item| item.is_a?(String) && item.strip.present? }
-        raise Error, "The harness did not return a valid specification."
+        raise Error, "The harness did not return a valid #{@artifact_name}."
       end
     end
 

@@ -40,7 +40,9 @@ module Specifications
       if relations && (!relations.is_a?(Array) || relations.any? { |edge| !edge.is_a?(Hash) || !edge["path"].is_a?(String) || !DocumentRelation::RELATION_TYPES.include?(edge["type"]) })
         raise Error, "Document relations are invalid: #{path}"
       end
-      kind = if path.include?("/ticket/")
+      kind = if path.include?("/dump/")
+        "dump"
+      elsif path.include?("/ticket/")
         "ticket"
       elsif path.include?("/report/")
         "internal"
@@ -49,11 +51,12 @@ module Specifications
       else
         "spec"
       end
-      raise Error, "Document body is empty: #{path}" if kind != "ticket" && body.blank?
+      raise Error, "Document body is empty: #{path}" if !%w[ticket dump].include?(kind) && body.blank?
       status = metadata.fetch("status", kind == "plan_tracker" ? "tracking" : "draft").to_s
       if kind == "spec" && !%w[draft approved accepted final].include?(status)
         raise Error, "Unknown specification status in #{path}."
       end
+      raise Error, "Unknown dump status in #{path}." if kind == "dump" && !Dump::STATUSES.include?(status)
       case_slug = metadata["case_slug"].to_s
       use_case = project.use_cases.find_by(slug: case_slug) if case_slug.present?
       raise Error, "Unknown use case in #{path}." if case_slug.present? && !use_case
@@ -145,7 +148,7 @@ module Specifications
 
     def next_path(title, kind)
       slug = title.to_s.parameterize[0, 80].presence || "spec"
-      directory = {"spec" => "spec", "plan_tracker" => "tracker", "internal" => "report", "ticket" => "ticket"}.fetch(kind)
+      directory = {"spec" => "spec", "plan_tracker" => "tracker", "internal" => "report", "ticket" => "ticket", "dump" => "dump"}.fetch(kind)
       parent = root.join("ops", "default", directory)
       ordinal = Dir.glob("*", base: parent).filter_map { |name| name[/\A\d+/]&.to_i }.max.to_i + 1
       "ops/default/#{directory}/#{format('%05d', ordinal)}-#{slug}/artifact.md"

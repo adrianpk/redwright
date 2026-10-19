@@ -74,10 +74,10 @@ Notes:
 - `/quiz for <use-case-name>` opens or continues a use-case quiz.
 - `/dump` opens or continues a project dump.
 - `/dump for <use-case-name>` opens or continues a use-case dump.
-- While a dump is active, non-command Telegram messages are appended as dump entries.
-- `/dump done` closes capture.
-- `/dump curate` creates or refreshes curated dump content for a closed dump.
-- `/dump cancel` cancels active capture.
+- While editing a dump, each non-command Telegram message replaces its complete Markdown body.
+- `/dump done` marks the document ready and exits editing.
+- `/dump curate` polishes the same document through the wrapped harness; errors preserve it.
+- `/dump cancel` exits editing without discarding content already saved.
 
 ## Ticket Commands
 

@@ -88,12 +88,12 @@ Quiz captures RedWright-led project or use-case discovery.
 /dump for <use-case-name>
 /dump list
 /dump show <dump-slug-or-id>
-/dump done
 /dump curate
+/dump done
 /dump cancel
 ```
 
-After opening a dump, send short messages as dump entries. Use `/dump done` to close capture and `/dump curate` to create the curated summary.
+After opening a dump, send the complete Markdown document. Each message replaces its body. Use `/dump curate` to polish that same file through the wrapped harness, `/dump done` to mark it ready, or `/dump cancel` to exit editing while retaining saved content.
 
 9. Send planning and continuation hints.
 

@@ -320,27 +320,28 @@ module Redwright
       command = parse_dump_command(event.text)
       return handle_dump_command(event: event, command: command, trace_id: trace_id) if command
 
-      append_active_dump(event: event, trace_id: trace_id)
+      update_active_dump(event: event, trace_id: trace_id)
     end
 
-    def append_active_dump(event:, trace_id:)
+    def update_active_dump(event:, trace_id:)
       context = active_dump_context(event.chat_id)
       response = client.command(
-        name: "AppendDump",
+        name: "UpdateDump",
         payload: {
           "project_id" => context.fetch("project_id"),
           "dump_id" => context.fetch("dump_id"),
-          "raw_input" => event.text.to_s
+          "body" => event.text.to_s,
+          "revision" => context.fetch("revision")
         },
         actor_identifier: actor_identifier_for(event),
-        request_id: request_id_for(event, "append-dump")
+        request_id: request_id_for(event, "update-dump")
       )
       body = response.body
       remember_dump_context(chat_id: event.chat_id, use_case_name: context["use_case_name"], body: body)
 
       Result.new(
         handled: true,
-        command: "dump_append",
+        command: "dump_update",
         message: render_dump(body: body, trace_id: trace_id),
         api_response: body
       )
@@ -351,13 +352,14 @@ module Redwright
       return missing_dump_context_result(command: "dump_done", trace_id: trace_id) unless context
 
       response = client.command(
-        name: "DoneDump",
-        payload: {"project_id" => context.fetch("project_id"), "dump_id" => context.fetch("dump_id")},
+        name: "UpdateDump",
+        payload: {"project_id" => context.fetch("project_id"), "dump_id" => context.fetch("dump_id"),
+          "body" => context.fetch("body"), "revision" => context.fetch("revision"), "status" => "ready"},
         actor_identifier: actor_identifier_for(event),
         request_id: request_id_for(event, "done-dump")
       )
       body = response.body
-      remember_dump_context(chat_id: event.chat_id, use_case_name: context["use_case_name"], body: body)
+      @dump_contexts_by_chat.delete(event.chat_id) unless body["status"] == "error"
 
       Result.new(
         handled: true,
@@ -368,45 +370,19 @@ module Redwright
     end
 
     def cancel_active_dump(event:, trace_id:)
-      context = active_dump_context(event.chat_id)
-      return missing_dump_context_result(command: "dump_cancel", trace_id: trace_id) unless context
-
-      response = client.command(
-        name: "CancelDump",
-        payload: {"project_id" => context.fetch("project_id"), "dump_id" => context.fetch("dump_id")},
-        actor_identifier: actor_identifier_for(event),
-        request_id: request_id_for(event, "cancel-dump")
-      )
-      body = response.body
-      remember_dump_context(chat_id: event.chat_id, use_case_name: context["use_case_name"], body: body)
-
-      Result.new(
-        handled: true,
-        command: "dump_cancel",
-        message: render_dump(body: body, trace_id: trace_id),
-        api_response: body
-      )
+      return missing_dump_context_result(command: "dump_cancel", trace_id: trace_id) unless active_dump_context(event.chat_id)
+      @dump_contexts_by_chat.delete(event.chat_id)
+      Result.new(handled: true, command: "dump_cancel", message: "Dump editing closed. Saved content is unchanged.\nTrace: #{trace_id}")
     end
 
     def curate_active_dump(event:, trace_id:)
       context = active_dump_context(event.chat_id)
       return missing_dump_context_result(command: "dump_curate", trace_id: trace_id) unless context
-
-      response = client.command(
-        name: "CurateDump",
-        payload: {"project_id" => context.fetch("project_id"), "dump_id" => context.fetch("dump_id")},
-        actor_identifier: actor_identifier_for(event),
-        request_id: request_id_for(event, "curate-dump")
-      )
-      body = response.body
-      remember_dump_context(chat_id: event.chat_id, use_case_name: context["use_case_name"], body: body)
-
-      Result.new(
-        handled: true,
-        command: "dump_curate",
-        message: render_dump(body: body, trace_id: trace_id),
-        api_response: body
-      )
+      response = client.command(name: "CurateDump",
+        payload: {"project_id" => context.fetch("project_id"), "dump_id" => context.fetch("dump_id"), "revision" => context.fetch("revision")},
+        actor_identifier: actor_identifier_for(event), request_id: request_id_for(event, "curate-dump"))
+      remember_dump_context(chat_id: event.chat_id, use_case_name: context["use_case_name"], body: response.body)
+      Result.new(handled: true, command: "dump_curate", message: render_dump(body: response.body, trace_id: trace_id), api_response: response.body)
     end
 
     def list_dumps(event:, trace_id:)
@@ -541,44 +517,18 @@ module Redwright
       end
 
       dump = data["dump"] || {}
-      status = data["status"].to_s
-      scope = dump["use_case_name"].to_s.empty? ? "project" : dump["use_case_name"]
-      entry_count = dump["entry_count"].to_i
-      case status
-      when "capturing"
-        [
-          data["summary"],
-          "Dump: #{dump['title']} (#{scope}, #{entry_count} entries)",
-          "Controls: /dump done, /dump cancel",
-          "Trace: #{trace_id}"
-        ].join("\n")
-      when "done", "cancelled", "curated"
-        [
-          data["summary"],
-          "Dump: #{dump['title']} (#{entry_count} entries, #{dump['curation_status']})",
-          "Trace: #{trace_id}"
-        ].join("\n")
-      when "shown"
-        [
-          "Dump: #{dump['title']}",
-          "Status: #{dump['status']} / #{dump['capture_status']} / #{dump['curation_status']}",
-          "Entries: #{entry_count}",
-          "Summary: #{dump['summary'].to_s.strip.empty? ? 'none' : dump['summary']}",
-          "Trace: #{trace_id}"
-        ].join("\n")
-      else
-        [
-          data["summary"],
-          "Trace: #{trace_id}"
-        ].join("\n")
+      lines = [data["summary"], "Dump: #{dump['title']}", "Status: #{dump['status']}", dump["body"]]
+      if %w[opened updated].include?(data["status"]) && dump["status"] != "ready"
+        lines << "Send the complete Markdown to replace this document. Controls: /dump done, /dump cancel"
       end
+      [*lines.compact, "Trace: #{trace_id}"].join("\n")
     end
 
     def render_dump_list(body:, trace_id:)
       dumps = body.dig("data", "dumps") || []
       lines = dumps.first(20).map do |dump|
         scope = dump["use_case_name"].to_s.empty? ? "project" : dump["use_case_name"]
-        "- #{dump['slug']}: #{scope} (#{dump['entry_count']} entries, #{dump['capture_status']})"
+        "- #{dump['slug']}: #{scope} (#{dump['status']})"
       end
       [
         "Dumps:",
@@ -621,15 +571,11 @@ module Redwright
       project_id = dump["project_id"]
       @project_ids_by_chat[chat_id] = project_id if project_id
 
-      if data["status"].to_s == "capturing" && dump["capture_status"].to_s == "capturing"
-        @dump_contexts_by_chat[chat_id] = {
-          "project_id" => project_id,
-          "dump_id" => dump.fetch("id"),
-          "use_case_name" => use_case_name
-        }
-      else
-        @dump_contexts_by_chat.delete(chat_id)
-      end
+      return if body["status"] == "error"
+      @dump_contexts_by_chat[chat_id] = {
+        "project_id" => project_id, "dump_id" => dump.fetch("id"),
+        "use_case_name" => use_case_name, "body" => dump.fetch("body"), "revision" => dump.fetch("revision")
+      }
     end
 
     def summary_from(body)
@@ -753,9 +699,9 @@ module Redwright
       return nil unless raw.start_with?("/dump")
       return {command: "open", use_case_name: nil} if raw.match?(%r{\A/dump\s*\z}i)
       return {command: "list"} if raw.match?(%r{\A/dump\s+list\s*\z}i)
+      return {command: "curate"} if raw.match?(%r{\A/dump\s+curate\s*\z}i)
       return {command: "done"} if raw.match?(%r{\A/dump\s+done\s*\z}i)
       return {command: "cancel"} if raw.match?(%r{\A/dump\s+cancel\s*\z}i)
-      return {command: "curate"} if raw.match?(%r{\A/dump\s+curate\s*\z}i)
 
       show_match = raw.match(%r{\A/dump\s+show\s+([a-zA-Z0-9._\-]+)\s*\z}i)
       return {command: "show", identifier: show_match[1]} if show_match
