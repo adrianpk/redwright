@@ -14,8 +14,8 @@ Approved: maintainer, 2026-10-19; explicit approval of the seven-slice plan, dep
 - created: `2026-10-19`
 - goal: `Use prepared Pi or Codex profiles through Rails authoring and bounded ticket proposals while retaining host validation and workflow authority.`
 - scope: `feature`
-- active_slice: `Slice 6 - Pi ticket proposals under Rails authority (reviewing)`
-- active_task: `none (awaiting canonical Slice 6 integration)`
+- active_slice: `Slice 7 - Operator guidance and integrated acceptance (implementing)`
+- active_task: `T7.1`
 - merge_target: `dev`
 - observed_base: `8d63f6fbe6fb67e0bd7ef26bbfb474735ae43cf1`
 
@@ -336,12 +336,12 @@ Planned task commits:
 
 ### Slice 6: Pi ticket proposals under Rails authority
 
-- status: `reviewing`
+- status: `delivered`
 - dependencies: Slice 5 integrated and closed
 - branch: `fix/slice-6-pi-pi-ticket-proposals`
 - expected_pr_title: `feat(slice-6): pi ticket proposals under rails authority`
 - report: `ops/artifacts/slices/pi-harness/slice-6-pi-ticket-proposals.md`
-- ticket: [TKT-20261019165606](../tickets/reviewing/20261019165606-use-pi-for-ticket-proposals-while-retaining-host-application-and-validation.md)
+- ticket: [TKT-20261019165606](../tickets/solved/20261019165606-use-pi-for-ticket-proposals-while-retaining-host-application-and-validation.md)
 - PR: [#15](https://forge.adrianpk.com/adrianpk/redwrigh/pulls/15)
 - objective: The existing ticket model step can use a selected structured harness while Rails continues to own context, application, validation and Git.
 - acceptance_mapping: `PI-05, PI-07, PI-10, PI-11, PI-12, PI-13`
@@ -377,12 +377,12 @@ Planned task commits:
 
 ### Slice 7: Operator guidance and integrated acceptance
 
-- status: `pending`
+- status: `implementing`
 - dependencies: Slice 6 integrated and closed
 - branch: `fix/slice-7-pi-pi-harness-acceptance`
 - expected_pr_title: `feat(slice-7): operator guidance and integrated acceptance`
 - report: `ops/artifacts/slices/pi-harness/slice-7-pi-harness-acceptance.md`
-- ticket: [TKT-20261019165607](../tickets/ready/20261019165607-document-and-validate-the-integrated-pi-harness-workflow.md)
+- ticket: [TKT-20261019165607](../tickets/in_progress/20261019165607-document-and-validate-the-integrated-pi-harness-workflow.md)
 - objective: An operator can configure prepared Pi profiles, switch a project, understand failures and verify the integrated behavior with recorded evidence.
 - acceptance_mapping: `PI-01 through PI-15`
 

@@ -1,6 +1,6 @@
 # Slice 6: Pi Ticket Proposals under Rails Authority
 
-Status: reviewing
+Status: delivered
 Delivery set: pi-harness
 Plan: [Pi Harness plan](../../../plans/2026-10-19-redwright-pi-harness-cycle-plan.md)
 Tracker: [Pi Harness tracker](../../../trackers/2026-10-19-redwright-pi-harness-cycle-tracker.md)
@@ -114,3 +114,12 @@ Uncertain work remains reserved until its existing owner reconciles the
 observed effects. This slice does not guess a safe retry from request identity
 or a changed default. Operator guidance and the integrated delivery-set gate
 remain with the next recorded slice and the external controller.
+
+## Integration
+
+Canonical PR #15 was verified merged into `dev` at
+`ae01006350d550fca8ad92dd79ab58e895d76ef8`. Its five ordered controller checks
+passed: Rails 619 tests/5,013 assertions (77.42 seconds), native Pi
+6 tests/77 assertions (10.76 seconds), ticket metadata, changed Ruby syntax
+and whitespace. Acta records the controller-owned integration.
+Slice 6 of 7 completed.

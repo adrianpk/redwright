@@ -8,13 +8,13 @@ Approved: maintainer, 2026-10-19; explicit approval of the seven-slice plan, dep
 - cycle_id: `2026-10-19-redwright-pi-harness`
 - delivery_set: `pi-harness`
 - status: `approved`
-- state: `reviewing`
+- state: `implementing`
 - approval: `maintainer approved, 2026-10-19`
 - execution_authority: `autonomous execution of this delivery set approved`
 - updated: `2026-10-19`
-- active_slice: `Slice 6 - Pi ticket proposals under Rails authority (reviewing)`
-- active_task: `none (awaiting canonical Slice 6 integration)`
-- completed_slices: `5/7`
+- active_slice: `Slice 7 - Operator guidance and integrated acceptance (implementing)`
+- active_task: `T7.1`
+- completed_slices: `6/7`
 - completed_tasks: `18/21`
 - controller: `external Looper controller`
 - plan: [Pi Harness plan](../plans/2026-10-19-redwright-pi-harness-cycle-plan.md)
@@ -193,14 +193,14 @@ Validation:
 
 ### Slice 6: Pi ticket proposals under Rails authority
 
-- status: `reviewing`
+- status: `delivered`
 - branch: `fix/slice-6-pi-pi-ticket-proposals`
 - expected_pr_title: `feat(slice-6): pi ticket proposals under rails authority`
 - report: `ops/artifacts/slices/pi-harness/slice-6-pi-ticket-proposals.md`
-- ticket: [TKT-20261019165606](../tickets/reviewing/20261019165606-use-pi-for-ticket-proposals-while-retaining-host-application-and-validation.md)
+- ticket: [TKT-20261019165606](../tickets/solved/20261019165606-use-pi-for-ticket-proposals-while-retaining-host-application-and-validation.md)
 - merge_target: `dev`
 - PR: [#15](https://forge.adrianpk.com/adrianpk/redwrigh/pulls/15)
-- last_sync_commit: `none`
+- last_sync_commit: `ae01006350d550fca8ad92dd79ab58e895d76ef8`
 
 Tasks:
 
@@ -218,18 +218,18 @@ Validation:
 
 - [x] Focused ticket/operation checks passed: 75 tests, 700 assertions; no failures, errors or skips.
 - [x] Native Pi acceptance passed: 6 tests, 77 assertions.
-- [ ] Full Rails suite before canonical merge.
-- [ ] Changed Ruby syntax and `git diff --check`.
+- [x] Exact-head full Rails suite passed: 619 tests, 5,013 assertions at `ae01006350d550fca8ad92dd79ab58e895d76ef8`.
+- [x] Changed Ruby syntax, ticket metadata and `git diff --check` passed.
 - [x] Canonical report complete and PR #15 opened.
-- [ ] Canonical PR verified merged by the external controller.
+- [x] Canonical PR #15 verified merged by the external controller.
 
 ### Slice 7: Operator guidance and integrated acceptance
 
-- status: `pending`
+- status: `implementing`
 - branch: `fix/slice-7-pi-pi-harness-acceptance`
 - expected_pr_title: `feat(slice-7): operator guidance and integrated acceptance`
 - report: `ops/artifacts/slices/pi-harness/slice-7-pi-harness-acceptance.md`
-- ticket: [TKT-20261019165607](../tickets/ready/20261019165607-document-and-validate-the-integrated-pi-harness-workflow.md)
+- ticket: [TKT-20261019165607](../tickets/in_progress/20261019165607-document-and-validate-the-integrated-pi-harness-workflow.md)
 - merge_target: `dev`
 - PR: `pending`
 - last_sync_commit: `none`
@@ -263,7 +263,7 @@ Validation:
 ## Approval / Blockers
 
 The maintainer approved the plan, dependency and Pi-only autonomous commit,
-push, PR and controller-merge authority on 2026-10-19. Slices 1 through 5 are delivered; Slice 6 is active; the external controller owns
+push, PR and controller-merge authority on 2026-10-19. Slices 1 through 6 are delivered; Slice 7 is active; the external controller owns
 validation evidence and all merge mutations.
 
 Before startup, prepare the independent clean execution checkout described in
@@ -314,3 +314,5 @@ Linux acceptance. No result here claims either was verified.
 - `2026-10-19` state=`implementing`: verified canonical PR #14 merged at `c54eaa3cca7da2673218c7cc9a070afea4cdce39`; closed Slice 5 with seven successful controller checks and activated Slice 6 / T6.1.
 
 - `2026-10-19` state=`reviewing`: Slice 6 tasks implemented; focused ticket/operation checks (75 tests, 700 assertions) and native Pi acceptance (6 tests, 77 assertions) passed. Prepare the canonical PR and exact-head controller evidence.
+
+- `2026-10-19T19:15:52Z` state=`implementing`: verified PR #15 merged at `ae01006350d550fca8ad92dd79ab58e895d76ef8`; closed Slice 6 with five successful controller checks and activated Slice 7 / T7.1. T7.3 remains pending controller gate evidence and closure.

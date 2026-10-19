@@ -1,7 +1,7 @@
 ---
 id: TKT-20261019165607
 title: Document and validate the integrated Pi harness workflow
-status: ready
+status: in_progress
 kind: task
 severity: unclassified
 priority: normal
@@ -10,12 +10,12 @@ tags: pi-harness, slice-delivery, rails
 source: chat
 reported_at: 2026-10-19T16:56:07Z
 ready_at: 2026-10-19T17:08:55Z
-started_at:
+started_at: 2026-10-19T19:15:52Z
 reviewed_at:
 closed_at:
 resolution:
 owner:
-branch:
+branch: fix/slice-7-pi-pi-harness-acceptance
 pr:
 commits: []
 ---

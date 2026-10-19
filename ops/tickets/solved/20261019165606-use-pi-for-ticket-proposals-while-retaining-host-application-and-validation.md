@@ -1,7 +1,7 @@
 ---
 id: TKT-20261019165606
 title: Use Pi for ticket proposals while retaining host application and validation
-status: reviewing
+status: solved
 kind: task
 severity: unclassified
 priority: normal
@@ -12,8 +12,8 @@ reported_at: 2026-10-19T16:56:06Z
 ready_at: 2026-10-19T17:08:55Z
 started_at: 2026-10-19T19:00:47Z
 reviewed_at: 2026-10-19T19:12:15Z
-closed_at:
-resolution:
+closed_at: 2026-10-19T19:15:52Z
+resolution: fixed
 owner:
 branch: fix/slice-6-pi-pi-ticket-proposals
 pr: https://forge.adrianpk.com/adrianpk/redwrigh/pulls/15
@@ -83,6 +83,6 @@ gate. These commands are planned, not reported as passed.
 
 Implemented in the dedicated Slice 6 worktree. The canonical report is
 [Slice 6](../../artifacts/slices/pi-harness/slice-6-pi-ticket-proposals.md).
-Canonical PR [#15](https://forge.adrianpk.com/adrianpk/redwrigh/pulls/15) is open. Final exact-head
-controller validation follows this PR-reference commit before readiness.
-The controller owns integration into `dev`.
+Canonical PR [#15](https://forge.adrianpk.com/adrianpk/redwrigh/pulls/15) merged
+into `dev` at `ae01006350d550fca8ad92dd79ab58e895d76ef8` after five ordered
+controller checks passed, including Rails 619 tests/5,013 assertions.
