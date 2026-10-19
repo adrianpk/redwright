@@ -8,14 +8,14 @@ Approved: maintainer, 2026-10-19; explicit approval of the seven-slice plan, dep
 - cycle_id: `2026-10-19-redwright-pi-harness`
 - delivery_set: `pi-harness`
 - status: `approved`
-- state: `implementing`
+- state: `reviewing`
 - approval: `maintainer approved, 2026-10-19`
 - execution_authority: `autonomous execution of this delivery set approved`
 - updated: `2026-10-19`
-- active_slice: `Slice 6 - Pi ticket proposals under Rails authority (implementing)`
-- active_task: `T6.3`
+- active_slice: `Slice 6 - Pi ticket proposals under Rails authority (reviewing)`
+- active_task: `none (awaiting canonical Slice 6 integration)`
 - completed_slices: `5/7`
-- completed_tasks: `17/21`
+- completed_tasks: `18/21`
 - controller: `external Looper controller`
 - plan: [Pi Harness plan](../plans/2026-10-19-redwright-pi-harness-cycle-plan.md)
 - spec: [Pi Harness specification](../specs/specs/2026-10-19-redwright-pi-harness-spec.md)
@@ -193,11 +193,11 @@ Validation:
 
 ### Slice 6: Pi ticket proposals under Rails authority
 
-- status: `implementing`
+- status: `reviewing`
 - branch: `fix/slice-6-pi-pi-ticket-proposals`
 - expected_pr_title: `feat(slice-6): pi ticket proposals under rails authority`
 - report: `ops/artifacts/slices/pi-harness/slice-6-pi-ticket-proposals.md`
-- ticket: [TKT-20261019165606](../tickets/in_progress/20261019165606-use-pi-for-ticket-proposals-while-retaining-host-application-and-validation.md)
+- ticket: [TKT-20261019165606](../tickets/reviewing/20261019165606-use-pi-for-ticket-proposals-while-retaining-host-application-and-validation.md)
 - merge_target: `dev`
 - PR: `pending`
 - last_sync_commit: `none`
@@ -206,16 +206,22 @@ Tasks:
 
 - [x] `T6.1` Add an injected harness requester to the existing ticket model boundary, preserving the current direct-API default, context shaping and separate role selection.
 - [x] `T6.2` Retain the logical correction-loop binding and per-attempt base/schema/policy evidence; reconcile uncertain application/finalization before retrying effects.
-- [ ] `T6.3` Verify valid/invalid proposals, changed-base conflicts, correction attempts, uncertain replay and failure of host validation without false ticket completion.
+- [x] `T6.3` Verify valid/invalid proposals, changed-base conflicts, correction attempts, uncertain replay and failure of host validation without false ticket completion.
 
-Commits: none.
+Commits:
+
+- `T6.1`: `f9cc3037a8842883d391909f23f0ce0747a4a746` - selected requester and preserved context/direct-provider boundary.
+- `T6.2`: `24f5088c0a55648492bdfb70d4c59b31a70c7250` - owned bases, effect receipts and retained correction lifecycle.
+- `T6.3`: report-introduction task commit - proposal rejection, host authority, uncertain replay and native Pi ticket proof.
 
 Validation:
 
-- [ ] Planned focused checks from the plan's corresponding slice.
+- [x] Focused ticket/operation checks passed: 75 tests, 700 assertions; no failures, errors or skips.
+- [x] Native Pi acceptance passed: 6 tests, 77 assertions.
 - [ ] Full Rails suite before canonical merge.
 - [ ] Changed Ruby syntax and `git diff --check`.
-- [ ] Report reviewed and canonical PR verified merged.
+- [x] Canonical report complete.
+- [ ] Canonical PR verified merged by the external controller.
 
 ### Slice 7: Operator guidance and integrated acceptance
 
@@ -306,3 +312,5 @@ Linux acceptance. No result here claims either was verified.
 - `2026-10-19T18:52:47Z` state=`reviewing`: Slice 5 tasks implemented; focused checks passed (37 tests, 484 assertions), native Pi proof passed (5 tests, 65 assertions) and Chromium viewport proof passed (1 test, 26 assertions). Canonical PR #14 is open; final clean-head controller validation follows PR references.
 
 - `2026-10-19` state=`implementing`: verified canonical PR #14 merged at `c54eaa3cca7da2673218c7cc9a070afea4cdce39`; closed Slice 5 with seven successful controller checks and activated Slice 6 / T6.1.
+
+- `2026-10-19` state=`reviewing`: Slice 6 tasks implemented; focused ticket/operation checks (75 tests, 700 assertions) and native Pi acceptance (6 tests, 77 assertions) passed. Prepare the canonical PR and exact-head controller evidence.

@@ -1,7 +1,7 @@
 ---
 id: TKT-20261019165606
 title: Use Pi for ticket proposals while retaining host application and validation
-status: in_progress
+status: reviewing
 kind: task
 severity: unclassified
 priority: normal
@@ -11,13 +11,13 @@ source: chat
 reported_at: 2026-10-19T16:56:06Z
 ready_at: 2026-10-19T17:08:55Z
 started_at: 2026-10-19T19:00:47Z
-reviewed_at:
+reviewed_at: 2026-10-19T19:12:15Z
 closed_at:
 resolution:
 owner:
 branch: fix/slice-6-pi-pi-ticket-proposals
 pr:
-commits: []
+commits: [f9cc3037a8842883d391909f23f0ce0747a4a746, 24f5088c0a55648492bdfb70d4c59b31a70c7250]
 ---
 
 # Use Pi for ticket proposals while retaining host application and validation
@@ -46,15 +46,19 @@ The existing ticket model step can use a selected structured harness while Rails
 
 ## Actual
 
-Implementation has not started. The maintainer approved this slice and its
-dependency/platform choices under the linked plan. Respect preceding slice
-dependencies; only this Pi delivery has autonomous commit/integration authority.
+All three tasks are implemented. The selected ticket requester preserves the
+existing context/contract boundary and independent direct-API default. One
+binding and deadline cover corrections; per-attempt bases and durable effect
+receipts protect host application, validation and local Git finalization.
+Invalid proposals, outside edits and uncertain effects block progress.
+Focused checks passed: 75 tests/700 assertions. Native Pi ticket acceptance
+passed within the six-case acceptance suite: 6 tests/77 assertions.
 
 ## Tasks
 
 - [x] `T6.1` Add an injected harness requester to the existing ticket model boundary, preserving the current direct-API default, context shaping and separate role selection.
 - [x] `T6.2` Retain the logical correction-loop binding and per-attempt base/schema/policy evidence; reconcile uncertain application/finalization before retrying effects.
-- [ ] `T6.3` Verify valid/invalid proposals, changed-base conflicts, correction attempts, uncertain replay and failure of host validation without false ticket completion.
+- [x] `T6.3` Verify valid/invalid proposals, changed-base conflicts, correction attempts, uncertain replay and failure of host validation without false ticket completion.
 
 ## Planned Commits
 
@@ -77,5 +81,7 @@ gate. These commands are planned, not reported as passed.
 
 ## Outcome
 
-Ready under the approved plan; implementation pending. Existing Settings/Setup changes,
-preview services, credentials and active databases remain outside this ticket.
+Implemented in the dedicated Slice 6 worktree. The canonical report is
+[Slice 6](../../artifacts/slices/pi-harness/slice-6-pi-ticket-proposals.md).
+Canonical PR references and final exact-head controller evidence follow the
+task commits before readiness. The controller owns integration into `dev`.

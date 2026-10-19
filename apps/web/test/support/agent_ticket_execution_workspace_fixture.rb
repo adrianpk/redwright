@@ -21,6 +21,28 @@ module AgentTicketExecutionWorkspaceFixture
 
   module_function
 
+  def done_command_patch
+    <<~PATCH
+      *** Begin Patch
+      *** Update File: main.go
+      @@
+         "os"
+      + "strconv"
+      @@
+      -  case "list":
+      +  case "done":
+      +    if len(args) != 2 { return 2 }
+      +    number, err := strconv.Atoi(args[1])
+      +    if err != nil || number < 1 || number > len(tasks) { return 2 }
+      +    tasks[number-1].Done = true
+      +    if err := saveTasks(todoFilePath(), tasks); err != nil { return 1 }
+      +    fmt.Fprintf(stdout, "done: %d\\n", number)
+      +    return 0
+      +  case "list":
+      *** End Patch
+    PATCH
+  end
+
   def reset_project_fixture!(project_path)
     FileUtils.rm_rf(project_path)
     FileUtils.mkdir_p(File.dirname(project_path))

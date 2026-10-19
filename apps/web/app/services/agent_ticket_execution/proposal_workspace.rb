@@ -44,7 +44,7 @@ module AgentTicketExecution
         stat = File.lstat(path)
         count += 1
         if relative.bytesize > 1024 || count > MAX_FILES || (!stat.directory? && (bytes += stat.size) > MAX_BYTES)
-          raise Harnesses::Error.new("Ticket workspace exceeds 4,096 files or 64 MiB.", code: :workspace_too_large)
+          raise Harnesses::Error.new("Ticket workspace exceeds 4,096 entries or 64 MiB.", code: :workspace_too_large)
         end
         next if stat.directory?
         value = if stat.symlink?

@@ -48,6 +48,27 @@ class HarnessesOperationTest < ActiveSupport::TestCase
     assert_equal 3, ticket.reload.attempts.size
   end
 
+  test "ticket evidence requires ownership and preserves the attempt base" do
+    # Effects may advance their receipt, while the admitted attempt's base/schema/policy remain immutable.
+    operation = admit("evidence", purpose: "ticket_proposal")
+    lease = @lifecycle.start!(operation: operation)
+    evidence = {"base" => {"files_digest" => "a" * 64}, "schema_digest" => operation.binding.fetch("schema_digest"), "policy_revision" => "v1"}
+    @lifecycle.record!(lease: lease, evidence: evidence)
+    assert_equal evidence, operation.reload.attempts.first.fetch("evidence")
+    cases = {
+      "owner" => [lease.with(owner_token: "another-owner"), evidence],
+      "base" => [lease, {"base" => {"files_digest" => "b" * 64}}],
+      "schema" => [lease, {"schema_digest" => "b" * 64}],
+      "policy" => [lease, {"policy_revision" => "other"}]
+    }
+    cases.each do |name, (owner, changes)|
+      assert_equal :conflict, assert_raises(Harnesses::Error, name) { @lifecycle.record!(lease: owner, evidence: changes) }.code
+      assert_equal evidence, operation.reload.attempts.first.fetch("evidence"), name
+    end
+    @lifecycle.finish!(lease: lease, outcome: "failed")
+    assert_equal :conflict, assert_raises(Harnesses::Error) { @lifecycle.record!(lease: lease, evidence: evidence) }.code
+  end
+
   test "separate processes share two call slots" do
     # Distinct projects and roles must contend for the same application-database capacity.
     records = [admit("one"), admit("two", purpose: "ticket_proposal")]

@@ -6,6 +6,42 @@ class PiHarnessAcceptanceTest < ActiveSupport::TestCase
 
   # Explicit opt-in keeps real-binary proof separate from the ordinary Rails suite; opt-in never skips missing prerequisites.
   if ENV["REDWRIGHT_PI_ACCEPTANCE"] == "1"
+    test "native Pi proposes a ticket while Rails applies validates and commits" do
+      # The binary returns a patch, while the real host loop owns file changes, checks and the local commit.
+      previous_profiles = ENV["REDWRIGHT_HARNESS_PROFILES"]
+      with_agent_ticket_execution_workspace do |fixture|
+        payload = {"status" => "proposed_changes", "summary" => "Implement the done command.",
+          "files" => [{"path" => "main.go", "patch" => done_command_patch}],
+          "commands" => [{"command" => "gofmt -w main.go", "purpose" => "format"}]}
+        endpoint = Endpoint.new(payload: payload)
+        _, root = acceptance_request(fixture.project, endpoint)
+        ENV["REDWRIGHT_HARNESS_PROFILES"] = File.join(root, "profiles.json")
+        actor = User.create!(email_address: "pi-ticket@example.test", password: "password-123")
+        Harnesses::Selection.new(project: fixture.project).change!(actor: actor, request_id: "native-ticket-profile", expected_revision: 0,
+          changes: {ticket_proposal_profile: "loopback"})
+        requester = Harnesses::TicketRequester.new(legacy: Object.new)
+        loop = AgentTicketExecution::ValidationLoop.new(context_composer: AgentTicketExecution::ContextComposer.new,
+          llm_requester: requester)
+        executor = AgentTicketExecution::ValidationExecutor.new(validation_loop: loop, git_finalizer: AgentTicketExecution::GitFinalizer.new)
+        workspace = AgentTicketExecution::WorkspaceBoundary.new(allowed_projects_root: fixture.projects_root).resolve(ticket: fixture.ticket)
+        execution = executor.call(request: {"request_id" => "native-ticket", "mode" => "targeted"}, ticket: fixture.ticket, workspace: workspace)
+        assert_equal "completed", execution.fetch("state"), execution.inspect
+        assert_equal "ready_for_review", execution.dig("terminal_outcome", "status")
+        assert_equal "committed", execution.dig("details", "git", "code")
+        assert execution.dig("details", "validation_results").all? { |result| result.fetch("status") == "ok" }
+        operation = fixture.project.harness_operations.sole
+        assert_equal "completed", operation.state
+        assert_equal "loopback", operation.binding.fetch("profile")
+        assert_equal "recorded", operation.attempts.first.dig("evidence", "finalization", "state")
+        assert_equal 1, endpoint.requests.size
+        assert_empty endpoint.requests.first[:body].fetch("tools", [])
+        assert_empty AgentTicketExecutionWorkspaceFixture.run_git!("remote", fixture.project_path).strip
+      ensure
+        ENV["REDWRIGHT_HARNESS_PROFILES"] = previous_profiles
+        endpoint&.close
+      end
+    end
+
     test "a saved Pi selection generates a Rails draft" do
       # Exercise the production consumer, admission, native contained transport and existing file publication together.
       previous_profiles = ENV["REDWRIGHT_HARNESS_PROFILES"]

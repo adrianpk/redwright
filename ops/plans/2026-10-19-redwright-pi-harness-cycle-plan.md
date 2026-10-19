@@ -14,8 +14,8 @@ Approved: maintainer, 2026-10-19; explicit approval of the seven-slice plan, dep
 - created: `2026-10-19`
 - goal: `Use prepared Pi or Codex profiles through Rails authoring and bounded ticket proposals while retaining host validation and workflow authority.`
 - scope: `feature`
-- active_slice: `Slice 6 - Pi ticket proposals under Rails authority (implementing)`
-- active_task: `T6.3`
+- active_slice: `Slice 6 - Pi ticket proposals under Rails authority (reviewing)`
+- active_task: `none (awaiting canonical Slice 6 integration)`
 - merge_target: `dev`
 - observed_base: `8d63f6fbe6fb67e0bd7ef26bbfb474735ae43cf1`
 
@@ -336,12 +336,12 @@ Planned task commits:
 
 ### Slice 6: Pi ticket proposals under Rails authority
 
-- status: `implementing`
+- status: `reviewing`
 - dependencies: Slice 5 integrated and closed
 - branch: `fix/slice-6-pi-pi-ticket-proposals`
 - expected_pr_title: `feat(slice-6): pi ticket proposals under rails authority`
 - report: `ops/artifacts/slices/pi-harness/slice-6-pi-ticket-proposals.md`
-- ticket: [TKT-20261019165606](../tickets/in_progress/20261019165606-use-pi-for-ticket-proposals-while-retaining-host-application-and-validation.md)
+- ticket: [TKT-20261019165606](../tickets/reviewing/20261019165606-use-pi-for-ticket-proposals-while-retaining-host-application-and-validation.md)
 - objective: The existing ticket model step can use a selected structured harness while Rails continues to own context, application, validation and Git.
 - acceptance_mapping: `PI-05, PI-07, PI-10, PI-11, PI-12, PI-13`
 
@@ -349,7 +349,7 @@ Tasks:
 
 - [x] `T6.1` Add an injected harness requester to the existing ticket model boundary, preserving the current direct-API default, context shaping and separate role selection.
 - [x] `T6.2` Retain the logical correction-loop binding and per-attempt base/schema/policy evidence; reconcile uncertain application/finalization before retrying effects.
-- [ ] `T6.3` Verify valid/invalid proposals, changed-base conflicts, correction attempts, uncertain replay and failure of host validation without false ticket completion.
+- [x] `T6.3` Verify valid/invalid proposals, changed-base conflicts, correction attempts, uncertain replay and failure of host validation without false ticket completion.
 
 Acceptance:
 

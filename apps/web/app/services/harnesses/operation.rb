@@ -71,7 +71,14 @@ module Harnesses
             ActiveSupport::SecurityUtils.secure_compare(attempt.fetch("owner_digest"), Digest::SHA256.hexdigest(lease.owner_token))
           raise Error.new("This call does not own a running ticket attempt.", code: :conflict)
         end
-        attempt["evidence"] = attempt.fetch("evidence", {}).merge(evidence)
+        current = attempt.fetch("evidence", {})
+        immutable = %w[base schema_digest policy_revision output_digest]
+        if immutable.any? { |key| current.key?(key) && evidence.key?(key) && current[key] != evidence[key] } ||
+            (evidence.key?("schema_digest") && evidence["schema_digest"] != record.binding.fetch("schema_digest")) ||
+            (evidence.key?("policy_revision") && evidence["policy_revision"] != record.binding.fetch("policy_revision"))
+          raise Error.new("Ticket attempt evidence conflicts with its retained contract or base.", code: :conflict)
+        end
+        attempt["evidence"] = current.merge(evidence)
         record.update!(attempts_json: CanonicalJson.dump(history))
       end
     end

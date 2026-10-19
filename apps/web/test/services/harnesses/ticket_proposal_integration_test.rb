@@ -169,7 +169,130 @@ class HarnessesTicketProposalIntegrationTest < ActiveSupport::TestCase
     end
   end
 
+  test "invalid proposals cannot apply a valid prefix" do
+    # Validate every proposed path/action before the first mutation, including symlink and patch escapes.
+    cases = {
+      "schema" => ->(payload, _fixture) { payload.merge("status" => "ready") },
+      "domain" => ->(payload, _fixture) { payload.merge("status" => "blocked", "blocking_reason" => "") },
+      "traversal" => ->(payload, _fixture) { payload.merge("files" => payload["files"] + [{"path" => "../outside", "content" => "bad"}]) },
+      "git" => ->(payload, _fixture) { payload.merge("files" => payload["files"] + [{"path" => ".git/config", "content" => "bad"}]) },
+      "symlink" => lambda { |payload, fixture|
+        File.symlink(@profile_root, File.join(fixture.project_path, "linked"))
+        payload.merge("files" => payload["files"] + [{"path" => "linked/outside", "content" => "bad"}])
+      },
+      "patch" => ->(payload, _fixture) { payload.merge("files" => payload["files"] + [{"path" => "main.go", "patch" => "*** Begin Patch\n*** Delete File: ../outside\n*** End Patch\n"}]) },
+      "action" => ->(payload, _fixture) { payload.merge("actions" => [{"type" => "write_file", "args" => {"path" => "safe"}}]) }
+    }
+    cases.each do |name, change|
+      with_agent_ticket_execution_workspace(project_key: "invalid-#{name}") do |fixture|
+        select(fixture.project, ticket_proposal_profile: "first")
+        original = File.read(File.join(fixture.project_path, "main.go"))
+        @adapter.payload = change.call(proposal(fixture), fixture)
+        result = loop_for.call(request: request, ticket: fixture.ticket, workspace: workspace(fixture))
+        assert result.blocked?, name
+        assert_equal original, File.read(File.join(fixture.project_path, "main.go")), name
+        assert_equal "failed", fixture.project.harness_operations.sole.state, name
+        assert_nil fixture.project.harness_operations.sole.attempts.first.dig("evidence", "application"), name
+      end
+    end
+    refute File.exist?(File.join(@profile_root, "outside"))
+  end
+
+  test "host validation failure blocks the ticket without a commit" do
+    with_agent_ticket_execution_workspace do |fixture|
+      select(fixture.project, ticket_proposal_profile: "first")
+      @adapter.payload = proposal(fixture)
+      initial = AgentTicketExecutionWorkspaceFixture.run_git!("rev-parse HEAD", fixture.project_path)
+      outcome = run_ticket(fixture, validation_commands: ["go test ./..."])
+      assert_equal "blocked", outcome.fetch("state")
+      assert_equal "retry_limit_exhausted", outcome.dig("terminal_outcome", "code")
+      assert_equal 3, @adapter.requests.size
+      assert_equal "blocked", fixture.ticket.reload.workflow_status
+      assert_equal initial, AgentTicketExecutionWorkspaceFixture.run_git!("rev-parse HEAD", fixture.project_path)
+      refute outcome.fetch("details").key?("git")
+      operation = fixture.project.harness_operations.sole
+      assert_equal "failed", operation.state
+      assert_equal 3, operation.attempts.size
+    end
+  end
+
+  test "selected proposals reach review only after host checks and local Git" do
+    with_agent_ticket_execution_workspace do |fixture|
+      select(fixture.project, ticket_proposal_profile: "first")
+      @adapter.payload = done_proposal
+      outcome = run_ticket(fixture, validation_commands: ["go test ./..."])
+      assert_equal "completed", outcome.fetch("state"), outcome.inspect
+      assert_equal "ready_for_review", outcome.dig("terminal_outcome", "status")
+      assert_equal "committed", outcome.dig("details", "git", "code")
+      assert_equal "reviewing", fixture.ticket.reload.workflow_status
+      assert_equal fixture.columns.fetch("review").id, fixture.ticket.column_id
+      operation = fixture.project.harness_operations.sole
+      assert_equal "completed", operation.state
+      finalization = operation.attempts.first.dig("evidence", "finalization")
+      assert_equal "recorded", finalization.fetch("state")
+      assert_equal AgentTicketExecutionWorkspaceFixture.run_git!("rev-parse HEAD", fixture.project_path).strip, finalization.dig("after", "head")
+      assert_empty AgentTicketExecutionWorkspaceFixture.run_git!("remote", fixture.project_path).strip
+    end
+  end
+
+  class LostFinalizationReceipt < Harnesses::Operation
+    def record!(lease:, evidence:)
+      raise ActiveRecord::StatementInvalid, "owned finalization receipt unavailable" if evidence.dig("finalization", "state") == "recorded"
+      super
+    end
+  end
+
+  class LostCompletion < Harnesses::Operation
+    def finish!(lease:, outcome:, **options)
+      raise ActiveRecord::StatementInvalid, "owned completion unavailable" if outcome == "completed"
+      super
+    end
+  end
+
+  test "uncertain Git and completion block all proposal replay" do
+    # Real local commits remain observable even when their retained outcome cannot be finalized.
+    [LostFinalizationReceipt.new, LostCompletion.new].each_with_index do |lifecycle, index|
+      with_agent_ticket_execution_workspace(project_key: "uncertain-finalization-#{index}") do |fixture|
+        @adapter.requests.clear
+        select(fixture.project, ticket_proposal_profile: "first")
+        @adapter.payload = done_proposal
+        before = AgentTicketExecutionWorkspaceFixture.run_git!("rev-parse HEAD", fixture.project_path)
+        result = run_ticket(fixture, lifecycle: lifecycle, validation_commands: ["go test ./..."])
+        assert_equal "blocked", result.fetch("state")
+        assert_equal "uncertain", result.dig("terminal_outcome", "code")
+        after = AgentTicketExecutionWorkspaceFixture.run_git!("rev-parse HEAD", fixture.project_path)
+        refute_equal before, after
+        assert_equal "blocked", fixture.ticket.reload.workflow_status
+        operation = fixture.project.harness_operations.sole
+        assert_equal "uncertain", operation.state
+        assert_match(/\A[0-9a-f]{64}\z/, operation.attempts.first.fetch("application_receipt"))
+        replay = loop_for.call(request: request, ticket: fixture.ticket, workspace: workspace(fixture))
+        assert replay.blocked?
+        assert_equal 1, @adapter.requests.size
+        independent = loop_for.call(request: request.merge("request_id" => "new-identity"), ticket: fixture.ticket, workspace: workspace(fixture))
+        assert independent.blocked?
+        assert_equal "uncertain", independent.terminal_outcome.fetch("code")
+        assert_equal 1, @adapter.requests.size
+        assert_equal after, AgentTicketExecutionWorkspaceFixture.run_git!("rev-parse HEAD", fixture.project_path)
+      end
+    end
+  end
+
   private
+
+  def done_proposal
+    {"status" => "proposed_changes", "summary" => "Implement done.",
+      "files" => [{"path" => "main.go", "patch" => done_command_patch}],
+      "commands" => [{"command" => "gofmt -w main.go", "purpose" => "format"}]}
+  end
+
+  def run_ticket(fixture, lifecycle: Harnesses::Operation.new, validation_commands:)
+    loop = loop_for(lifecycle: lifecycle, validation_commands: validation_commands)
+    executor = AgentTicketExecution::ValidationExecutor.new(validation_loop: loop, git_finalizer: AgentTicketExecution::GitFinalizer.new)
+    runner = AgentTicketExecution::Runner.new(executor: executor,
+      workspace_boundary: AgentTicketExecution::WorkspaceBoundary.new(allowed_projects_root: fixture.projects_root))
+    runner.call(request: request.merge("ticket_ref" => fixture.ticket.display_key, "board_id" => fixture.board.id, "admin_assignee" => nil)).execution
+  end
 
   def select(project, **changes)
     selection = Harnesses::Selection.new(project: project)

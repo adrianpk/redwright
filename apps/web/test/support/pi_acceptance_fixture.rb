@@ -3,7 +3,8 @@ require "timeout"
 
 module PiAcceptanceFixture
   class Endpoint
-    def initialize(mode: :valid)
+    def initialize(mode: :valid, payload: nil)
+      @payload = payload
       @mode, @requests, @mutex = mode, [], Mutex.new
       @server = TCPServer.new("127.0.0.1", 0)
       @port = @server.addr[1]
@@ -54,7 +55,7 @@ module PiAcceptanceFixture
         end
         content = body.fetch("messages").map { |message| message["content"].to_s }.join("\n")
         tag = content.include?("request-beta") ? "beta" : "alpha"
-        delta = {"role" => "assistant", "content" => JSON.generate(title: "Bounded #{tag}", body: "Owned loopback behavior.")}
+        delta = {"role" => "assistant", "content" => JSON.generate(@payload || {title: "Bounded #{tag}", body: "Owned loopback behavior."})}
         if @mode == :tool
           delta = {"role" => "assistant", "tool_calls" => [{"index" => 0, "id" => "owned-tool", "type" => "function",
             "function" => {"name" => "bash", "arguments" => '{"command":"false"}'}}]}
@@ -100,7 +101,7 @@ module PiAcceptanceFixture
 
   def acceptance_request(project, endpoint, tag: "alpha", timeout: 20, cancellation: nil)
     root = Dir.mktmpdir("pi-acceptance-resources-")
-    @protocol_test_directories << root
+    (@protocol_test_directories ||= []) << root
     auth = File.join(root, "auth.json")
     models = File.join(root, "models.json")
     File.write(auth, JSON.generate("loopback-fixture" => {type: "api_key", key: "owned-loopback-key"},

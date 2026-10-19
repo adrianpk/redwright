@@ -128,6 +128,9 @@ module Harnesses
           raise Error.new("A bounded ticket request identity is required.", code: :invalid_request)
         end
         key = "ticket-#{CanonicalJson.digest([@ticket.id, identity])}"
+        if @ticket.project.harness_operations.where(role: "ticket_proposal", state: %w[running uncertain]).where.not(operation_key: key).exists?
+          raise Error.new("An earlier ticket operation requires owned reconciliation in this workspace.", code: :uncertain)
+        end
         existing = @ticket.project.harness_operations.find_by(operation_key: key)
         @expected = existing ? JSON.parse(existing.workspace_revision_json).fetch("base") : @guard.snapshot
         revision = {"base" => @expected, "request_digest" => CanonicalJson.digest(@request)}
