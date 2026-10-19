@@ -37,3 +37,11 @@ Provider environment variables:
 - `DEEPSEEK_API_KEY`
 - `KIMI_API_KEY`
 - optional `*_BASE_URL` overrides for each provider
+
+## Project Harness Choices
+
+These aliases continue to configure the direct-API ticket default. The Rails
+project **Harness** resource separately selects prepared Codex/Pi authoring and
+ticket-proposal profiles. Clearing the ticket choice restores this API path;
+changing authoring does not change it. See [Harness Profiles](../reference/harness-profiles.md)
+for registry/resource formats, local readiness, retained bindings and limits.

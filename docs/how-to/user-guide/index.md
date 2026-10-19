@@ -4,7 +4,7 @@
 
 Use this guide to operate RedWright from the current user-facing surfaces:
 
-- local configuration
+- local configuration and project harness choices
 - runtime server and foreground stack
 - Rails web app
 - Telegram commands
@@ -53,4 +53,5 @@ Each page uses the same structure:
 - [What Is RedWright?](../../explanation/what-is-redwright.md)
 - [Run RedWright](../run-redwright.md)
 - [Application Semantics v1](../../reference/application-semantics-v1.md)
+- [Harness Profiles](../../reference/harness-profiles.md)
 - [Slash Commands Reference](../../reference/slash-commands.md)

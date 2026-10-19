@@ -37,9 +37,10 @@ Project pages link to:
 - `Protocols`
 - `Specs`
 - `Board`
+- `Harness` for prepared authoring and ticket-proposal profile selections
 
 The top navigation follows this order: `Cases`, `Dumps`, `Quizzes`, `Specs`, `Board`,
-and `Protocol`. Admin users also see `Settings` at the end.
+`Protocol`, and `Harness`. Admin users also see `Settings` at the end.
 
 4. Capture context with Dumps and Quizzes.
 
@@ -87,6 +88,16 @@ files under the project's `.agents/` directory, including nested and custom file
 8. Use protocol templates.
 
 The protocol templates area lets you inspect common templates and stack templates, then edit their Markdown documents for future project setup runs.
+
+9. Select project harness defaults.
+
+Open **Harness** to choose **Authoring** and **Ticket proposals** independently.
+Local readiness checks prepared resources without contacting providers. Saved
+defaults apply to new operations; active bindings retain their admitted choice.
+Use the role's default option to clear a choice. See
+[Configure RedWright](configure-redwright.md#choose-project-harnesses) for the
+setup and verification steps, and [Harness Profiles](../../reference/harness-profiles.md)
+for limits and recovery.
 
 ## Verify
 

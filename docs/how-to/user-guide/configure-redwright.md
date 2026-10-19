@@ -176,6 +176,32 @@ tracing:
     include_raw_output: true
 ```
 
+## Choose Project Harnesses
+
+1. Prepare a private local registry using the [Harness Profiles reference](../../reference/harness-profiles.md).
+   Keep executable and static credential resources outside the repository and
+   project workspace. Pi requires the supported native 1.3.0 distribution and
+   Linux x86_64 Bubblewrap containment; local readiness does not contact a provider.
+2. Sign in to the web app, open a project and select **Harness**.
+3. Inspect **Local readiness**, choose a prepared **Authoring** profile and save.
+   Specifications, slicing, dump curation and protocol references use this role.
+4. Choose **Ticket proposals** independently when desired. Rails still applies,
+   validates and finalizes proposed changes. Saving a selection starts no model call.
+5. Generate a new draft from **Specs** and inspect its result. A successful
+   generation remains a draft until explicitly approved. Changing a default
+   affects new operations; **Active bindings** keeps the prior choice for work
+   already admitted.
+6. Choose **Use Codex default** or **Use Direct API default** to clear that role.
+   Clearing one choice does not alter the other. If a selection is stale, reload
+   before saving the intended change.
+
+An explicit unavailable profile fails without fallback. If effects are marked
+uncertain, inspect the retained operation and its host-owned file/validation/Git
+evidence before reconciliation; changing defaults cannot release its capacity.
+The reference describes static resources, supported capabilities, limits and
+recovery errors. This registry is separate from the runtime provider aliases in
+`config.yml`.
+
 ## Verify
 
 Start the runtime. Configuration errors fail fast during startup.
@@ -200,5 +226,6 @@ printenv TELEGRAM_BOT_TOKEN
 
 ## Related Docs
 
+- [Harness Profiles](../../reference/harness-profiles.md)
 - [Configure Model Providers And Aliases](../configure-model-providers-and-aliases.md)
 - [LLM Rolling Trace File Specification](../../../ops/specs/specs/2026-05-03-redwright-llm-rolling-trace-file-spec.md)

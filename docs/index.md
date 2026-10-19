@@ -24,6 +24,7 @@ No tutorial path is currently maintained.
 
 - [Application Semantics](reference/application-semantics-v1.md)
 - [Diagrams](reference/diagrams/)
+- [Harness Profiles](reference/harness-profiles.md)
 - [Ingress Runtime Policy](reference/ingress-runtime-policy-v1.md)
 - [Kanban Integration Contract](reference/kanban-integration-contract-v1.md)
 - [Runtime Capabilities](reference/runtime-capabilities.md)
