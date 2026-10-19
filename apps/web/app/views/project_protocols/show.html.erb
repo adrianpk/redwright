@@ -1,7 +1,13 @@
 <main class="document-artifacts-show">
   <header class="document-artifacts-header">
-    <h1><%= @protocol_document.title %></h1>
-    <p class="board-key">File: <code><%= @protocol_document.store.root.join(@protocol_document.path) %></code></p>
+    <div class="quiz-header-row">
+      <h1><%= @protocol_document.title %></h1>
+      <% unless @protocol_document.root? %>
+        <%= button_to "Delete", project_protocol_path(@project, @protocol_document), method: :delete,
+                      params: {protocol_document: {revision: @protocol_document.revision, agents_revision: @protocol_document.agents_revision}},
+                      class: "ticket-action ticket-action-danger", form: {data: {protocol_delete: true, turbo: false}} %>
+      <% end %>
+    </div>
   </header>
   <section class="document-artifact-panel">
     <%= render "form",

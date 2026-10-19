@@ -1,9 +1,9 @@
 <main class="document-artifacts-index">
   <section class="documents-top-shell">
-    <div class="board-title-row">
+    <div class="board-title-row catalog-actions">
       <h1 class="visually-hidden">Protocols</h1>
+      <%= link_to "New", new_project_protocol_path(@project), class: "ticket-action", data: {turbo_frame: "modal"} %>
     </div>
-    <p class="board-key">Workspace: <code><%= @catalog.root %></code></p>
   </section>
 
   <section class="artifact-type-nav" aria-label="Protocol navigation">
@@ -39,3 +39,4 @@
     <% end %>
   </section>
 </main>
+<%= turbo_frame_tag "modal" %>

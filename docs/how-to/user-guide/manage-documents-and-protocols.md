@@ -65,9 +65,15 @@ The list follows the files in the project workspace: root `AGENTS.md` and every
 Markdown file under `.agents/`, including subdirectories. Add or remove files
 with your editor and reload the page to see the updated set.
 
-The page identifies the selected project and its local workspace path.
-RW reads only that directory. An unavailable workspace produces an empty list;
+The project selector identifies the selected project. AGENTS is always the first
+card when its file exists. RW reads only that project's directory. An unavailable workspace produces an empty list;
 RW does not substitute its own instructions, templates, or another workspace.
+
+Select `New` to create a concern. Enter its Name, Description, and Markdown Body,
+then select `Save`. RW converts the name to uppercase, replaces spaces with
+underscores, and adds `.md` under `.agents/`. The body is the document's content.
+The configured local harness adds its reference and description to `AGENTS.md`.
+The new document appears as a card. Protocol has no database index or content copy.
 
 5. Edit a project protocol document.
 
@@ -79,7 +85,12 @@ AGENTS.md
 .agents/**/*.md
 ```
 
-Saving one file leaves the others untouched. If another tool changes the file
+Edit Name to rename a concern, or Description to change what its reference says.
+Select `Save` to update the document and its references in `AGENTS.md`. `Delete`
+removes both the selected document and its references after confirmation. AGENTS
+is the entrypoint and cannot be renamed or deleted from the web interface.
+
+Body-only saves write the selected file without invoking the harness. If another tool changes the file
 while the editor is open, RW rejects the outdated save. Reload the file and
 reconcile your edits before saving again. Opening Protocols does not create
 missing files or restore deleted ones.

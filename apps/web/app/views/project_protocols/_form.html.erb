@@ -1,12 +1,14 @@
 <%= form_with model: protocol_document,
-              url: project_protocol_path(project, protocol_document),
+              url: protocol_document.persisted? ? project_protocol_path(project, protocol_document) : project_protocols_path(project),
               html: {
                 class: "document-artifact-form",
                 data: {
-                  protocol_autosave_form: true
+                  protocol_autosave_form: protocol_document.persisted?,
+                  turbo: false
                 }
               } do |f| %>
   <%= f.hidden_field :revision %>
+  <%= f.hidden_field :agents_revision %>
   <% if protocol_document.errors.any? %>
     <div class="document-artifact-errors">
       <h2><%= pluralize(protocol_document.errors.count, "error") %> blocked this protocol:</h2>
@@ -18,12 +20,23 @@
     </div>
   <% end %>
 
+  <% unless protocol_document.root? %>
+    <div class="document-artifact-field">
+      <%= f.label :name, "Name" %>
+      <%= f.text_field :name, required: true, maxlength: 80, placeholder: "Invariants" %>
+    </div>
+    <div class="document-artifact-field">
+      <%= f.label :description, "Description" %>
+      <%= f.text_field :description, maxlength: 500, placeholder: "Non-negotiable collaboration rules." %>
+    </div>
+  <% end %>
   <div class="document-artifact-field document-artifact-field-body-only">
+    <%= f.label :body, "Body", class: "visually-hidden" %>
     <%= f.text_area :body,
                     rows: 18,
                     placeholder: local_assigns[:body_placeholder] %>
   </div>
   <div class="document-artifact-actions">
-    <%= f.submit (local_assigns[:submit_label] || "Save"), class: "ticket-action" %>
+    <%= f.submit "Save", class: "ticket-action" %>
   </div>
 <% end %>

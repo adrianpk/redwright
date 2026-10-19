@@ -17,36 +17,48 @@ class ProjectProtocolsController < ApplicationController
   def show
   end
 
+  def new
+    @protocol_document = ProjectProtocols::FileDocument.new(store: @catalog)
+  end
+
+  def create
+    @protocol_document = ProjectProtocols::FileDocument.new(store: @catalog)
+    @protocol_document.assign_attributes(protocol_document_params)
+    document = document_service.create(**protocol_document_params.to_h.symbolize_keys.except(:revision))
+    redirect_to project_protocol_path(@project, document), notice: "Protocol created."
+  rescue Specifications::Error => error
+    render_document_error(error, :new)
+  end
+
   def edit
     redirect_to project_protocol_path(@project, @protocol_document)
   end
 
   def update
     attributes = protocol_document_params
-    if @protocol_document.update(body: attributes[:body], revision: attributes[:revision])
-      respond_to do |format|
-        format.json do
-          render json: {
-            id: @protocol_document.id,
-            updated_at: @protocol_document.updated_at&.iso8601,
-            revision: @protocol_document.revision
-          }
-        end
-        format.html { redirect_to project_protocol_path(@project, @protocol_document), notice: "Protocol updated." }
+    @protocol_document = document_service.update(@protocol_document, **attributes.to_h.symbolize_keys)
+    respond_to do |format|
+      format.json do
+        render json: {
+          id: @protocol_document.id,
+          updated_at: @protocol_document.updated_at&.iso8601,
+          revision: @protocol_document.revision,
+          agents_revision: @protocol_document.agents_revision
+        }
       end
-    else
-      respond_to do |format|
-        status = @protocol_document.errors.of_kind?(:base, :stale) ? :conflict : :unprocessable_entity
-        format.json { render json: {errors: @protocol_document.errors.full_messages}, status: status }
-        format.html { render :show, status: status }
-      end
+      format.html { redirect_to project_protocol_path(@project, @protocol_document), notice: "Protocol updated." }
     end
+  rescue Specifications::Error => error
+    @protocol_document.assign_attributes(attributes)
+    render_document_error(error, :show)
   end
 
   def destroy
     redirect_path = @protocol_document.path.start_with?(".agents/playbooks/") ? playbooks_project_protocols_path(@project) : project_protocols_path(@project)
-    @protocol_document.destroy!
+    document_service.delete(@protocol_document, **protocol_document_params.to_h.symbolize_keys.slice(:revision, :agents_revision))
     redirect_to redirect_path, notice: "Protocol deleted."
+  rescue Specifications::Error => error
+    render_document_error(error, :show)
   end
 
   private
@@ -64,7 +76,20 @@ class ProjectProtocolsController < ApplicationController
   end
 
   def protocol_document_params
-    params.require(:protocol_document).permit(:body, :revision).with_defaults(revision: nil)
+    params.require(:protocol_document).permit(:name, :description, :body, :revision, :agents_revision)
+  end
+
+  def document_service
+    ProjectProtocols::Documents.new(store: @catalog)
+  end
+
+  def render_document_error(error, view)
+    @protocol_document.errors.add(:base, error.message)
+    status = error.code == :conflict ? :conflict : :unprocessable_entity
+    respond_to do |format|
+      format.json { render json: {errors: @protocol_document.errors.full_messages}, status: status }
+      format.html { render view, status: status }
+    end
   end
 
 end

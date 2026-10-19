@@ -29,7 +29,7 @@ Rails.application.routes.draw do
         post :cancel
       end
     end
-    resources :protocols, controller: "project_protocols", only: [ :index, :show, :edit, :update, :destroy ] do
+    resources :protocols, controller: "project_protocols", only: [ :index, :new, :create, :show, :edit, :update, :destroy ] do
       collection do
         get :playbooks
       end

@@ -81,7 +81,71 @@ module ProjectProtocols
       find_path(path)
     end
 
+    def snapshot(path)
+      target = root.join(path)
+      return nil unless target.exist? || target.symlink?
+
+      body = existing_path(path).read
+      {body: body, revision: Digest::SHA256.hexdigest(body)}
+    end
+
+    # Generate first, then recheck all revisions before changing either file.
+    def apply(changes, expected:)
+      directory = root.join(".rw")
+      raise Specifications::Error, "Invalid protocol lock directory." if directory.symlink?
+      FileUtils.mkdir_p(directory)
+      lock_path = directory.join("protocol.lock")
+      raise Specifications::Error, "Invalid protocol lock file." if lock_path.symlink?
+      File.open(lock_path, File::RDWR | File::CREAT, 0o600) do |lock|
+        unless lock.flock(File::LOCK_EX | File::LOCK_NB)
+          raise Specifications::Error.new("Protocol is being updated. Try again after it finishes.", code: :conflict)
+        end
+        originals = expected.to_h do |path, revision|
+          original = snapshot(path)
+          unless original&.fetch(:revision) == revision
+            raise Specifications::Error.new("Protocol files changed while saving. Reload before trying again.", code: :conflict)
+          end
+          [path, original&.fetch(:body)]
+        end
+        changes.each_key { |path| validate_destination!(path) }
+        applied = []
+        begin
+          changes.each do |path, body|
+            target = root.join(path)
+            if body.nil?
+              target.delete
+            else
+              FileUtils.mkdir_p(target.dirname)
+              File.atomic_write(target) { |file| file.write(body) }
+            end
+            applied << path
+          end
+        rescue SystemCallError
+          applied.reverse_each do |path|
+            if originals[path].nil?
+              root.join(path).delete
+            else
+              File.atomic_write(root.join(path)) { |file| file.write(originals.fetch(path)) }
+            end
+          end
+          raise Specifications::Error, "Could not save the protocol files."
+        end
+      ensure
+        lock.flock(File::LOCK_UN)
+      end
+    end
+
     private
+
+    def validate_destination!(path)
+      raise Specifications::Error, "Invalid protocol filename." unless allowed_path?(path)
+      target = root.join(path)
+      ancestor = target.dirname
+      ancestor = ancestor.parent until ancestor.exist?
+      unless root.directory? && within_root?(ancestor.realpath) && !target.symlink? && (!target.exist? || target.file?)
+        raise Specifications::Error, "Protocol file is outside the workspace."
+      end
+    end
 
     def existing_path(path)
       raise ActiveRecord::RecordNotFound, "Protocol file not found." unless allowed_path?(path) && safe_file?(path)

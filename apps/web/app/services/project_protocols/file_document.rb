@@ -6,27 +6,38 @@ module ProjectProtocols
     include ActiveModel::Model
 
     attr_reader :store, :path, :position, :updated_at
-    attr_accessor :body, :revision
+    attr_accessor :body, :revision, :name, :description, :agents_revision
 
     def self.model_name
       ActiveModel::Name.new(self, nil, "ProtocolDocument")
     end
 
-    def initialize(store:, path:, position: 0)
+    def initialize(store:, path: nil, position: 0)
       @store = store
       @path = path
       @position = position
-      reload
+      if path
+        reload
+      else
+        @name, @description, @body = "", "", ""
+        @agents_revision = store.snapshot("AGENTS.md")&.fetch(:revision)
+      end
     end
 
     def reload
       @body = store.root.join(path).read
       @revision = Digest::SHA256.hexdigest(body)
       @updated_at = store.root.join(path).mtime
+      @name = File.basename(path, ".md")
+      agents = store.snapshot("AGENTS.md")
+      @agents_revision = agents&.fetch(:revision)
+      reference = agents&.fetch(:body)&.lines&.find { |line| line.match?(/\A\s*[-*+]\s+`#{Regexp.escape(path)}`(?:\s|$)/) }
+      @description = reference.to_s.split(/\s+—\s+/, 2)[1].to_s.strip
       self
     end
 
     def id
+      return unless path
       Base64.urlsafe_encode64(path, padding: false)
     end
 
@@ -35,7 +46,11 @@ module ProjectProtocols
     end
 
     def persisted?
-      true
+      path.present?
+    end
+
+    def root?
+      path == "AGENTS.md"
     end
 
     def key
