@@ -16,8 +16,8 @@ closed_at:
 resolution:
 owner:
 branch: fix/slice-7-pi-pi-harness-acceptance
-pr:
-commits: [a3cc089d6905f1e9118076829b762d7ea7df56b1]
+pr: https://forge.adrianpk.com/adrianpk/redwrigh/pulls/16
+commits: [a3cc089d6905f1e9118076829b762d7ea7df56b1, ef325dc15678de54c911705ed1b7ce6f55ee0be8]
 ---
 
 # Document and validate the integrated Pi harness workflow
@@ -84,5 +84,6 @@ gate. These commands are planned, not reported as passed.
 Prepared in the dedicated Slice 7 worktree. The canonical
 [Slice 7 report](../../artifacts/slices/pi-harness/slice-7-pi-harness-acceptance.md)
 and [cycle report](../../artifacts/2026-10-19-redwright-pi-harness-cycle-report.md)
-retain the evidence boundary. PR references and exact-head pre-merge checks
-follow before readiness; the controller owns integration and the full gate.
+retain the evidence boundary. Canonical PR [#16](https://forge.adrianpk.com/adrianpk/redwrigh/pulls/16) is open.
+Exact-head pre-merge checks follow this reference commit before readiness; the
+controller owns integration and the full gate.

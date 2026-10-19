@@ -231,7 +231,7 @@ Validation:
 - report: `ops/artifacts/slices/pi-harness/slice-7-pi-harness-acceptance.md`
 - ticket: [TKT-20261019165607](../tickets/reviewing/20261019165607-document-and-validate-the-integrated-pi-harness-workflow.md)
 - merge_target: `dev`
-- PR: `pending`
+- PR: [#16](https://forge.adrianpk.com/adrianpk/redwrigh/pulls/16)
 - last_sync_commit: `none`
 
 Tasks:
@@ -243,7 +243,7 @@ Tasks:
 Commits:
 
 - `T7.1`: `a3cc089d6905f1e9118076829b762d7ea7df56b1` - operator guidance and configuration reference.
-- `T7.2`: report-introduction task commit - integrated switching/recovery and feature-to-ticket evidence.
+- `T7.2`: `ef325dc15678de54c911705ed1b7ce6f55ee0be8` - report introduction - integrated switching/recovery and feature-to-ticket evidence.
 - `T7.3`: pending controller gate evidence and final closure commit.
 
 Validation:

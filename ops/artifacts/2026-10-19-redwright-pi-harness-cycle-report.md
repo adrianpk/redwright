@@ -21,7 +21,7 @@ substitutes for the exact integrated gate.
 | Slice 4 | [#13](https://forge.adrianpk.com/adrianpk/redwrigh/pulls/13) | `cdeb6dbbffcda5cff44fab6b95c4c07a802fb2b1` |
 | Slice 5 | [#14](https://forge.adrianpk.com/adrianpk/redwrigh/pulls/14) | `c54eaa3cca7da2673218c7cc9a070afea4cdce39` |
 | Slice 6 | [#15](https://forge.adrianpk.com/adrianpk/redwrigh/pulls/15) | `ae01006350d550fca8ad92dd79ab58e895d76ef8` |
-| Slice 7 | pending | pending controller integration |
+| Slice 7 | [#16](https://forge.adrianpk.com/adrianpk/redwrigh/pulls/16) | pending controller integration |
 
 ## Acceptance Evidence Map
 

@@ -383,6 +383,7 @@ Planned task commits:
 - expected_pr_title: `feat(slice-7): operator guidance and integrated acceptance`
 - report: `ops/artifacts/slices/pi-harness/slice-7-pi-harness-acceptance.md`
 - ticket: [TKT-20261019165607](../tickets/reviewing/20261019165607-document-and-validate-the-integrated-pi-harness-workflow.md)
+- PR: [#16](https://forge.adrianpk.com/adrianpk/redwrigh/pulls/16)
 - objective: An operator can configure prepared Pi profiles, switch a project, understand failures and verify the integrated behavior with recorded evidence.
 - acceptance_mapping: `PI-01 through PI-15`
 
