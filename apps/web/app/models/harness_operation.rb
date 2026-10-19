@@ -4,7 +4,7 @@ class HarnessOperation < ApplicationRecord
   TERMINAL_STATES = %w[completed failed cancelled timed_out].freeze
   IMMUTABLE_FIELDS = %w[project_id operation_key purpose role selection_revision binding_json binding_digest contract_digest workspace_revision_json private_run_ref].freeze
   BINDING_FIELDS = %w[schema_version operation_id purpose role project_ref workspace_ref schema_digest policy_revision selection_revision selection_source profile harness profile_revision protocol_revision requested_provider requested_model capabilities].freeze
-  OPTIONAL_BINDING_FIELDS = %w[thinking model_config_revision revision executable_identity].freeze
+  OPTIONAL_BINDING_FIELDS = %w[thinking model_config_revision revision executable_identity containment_policy_revision].freeze
 
   belongs_to :project
   attr_readonly(*IMMUTABLE_FIELDS)

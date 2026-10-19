@@ -91,10 +91,16 @@ class ActiveSupport::TestCase
     @previous_local_projects_root = ENV["REDWRIGHT_LOCAL_PROJECTS_ROOT"]
     @local_projects_test_root = Dir.mktmpdir("redwright-setup-test-")
     ENV["REDWRIGHT_LOCAL_PROJECTS_ROOT"] = @local_projects_test_root
+    @previous_harness_state = ENV["REDWRIGHT_HARNESS_STATE"]
+    @previous_harness_profiles = ENV["REDWRIGHT_HARNESS_PROFILES"]
+    ENV["REDWRIGHT_HARNESS_STATE"] = File.join(@local_projects_test_root, "harness-state")
+    ENV["REDWRIGHT_HARNESS_PROFILES"] = File.join(@local_projects_test_root, "harness-profiles.json")
   end
 
   teardown do
     ENV["REDWRIGHT_LOCAL_PROJECTS_ROOT"] = @previous_local_projects_root
+    ENV["REDWRIGHT_HARNESS_STATE"] = @previous_harness_state
+    ENV["REDWRIGHT_HARNESS_PROFILES"] = @previous_harness_profiles
     FileUtils.remove_entry(@local_projects_test_root) if @local_projects_test_root && File.directory?(@local_projects_test_root)
     Array(@protocol_test_directories).each { |path| FileUtils.remove_entry(path) if File.directory?(path) }
   end

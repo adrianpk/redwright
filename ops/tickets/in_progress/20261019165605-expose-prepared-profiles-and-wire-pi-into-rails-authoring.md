@@ -1,7 +1,7 @@
 ---
 id: TKT-20261019165605
 title: Expose prepared profiles and wire Pi into Rails authoring
-status: ready
+status: in_progress
 kind: task
 severity: unclassified
 priority: normal
@@ -10,12 +10,12 @@ tags: pi-harness, slice-delivery, rails
 source: chat
 reported_at: 2026-10-19T16:56:05Z
 ready_at: 2026-10-19T17:08:55Z
-started_at:
+started_at: 2026-10-19T18:38:14Z
 reviewed_at:
 closed_at:
 resolution:
 owner:
-branch:
+branch: fix/slice-5-pi-pi-authoring-settings
 pr:
 commits: []
 ---
@@ -46,13 +46,13 @@ Users can inspect/change project harness defaults through a compact authenticate
 
 ## Actual
 
-Implementation has not started. The maintainer approved this slice and its
+All four Rails authoring owners now use lazy retained admission, a shared deadline and one owned lease through nested calls and publication. Focused integration and regression checks passed (25 tests, 280 assertions). The maintainer approved this slice and its
 dependency/platform choices under the linked plan. Respect preceding slice
 dependencies; only this Pi delivery has autonomous commit/integration authority.
 
 ## Tasks
 
-- [ ] `T5.1` Inject one retained authoring operation into Specs, slicing, Dumps and protocol references; preserve current revisions, semantic checks and atomic publication.
+- [x] `T5.1` Inject one retained authoring operation into Specs, slicing, Dumps and protocol references; preserve current revisions, semantic checks and atomic publication.
 - [ ] `T5.2` Add a project-scoped Harness settings resource with compact controls for prepared profiles, clear-to-default, active bindings and local readiness.
 - [ ] `T5.3` Verify authenticated and stale/conflicting changes, independent process visibility, responsive rendering and all four authoring consumer boundaries.
 

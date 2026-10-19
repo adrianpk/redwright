@@ -1,7 +1,8 @@
 module Dumps
   class Documents
-    def initialize(project)
+    def initialize(project, authoring: Harnesses::Authoring)
       @project = project
+      @authoring = authoring
     end
 
     def open(use_case_name: nil, title: nil)
@@ -22,8 +23,13 @@ module Dumps
       context = {"project" => @project.attributes.slice("name", "description"),
         "use_case" => dump.use_case&.attributes&.slice("name", "description"),
         "dump" => {"title" => entry[:title], "body" => entry[:body]}}
-      output = harness.generate(context: context, workspace: FileStore.new(@project).root.to_s)
-      update(dump, body: output.fetch("body"), revision: revision)
+      authoring = @authoring.new(project: @project, purpose: "curation", schema: Specifications::Harness::OUTPUT_SCHEMA,
+        harness: harness, workspace_revision: {"dump_ref" => dump.id.to_s, "revision" => revision})
+      authoring.run do |selected|
+        output = selected.generate(context: context, workspace: FileStore.new(@project).root.to_s)
+        selected.check_deadline! if selected.respond_to?(:check_deadline!)
+        update(dump, body: output.fetch("body"), revision: revision)
+      end
     end
 
     def update(dump, body:, revision:, status: dump.status)

@@ -13,13 +13,14 @@ module ProjectProtocols
         slug = root.basename.to_s.downcase.gsub(/[^a-z0-9._-]+/, "-").gsub(/\A-+|-+\z/, "")
         root = Pathname.new(projects_root).join(slug)
       end
-      new(root: root)
+      new(root: root, project: project)
     end
 
-    attr_reader :root
+    attr_reader :root, :project
 
-    def initialize(root:)
+    def initialize(root:, project: nil)
       @root = Pathname.new(root).expand_path
+      @project = project
     end
 
     def documents

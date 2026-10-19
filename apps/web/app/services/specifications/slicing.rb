@@ -33,8 +33,9 @@ module Specifications
       end
     end
 
-    def initialize(specification:, harness: Harness.new)
+    def initialize(specification:, harness: Harness.new, authoring: Harnesses::Authoring)
       @specification, @harness = specification, harness
+      @authoring = authoring
     end
 
     def call
@@ -46,9 +47,14 @@ module Specifications
       context = {"specification" => {"title" => specification.title, "body" => specification.body},
         "existing_tickets" => specification.use_case.tickets.map { |ticket| {"key" => ticket.ticket_key, "title" => ticket.title, "body" => ticket.description} }}
       raise Error, "The slicing context is too large." if context.to_json.bytesize > ContextBuilder::MAX_CONTEXT_BYTES
-      output = @harness.generate(context: context, workspace: specification.project.root_path)
-      Tracker.new(project: specification.project).generate!(specification: specification,
-        definitions: output.fetch("tickets"), expected_revision: revision)
+      authoring = @authoring.new(project: specification.project, purpose: "slicing", schema: Harness::SCHEMA,
+        harness: @harness, workspace_revision: {"specification_ref" => specification.id.to_s, "revision" => revision})
+      authoring.run do |harness|
+        output = harness.generate(context: context, workspace: specification.project.root_path)
+        harness.check_deadline! if harness.respond_to?(:check_deadline!)
+        Tracker.new(project: specification.project).generate!(specification: specification,
+          definitions: output.fetch("tickets"), expected_revision: revision)
+      end
     end
   end
 end

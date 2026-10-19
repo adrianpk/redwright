@@ -52,7 +52,7 @@ module Harnesses
       end
     end
 
-    def admit!(operation_key:, purpose:, role:, schema:, policy_revision:, workspace_revision: {})
+    def admit!(operation_key:, purpose:, role:, schema:, policy_revision:, workspace_revision: {}, legacy_program: nil)
       validate_key!(operation_key)
       unless HarnessOperation::PURPOSES.include?(purpose) && ROLES.include?(role) &&
           (purpose == "ticket_proposal") == (role == "ticket_proposal") &&
@@ -78,7 +78,7 @@ module Harnesses
         raise Error.new("Retained harness operations are full. Release old terminal references before retrying.", code: :capacity) if @project.harness_operations.count >= MAX_OPERATIONS
         setting = ProjectHarnessSetting.find_by(project_id: @project.id)
         profile_key = setting&.public_send("#{role}_profile")
-        public_values, private_values = resolve_profile(profile_key, purpose)
+        public_values, private_values = resolve_profile(profile_key, purpose, legacy_program: legacy_program)
         reference = @store.write(private_values)
         transaction.after_rollback { @store.delete(reference) }
         binding = public_values.merge("schema_version" => "harness-binding/v1", "operation_id" => operation_key,
@@ -106,7 +106,7 @@ module Harnesses
       @store.read(operation.private_run_ref)
     end
 
-    def resolve_profile(key, purpose)
+    def resolve_profile(key, purpose, legacy_program: nil)
       if key
         profile = @registry.resolve(key).ready!
         return [profile.public_values.except("name").merge("profile_revision" => profile.public_values.fetch("revision")), profile.private_values]
@@ -120,6 +120,7 @@ module Harnesses
       when "references" then ENV.fetch("REDWRIGHT_PROTOCOL_HARNESS", ENV.fetch("REDWRIGHT_SPEC_HARNESS", "codex"))
       else ENV.fetch("REDWRIGHT_SPEC_HARNESS", "codex")
       end
+      program = legacy_program if legacy_program
       [{"harness" => "codex", "profile_revision" => CanonicalJson.digest(program), "protocol_revision" => "codex-exec/v1",
         "requested_provider" => nil, "requested_model" => nil, "capabilities" => {"structured_output" => true}}, {"executable_ref" => program}]
     end

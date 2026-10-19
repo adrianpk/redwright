@@ -8,6 +8,7 @@ module Specifications
       type: "object", additionalProperties: false, required: %w[title body],
       properties: {title: {type: "string"}, body: {type: "string"}}
     }.freeze
+    attr_reader :program
 
     def initialize(program: ENV.fetch("REDWRIGHT_SPEC_HARNESS", "codex"), timeout: TIMEOUT_SECONDS, schema: OUTPUT_SCHEMA, artifact_name: "specification")
       @program, @timeout = program, timeout
@@ -15,10 +16,23 @@ module Specifications
       @artifact_name = artifact_name
     end
 
+    def with_operation(operation)
+      dup.tap { |harness| harness.instance_variable_set(:@operation, operation) }
+    end
+
+    def check_deadline!
+      @operation&.check_deadline!
+    end
+
     def generate(context:, workspace:)
-      request = Harnesses::Request.new(instructions: instructions, context: context, workspace: workspace,
-        schema: @schema, purpose: @artifact_name, program: @program, timeout: @timeout, max_output_bytes: MAX_OUTPUT_BYTES)
-      result = Harnesses::StructuredCall.new.call(request)
+      result = if @operation
+        @operation.call(instructions: instructions, context: context, workspace: workspace,
+          timeout: @timeout, max_output_bytes: MAX_OUTPUT_BYTES)
+      else
+        request = Harnesses::Request.new(instructions: instructions, context: context, workspace: workspace,
+          schema: @schema, purpose: @artifact_name, program: @program, timeout: @timeout, max_output_bytes: MAX_OUTPUT_BYTES)
+        Harnesses::StructuredCall.new.call(request)
+      end
       validate_output!(result.value)
       result.value
     rescue Harnesses::Error => error
@@ -30,7 +44,7 @@ module Specifications
       when :failed then "#{@artifact_name.capitalize} generation failed. Check the local harness session and try again."
       else error.message
       end
-      raise Error, message
+      raise Error.new(message, code: error.code)
     end
 
     private

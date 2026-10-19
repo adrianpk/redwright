@@ -2,11 +2,28 @@ module ProjectProtocols
   class Documents
     PLAYBOOKS_PATH = ".agents/PLAYBOOKS.md"
 
-    def initialize(store:, harness: ReferenceHarness.new)
+    def initialize(store:, harness: ReferenceHarness.new, authoring: Harnesses::Authoring)
       @store, @harness = store, harness
+      @authoring = authoring
     end
 
-    def create(name: "", body: "", description: "", agents_revision: nil, index_revision: nil, collection: "protocols")
+    def create(**attributes)
+      with_authoring("create") { |service| service.perform_create(**attributes) }
+    end
+
+    def update(document, **attributes)
+      with_authoring("update", document) { |service| service.perform_update(document, **attributes) }
+    end
+
+    def delete(document, **attributes)
+      with_authoring("delete", document) { |service| service.perform_delete(document, **attributes) }
+    end
+
+    def sync_references(document, **attributes)
+      with_authoring("sync", document) { |service| service.perform_sync_references(document, **attributes) }
+    end
+
+    def perform_create(name: "", body: "", description: "", agents_revision: nil, index_revision: nil, collection: "protocols")
       unless ["protocols", "playbooks"].include?(collection)
         raise Specifications::Error, "Invalid protocol collection."
       end
@@ -19,22 +36,22 @@ module ProjectProtocols
       changes = {path => body.to_s, index_path => updated}
       expected = {path => nil, index_path => index&.fetch(:revision)}
       connect_playbooks(changes, expected, agents_revision) if index_path == PLAYBOOKS_PATH
-      @store.apply(changes, expected: expected)
+      apply_changes(changes, expected: expected)
       @store.find_path(path)
     end
 
-    def update(document, body: document.body, revision: nil, name: document.name, description: document.description,
+    def perform_update(document, body: document.body, revision: nil, name: document.name, description: document.description,
       agents_revision: nil, index_revision: nil)
       current = checked_document(document, revision)
       if document.reference_index?
         raise Specifications::Error, "Protocol indexes cannot be renamed." unless name == document.name
-        @store.apply({document.path => body.to_s}, expected: {document.path => current.fetch(:revision)})
+        apply_changes({document.path => body.to_s}, expected: {document.path => current.fetch(:revision)})
         return document.reload
       end
       path = name == document.name ? document.path : File.join(File.dirname(document.path), filename(name))
       description = normalize_description(description)
       if path == document.path && description == document.description
-        @store.apply({path => body.to_s}, expected: {path => current.fetch(:revision)})
+        apply_changes({path => body.to_s}, expected: {path => current.fetch(:revision)})
         return document.reload
       end
       ensure_available!(path) unless path == document.path
@@ -48,11 +65,11 @@ module ProjectProtocols
         expected[path] = nil
       end
       connect_playbooks(changes, expected, agents_revision) if index_path == PLAYBOOKS_PATH
-      @store.apply(changes, expected: expected)
+      apply_changes(changes, expected: expected)
       @store.find_path(path)
     end
 
-    def delete(document, revision: nil, agents_revision: nil, index_revision: nil)
+    def perform_delete(document, revision: nil, agents_revision: nil, index_revision: nil)
       raise Specifications::Error, "Protocol indexes cannot be deleted." if document.reference_index?
       current = checked_document(document, revision)
       index_path = document.reference_index_path
@@ -61,10 +78,10 @@ module ProjectProtocols
       changes = {index_path => updated, document.path => nil}
       expected = {document.path => current.fetch(:revision), index_path => index&.fetch(:revision)}
       connect_playbooks(changes, expected, agents_revision) if index_path == PLAYBOOKS_PATH
-      @store.apply(changes, expected: expected)
+      apply_changes(changes, expected: expected)
     end
 
-    def sync_references(document, body: document.body, revision: nil)
+    def perform_sync_references(document, body: document.body, revision: nil)
       raise Specifications::Error, "References can only be synced from a protocol index." unless document.reference_index?
       current = checked_document(document, revision)
       sources = @store.documents.to_h do |entry|
@@ -88,11 +105,27 @@ module ProjectProtocols
         stage_sync(PLAYBOOKS_PATH, playbooks, changes, expected, body: body.to_s)
         connect_playbooks(changes, expected)
       end
-      @store.apply(changes, expected: expected) if changes.any?
+      apply_changes(changes, expected: expected) if changes.any?
       document.reload
     end
 
     private
+
+    def with_authoring(action, document = nil)
+      return yield self unless @store.project
+      authoring = @authoring.new(project: @store.project, purpose: "references", schema: ReferenceHarness::SCHEMA,
+        harness: @harness, workspace_revision: {"action" => action, "document_ref" => document&.path})
+      authoring.run do |harness|
+        service = dup
+        service.instance_variable_set(:@harness, harness)
+        yield service
+      end
+    end
+
+    def apply_changes(changes, expected:)
+      @harness.check_deadline! if @harness.respond_to?(:check_deadline!)
+      @store.apply(changes, expected: expected)
+    end
 
     def reference_index(path)
       path.start_with?(".agents/playbooks/") ? PLAYBOOKS_PATH : "AGENTS.md"
