@@ -78,6 +78,33 @@ class HarnessesProcessSupervisorTest < ActiveSupport::TestCase
     assert stopped
   end
 
+  test "a protocol callback failure still reaps the child" do
+    # Parser exceptions escape through ensure, which must close all pipes and terminate only the owned process group.
+    project = create_project
+    marker = File.join(project.root_path, "callback-pid")
+    source = "File.write(#{marker.dump}, Process.pid.to_s); STDOUT.sync = true; puts 'record'; sleep 30"
+    error = assert_raises(Harnesses::Error) do
+      supervise(source) { |_input, _chunk| raise Harnesses::Error.new("Invalid fixture record.", code: :protocol_error) }
+    end
+    assert_equal :protocol_error, error.code
+    owned_pid = Integer(File.read(marker))
+    assert_raises(Errno::ESRCH) { Process.kill(0, owned_pid) }
+    assert_raises(Errno::ECHILD) { Process.waitpid(owned_pid, Process::WNOHANG) }
+  end
+
+  test "preflight cancellation never launches a child" do
+    # Expired or cancelled work has no authority to start a new executable.
+    project = create_project
+    marker = File.join(project.root_path, "unexpected-pid")
+    error = assert_raises(Harnesses::Error) do
+      supervise("File.write(#{marker.dump}, Process.pid.to_s)", cancellation: -> { true })
+    end
+    assert_equal :cancelled, error.code
+    assert_not File.exist?(marker)
+    assert_raises(ArgumentError) { Harnesses::ProcessSupervisor.new(stdout_limit: 64 * 1024 * 1024 + 1) }
+    assert_raises(ArgumentError) { Harnesses::ProcessSupervisor.new(stderr_limit: 2 * 1024 * 1024 + 1) }
+  end
+
   private
 
   def supervise(source, supervisor: Harnesses::ProcessSupervisor.new, timeout: 2, **options, &block)

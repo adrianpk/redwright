@@ -1,7 +1,7 @@
 ---
 id: TKT-20261019165603
 title: Add a bounded Pi RPC adapter for structured generation
-status: in_progress
+status: reviewing
 kind: task
 severity: unclassified
 priority: normal
@@ -11,7 +11,7 @@ source: chat
 reported_at: 2026-10-19T16:56:03Z
 ready_at: 2026-10-19T17:08:55Z
 started_at: 2026-10-19T17:51:32Z
-reviewed_at:
+reviewed_at: 2026-10-19T18:05:07Z
 closed_at:
 resolution:
 owner:
@@ -46,15 +46,19 @@ A pinned Pi adapter handles correlated setup, settlement, final output and owned
 
 ## Actual
 
-Shared bounded process supervision is implemented and Codex authoring uses it. The maintainer approved this slice and its
-dependency/platform choices under the linked plan. Respect preceding slice
-dependencies; only this Pi delivery has autonomous commit/integration authority.
+All three tasks are implemented. Shared nonblocking process supervision bounds
+Codex and Pi calls. The pinned Pi adapter correlates setup, requires an owned
+final assistant result, settlement, idle state and clean exit, then applies host
+schema validation. Transport fixtures passed: 16 tests and 308 assertions,
+including split/interleaved records, cancellation, invalid UTF-8, early/late
+exit, provider errors, reaping and an escaped 2 MiB decoded result. Production
+Pi invocation requires the containment owner assigned to Slice 4.
 
 ## Tasks
 
 - [x] `T3.1` Implement shared owned-process supervision with concurrent pipe draining, deadlines, stream ceilings, sanitized diagnostics and deterministic reaping.
 - [x] `T3.2` Implement PiAdapter for Pi 1.3.0 RPC, exact model/provider setup, ephemeral tool-free sessions and final settlement validation.
-- [ ] `T3.3` Exercise split/interleaved records, invalid UTF-8, early/late exits, provider failure, cancellation and encoded 2 MiB results through real pipe fixtures.
+- [x] `T3.3` Exercise split/interleaved records, invalid UTF-8, early/late exits, provider failure, cancellation and encoded 2 MiB results through real pipe fixtures.
 
 ## Planned Commits
 
@@ -77,5 +81,6 @@ gate. These commands are planned, not reported as passed.
 
 ## Outcome
 
-Ready under the approved plan; implementation pending. Existing Settings/Setup changes,
-preview services, credentials and active databases remain outside this ticket.
+Implemented in the dedicated Slice 3 worktree. The canonical report is
+[Slice 3](../../artifacts/slices/pi-harness/slice-3-pi-rpc.md). Canonical PR
+references and final exact-head controller validation follow before readiness.
