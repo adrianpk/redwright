@@ -17,7 +17,7 @@ resolution: fixed
 owner:
 branch: fix/slice-7-pi-pi-harness-acceptance
 pr: https://forge.adrianpk.com/adrianpk/redwrigh/pulls/16
-commits: [a3cc089d6905f1e9118076829b762d7ea7df56b1, ef325dc15678de54c911705ed1b7ce6f55ee0be8]
+commits: [a3cc089d6905f1e9118076829b762d7ea7df56b1, ef325dc15678de54c911705ed1b7ce6f55ee0be8, f34f9ecde2310e7f191616b09943eb828b2bfeac]
 ---
 
 # Document and validate the integrated Pi harness workflow
@@ -93,4 +93,4 @@ into `dev` at `a5b4120ee1849dd9dd2903f5450081f1234056f2` after six controller ch
 passed, including Rails 621 tests/5,076 assertions and native Pi 6/77.
 Integration and T7.3 are closed using the successful immutable-candidate gate
 evidence. All three tasks are complete and this ticket is solved. The closure
-task commit is recorded in Acta; its full reference follows after commit.
+task commit `f34f9ecde2310e7f191616b09943eb828b2bfeac` is recorded in Acta.

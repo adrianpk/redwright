@@ -254,7 +254,7 @@ Commits:
 
 - `T7.1`: `a3cc089d6905f1e9118076829b762d7ea7df56b1` - operator guidance and configuration reference.
 - `T7.2`: `ef325dc15678de54c911705ed1b7ce6f55ee0be8` - report introduction - integrated switching/recovery and feature-to-ticket evidence.
-- `T7.3`: documentation closure task commit, recorded in Acta; full reference added after commit.
+- `T7.3`: `f34f9ecde2310e7f191616b09943eb828b2bfeac` - retained controller gate evidence and documentation closure.
 
 Validation:
 

@@ -144,8 +144,8 @@ The implementation worker consumed this evidence without rerunning the gate.
 Plan and tracker are Completed with 7/7 integrated slices, 21/21 completed tasks
 and no active slice or task. The final supporting ticket is solved. Slice
 reports are delivered; specification/model metadata and indexes identify the
-completed delivery. T7.3's task commit is recorded in Acta and its full hash is
-added by the documentation reference follow-up.
+completed delivery. T7.3's task commit `f34f9ecde2310e7f191616b09943eb828b2bfeac` is recorded in Acta
+and mapped in the completed tracker and solved ticket.
 
 Only configured closure paths differ from the tested candidate. The local
 tree has no separate delivery handoff requiring an update; this report and
