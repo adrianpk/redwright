@@ -113,6 +113,13 @@ result boundary in domain tests; native Pi uses an owned loopback endpoint and
 dummy credentials. Test harness state and browser profiles are private temporary
 fixtures, cleaned after their checks. No preview database or service is changed.
 
+The first final Rails candidate at `d11c9e716b423c690ec64c97210d5bc66727e334`
+had one navigation assertion failure among 608 tests: its expected menu omitted
+the new Harness link. Navigation coverage now includes the link in order and
+verifies its active section. Final evidence is regenerated after this correction.
+The focused correction passed with 1 test and 20 assertions:
+`(cd apps/web && RAILS_ENV=test bundle exec rails test test/controllers/use_cases_controller_test.rb -i /top_navigation_preserves/)`.
+
 Final clean-HEAD checks run through `looper validate`; its retained exact-commit
 evidence is authoritative before PR readiness and integration:
 

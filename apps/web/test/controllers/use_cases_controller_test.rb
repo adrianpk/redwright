@@ -249,7 +249,7 @@ class UseCasesControllerTest < ActionDispatch::IntegrationTest
     get project_use_cases_path(project)
 
     assert_response :success
-    assert_equal %w[Cases Dumps Quizzes Specs Board Protocol Settings], css_select(".top-nav-link").map(&:text)
+    assert_equal %w[Cases Dumps Quizzes Specs Board Protocol Harness Settings], css_select(".top-nav-link").map(&:text)
     assert_match "href=\"#{project_use_cases_path(project)}\"", response.body
 
     board = create_board(project: project)
@@ -260,6 +260,7 @@ class UseCasesControllerTest < ActionDispatch::IntegrationTest
       [documents_path(project_id: project.id), "Specs"],
       [board_path(board), "Board"],
       [project_protocols_path(project), "Protocol"],
+      [project_harness_setting_path(project), "Harness"],
       [protocol_templates_path, "Settings"]
     ].each do |path, section|
       get path
