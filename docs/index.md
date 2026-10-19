@@ -35,7 +35,6 @@ No tutorial path is currently maintained.
 
 ## Explanation
 
-- [What Is RedWright?](explanation/what-is-redwright.md)
 - [Determinism Boundaries With LLM Routing](explanation/determinism-boundaries-with-llm-routing.md)
 - [Manifest vs SQLite State Model](explanation/manifest-vs-sqlite-state-model.md)
 - [Operational vs Task Intent Model](explanation/operational-vs-task-intent-model.md)

@@ -11,28 +11,30 @@
 
 [See more](docs/reference/ui/gallery.md)
 
-RedWright is a **black-box software factory platform** where one runtime agent operates directly from the Kanban board.
-Telegram and local TUI are the current interactive surfaces. The agent reads board state, decides the next ticket to execute, and can create new tickets when incoming work is not yet represented on the board.
+RedWright is a **black-box software factory platform** where a single runtime agent operates directly from a Kanban board. Telegram and a local TUI serve as its current interactive interfaces. The agent reads the board state, determines which ticket to execute next, and can create new tickets when incoming work isn't yet represented on the board.
 
 ## Name Origin
 
-Personal metaphors and naming associations are not usually explained. It is not our favorite thing to do, but we are not dogmatic about it. RedWright is a playful mix: `Red` is the color of Ruby, and Ruby is the language used for this implementation; `Wright` evokes the idea of a craftsperson building with care; and the initials `R` + `W` point to the harness approach: the agent operates through simple primitives, starting from read and write.
+Personal metaphors and naming associations aren't usually something we explain. It's not our favorite thing to do, but we're not dogmatic about it either.
+
+RedWright is a playful mix: `Red` is the color of Ruby, the language used for this implementation; `Wright` evokes the idea of a craftsperson building things with care; and the initials `R` + `W` hint at the harness approach: the agent operates through simple primitives, starting with read and write.
 
 ## Software Factory
 
-RedWright addresses a specific operational problem: coordinating multiple AI coding agents without losing control over delivery. Execution happens inside isolated sandboxes, while a Kanban board defines what runs, in which order, and under what priority. Work is expressed as tickets moving through a familiar lifecycle, which keeps the system predictable and observable. In its current form, execution is deliberately constrained to a single agent, allowing the execution model to be defined with precision before introducing concurrency.
+RedWright coordinates AI coding agents through a Kanban board. Each ticket defines a unit of work, its priority, and its progress. Execution happens in isolated sandboxes.
 
-The system is designed to evolve into configurable multi-agent execution, where specialized roles such as programmer, reviewer, merger, and QA collaborate, potentially using different models per role. Execution can be triggered per ticket or run continuously, completing the full lifecycle before selecting the next task based on priority. The system remains strictly ticket-centric: if work appears without a ticket, one is created to track its progression and preserve consistency.
+For now, a single agent handles execution. The plan is to support multiple agents with specialized roles (programmer, reviewer, merger, QA), potentially using different models.
 
-The Kanban board serves as the primary interface for local operation, while Telegram acts as the main control channel in practice. Expanding to additional channels is intentionally deferred to avoid multiplying the cost of iteration across parallel entry points. The TUI is minimal. It is still a prototype and rough at the edges. It will be refined. Much of the system already works, but it is still being shaped. This is a statement of intent built on work in progress.
+Execution can be triggered per ticket or run continuously, picking up the next ticket by priority. Everything goes through the board. If incoming work has no ticket, one is created.
+
+Telegram is currently the main control channel, while a minimal local TUI provides direct access to the board. More interfaces can come later.
+
+Much of the system already works, but it's still a work in progress. The TUI is rough, the execution model is evolving, and there's plenty left to build.
 
 ## Start Here
 
-- Concept: [What Is RedWright?](docs/explanation/what-is-redwright.md)
 - User guide: [RedWright User Guide](docs/how-to/user-guide/index.md)
-- Run guide: [Run RedWright](docs/how-to/run-redwright.md)
 - Technical reference: [Runtime Capabilities](docs/reference/runtime-capabilities.md)
-- Semantic contract: [Application Semantics v1](docs/reference/application-semantics-v1.md)
 
 ## Repositories
 
