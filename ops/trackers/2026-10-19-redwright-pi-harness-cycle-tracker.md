@@ -103,8 +103,8 @@ Validation:
 - report: `ops/artifacts/slices/pi-harness/slice-3-pi-rpc.md`
 - ticket: [TKT-20261019165603](../tickets/reviewing/20261019165603-add-a-bounded-pi-rpc-adapter-for-structured-generation.md)
 - merge_target: `dev`
-- PR: `pending`
-- last_sync_commit: `none`
+- PR: [#12](https://forge.adrianpk.com/adrianpk/redwrigh/pulls/12)
+- last_sync_commit: `bdabeda2de5f4a38e03a2238d4ba1c399a54bae4`
 
 Tasks:
 
@@ -116,14 +116,15 @@ Commits:
 
 - `T3.1`: `5029674d2dbbd8139739c7c83f6aacc3670b6e9b` - shared bounded process supervision and Codex transport extraction.
 - `T3.2`: `b15c5e8aadbda4849829d486f0e9d0f2b43f21df` - pinned Pi RPC setup and settlement validation.
-- `T3.3`: lifecycle and limit fixture task commit in branch history; report introduction.
+- `T3.3`: `bdabeda2de5f4a38e03a2238d4ba1c399a54bae4` - real-pipe lifecycle and byte-limit coverage; report introduction.
 
 Validation:
 
 - [x] Planned focused suite passed: 16 tests, 308 assertions; no failures, errors or skips.
 - [ ] Full Rails suite before canonical merge.
 - [ ] Changed Ruby syntax and `git diff --check`.
-- [ ] Report reviewed and canonical PR verified merged.
+- [x] Report complete and canonical PR #12 opened.
+- [ ] Canonical PR verified merged by the external controller.
 
 ### Slice 4: Linux containment and real Pi proof
 
@@ -281,3 +282,5 @@ Linux acceptance. No result here claims either was verified.
 - `2026-10-19T17:40:52Z` state=`reviewing`: Slice 2 tasks implemented; focused validation passed (18 tests, 214 assertions). Canonical PR #11 is open; final clean-head controller validation follows the PR-reference commit.
 
 - `2026-10-19T17:47:04Z` state=`implementing`: verified PR #11 merged at its validated head; closed Slice 2 and activated Slice 3.
+
+- `2026-10-19T18:05:44Z` state=`reviewing`: Slice 3 tasks implemented; focused validation passed (16 tests, 308 assertions). Canonical PR #12 is open; final clean-head controller validation follows the PR-reference commit.

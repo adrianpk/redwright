@@ -16,8 +16,8 @@ closed_at:
 resolution:
 owner:
 branch: fix/slice-3-pi-pi-rpc
-pr:
-commits: []
+pr: https://forge.adrianpk.com/adrianpk/redwrigh/pulls/12
+commits: [5029674d2dbbd8139739c7c83f6aacc3670b6e9b, b15c5e8aadbda4849829d486f0e9d0f2b43f21df, bdabeda2de5f4a38e03a2238d4ba1c399a54bae4]
 ---
 
 # Add a bounded Pi RPC adapter for structured generation
@@ -82,5 +82,5 @@ gate. These commands are planned, not reported as passed.
 ## Outcome
 
 Implemented in the dedicated Slice 3 worktree. The canonical report is
-[Slice 3](../../artifacts/slices/pi-harness/slice-3-pi-rpc.md). Canonical PR
-references and final exact-head controller validation follow before readiness.
+[Slice 3](../../artifacts/slices/pi-harness/slice-3-pi-rpc.md). Canonical PR [#12](https://forge.adrianpk.com/adrianpk/redwrigh/pulls/12) is open. Final exact-head
+controller validation follows this PR-reference commit before readiness.
