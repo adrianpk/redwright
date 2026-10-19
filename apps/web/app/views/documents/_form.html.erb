@@ -5,7 +5,8 @@
   <div class="document-artifact-field"><%= form.label :use_case_id, "Use case" %><%= form.collection_select :use_case_id, @available_use_cases, :id, :name, {prompt: "Select"}, required: true %></div>
   <div class="document-artifact-field"><%= form.label :body %><%= form.text_area :body, rows: 20, required: true %></div>
   <div class="document-artifact-actions">
-    <%= form.button "Save draft", name: "approval", value: "draft", class: "ticket-action" %>
-    <%= form.button "Save and approve", name: "approval", value: "approved", class: "ticket-action" %>
+    <%= render "shared/artifact_status_switch", name: :approval, states: %w[draft approved],
+               selected: artifact.status == "draft" ? "draft" : "approved", legend: "Specification status" %>
+    <%= form.button "Save", class: "ticket-action" %>
   </div>
 <% end %>

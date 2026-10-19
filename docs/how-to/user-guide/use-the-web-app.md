@@ -65,10 +65,11 @@ Open `Specs` and select `New`. In the modal, choose the feature's use case,
 describe the feature, and select `Generate`. RW uses the wrapped harness to
 produce a draft from project context, optional dumps, and quiz decisions.
 
-Review the generated specification and select `Approve`. The same specification
-becomes approved. Use `Edit spec` for changes. For direct authoring, select
-`New`, then `Write`, and choose `Save draft` or `Save and approve` without
-discovery prerequisites.
+Review the generated specification and select `Approved` on its status switch.
+Click the document to edit its Markdown; leaving the editor saves it in place.
+The selected Draft/Approved state is retained. For direct authoring, select
+`New`, then `Write`, choose the status, and select `Save` without discovery
+prerequisites. Document actions appear in the header; Save stays below the editor.
 
 Implementation work is managed through Board tickets. Internal trackers organize
 their execution and do not appear in the web interface.

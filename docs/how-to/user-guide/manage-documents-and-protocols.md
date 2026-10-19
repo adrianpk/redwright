@@ -22,15 +22,18 @@ is optional, and a quiz can start without one.
 
 2. Review and approve.
 
-Generated specifications start as `draft`. Read the result and select `Approve`
-to change that same specification to `approved`. Use `Edit spec` for revisions.
-Saving a revision as a draft returns it to review; `Save and approve` approves
-that revision immediately. Approval does not start ticket execution.
+Generated specifications start as `draft`. Read the result and choose `Approved`
+on the status switch in the title row. Click the document to edit its Markdown.
+Leave the editor or select `Save` below it to persist the same file with its
+selected Draft/Approved state. Failed or conflicting saves keep your text open.
+Approval does not start ticket execution. Regenerate and Build tickets are in
+the header; editing and status changes are blocked once execution starts.
 
 3. Write a specification directly when the behavior is already clear.
 
 Select `New`, then `Write` in the modal. Fill in the title and Markdown body,
-and choose `Save draft` or `Save and approve`. Each use case is one feature with
+choose Draft or Approved on the status switch, and select `Save`.
+Each use case is one feature with
 one specification. No dump, quiz, or separate draft document is
 required for manual authoring.
 

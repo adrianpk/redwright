@@ -1,0 +1,11 @@
+<%= tag.fieldset class: class_names("artifact-state-switch", "artifact-state-switch--approval" => states.include?("approved")),
+                 disabled: local_assigns.fetch(:disabled, false), data: {artifact_status_control: true, state: selected} do %>
+  <legend class="visually-hidden"><%= legend %></legend>
+  <span class="artifact-state-slider" aria-hidden="true"></span>
+  <% states.each do |state| %>
+    <label>
+      <%= radio_button_tag name, state, selected == state, class: "visually-hidden", data: {artifact_status_option: state} %>
+      <span><%= state.humanize %></span>
+    </label>
+  <% end %>
+<% end %>

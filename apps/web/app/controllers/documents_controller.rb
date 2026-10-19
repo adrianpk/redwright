@@ -40,10 +40,21 @@ class DocumentsController < ApplicationController
   def update
     params.require(:document).require(:revision)
     @artifact.revise!(attributes: document_params.except(:revision).merge(status: params[:approval] == "approved" ? "approved" : "draft"), revision: document_params[:revision])
-    redirect_to document_path(@artifact), notice: "Specification saved."
-  rescue ActiveRecord::RecordInvalid
-    load_form
-    render :edit, status: :unprocessable_entity
+    respond_to do |format|
+      format.json do
+        render json: {revision: @artifact.source_hash, status: @artifact.status,
+          rendered_body: helpers.artifact_markdown(@artifact.body)}
+      end
+      format.html { redirect_to document_path(@artifact), notice: "Specification saved." }
+    end
+  rescue ActiveRecord::RecordInvalid => error
+    respond_to do |format|
+      format.json { render json: {errors: error.record.errors.full_messages}, status: :unprocessable_entity }
+      format.html do
+        load_form
+        render :edit, status: :unprocessable_entity
+      end
+    end
   end
 
   def approve
@@ -100,6 +111,10 @@ class DocumentsController < ApplicationController
   end
 
   def document_error(error)
-    render plain: error.message, status: error.code == :conflict ? :conflict : :unprocessable_entity
+    status = error.code == :conflict ? :conflict : :unprocessable_entity
+    respond_to do |format|
+      format.json { render json: {errors: [error.message]}, status: status }
+      format.html { render plain: error.message, status: status }
+    end
   end
 end

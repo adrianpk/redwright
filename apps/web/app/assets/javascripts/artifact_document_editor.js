@@ -1,17 +1,20 @@
 (() => {
   function initialize() {
-    document.querySelectorAll('[data-dump-document]').forEach((root) => {
+    document.querySelectorAll('[data-dump-document], [data-spec-document]').forEach((root) => {
       if (root.dataset.editorReady) return;
+      const spec = root.hasAttribute('data-spec-document');
+      const model = spec ? 'document' : 'dump';
+      const view = root.querySelector('[data-dump-view], [data-spec-view]');
+      const form = root.querySelector('[data-dump-editor], [data-spec-editor]');
+      if (!form) return;
       root.dataset.editorReady = 'true';
-      const view = root.querySelector('[data-dump-view]');
-      const form = root.querySelector('[data-dump-editor]');
-      const body = form.querySelector('[name="dump[body]"]');
-      const state = form.querySelector('[name="dump[status]"]');
-      const revision = form.querySelector('[name="dump[revision]"]');
-      const error = root.querySelector('[data-dump-error]');
-      const statusControl = root.querySelector('[data-dump-status-control]');
-      const statusOptions = [...statusControl.querySelectorAll('[data-dump-status-option]')];
-      const feedback = root.querySelector('[data-dump-feedback]');
+      const body = form.querySelector(`[name="${model}[body]"]`);
+      const state = form.querySelector(spec ? '[name="approval"]' : '[name="dump[status]"]');
+      const revision = form.querySelector(`[name="${model}[revision]"]`);
+      const error = root.querySelector('[data-dump-error], [data-spec-error]');
+      const statusControl = root.querySelector('[data-artifact-status-control]');
+      const statusOptions = [...statusControl.querySelectorAll('[data-artifact-status-option]')];
+      const feedback = root.querySelector('[data-dump-feedback], [data-spec-feedback]');
       let savedBody = body.value;
       let savedState = state.value;
       let pending;
@@ -38,7 +41,7 @@
               headers: {Accept: 'application/json', 'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content}
             });
             const result = await response.json();
-            if (!response.ok) throw new Error((result.errors || ['Could not save the dump.']).join(' '));
+            if (!response.ok) throw new Error((result.errors || ['Could not save the document.']).join(' '));
             revision.value = result.revision;
             savedBody = body.value;
             savedState = state.value;
@@ -51,6 +54,9 @@
             }
             statusControl.dataset.state = result.status;
             statusOptions.forEach((option) => { option.checked = option.value === result.status; });
+            const slicing = root.querySelector('[data-spec-slice]');
+            if (slicing) slicing.hidden = result.status === 'draft';
+            root.querySelectorAll('input[name="revision"]').forEach((field) => { field.value = result.revision; });
             close();
             feedback.textContent = 'Saved';
             return true;
@@ -71,14 +77,15 @@
       view.addEventListener('keydown', (event) => {
         if (event.target === view && ['Enter', ' '].includes(event.key)) { event.preventDefault(); open(); }
       });
-      const curateForm = root.querySelector('[data-dump-curate]');
-      curateForm.addEventListener('submit', async (event) => {
-        event.preventDefault();
-        if (!form.hidden && !(await save())) return;
-        curateForm.querySelector('[name="revision"]').value = revision.value;
-        curateForm.querySelector('button').disabled = true;
-        feedback.textContent = 'Curating…';
-        curateForm.submit();
+      root.querySelectorAll('form').forEach((actionForm) => {
+        if (actionForm === form) return;
+        actionForm.addEventListener('submit', async (event) => {
+          event.preventDefault();
+          if (!(await save())) return;
+          actionForm.querySelector('button').disabled = true;
+          feedback.textContent = actionForm.dataset.documentAction || 'Curating…';
+          actionForm.submit();
+        });
       });
       form.addEventListener('submit', (event) => { event.preventDefault(); save(); });
       statusOptions.forEach((option) => option.addEventListener('change', async () => {

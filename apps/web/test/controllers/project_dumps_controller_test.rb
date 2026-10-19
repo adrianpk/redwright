@@ -43,10 +43,10 @@ class ProjectDumpsControllerTest < ActionDispatch::IntegrationTest
     assert_select "[data-dump-view] h1", text: "Notes"
     assert_select "[data-dump-view] strong", text: "Decision"
     assert_select "[data-dump-view] script", count: 0
-    assert_select "[data-dump-status-control] legend", text: "Dump status"
-    assert_select "[data-dump-status-option][checked]", value: "draft", count: 1
-    assert_select "[data-dump-status-option]", count: 2
-    assert_select "[data-dump-status-option='archived'], select[name='dump[status]']", count: 0
+    assert_select "[data-artifact-status-control] legend", text: "Dump status"
+    assert_select "[data-artifact-status-option][checked]", value: "draft", count: 1
+    assert_select "[data-artifact-status-option]", count: 2
+    assert_select "[data-artifact-status-option='archived'], select[name='dump[status]']", count: 0
     assert_select "form[data-dump-editor][hidden] textarea[name='dump[body]']", count: 1
     assert_select "#dump-entry-form, .artifact-type-card", count: 0
     assert_select "button", text: /Resume|Add Entry|Done|Cancel/, count: 0

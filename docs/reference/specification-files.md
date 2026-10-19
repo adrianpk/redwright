@@ -34,9 +34,11 @@ The adjacent `metadata.json` provides an `ops-layout/v1` artifact envelope.
 Its creation status describes that envelope. The specification's lifecycle
 status is read from Markdown, never from the envelope or a database override.
 
-Normal harness generation writes `status: draft`. `Approve` changes it to
-`status: approved` in place. Existing `accepted` and `final` specifications can
-also be read. Web revisions become drafts unless saved with `Save and approve`.
+Normal harness generation writes `status: draft`. The Draft/Approved switch
+changes that same file's status. Inline Markdown edits preserve the selected
+state and save on leaving the editor or selecting Save. Existing `accepted`
+and `final` specifications can also be read; the web switch presents them as
+approved. Execution locks continue to protect the specification and its status.
 
 The optional `relations` field contains mappings with `path` and `type`; types
 are `derives_from`, `references`, and `tracks`. Paths refer to project-local

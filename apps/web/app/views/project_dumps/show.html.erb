@@ -3,17 +3,8 @@
     <div class="quiz-header-row">
       <h1><%= @dump.title %></h1>
       <div class="quiz-action-group">
-        <fieldset class="dump-state-switch" data-dump-status-control data-state="<%= @dump.status %>">
-          <legend class="visually-hidden">Dump status</legend>
-          <span class="dump-state-slider" aria-hidden="true"></span>
-          <% Dump::STATUSES.each do |status| %>
-            <label>
-              <%= radio_button_tag :dump_status, status, @dump.status == status,
-                                   class: "visually-hidden", data: {dump_status_option: status} %>
-              <span><%= status.humanize %></span>
-            </label>
-          <% end %>
-        </fieldset>
+        <%= render "shared/artifact_status_switch", name: :dump_status, states: Dump::STATUSES,
+                   selected: @dump.status, legend: "Dump status" %>
         <%= button_to "Curate", curate_project_dump_path(@project, @dump), method: :post,
                       params: {revision: @dump.source_hash}, class: "ticket-action", form: {data: {dump_curate: true, turbo: false}} %>
       </div>

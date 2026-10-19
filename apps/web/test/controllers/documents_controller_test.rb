@@ -2,7 +2,9 @@ require "test_helper"
 
 class DocumentsControllerTest < ActionDispatch::IntegrationTest
   setup do
-    @spec = create_document(title: "Visible feature", body: "Feature requirements")
+    feature = create_use_case(name: "Visible feature")
+    @spec = create_document(project: feature.project, use_case: feature, title: "Visible feature Spec",
+      body: "# Visible feature Spec\n\n## Requirements\n\n- Keep **decisions**.\n\n<script>alert(1)</script>")
     @project = @spec.project
     @user = User.create!(email_address: "spec-author@example.com", password: "password-123", password_confirmation: "password-123")
     sign_in_as(@user)
@@ -15,10 +17,24 @@ class DocumentsControllerTest < ActionDispatch::IntegrationTest
     assert_select "h1", "Specs"
     assert_select "h2", text: @spec.title
     assert_select "h2", text: tracker.title, count: 0
+    assert_select ".artifact-type-card p", count: 0
+    assert_select ".artifact-type-card .protocol-card-preview", count: 1
     assert_select "a[data-turbo-frame='modal'][href='#{new_document_path(project_id: @project.id)}']", text: "New"
     assert_select "main form", count: 0
     assert_select "main select", count: 0
     assert_no_match(/Plan Trackers|New Draft|Document type navigation/, response.body)
+    get document_path(@spec)
+    assert_response :success
+    assert_select ".artifact-title-row h1", text: @spec.title
+    assert_select "[data-artifact-status-control] legend", text: "Specification status"
+    assert_select "[data-artifact-status-option][checked]", value: @spec.status, count: 1
+    assert_select "[data-spec-view][role='button']"
+    assert_select "a", text: "Edit", count: 0
+    assert_select "form[data-spec-editor][hidden] textarea[name='document[body]']"
+    assert_select ".document-artifacts-header .board-key, .artifact-context-label", count: 0
+    assert_select "article h2", text: "Requirements"
+    assert_select "article strong", text: "decisions"
+    assert_select "article > pre, article script", count: 0
     get document_path(tracker)
     assert_response :not_found
     get edit_document_path(tracker)
@@ -44,7 +60,9 @@ class DocumentsControllerTest < ActionDispatch::IntegrationTest
     assert_select "turbo-frame#modal form[action='#{documents_path(project_id: @project.id)}']" do
       assert_select "select[name='document[use_case_id]']"
       assert_select "textarea[name='document[body]']"
-      assert_select "button", text: "Save and approve"
+      assert_select "button", text: "Save"
+      assert_select "input[name='approval'][value='draft'][checked]"
+      assert_select "input[name='approval'][value='approved']"
     end
   end
 
@@ -81,6 +99,25 @@ class DocumentsControllerTest < ActionDispatch::IntegrationTest
     assert_response :conflict
     assert_includes path.read, "Outside edit"
     assert_not_includes path.read, "Outdated browser content"
+  end
+
+  test "inline saves persist Markdown and approval and reject stale or invalid content" do
+    original = @spec.source_hash
+    patch document_path(@spec), params: {document: {body: "# Revised\n\n**Decision**", revision: original}, approval: "approved"}, as: :json
+    assert_response :success
+    assert_equal "approved", @spec.reload.status
+    assert_includes response.parsed_body["rendered_body"], "<strong>Decision</strong>"
+    assert_equal @spec.source_hash, response.parsed_body["revision"]
+    revision = @spec.source_hash
+    patch document_path(@spec), params: {document: {body: "Stale", revision: original}, approval: "draft"}, as: :json
+    assert_response :conflict
+    assert response.parsed_body["errors"].any?
+    patch document_path(@spec), params: {document: {body: "", revision: revision}, approval: "draft"}, as: :json
+    assert_response :unprocessable_entity
+    assert_includes @spec.source[:body], "**Decision**"
+    patch document_path(@spec), params: {document: {body: @spec.source[:body], revision: revision}, approval: "draft"}, as: :json
+    assert_response :success
+    assert_equal "draft", @spec.reload.status
   end
 
   test "web generation calls the wrapped harness without manual document creation" do
@@ -173,6 +210,8 @@ class DocumentsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_select "button", text: "Regenerate", count: 0
     assert_select "a", text: "New corrective case"
+    assert_select "[data-spec-view][role='button'], [data-spec-editor]", count: 0
+    assert_select "[data-artifact-status-control][disabled]"
     post regenerate_document_path(@spec)
     assert_response :unprocessable_entity
     assert_includes response.body, "Execution has started"

@@ -10,7 +10,10 @@
     <% @artifacts.each do |artifact| %>
       <%= link_to document_path(artifact), class: "artifact-type-card" do %>
         <h2><%= artifact.title %></h2>
-        <p><%= artifact.status.humanize %><% if artifact.use_case %> · <%= artifact.use_case.name %><% end %></p>
+        <% preview_lines = artifact.body.lines.map(&:strip).reject { |line| line.blank? || line.start_with?("#") }.first(5) %>
+        <div class="protocol-card-preview" aria-hidden="true">
+          <% preview_lines.each do |line| %><span><%= line %></span><% end %>
+        </div>
       <% end %>
     <% end %>
     <% if @artifacts.empty? %><p>No specs yet.</p><% end %>

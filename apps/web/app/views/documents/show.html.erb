@@ -1,21 +1,47 @@
-<main class="document-artifacts-show">
+<main class="document-artifacts-show" data-spec-document>
   <header class="document-artifacts-header">
-    <h1><%= @artifact.title %></h1>
-    <p class="board-key"><%= @artifact.status.humanize %><% if @artifact.use_case %> · <%= @artifact.use_case.name %><% end %></p>
-  </header>
-  <article class="document-artifact-panel"><pre><%= @artifact.body %></pre></article>
-  <% unless @execution_started %>
-    <div class="document-artifact-inline-actions">
-      <%= link_to "Edit", edit_document_path(@artifact), class: "ticket-action" %>
-      <%= button_to "Regenerate", regenerate_document_path(@artifact), class: "ticket-action" %>
-      <% if @artifact.status == "draft" %>
-        <%= button_to "Approve", approve_document_path(@artifact), params: {revision: @artifact.source_hash}, class: "ticket-action" %>
-      <% else %>
-        <%= button_to "Build tickets", slice_document_path(@artifact), class: "ticket-action" %>
-      <% end %>
+    <div class="quiz-header-row">
+      <div class="artifact-title-row">
+        <h1><%= @artifact.title %></h1>
+        <% case_name = @artifact.use_case&.name %>
+        <% title_without_suffix = @artifact.title.sub(/\s+(?:spec|specification)\z/i, "") %>
+        <% if case_name && !title_without_suffix.casecmp?(case_name) %>
+          <span class="artifact-context-chip"><span class="artifact-context-label">Case</span> <%= case_name %></span>
+        <% end %>
+        <% if @execution_started %><span class="artifact-context-chip">Execution started</span><% end %>
+      </div>
+      <div class="quiz-action-group">
+        <%= render "shared/artifact_status_switch", name: :specification_status, states: %w[draft approved],
+                   selected: @artifact.status == "draft" ? "draft" : "approved", legend: "Specification status", disabled: @execution_started %>
+        <% unless @execution_started %>
+          <%= button_to "Regenerate", regenerate_document_path(@artifact), class: "ticket-action", form: {data: {document_action: "Regenerating…"}} %>
+          <%= button_to "Build tickets", slice_document_path(@artifact), class: "ticket-action",
+                        form: {hidden: @artifact.status == "draft", data: {spec_slice: true, document_action: "Building tickets…"}} %>
+        <% end %>
+      </div>
     </div>
-  <% else %>
-    <p class="board-key">Execution started</p>
+  </header>
+  <article class="document-artifact-panel">
+    <%= tag.div class: "document-artifact-markdown artifact-document-view", data: {spec_view: true},
+                role: ("button" unless @execution_started), tabindex: (0 unless @execution_started),
+                aria: {label: ("Edit specification" unless @execution_started)}, title: ("Click to edit" unless @execution_started) do %>
+      <%= artifact_markdown(@artifact.body) %>
+    <% end %>
+    <% unless @execution_started %>
+      <%= form_with model: @artifact, url: document_path(@artifact), method: :patch,
+                    class: "document-artifact-form artifact-document-editor", data: {spec_editor: true, turbo: false}, html: {hidden: true} do |form| %>
+        <%= form.hidden_field :revision, value: @artifact.source_hash %>
+        <%= hidden_field_tag :approval, @artifact.status == "draft" ? "draft" : "approved" %>
+        <div class="document-artifact-field document-artifact-field-body-only">
+          <%= form.text_area :body, rows: 20, required: true, aria: {label: "Specification Markdown"} %>
+        </div>
+        <div class="dump-document-toolbar"><button type="submit" class="ticket-action">Save</button></div>
+      <% end %>
+      <p class="dump-document-error" data-spec-error role="alert" hidden></p>
+      <p class="dump-document-feedback" data-spec-feedback role="status" aria-live="polite"></p>
+    <% end %>
+  </article>
+  <% if @execution_started %>
     <%= link_to "New corrective case", new_project_use_case_path(@project, corrects_use_case_id: @artifact.use_case_id), class: "ticket-action", data: {turbo_frame: "modal"} %>
     <%= turbo_frame_tag "modal" %>
   <% end %>
