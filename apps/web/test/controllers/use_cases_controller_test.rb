@@ -85,6 +85,10 @@ class UseCasesControllerTest < ActionDispatch::IntegrationTest
     use_case = project.use_cases.find_by!(slug: "billing-flow")
     assert_redirected_to project_use_cases_path(project)
     assert_equal "Invoice and payment behavior.", use_case.description
+    follow_redirect!
+    assert_select "#application-flash[data-kind='notice']:not([hidden]) [data-flash-message]", text: "Use case created."
+    get project_use_cases_path(project)
+    assert_select "#application-flash[hidden]"
   end
 
   test "create renders validation errors" do

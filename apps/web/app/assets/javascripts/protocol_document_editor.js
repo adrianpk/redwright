@@ -1,35 +1,18 @@
 (function () {
-  function formatTimestamp(timestamp) {
-    if (!timestamp) return "Not saved yet";
-
-    var date = new Date(timestamp);
-    if (Number.isNaN(date.getTime())) return "Saved";
-
-    return "Last saved " + date.toLocaleString();
-  }
-
   function installProtocolAutosave(form) {
-    var statusNode = document.querySelector("[data-protocol-save-status]");
-    if (!statusNode) return;
-
     var csrfToken = document.querySelector("meta[name='csrf-token']")?.content;
     var dirty = false;
     var saving = false;
 
-    function setStatus(message) {
-      statusNode.textContent = message;
-    }
-
     function markDirty() {
       dirty = true;
-      if (!saving) setStatus("Unsaved changes");
     }
 
     async function autosave() {
       if (!dirty || saving) return;
 
       saving = true;
-      setStatus("Autosaving...");
+      window.showFlash("Saving…", "pending");
 
       try {
         var response = await fetch(form.action, {
@@ -44,7 +27,7 @@
         });
 
         if (response.status === 409) {
-          setStatus("File changed elsewhere. Reload before saving.");
+          window.showFlash("File changed elsewhere. Reload before saving.", "alert");
           return;
         }
         if (!response.ok) throw new Error("autosave_failed");
@@ -52,9 +35,9 @@
         var payload = await response.json();
         form.querySelector("[name='protocol_document[revision]']").value = payload.revision;
         dirty = false;
-        setStatus(formatTimestamp(payload.updated_at));
+        window.showFlash("Saved");
       } catch (_error) {
-        setStatus("Autosave failed");
+        window.showFlash("Could not save. Try again.", "alert");
       } finally {
         saving = false;
       }
@@ -62,7 +45,6 @@
 
     form.addEventListener("input", markDirty);
     window.setInterval(autosave, 30000);
-    setStatus(formatTimestamp(form.dataset.lastSavedAt));
   }
 
   document.addEventListener("DOMContentLoaded", function () {

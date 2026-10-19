@@ -75,7 +75,7 @@ class DocumentsController < ApplicationController
 
   def regenerate
     Specifications::Generator.new(project: @project, use_case: @artifact.use_case, feature: params[:feature]).call
-    redirect_to document_path(@artifact)
+    redirect_to document_path(@artifact), notice: "Specification regenerated."
   end
 
   def slice

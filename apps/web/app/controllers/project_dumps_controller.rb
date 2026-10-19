@@ -38,7 +38,7 @@ class ProjectDumpsController < ApplicationController
 
   def curate
     Dumps::Documents.new(@project).curate(@dump, revision: params[:revision])
-    redirect_to project_dump_path(@project, @dump)
+    redirect_to project_dump_path(@project, @dump), notice: "Dump curated."
   rescue Specifications::Error => error
     redirect_to project_dump_path(@project, @dump), alert: error.message
   end

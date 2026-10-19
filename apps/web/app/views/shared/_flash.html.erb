@@ -1,0 +1,7 @@
+<% message = flash[:alert].presence || flash[:notice] %>
+<div id="application-flash" class="application-flash" data-kind="<%= flash[:alert].present? ? 'alert' : 'notice' %>"
+     role="<%= flash[:alert].present? ? 'alert' : 'status' %>" aria-live="polite" aria-atomic="true" <%= 'hidden' unless message.present? %>>
+  <span class="application-flash-icon" aria-hidden="true"></span>
+  <span data-flash-message><%= message %></span>
+  <button type="button" class="application-flash-dismiss" aria-label="Dismiss notification">×</button>
+</div>

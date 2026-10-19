@@ -195,6 +195,25 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "Use case must belong to the same project"
   end
 
+  test "board actions confirm HTML changes through flash" do
+    # The browser fallback must preserve Rails flash across the actual redirect.
+    sign_in_as(create_admin_user!)
+    board = create_board(project_key: "board-action-flash")
+    backlog = board.columns.create!(key: "backlog", title: "Backlog", position: 0)
+    review = board.columns.create!(key: "review", title: "Review", position: 1)
+    [["move", "Ticket moved."], ["archive", "Ticket archived."], ["delete", "Ticket deleted."]].each do |action, message|
+      ticket = board.tickets.create!(column: backlog, title: "Confirm #{action}")
+      case action
+      when "move" then patch move_ticket_path(ticket), params: {column_id: review.id}
+      when "archive" then patch archive_ticket_path(ticket)
+      when "delete" then delete ticket_path(ticket)
+      end
+      assert_redirected_to board_path(board)
+      follow_redirect!
+      assert_select "#application-flash[data-kind='notice']:not([hidden]) [data-flash-message]", text: message
+    end
+  end
+
   test "move updates ticket column and returns turbo stream" do
     admin = create_admin_user!
     sign_in_as(admin)

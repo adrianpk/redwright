@@ -16,7 +16,6 @@
     <% end %>
   </header>
 
-  <% if flash[:alert] %><p class="dump-document-error" role="alert"><%= flash[:alert] %></p><% end %>
   <section class="document-artifact-panel">
     <div class="dump-document-view ticket-markdown" data-dump-view role="button" tabindex="0" aria-label="Edit dump" title="Click to edit">
       <%= artifact_markdown(@dump.body) %>
@@ -33,7 +32,5 @@
         <button type="submit" class="ticket-action">Save</button>
       </div>
     <% end %>
-    <p class="dump-document-error" data-dump-error role="alert" hidden></p>
-    <p class="dump-document-feedback" data-dump-feedback role="status" aria-live="polite"></p>
   </section>
 </main>

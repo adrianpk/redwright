@@ -40,6 +40,9 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
 
     assert_redirected_to new_session_path
     assert_nil(User.find_by(email_address: "other@example.com"))
+    follow_redirect!
+    assert_select "#application-flash[data-kind='alert'][role='alert']:not([hidden]) [data-flash-message]", text: "Registration is closed for this instance."
+    assert_select "[role='alert']", count: 1
   end
 end
 

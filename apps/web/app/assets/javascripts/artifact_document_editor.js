@@ -11,10 +11,8 @@
       const body = form.querySelector(`[name="${model}[body]"]`);
       const state = form.querySelector(spec ? '[name="approval"]' : '[name="dump[status]"]');
       const revision = form.querySelector(`[name="${model}[revision]"]`);
-      const error = root.querySelector('[data-dump-error], [data-spec-error]');
       const statusControl = root.querySelector('[data-artifact-status-control]');
       const statusOptions = [...statusControl.querySelectorAll('[data-artifact-status-option]')];
-      const feedback = root.querySelector('[data-dump-feedback], [data-spec-feedback]');
       let savedBody = body.value;
       let savedState = state.value;
       let pending;
@@ -23,15 +21,13 @@
       const open = () => {
         view.hidden = true;
         form.hidden = false;
-        feedback.textContent = '';
         body.focus();
       };
       async function save() {
         if (pending) return pending;
-        if (!dirty()) { error.hidden = true; close(); return true; }
+        if (!dirty()) { close(); return true; }
         const values = new FormData(form);
-        error.hidden = true;
-        feedback.textContent = 'Saving…';
+        window.showFlash('Saving…', 'pending');
         const controls = [...form.elements, ...statusOptions];
         controls.forEach((control) => { control.disabled = true; });
         pending = (async () => {
@@ -58,12 +54,10 @@
             if (slicing) slicing.hidden = result.status === 'draft';
             root.querySelectorAll('input[name="revision"]').forEach((field) => { field.value = result.revision; });
             close();
-            feedback.textContent = 'Saved';
+            window.showFlash('Saved');
             return true;
           } catch (failure) {
-            error.textContent = failure.message;
-            error.hidden = false;
-            feedback.textContent = '';
+            window.showFlash(failure.message, 'alert');
             return false;
           } finally {
             controls.forEach((control) => { control.disabled = false; });
@@ -83,7 +77,7 @@
           event.preventDefault();
           if (!(await save())) return;
           actionForm.querySelector('button').disabled = true;
-          feedback.textContent = actionForm.dataset.documentAction || 'Curating…';
+          window.showFlash(actionForm.dataset.documentAction || 'Curating…', 'pending');
           actionForm.submit();
         });
       });

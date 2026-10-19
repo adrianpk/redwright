@@ -17,20 +17,6 @@
 
   <section class="document-artifact-panel quiz-turn-surface" data-quiz-processing-surface>
     <div class="quiz-question-block">
-      <div id="quiz-processing-feedback"
-           class="quiz-processing-feedback"
-           role="status"
-           aria-live="polite"
-           hidden>
-        <span class="quiz-processing-dots" aria-hidden="true">
-          <span></span>
-          <span></span>
-          <span></span>
-        </span>
-        <% if @show_fast_refill_hint %>
-          <span class="quiz-processing-hint">Preparing fast loop.</span>
-        <% end %>
-      </div>
       <p><%= @current_question %></p>
     </div>
 
@@ -40,8 +26,7 @@
                   id: "quiz-answer-form",
                   data: {
                     quiz_processing_form: true,
-                    quiz_processing_target: "quiz-processing-feedback",
-                    quiz_processing_message: "Generating next question..."
+                    quiz_processing_message: @show_fast_refill_hint ? "Saving answer and preparing fast loop…" : "Saving answer and preparing next question…"
                   } do |form| %>
       <div class="document-artifact-field document-artifact-field-body-only">
         <%= form.text_area :answer, rows: 8, placeholder: "Answer..." %>
@@ -57,8 +42,7 @@
                       form: {
                         data: {
                           quiz_processing_form: true,
-                          quiz_processing_target: "quiz-processing-feedback",
-                          quiz_processing_message: "Generating next question..."
+                          quiz_processing_message: @show_fast_refill_hint ? "Preparing fast loop…" : "Preparing next question…"
                         }
                       } %>
         <button type="submit" form="quiz-answer-form" class="ticket-action ticket-action-primary">Answer</button>

@@ -244,29 +244,48 @@
 
   async function sendTurbo(url, method, body) {
     const tokenMeta = document.querySelector("meta[name='csrf-token']");
+    // Without Turbo, let Rails redirect and deliver its normal flash message.
+    if (!window.Turbo) {
+      const form = document.createElement("form");
+      form.method = "post";
+      form.action = url;
+      form.hidden = true;
+      Object.entries({ ...body, _method: method, authenticity_token: tokenMeta?.content || "" }).forEach(([name, value]) => {
+        const field = document.createElement("input");
+        field.type = "hidden";
+        field.name = name;
+        field.value = value;
+        form.append(field);
+      });
+      document.body.append(form);
+      form.requestSubmit();
+      return;
+    }
     const headers = {
       "Content-Type": "application/json",
       "Accept": "text/vnd.turbo-stream.html"
     };
     if (tokenMeta) headers["X-CSRF-Token"] = tokenMeta.content;
 
-    const response = await fetch(url, {
-      method: method,
-      headers: headers,
-      body: JSON.stringify(body),
-      credentials: "same-origin"
-    });
-    if (response.redirected) {
-      window.location.href = response.url;
-      return;
-    }
-    if (!response.ok) return;
-    const stream = await response.text();
-    if (window.Turbo && stream) {
+    window.showFlash("Saving…", "pending");
+    try {
+      const response = await fetch(url, {
+        method: method,
+        headers: headers,
+        body: JSON.stringify(body),
+        credentials: "same-origin"
+      });
+      if (response.redirected) {
+        window.location.href = response.url;
+        return;
+      }
+      if (!response.ok) throw new Error("Could not save the board change.");
+      const stream = await response.text();
       window.Turbo.renderStreamMessage(stream);
       setTimeout(setupBoardInteractions, 0);
-    } else {
-      window.location.reload();
+      window.showFlash("Saved");
+    } catch (failure) {
+      window.showFlash(failure.message, "alert");
     }
   }
 

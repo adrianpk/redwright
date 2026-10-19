@@ -8,8 +8,6 @@
       <img src="/logo-signin.png" alt="RedWright" />
     </div>
 
-    <%= tag.div(flash[:alert], class: "auth-flash error") if flash[:alert] %>
-    <%= tag.div(flash[:notice], class: "auth-flash notice") if flash[:notice] %>
 
     <%= form_with url: session_path, class: "auth-form" do |form| %>
       <div class="field">

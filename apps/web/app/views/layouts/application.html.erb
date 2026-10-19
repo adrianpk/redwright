@@ -20,6 +20,7 @@
 
     <%# Includes all stylesheet files in app/assets/stylesheets %>
     <%= stylesheet_link_tag :app %>
+    <%= javascript_include_tag "application_flash", defer: true %>
     <%= javascript_include_tag "board_interactions", defer: true %>
     <%= javascript_include_tag "top_nav_autofold", defer: true %>
     <%= javascript_include_tag "protocol_document_editor", defer: true %>
@@ -87,6 +88,7 @@
         <button type="button" class="top-nav-handle" aria-label="Toggle menu" aria-expanded="true"></button>
       </header>
     <% end %>
+    <%= render "shared/flash" %>
     <%= yield %>
   </body>
 </html>

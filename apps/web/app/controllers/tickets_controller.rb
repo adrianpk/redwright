@@ -58,7 +58,7 @@ class TicketsController < ApplicationController
     @ticket.transition_to_column!(target_column)
     load_board_context(@ticket.board)
     @columns_to_refresh = [ source_column, target_column ].uniq
-    render "boards/update_columns"
+    render_column_update("Ticket moved.")
   end
 
   def archive
@@ -66,7 +66,7 @@ class TicketsController < ApplicationController
     @ticket.archive!
     load_board_context(@ticket.board)
     @columns_to_refresh = [ source_column ]
-    render "boards/update_columns"
+    render_column_update("Ticket archived.")
   end
 
   def destroy
@@ -75,7 +75,7 @@ class TicketsController < ApplicationController
     @ticket.destroy!
     load_board_context(board)
     @columns_to_refresh = [ source_column ]
-    render "boards/update_columns"
+    render_column_update("Ticket deleted.")
   rescue ActiveRecord::RecordNotDestroyed
     render plain: @ticket.errors.full_messages.to_sentence, status: :unprocessable_entity
   end
@@ -101,6 +101,13 @@ class TicketsController < ApplicationController
   end
 
   private
+
+  def render_column_update(notice)
+    respond_to do |format|
+      format.turbo_stream { render "boards/update_columns" }
+      format.html { redirect_to board_path(@board), notice: notice }
+    end
+  end
 
   def set_ticket
     @ticket = Ticket.find(params[:id])

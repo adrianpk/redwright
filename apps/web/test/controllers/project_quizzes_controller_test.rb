@@ -114,8 +114,8 @@ class ProjectQuizzesControllerTest < ActionDispatch::IntegrationTest
     assert_match "quiz-action-row", response.body
     assert_select "#quiz-answer-form"
     assert_select "#quiz-answer-form[data-quiz-processing-form]"
-    assert_select "#quiz-processing-feedback[hidden] .quiz-processing-dots span", count: 3
-    assert_select "#quiz-processing-feedback .quiz-processing-hint", count: 0
+    assert_select "#application-flash[hidden]", count: 1
+    assert_select "#quiz-answer-form[data-quiz-processing-message='Saving answer and preparing next question…']"
     assert_select ".document-artifact-panel[data-quiz-processing-surface]"
     assert_select ".quiz-header-row h1", text: "Project Quiz"
     assert_select ".quiz-header-row .quiz-mode-switch"
@@ -139,8 +139,8 @@ class ProjectQuizzesControllerTest < ActionDispatch::IntegrationTest
     get project_quiz_path(project, quiz)
 
     assert_response :success
-    assert_select "#quiz-processing-feedback[hidden] .quiz-processing-dots span", count: 3
-    assert_select "#quiz-processing-feedback .quiz-processing-hint", text: "Preparing fast loop."
+    assert_select "#quiz-answer-form[data-quiz-processing-message='Saving answer and preparing fast loop…']"
+    assert_select "form[data-quiz-processing-message='Preparing fast loop…'] button", text: "Skip"
   end
 
   test "show omits fast refill hint when fast queue has active candidates" do
@@ -158,7 +158,7 @@ class ProjectQuizzesControllerTest < ActionDispatch::IntegrationTest
     get project_quiz_path(project, quiz)
 
     assert_response :success
-    assert_select "#quiz-processing-feedback .quiz-processing-hint", count: 0
+    assert_select "#quiz-answer-form[data-quiz-processing-message='Saving answer and preparing next question…']"
   end
 
   test "mode updates quiz mode without changing current question" do
@@ -218,6 +218,8 @@ class ProjectQuizzesControllerTest < ActionDispatch::IntegrationTest
     assert_equal "Keep context concise.", entry.answer
     assert_equal ["context"], entry.tags.map(&:name)
     assert_redirected_to project_quiz_path(project, quiz)
+    follow_redirect!
+    assert_select "#application-flash[data-kind='notice']:not([hidden]) [data-flash-message]", text: "Answer saved."
   end
 
   test "skip persists backend current question and redirects without query payload" do
