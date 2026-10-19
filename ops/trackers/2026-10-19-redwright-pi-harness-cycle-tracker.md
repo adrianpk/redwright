@@ -13,9 +13,9 @@ Approved: maintainer, 2026-10-19; explicit approval of the seven-slice plan, dep
 - execution_authority: `autonomous execution of this delivery set approved`
 - updated: `2026-10-19`
 - active_slice: `Slice 3 - Bounded Pi RPC calls (implementing)`
-- active_task: `T3.1 (in progress)`
+- active_task: `T3.2 (in progress)`
 - completed_slices: `2/7`
-- completed_tasks: `6/21`
+- completed_tasks: `7/21`
 - controller: `external Looper controller`
 - plan: [Pi Harness plan](../plans/2026-10-19-redwright-pi-harness-cycle-plan.md)
 - spec: [Pi Harness specification](../specs/specs/2026-10-19-redwright-pi-harness-spec.md)
@@ -101,14 +101,14 @@ Validation:
 - branch: `fix/slice-3-pi-pi-rpc`
 - expected_pr_title: `feat(slice-3): bounded pi rpc calls`
 - report: `ops/artifacts/slices/pi-harness/slice-3-pi-rpc.md`
-- ticket: [TKT-20261019165603](../tickets/ready/20261019165603-add-a-bounded-pi-rpc-adapter-for-structured-generation.md)
+- ticket: [TKT-20261019165603](../tickets/in_progress/20261019165603-add-a-bounded-pi-rpc-adapter-for-structured-generation.md)
 - merge_target: `dev`
 - PR: `pending`
 - last_sync_commit: `none`
 
 Tasks:
 
-- [ ] `T3.1` Implement shared owned-process supervision with concurrent pipe draining, deadlines, stream ceilings, sanitized diagnostics and deterministic reaping.
+- [x] `T3.1` Implement shared owned-process supervision with concurrent pipe draining, deadlines, stream ceilings, sanitized diagnostics and deterministic reaping.
 - [ ] `T3.2` Implement PiAdapter for Pi 1.3.0 RPC, exact model/provider setup, ephemeral tool-free sessions and final settlement validation.
 - [ ] `T3.3` Exercise split/interleaved records, invalid UTF-8, early/late exits, provider failure, cancellation and encoded 2 MiB results through real pipe fixtures.
 

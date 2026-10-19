@@ -16,6 +16,7 @@ module Harnesses
       raise Error.new("Unsupported structured-call harness.", code: :unsupported_harness) unless request.harness == "codex"
       validate_bounds!(request)
       validator = schema_validator(request.schema)
+      check_deadline!(request)
       result = @adapter.call(request)
       raise Error.new("The harness did not complete successfully.", code: :failed) unless result.outcome == :completed
       raise Error.new("The harness result is too large.", code: :output_too_large) if result.bytes.bytesize > request.max_output_bytes
@@ -23,12 +24,17 @@ module Harnesses
       raise Error.new("The harness returned invalid UTF-8.", code: :invalid_output) unless text.valid_encoding?
       value = JSON.parse(text)
       raise Error.new("The harness result does not match the output schema.", code: :invalid_output) unless validator.valid?(value)
+      check_deadline!(request)
       result.with(value: value)
     rescue JSON::ParserError
       raise Error.new("The harness returned invalid JSON.", code: :invalid_output)
     end
 
     private
+
+    def check_deadline!(request)
+      raise Error.new("The harness call timed out.", code: :timed_out) if Process.clock_gettime(Process::CLOCK_MONOTONIC) >= request.deadline
+    end
 
     def validate_bounds!(request)
       schema_bytes = JSON.generate(request.schema).bytesize
@@ -37,7 +43,9 @@ module Harnesses
         raise Error.new("The structured request is too large.", code: :request_too_large)
       end
       unless request.timeout.is_a?(Numeric) && request.timeout.finite? && request.timeout.positive? && request.timeout <= 180 &&
-          request.max_output_bytes.is_a?(Integer) && request.max_output_bytes.positive? && request.max_output_bytes <= MAX_OUTPUT_BYTES
+          request.max_output_bytes.is_a?(Integer) && request.max_output_bytes.positive? && request.max_output_bytes <= MAX_OUTPUT_BYTES &&
+          request.deadline.is_a?(Numeric) && request.deadline.finite? && request.deadline <= Process.clock_gettime(Process::CLOCK_MONOTONIC) + request.timeout &&
+          (request.cancellation.nil? || request.cancellation.respond_to?(:call))
         raise Error.new("Invalid structured-call limits.", code: :invalid_request)
       end
     end

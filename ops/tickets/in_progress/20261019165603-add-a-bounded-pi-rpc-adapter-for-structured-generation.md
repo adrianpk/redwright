@@ -1,7 +1,7 @@
 ---
 id: TKT-20261019165603
 title: Add a bounded Pi RPC adapter for structured generation
-status: ready
+status: in_progress
 kind: task
 severity: unclassified
 priority: normal
@@ -10,12 +10,12 @@ tags: pi-harness, slice-delivery, rails
 source: chat
 reported_at: 2026-10-19T16:56:03Z
 ready_at: 2026-10-19T17:08:55Z
-started_at:
+started_at: 2026-10-19T17:51:32Z
 reviewed_at:
 closed_at:
 resolution:
 owner:
-branch:
+branch: fix/slice-3-pi-pi-rpc
 pr:
 commits: []
 ---
@@ -46,13 +46,13 @@ A pinned Pi adapter handles correlated setup, settlement, final output and owned
 
 ## Actual
 
-Implementation has not started. The maintainer approved this slice and its
+Shared bounded process supervision is implemented and Codex authoring uses it. The maintainer approved this slice and its
 dependency/platform choices under the linked plan. Respect preceding slice
 dependencies; only this Pi delivery has autonomous commit/integration authority.
 
 ## Tasks
 
-- [ ] `T3.1` Implement shared owned-process supervision with concurrent pipe draining, deadlines, stream ceilings, sanitized diagnostics and deterministic reaping.
+- [x] `T3.1` Implement shared owned-process supervision with concurrent pipe draining, deadlines, stream ceilings, sanitized diagnostics and deterministic reaping.
 - [ ] `T3.2` Implement PiAdapter for Pi 1.3.0 RPC, exact model/provider setup, ephemeral tool-free sessions and final settlement validation.
 - [ ] `T3.3` Exercise split/interleaved records, invalid UTF-8, early/late exits, provider failure, cancellation and encoded 2 MiB results through real pipe fixtures.
 
