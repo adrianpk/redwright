@@ -39,7 +39,7 @@ module AgentTicketExecution
       @llm_requester = llm_requester
       @output_applier = output_applier
       @validation_commands = validation_commands
-      @max_attempts = [max_attempts.to_i, 1].max
+      @max_attempts = max_attempts.to_i.clamp(1, DEFAULT_MAX_ATTEMPTS)
       @previous_interaction_store = previous_interaction_store
     end
 
@@ -49,11 +49,13 @@ module AgentTicketExecution
           scoped.call(request: request, ticket: ticket, workspace: workspace)
         end
       end
+      workspace = workspace_for(workspace)
       feedback = nil
       validation_results = []
       application_results = []
 
       (1..max_attempts).each do |attempt|
+        llm_requester.prepare_attempt! if llm_requester.respond_to?(:prepare_attempt!)
         attempt_request = request.merge("attempt" => attempt, "validation_feedback" => feedback).compact
         context = context_composer.compose(ticket: ticket, request: attempt_request, workspace: workspace)
         llm_result = llm_requester.call(execution_context: context)
@@ -78,7 +80,11 @@ module AgentTicketExecution
           )
         end
 
-        application = output_applier.apply(payload: llm_result.payload, workspace: workspace)
+        application = if llm_requester.respond_to?(:apply!)
+          llm_requester.apply!(payload: llm_result.payload) { output_applier.apply(payload: llm_result.payload, workspace: workspace) }
+        else
+          output_applier.apply(payload: llm_result.payload, workspace: workspace)
+        end
         application_results << application.to_h
         record_previous_interaction(ticket, attempt_request, llm_result, application, context)
 
@@ -100,7 +106,11 @@ module AgentTicketExecution
           )
         end
 
-        validation_results = run_validation(workspace, validation_commands)
+        validation_results = if llm_requester.respond_to?(:validate!)
+          llm_requester.validate! { run_validation(workspace, validation_commands) }
+        else
+          run_validation(workspace, validation_commands)
+        end
         if validation_results.all? { |result| result.fetch("status") == "ok" }
           return completed_result(ticket, attempt, validation_results, application_results)
         end
@@ -128,6 +138,14 @@ module AgentTicketExecution
       session.run { yield scoped }
     rescue Harnesses::Error => error
       blocked_result(ticket, session&.operation&.reload&.attempts&.size || 0, error.code.to_s, error.message, [], [])
+    end
+
+    def workspace_for(workspace)
+      llm_requester.respond_to?(:workspace) ? llm_requester.workspace : workspace
+    end
+
+    def finalize
+      llm_requester.respond_to?(:finalize!) ? llm_requester.finalize! { yield } : yield
     end
 
     private

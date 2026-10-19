@@ -7,7 +7,7 @@ module AgentTicketExecution
 
     def call(request:, ticket:, workspace:, execution_context: nil)
       outcome = validation_loop.with_operation(request: request, ticket: ticket, workspace: workspace) do |scoped|
-        execute(scoped, request: request, ticket: ticket, workspace: workspace)
+        execute(scoped, request: request, ticket: ticket, workspace: scoped.workspace_for(workspace))
       end
       outcome.respond_to?(:to_execution) ? outcome.to_execution : outcome
     end
@@ -29,7 +29,9 @@ module AgentTicketExecution
       )
       return execution unless result.completed? && git_finalizer
 
-      git_result = git_finalizer.finalize(ticket: ticket, request: request, workspace: workspace, validation_result: result)
+      git_result = loop.finalize do
+        git_finalizer.finalize(ticket: ticket, request: request, workspace: workspace, validation_result: result)
+      end
       execution.fetch("details")["git"] = git_result.to_h
       unless git_result.ok?
         execution["state"] = "blocked"

@@ -15,7 +15,7 @@ Approved: maintainer, 2026-10-19; explicit approval of the seven-slice plan, dep
 - goal: `Use prepared Pi or Codex profiles through Rails authoring and bounded ticket proposals while retaining host validation and workflow authority.`
 - scope: `feature`
 - active_slice: `Slice 6 - Pi ticket proposals under Rails authority (implementing)`
-- active_task: `T6.2`
+- active_task: `T6.3`
 - merge_target: `dev`
 - observed_base: `8d63f6fbe6fb67e0bd7ef26bbfb474735ae43cf1`
 
@@ -348,7 +348,7 @@ Planned task commits:
 Tasks:
 
 - [x] `T6.1` Add an injected harness requester to the existing ticket model boundary, preserving the current direct-API default, context shaping and separate role selection.
-- [ ] `T6.2` Retain the logical correction-loop binding and per-attempt base/schema/policy evidence; reconcile uncertain application/finalization before retrying effects.
+- [x] `T6.2` Retain the logical correction-loop binding and per-attempt base/schema/policy evidence; reconcile uncertain application/finalization before retrying effects.
 - [ ] `T6.3` Verify valid/invalid proposals, changed-base conflicts, correction attempts, uncertain replay and failure of host validation without false ticket completion.
 
 Acceptance:

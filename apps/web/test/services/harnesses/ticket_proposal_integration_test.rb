@@ -89,6 +89,86 @@ class HarnessesTicketProposalIntegrationTest < ActiveSupport::TestCase
     end
   end
 
+  test "corrections keep one binding and record each owned base" do
+    with_agent_ticket_execution_workspace do |fixture|
+      select(fixture.project, ticket_proposal_profile: "first")
+      @adapter.before_result = lambda do |_call|
+        if @adapter.requests.size == 1
+          select(fixture.project, ticket_proposal_profile: "next")
+          @adapter.payload = proposal(fixture)
+        else
+          @adapter.payload = proposal(fixture)
+          @adapter.payload["files"].first["content"] += "// accepted correction\n"
+        end
+      end
+      result = loop_for(validation_commands: ["grep -q 'accepted correction' main.go"]).call(
+        request: request, ticket: fixture.ticket, workspace: workspace(fixture))
+      assert result.completed?, result.to_execution.inspect
+      assert_equal 2, result.attempts
+      assert_equal ["first", "first"], @adapter.requests.map { |call| call.binding.fetch("profile") }
+      assert_equal 1, @adapter.requests.map(&:deadline).uniq.size
+      operation = fixture.project.harness_operations.sole
+      attempts = operation.attempts
+      assert_equal %w[failed completed], attempts.map { |attempt| attempt.fetch("state") }
+      assert_equal attempts.first.dig("evidence", "validation", "after"), attempts.last.dig("evidence", "base")
+      attempts.each do |attempt|
+        assert_equal operation.binding.fetch("schema_digest"), attempt.dig("evidence", "schema_digest")
+        assert_equal "rails-ticket-proposal/v1", attempt.dig("evidence", "policy_revision")
+        assert_equal "recorded", attempt.dig("evidence", "application", "state")
+        assert_match(/\A[0-9a-f]{64}\z/, attempt.fetch("application_receipt"))
+      end
+      @adapter.before_result = nil
+      @adapter.payload = proposal(fixture)
+      following = loop_for.call(request: request.merge("request_id" => "following"), ticket: fixture.ticket, workspace: workspace(fixture))
+      assert following.completed?, following.to_execution.inspect
+      assert_equal "next", @adapter.requests.last.binding.fetch("profile")
+    end
+  end
+
+  test "external edits conflict before proposal application" do
+    with_agent_ticket_execution_workspace do |fixture|
+      select(fixture.project, ticket_proposal_profile: "first")
+      @adapter.payload = proposal(fixture)
+      path = File.join(fixture.project_path, "main.go")
+      @adapter.before_result = ->(_call) { File.write(path, "// external edit\n") }
+      result = loop_for.call(request: request, ticket: fixture.ticket, workspace: workspace(fixture))
+      assert result.blocked?
+      assert_equal "base_conflict", result.terminal_outcome.fetch("code")
+      assert_equal "// external edit\n", File.read(path)
+      operation = fixture.project.harness_operations.sole
+      assert_equal "failed", operation.state
+      assert_nil operation.attempts.first.dig("evidence", "application")
+    end
+  end
+
+  class LostApplicationReceipt < Harnesses::Operation
+    def record!(lease:, evidence:)
+      raise ActiveRecord::StatementInvalid, "owned receipt unavailable" if evidence.dig("application", "state") == "recorded"
+      super
+    end
+  end
+
+  test "uncertain application reserves capacity and prevents inference replay" do
+    with_agent_ticket_execution_workspace do |fixture|
+      select(fixture.project, ticket_proposal_profile: "first")
+      @adapter.payload = proposal(fixture)
+      result = loop_for(lifecycle: LostApplicationReceipt.new).call(request: request, ticket: fixture.ticket, workspace: workspace(fixture))
+      assert result.blocked?
+      assert_equal "uncertain", result.terminal_outcome.fetch("code")
+      assert_includes File.read(File.join(fixture.project_path, "main.go")), "// selected proposal"
+      operation = fixture.project.harness_operations.sole
+      assert_equal "uncertain", operation.state
+      assert_equal "pending", operation.attempts.first.dig("evidence", "application", "state")
+      select(fixture.project, ticket_proposal_profile: "next")
+      replay = loop_for.call(request: request, ticket: fixture.ticket, workspace: workspace(fixture))
+      assert replay.blocked?
+      assert_equal "uncertain", replay.terminal_outcome.fetch("code")
+      assert_equal 1, @adapter.requests.size
+      assert_equal "first", operation.reload.binding.fetch("profile")
+      assert_equal 1, HarnessOperation.where(state: %w[running uncertain]).count
+    end
+  end
+
   private
 
   def select(project, **changes)
@@ -100,9 +180,9 @@ class HarnessesTicketProposalIntegrationTest < ActiveSupport::TestCase
     Harnesses::TicketRequester.new(legacy: @legacy, structured_call: Harnesses::StructuredCall.new(adapter: @adapter), lifecycle: lifecycle)
   end
 
-  def loop_for(**options)
+  def loop_for(lifecycle: Harnesses::Operation.new, **options)
     AgentTicketExecution::ValidationLoop.new(context_composer: AgentTicketExecution::ContextComposer.new,
-      llm_requester: requester, validation_commands: ["git diff --check"], **options)
+      llm_requester: requester(lifecycle: lifecycle), validation_commands: ["git diff --check"], **options)
   end
 
   def workspace(fixture)

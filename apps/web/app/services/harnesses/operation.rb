@@ -57,5 +57,23 @@ module Harnesses
         record
       end
     end
+
+    def record!(lease:, evidence:)
+      unless evidence.is_a?(Hash) && (evidence.keys - %w[base schema_digest policy_revision output_digest application validation finalization]).empty? &&
+          CanonicalJson.dump(evidence).bytesize <= 8 * 1024
+        raise Error.new("Invalid ticket attempt evidence.", code: :invalid_request)
+      end
+      ApplicationRecord.transaction do
+        record = HarnessOperation.find(lease.operation_id)
+        history = record.attempts
+        attempt = history.last
+        unless record.role == "ticket_proposal" && record.state == "running" && attempt &&
+            ActiveSupport::SecurityUtils.secure_compare(attempt.fetch("owner_digest"), Digest::SHA256.hexdigest(lease.owner_token))
+          raise Error.new("This call does not own a running ticket attempt.", code: :conflict)
+        end
+        attempt["evidence"] = attempt.fetch("evidence", {}).merge(evidence)
+        record.update!(attempts_json: CanonicalJson.dump(history))
+      end
+    end
   end
 end
