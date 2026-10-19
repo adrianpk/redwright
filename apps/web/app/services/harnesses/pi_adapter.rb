@@ -3,7 +3,7 @@ module Harnesses
     VERSION = "1.3.0".freeze
     FLAGS = %w[--mode rpc --no-session --no-tools --no-extensions --no-mcp --no-skills --no-prompt-templates --no-themes --no-context-files --no-approve --offline].freeze
 
-    def initialize(supervisor: ProcessSupervisor.new, sandbox: nil)
+    def initialize(supervisor: ProcessSupervisor.new, sandbox: LinuxSandbox.new)
       @supervisor, @sandbox = supervisor, sandbox
     end
 
@@ -33,7 +33,7 @@ module Harnesses
           protocol.feed(input, chunk)
         end
         raise Error.new("The Pi process did not exit successfully.", code: :failed, diagnostics: execution.diagnostics) unless execution.status.success?
-        protocol.finish.with(diagnostics: execution.diagnostics)
+        protocol.finish.with(diagnostics: execution.diagnostics.merge("containment_policy_revision" => context.policy_revision))
       end
     end
 

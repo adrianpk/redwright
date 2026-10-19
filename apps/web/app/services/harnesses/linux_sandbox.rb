@@ -72,6 +72,17 @@ module Harnesses
 
     def with_context(request)
       layout = self.class.ready!(program: request.program, platform: @platform, bwrap: @bwrap)
+      if request.harness == "pi"
+        PiResources.binary_metadata!(layout.fetch(:program))
+        unless request.binding["containment_policy_revision"] == POLICY_REVISION
+          raise Error.new("The retained Pi containment policy is incompatible.", code: :invalid_binding)
+        end
+        if request.binding["executable_identity"]
+          stat = File.stat(layout.fetch(:program))
+          identity = CanonicalJson.digest([layout.fetch(:program), stat.dev, stat.ino, stat.size, stat.mtime.to_r.to_s])
+          raise Error.new("The retained Pi executable changed.", code: :invalid_binding) unless identity == request.binding["executable_identity"]
+        end
+      end
       workspace = File.realpath(request.workspace)
       unless File.directory?(workspace) && !["/", "/home", Dir.home, "/run", "/var", "/usr", "/etc"].include?(workspace)
         raise Error.new("A bounded project workspace is required for containment.", code: :unsupported_capability)
@@ -89,8 +100,8 @@ module Harnesses
 
     private
 
-    def prepare_resources(_request, _scratch)
-      # Selected resources are prepared by PiResources before the context is admitted.
+    def prepare_resources(request, scratch)
+      PiResources.prepare!(request, scratch) if request.harness == "pi"
     end
 
     def mount_command(layout, workspace, scratch)

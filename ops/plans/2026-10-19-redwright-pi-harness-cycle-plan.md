@@ -15,7 +15,7 @@ Approved: maintainer, 2026-10-19; explicit approval of the seven-slice plan, dep
 - goal: `Use prepared Pi or Codex profiles through Rails authoring and bounded ticket proposals while retaining host validation and workflow authority.`
 - scope: `feature`
 - active_slice: `Slice 4 - Linux containment and real Pi proof (implementing)`
-- active_task: `T4.2 (in progress)`
+- active_task: `T4.3 (in progress)`
 - merge_target: `dev`
 - observed_base: `8d63f6fbe6fb67e0bd7ef26bbfb474735ae43cf1`
 
@@ -267,7 +267,7 @@ Planned task commits:
 Tasks:
 
 - [x] `T4.1` Implement LinuxSandbox command construction with read-only mount allowlists, private writable scratch, no inherited host IPC sockets/fds and explicit policy identity/readiness.
-- [ ] `T4.2` Isolate the selected static credential/model configuration, disable discovery and unattended UI, and expose precise platform/version/resource failures.
+- [x] `T4.2` Isolate the selected static credential/model configuration, disable discovery and unattended UI, and expose precise platform/version/resource failures.
 - [ ] `T4.3` Run the pinned real Pi 1.3.0 against an owned loopback endpoint, proving write denial, resource exclusion, cleanup and valid structured output.
 
 Acceptance:

@@ -9,7 +9,7 @@ class HarnessesPiTransportTest < ActiveSupport::TestCase
     project = create_project
     request, = pi_request(project.root_path)
     error = assert_raises(Harnesses::Error) { Harnesses::StructuredCall.new.call(request) }
-    assert_equal :unsupported_capability, error.code
+    assert_equal :unsupported_executable, error.code
     assert_not File.exist?(File.join(project.root_path, "pids"))
   end
 

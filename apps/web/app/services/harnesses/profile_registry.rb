@@ -8,7 +8,16 @@ module Harnesses
           raise Error.new("The prepared profile lacks structured output capability.", code: :unsupported_capability)
         end
         if public_values.fetch("harness") == "pi"
-          raise Error.new("Pi requires a verified containment policy before selection.", code: :unsupported_capability)
+          capabilities = public_values.fetch("capabilities")
+          unless capabilities["os_read_only_containment"] == true && capabilities["controlled_inspection"] != true
+            raise Error.new("Pi requires tool-free OS containment; controlled inspection is unsupported.", code: :unsupported_capability)
+          end
+          LinuxSandbox.ready!(program: private_values.fetch("executable_ref"))
+          PiResources.binary_metadata!(private_values.fetch("executable_ref"))
+          if public_values["thinking"] && !PiProtocol::THINKING_LEVELS.include?(public_values["thinking"])
+            raise Error.new("The prepared Pi thinking level is unsupported.", code: :unsupported_capability)
+          end
+          PiResources.ready!(binding: public_values, resources: private_values)
         end
         self
       end
@@ -92,6 +101,15 @@ module Harnesses
       end
       values = {"requested_provider" => nil, "requested_model" => nil, "capabilities" => {}}.merge(row.slice(*PUBLIC_FIELDS))
       values["protocol_revision"] ||= "codex-exec/v1"
+      if row["harness"] == "pi"
+        snapshot = PiResources.model_snapshot(row["model_config_ref"], provider: row.fetch("requested_provider"), model: row.fetch("requested_model"))
+        revision = snapshot && CanonicalJson.digest(snapshot)
+        if row["model_config_revision"] && row["model_config_revision"] != revision
+          raise Error.new("The prepared Pi model configuration revision does not match.", code: :invalid_profile)
+        end
+        values["model_config_revision"] = revision
+        values["containment_policy_revision"] = LinuxSandbox::POLICY_REVISION
+      end
       stat = File.stat(program)
       values["executable_identity"] = CanonicalJson.digest([File.realpath(program), stat.dev, stat.ino, stat.size, stat.mtime.to_r.to_s])
       values["revision"] = CanonicalJson.digest(values)

@@ -13,9 +13,9 @@ Approved: maintainer, 2026-10-19; explicit approval of the seven-slice plan, dep
 - execution_authority: `autonomous execution of this delivery set approved`
 - updated: `2026-10-19`
 - active_slice: `Slice 4 - Linux containment and real Pi proof (implementing)`
-- active_task: `T4.2 (in progress)`
+- active_task: `T4.3 (in progress)`
 - completed_slices: `3/7`
-- completed_tasks: `10/21`
+- completed_tasks: `11/21`
 - controller: `external Looper controller`
 - plan: [Pi Harness plan](../plans/2026-10-19-redwright-pi-harness-cycle-plan.md)
 - spec: [Pi Harness specification](../specs/specs/2026-10-19-redwright-pi-harness-spec.md)
@@ -140,12 +140,13 @@ Validation:
 Tasks:
 
 - [x] `T4.1` Implement LinuxSandbox command construction with read-only mount allowlists, private writable scratch, no inherited host IPC sockets/fds and explicit policy identity/readiness.
-- [ ] `T4.2` Isolate the selected static credential/model configuration, disable discovery and unattended UI, and expose precise platform/version/resource failures.
+- [x] `T4.2` Isolate the selected static credential/model configuration, disable discovery and unattended UI, and expose precise platform/version/resource failures.
 - [ ] `T4.3` Run the pinned real Pi 1.3.0 against an owned loopback endpoint, proving write denial, resource exclusion, cleanup and valid structured output.
 
 Commits:
 
-- `T4.1`: Linux containment task commit in branch history.
+- `T4.1`: `687c3c818285c0e6632ebd04f90b952c50634ff9` - explicit Linux namespaces, mounts, OS admission probe and cleanup.
+- `T4.2`: selected resource and readiness task commit in branch history.
 
 Validation:
 
