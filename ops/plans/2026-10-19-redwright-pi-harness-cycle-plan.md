@@ -15,7 +15,7 @@ Approved: maintainer, 2026-10-19; explicit approval of the seven-slice plan, dep
 - goal: `Use prepared Pi or Codex profiles through Rails authoring and bounded ticket proposals while retaining host validation and workflow authority.`
 - scope: `feature`
 - active_slice: `Slice 4 - Linux containment and real Pi proof (implementing)`
-- active_task: `T4.1 (in progress)`
+- active_task: `T4.2 (in progress)`
 - merge_target: `dev`
 - observed_base: `8d63f6fbe6fb67e0bd7ef26bbfb474735ae43cf1`
 
@@ -260,13 +260,13 @@ Planned task commits:
 - branch: `fix/slice-4-pi-pi-linux-containment`
 - expected_pr_title: `feat(slice-4): linux containment and real pi proof`
 - report: `ops/artifacts/slices/pi-harness/slice-4-pi-linux-containment.md`
-- ticket: [TKT-20261019165604](../tickets/ready/20261019165604-contain-pi-authoring-on-linux-and-prove-the-real-binary-boundary.md)
+- ticket: [TKT-20261019165604](../tickets/in_progress/20261019165604-contain-pi-authoring-on-linux-and-prove-the-real-binary-boundary.md)
 - objective: Prepared Pi profiles can run tool-free calls inside an explicitly verified Linux Bubblewrap policy with isolated selected resources.
 - acceptance_mapping: `PI-02, PI-06, PI-07, PI-08, PI-09, PI-11, PI-12, PI-14`
 
 Tasks:
 
-- [ ] `T4.1` Implement LinuxSandbox command construction with read-only mount allowlists, private writable scratch, no inherited host IPC sockets/fds and explicit policy identity/readiness.
+- [x] `T4.1` Implement LinuxSandbox command construction with read-only mount allowlists, private writable scratch, no inherited host IPC sockets/fds and explicit policy identity/readiness.
 - [ ] `T4.2` Isolate the selected static credential/model configuration, disable discovery and unattended UI, and expose precise platform/version/resource failures.
 - [ ] `T4.3` Run the pinned real Pi 1.3.0 against an owned loopback endpoint, proving write denial, resource exclusion, cleanup and valid structured output.
 

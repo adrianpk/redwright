@@ -1,7 +1,7 @@
 ---
 id: TKT-20261019165604
 title: Contain Pi authoring on Linux and prove the real binary boundary
-status: ready
+status: in_progress
 kind: task
 severity: unclassified
 priority: normal
@@ -10,12 +10,12 @@ tags: pi-harness, slice-delivery, rails
 source: chat
 reported_at: 2026-10-19T16:56:04Z
 ready_at: 2026-10-19T17:08:55Z
-started_at:
+started_at: 2026-10-19T18:12:42Z
 reviewed_at:
 closed_at:
 resolution:
 owner:
-branch:
+branch: fix/slice-4-pi-pi-linux-containment
 pr:
 commits: []
 ---
@@ -46,13 +46,13 @@ Prepared Pi profiles can run tool-free calls inside an explicitly verified Linux
 
 ## Actual
 
-Implementation has not started. The maintainer approved this slice and its
+Linux namespace construction, active write-denial admission and private scratch cleanup are implemented; focused OS tests passed (5 tests, 32 assertions). The maintainer approved this slice and its
 dependency/platform choices under the linked plan. Respect preceding slice
 dependencies; only this Pi delivery has autonomous commit/integration authority.
 
 ## Tasks
 
-- [ ] `T4.1` Implement LinuxSandbox command construction with read-only mount allowlists, private writable scratch, no inherited host IPC sockets/fds and explicit policy identity/readiness.
+- [x] `T4.1` Implement LinuxSandbox command construction with read-only mount allowlists, private writable scratch, no inherited host IPC sockets/fds and explicit policy identity/readiness.
 - [ ] `T4.2` Isolate the selected static credential/model configuration, disable discovery and unattended UI, and expose precise platform/version/resource failures.
 - [ ] `T4.3` Run the pinned real Pi 1.3.0 against an owned loopback endpoint, proving write denial, resource exclusion, cleanup and valid structured output.
 
