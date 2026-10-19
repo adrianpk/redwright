@@ -8,13 +8,13 @@ Approved: maintainer, 2026-10-19; explicit approval of the seven-slice plan, dep
 - cycle_id: `2026-10-19-redwright-pi-harness`
 - delivery_set: `pi-harness`
 - status: `approved`
-- state: `reviewing`
+- state: `implementing`
 - approval: `maintainer approved, 2026-10-19`
 - execution_authority: `autonomous execution of this delivery set approved`
 - updated: `2026-10-19`
-- active_slice: `Slice 2 - Rails selection and retained operations (reviewing)`
-- active_task: `T2.3 (implemented; PR preparation)`
-- completed_slices: `1/7`
+- active_slice: `Slice 3 - Bounded Pi RPC calls (implementing)`
+- active_task: `T3.1 (in progress)`
+- completed_slices: `2/7`
 - completed_tasks: `6/21`
 - controller: `external Looper controller`
 - plan: [Pi Harness plan](../plans/2026-10-19-redwright-pi-harness-cycle-plan.md)
@@ -67,14 +67,14 @@ Validation:
 
 ### Slice 2: Rails selection and retained operations
 
-- status: `reviewing`
+- status: `delivered`
 - branch: `fix/slice-2-pi-rails-harness-selection`
 - expected_pr_title: `feat(slice-2): rails selection and retained operations`
 - report: `ops/artifacts/slices/pi-harness/slice-2-rails-harness-selection.md`
-- ticket: [TKT-20261019165601](../tickets/reviewing/20261019165601-persist-project-harness-selection-and-logical-operation-bindings.md)
+- ticket: [TKT-20261019165601](../tickets/solved/20261019165601-persist-project-harness-selection-and-logical-operation-bindings.md)
 - merge_target: `dev`
 - PR: [#11](https://forge.adrianpk.com/adrianpk/redwrigh/pulls/11)
-- last_sync_commit: `none`
+- last_sync_commit: `07b22440fc1ae520429382bf44cafaf135c871b5`
 
 Tasks:
 
@@ -91,13 +91,13 @@ Commits:
 Validation:
 
 - [x] Planned focused suite passed: 18 tests, 214 assertions; no failures, errors or skips.
-- [ ] Full Rails suite before canonical merge.
+- [x] Exact-head full Rails suite passed: 567 tests, 4,257 assertions at `07b22440fc1ae520429382bf44cafaf135c871b5`.
 - [x] Changed Ruby syntax and `git diff --check` passed during task implementation.
-- [ ] Canonical PR prepared and verified merged by the external controller.
+- [x] Canonical PR #11 verified merged by the external controller.
 
 ### Slice 3: Bounded Pi RPC calls
 
-- status: `pending`
+- status: `implementing`
 - branch: `fix/slice-3-pi-pi-rpc`
 - expected_pr_title: `feat(slice-3): bounded pi rpc calls`
 - report: `ops/artifacts/slices/pi-harness/slice-3-pi-rpc.md`
@@ -275,3 +275,5 @@ Linux acceptance. No result here claims either was verified.
 - `2026-10-19T17:27:34Z` state=`implementing`: verified PR #10 merged at its validated head; closed Slice 1 and activated Slice 2.
 
 - `2026-10-19T17:40:52Z` state=`reviewing`: Slice 2 tasks implemented; focused validation passed (18 tests, 214 assertions). Canonical PR #11 is open; final clean-head controller validation follows the PR-reference commit.
+
+- `2026-10-19T17:47:04Z` state=`implementing`: verified PR #11 merged at its validated head; closed Slice 2 and activated Slice 3.

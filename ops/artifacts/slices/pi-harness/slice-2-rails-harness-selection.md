@@ -1,6 +1,6 @@
 # Slice 2: Rails Selection and Retained Operations
 
-Status: reviewing
+Status: delivered
 Delivery set: pi-harness
 Plan: [Pi Harness plan](../../../plans/2026-10-19-redwright-pi-harness-cycle-plan.md)
 Tracker: [Pi Harness tracker](../../../trackers/2026-10-19-redwright-pi-harness-cycle-tracker.md)
@@ -100,6 +100,11 @@ scripts/agent/tickets/check.sh
 git diff --name-only --diff-filter=ACMR origin/dev...HEAD -- '*.rb' | xargs -r -n 1 ruby -wc
 git diff --check
 ```
+
+Canonical PR #11 merged at `07b22440fc1ae520429382bf44cafaf135c871b5`.
+Retained controller evidence for that exact commit passed all four commands
+above: 567 Rails tests, 4,257 assertions, zero failures, errors or skips;
+the Rails suite took 77.37 seconds.
 
 ## Risks and Follow-ups
 

@@ -1,7 +1,7 @@
 ---
 id: TKT-20261019165601
 title: Persist project harness selection and logical operation bindings
-status: reviewing
+status: solved
 kind: task
 severity: unclassified
 priority: normal
@@ -12,8 +12,8 @@ reported_at: 2026-10-19T16:56:01Z
 ready_at: 2026-10-19T17:08:55Z
 started_at: 2026-10-19T17:31:08Z
 reviewed_at: 2026-10-19T17:40:52Z
-closed_at:
-resolution:
+closed_at: 2026-10-19T17:47:04Z
+resolution: fixed
 owner:
 branch: fix/slice-2-pi-rails-harness-selection
 pr: https://forge.adrianpk.com/adrianpk/redwrigh/pulls/11
@@ -80,5 +80,7 @@ gate. These commands are planned, not reported as passed.
 
 ## Outcome
 
-Implementation is ready for canonical PR preparation and exact-head controller validation. Existing Settings/Setup changes,
+Delivered through canonical PR #11 at `07b22440fc1ae520429382bf44cafaf135c871b5`.
+Controller validation passed: 567 Rails tests and 4,257 assertions, plus ticket,
+Ruby syntax and whitespace checks. Existing Settings/Setup changes,
 preview services, credentials and active databases remain outside this ticket.
