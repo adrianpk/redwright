@@ -3,8 +3,17 @@
 ## Metadata
 
 - status: `curated research`
+- delivery_status: `completed`
 - created: `2026-10-19`
 - source: `user-requested Iris consultation with the CHR agent`
+
+## Delivery Outcome
+
+The approved seven-slice delivery is complete at tested candidate
+`2c42eb5f0f921aacf355244dddfb795d907ce019`. The [completed cycle report](../../artifacts/2026-10-19-redwright-pi-harness-cycle-report.md)
+records the controller's successful unchanged full gate and final capability
+boundaries. The consultation below remains a dated research record rather
+than a claim about subsequent peer-project state.
 
 ## Related Specification
 

@@ -1,7 +1,7 @@
 ---
 id: TKT-20261019165607
 title: Document and validate the integrated Pi harness workflow
-status: reviewing
+status: solved
 kind: task
 severity: unclassified
 priority: normal
@@ -12,8 +12,8 @@ reported_at: 2026-10-19T16:56:07Z
 ready_at: 2026-10-19T17:08:55Z
 started_at: 2026-10-19T19:15:52Z
 reviewed_at: 2026-10-19T19:21:03Z
-closed_at:
-resolution:
+closed_at: 2026-10-19T19:34:36Z
+resolution: fixed
 owner:
 branch: fix/slice-7-pi-pi-harness-acceptance
 pr: https://forge.adrianpk.com/adrianpk/redwrigh/pulls/16
@@ -51,13 +51,16 @@ cover prepared profiles, independent choices, containment, limits, evidence and
 recovery. Integrated switching/recovery and feature-to-ticket journeys passed:
 2 tests, 63 assertions. Six documentation files rendered; JSON examples,
 fences and 57 local links passed. The cycle report maps every PI requirement.
-T7.3 stays open for the controller's exact full-gate evidence and closure.
+T7.3 is complete. The unchanged controller gate passed at
+`2c42eb5f0f921aacf355244dddfb795d907ce019`: Rails 621 tests/5,076 assertions,
+native Pi 6/77 and root Ruby 551/2,902, with no failures, errors or skips.
+Ticket metadata and whitespace passed.
 
 ## Tasks
 
 - [x] `T7.1` Update the existing User Guide/configuration reference with static-profile setup, effective selections, Linux containment, limits and truthful capability/usage evidence.
 - [x] `T7.2` Exercise a representative configured-project journey, cross-process switching/recovery, Codex-only compatibility and ticket validation using owned fixtures.
-- [ ] `T7.3` Run the unchanged delivery-set gate on the exact integrated candidate and close the cycle report/tracker only with matching green evidence.
+- [x] `T7.3` Run the unchanged delivery-set gate on the exact integrated candidate and close the cycle report/tracker only with matching green evidence.
 
 ## Planned Commits
 
@@ -75,9 +78,10 @@ RAILS_ENV=test REDWRIGHT_PI_ACCEPTANCE=1 bundle exec rails test test/integration
 RAILS_ENV=test bundle exec rails test
 ```
 
-Use an owned test database. Check changed Ruby syntax, ticket metadata and
-`git diff --check`. The final delivery gate remains the plan's exact ordered
-gate. These commands are planned, not reported as passed.
+The focused integrated journey passed with 2 tests/63 assertions. The exact
+controller full gate passed at `2c42eb5f0f921aacf355244dddfb795d907ce019`;
+the cycle report records the unchanged command, component results and log digest.
+The worker used retained evidence rather than rerunning the gate.
 
 ## Outcome
 
@@ -87,5 +91,6 @@ and [cycle report](../../artifacts/2026-10-19-redwright-pi-harness-cycle-report.
 retain the evidence boundary. Canonical PR [#16](https://forge.adrianpk.com/adrianpk/redwrigh/pulls/16) merged
 into `dev` at `a5b4120ee1849dd9dd2903f5450081f1234056f2` after six controller checks
 passed, including Rails 621 tests/5,076 assertions and native Pi 6/77.
-Integration is closed. T7.3 remains pending the controller-owned full gate and
-final documentation closure; the ticket stays reviewing until that work ends.
+Integration and T7.3 are closed using the successful immutable-candidate gate
+evidence. All three tasks are complete and this ticket is solved. The closure
+task commit is recorded in Acta; its full reference follows after commit.

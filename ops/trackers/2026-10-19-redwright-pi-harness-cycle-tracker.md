@@ -1,25 +1,35 @@
 # Cycle Tracker: RedWright Pi Harness
 
-Status: Approved
+Status: Completed
 Approved: maintainer, 2026-10-19; explicit approval of the seven-slice plan, dependency/platform decisions and autonomous Pi-only commits, PRs and controller-owned Rebase + Fast-forward merges into dev.
 
 ## Metadata
 
 - cycle_id: `2026-10-19-redwright-pi-harness`
 - delivery_set: `pi-harness`
-- status: `approved`
-- state: `ready_for_gate`
+- status: `completed`
+- state: `completed`
 - approval: `maintainer approved, 2026-10-19`
 - execution_authority: `autonomous execution of this delivery set approved`
 - updated: `2026-10-19`
-- active_slice: `none (all 7 canonical slices integrated; delivery-set gate pending)`
-- active_task: `T7.3 (awaiting controller gate evidence and closure)`
+- active_slice: `none`
+- active_task: `none`
 - completed_slices: `7/7`
-- completed_tasks: `20/21`
+- completed_tasks: `21/21`
 - controller: `external Looper controller`
 - plan: [Pi Harness plan](../plans/2026-10-19-redwright-pi-harness-cycle-plan.md)
 - spec: [Pi Harness specification](../specs/specs/2026-10-19-redwright-pi-harness-spec.md)
 - model: [Pi Harness model](../specs/specs/2026-10-19-redwright-pi-harness-spec-model.md)
+
+## Completion Evidence
+
+- Tested candidate: `2c42eb5f0f921aacf355244dddfb795d907ce019`.
+- Full gate: the exact unchanged configured command passed through the external controller.
+- Results: Rails 621 tests/5,076 assertions; native Pi 6 tests/77 assertions; root Ruby 551 tests/2,902 assertions; no failures, errors or skips. Ticket metadata and whitespace passed.
+- Evidence record: `checks/2c42eb5f0f921aacf355244dddfb795d907ce019.json`.
+- Retained log: `2c42eb5f0f921aacf355244dddfb795d907ce019.WRXEYSMI4DPOQPIXX3BHPLNLMG.log`; SHA-256 `e209b2eb9ed9cf4ce4038c5928d73751cb3dc7bf09ae3af2101650378b706d00`.
+- [Completed cycle report](../artifacts/2026-10-19-redwright-pi-harness-cycle-report.md) records the exact command, timing and evidence boundaries.
+- Slice 7 of 7 completed; 21 of 21 tasks completed. No active successor remains.
 
 ## Canonical Slice Map
 
@@ -229,7 +239,7 @@ Validation:
 - branch: `fix/slice-7-pi-pi-harness-acceptance`
 - expected_pr_title: `feat(slice-7): operator guidance and integrated acceptance`
 - report: `ops/artifacts/slices/pi-harness/slice-7-pi-harness-acceptance.md`
-- ticket: [TKT-20261019165607](../tickets/reviewing/20261019165607-document-and-validate-the-integrated-pi-harness-workflow.md)
+- ticket: [TKT-20261019165607](../tickets/solved/20261019165607-document-and-validate-the-integrated-pi-harness-workflow.md)
 - merge_target: `dev`
 - PR: [#16](https://forge.adrianpk.com/adrianpk/redwrigh/pulls/16)
 - last_sync_commit: `a5b4120ee1849dd9dd2903f5450081f1234056f2`
@@ -238,13 +248,13 @@ Tasks:
 
 - [x] `T7.1` Update the existing User Guide/configuration reference with static-profile setup, effective selections, Linux containment, limits and truthful capability/usage evidence.
 - [x] `T7.2` Exercise a representative configured-project journey, cross-process switching/recovery, Codex-only compatibility and ticket validation using owned fixtures.
-- [ ] `T7.3` Run the unchanged delivery-set gate on the exact integrated candidate and close the cycle report/tracker only with matching green evidence.
+- [x] `T7.3` Run the unchanged delivery-set gate on the exact integrated candidate and close the cycle report/tracker only with matching green evidence.
 
 Commits:
 
 - `T7.1`: `a3cc089d6905f1e9118076829b762d7ea7df56b1` - operator guidance and configuration reference.
 - `T7.2`: `ef325dc15678de54c911705ed1b7ce6f55ee0be8` - report introduction - integrated switching/recovery and feature-to-ticket evidence.
-- `T7.3`: pending controller gate evidence and final closure commit.
+- `T7.3`: documentation closure task commit, recorded in Acta; full reference added after commit.
 
 Validation:
 
@@ -258,20 +268,21 @@ Validation:
 
 ## Delivery Gate and Closure
 
-- [ ] All 7 slice integrations and all 21 task/commit mappings verified.
-- [ ] Full Rails suite on the exact integrated candidate.
-- [ ] Required real Pi 1.3.0/Bubblewrap loopback acceptance.
-- [ ] Root `bundle exec rake test`.
-- [ ] Ticket metadata and whitespace checks.
-- [ ] PI-01 through PI-15 evidence mapping and operator guidance.
-- [ ] Cycle report records actual checks, candidate and evidence boundaries.
+- [x] All 7 slice integrations and all 21 task/commit mappings verified.
+- [x] Full Rails suite on the exact integrated candidate.
+- [x] Required real Pi 1.3.0/Bubblewrap loopback acceptance.
+- [x] Root `bundle exec rake test`.
+- [x] Ticket metadata and whitespace checks.
+- [x] PI-01 through PI-15 evidence mapping and operator guidance.
+- [x] Cycle report records actual checks, candidate and evidence boundaries.
 
 ## Approval / Blockers
 
 The maintainer approved the plan, dependency and Pi-only autonomous commit,
-push, PR and controller-merge authority on 2026-10-19. All seven canonical slices are integrated; T7.3 remains pending the unchanged
-controller-owned delivery gate and documentation closure. The external
-controller owns validation evidence and all merge mutations.
+push, PR and controller-merge authority on 2026-10-19. All seven canonical slices are integrated and all 21 tasks are complete.
+The unchanged controller-owned full gate passed at `2c42eb5f0f921aacf355244dddfb795d907ce019`.
+Documentation closure changes only configured closure paths; no work remains
+in this delivery set.
 
 Before startup, prepare the independent clean execution checkout described in
 the plan and publish only the approved Pi artifacts. Preserve the existing
@@ -327,3 +338,5 @@ Linux acceptance. No result here claims either was verified.
 - `2026-10-19T19:21:03Z` state=`reviewing`: T7.1 and T7.2 delivered for canonical PR preparation. Integrated workflow passed (2 tests, 63 assertions); guidance checks passed. T7.3 remains pending controller integration, unchanged full-gate evidence and closure.
 
 - `2026-10-19T19:28:17Z` state=`ready_for_gate`: verified all seven canonical PR merges and their ancestry on `dev`; closed Slice 7 integration at `a5b4120ee1849dd9dd2903f5450081f1234056f2`. Dependency, native-tool and owned empty test-schema prerequisites are ready. The worker did not run the full gate; T7.3 remains open for controller evidence and closure.
+
+- `2026-10-19T19:34:36Z` state=`completed`: controller full gate passed at `2c42eb5f0f921aacf355244dddfb795d907ce019`; Rails 621 tests/5,076 assertions, native Pi 6/77 and root Ruby 551/2,902 all passed with no failures, errors or skips. Closed T7.3 and the seven-slice set using retained evidence, without rerunning the gate.

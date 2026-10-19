@@ -1,17 +1,17 @@
 # RedWright Pi Harness Cycle Report
 
-Status: awaiting integrated gate
+Status: Completed
 Delivery set: pi-harness
 Plan: [Pi Harness plan](../plans/2026-10-19-redwright-pi-harness-cycle-plan.md)
 Tracker: [Pi Harness tracker](../trackers/2026-10-19-redwright-pi-harness-cycle-tracker.md)
 
 ## Delivery State
 
-All seven canonical slice PRs are integrated into `dev`. Slice 7 delivered
-operator guidance, integrated journey coverage and this evidence map.
-Integration entries are closed. T7.3 remains open until the external controller
-runs the unchanged full gate on the prepared candidate and its exact evidence
-supports documentation closure. Pre-merge checks do not replace that gate.
+All seven canonical slice PRs are integrated into `dev`; all 21 tasks,
+including T7.3, are complete. The external controller ran the unchanged full
+gate successfully at `2c42eb5f0f921aacf355244dddfb795d907ce019`. Documentation closure after that
+candidate changes only configured closure paths. No runtime or test source
+changes are included after the tested candidate, and no successor remains.
 
 | Slice | Canonical PR | Integrated commit |
 | --- | --- | --- |
@@ -25,9 +25,9 @@ supports documentation closure. Pre-merge checks do not replace that gate.
 
 ## Acceptance Evidence Map
 
-The following implementation evidence is present. The final gate section below
-must attach one exact integrated candidate and matching results before these
-mappings establish delivery-set completion.
+The implementation evidence below is covered by the successful integrated
+gate recorded in the final gate section. Unsupported and unverified boundaries
+remain explicit; they are not inferred from a passing local fixture.
 
 | Requirement | Delivered behavior and evidence boundary | Focused evidence |
 | --- | --- | --- |
@@ -59,8 +59,8 @@ The Slice 7 integrated head `a5b4120ee1849dd9dd2903f5450081f1234056f2`
 passed its six ordered pre-merge controller checks: Rails 621 tests/5,076
 assertions in 80.38 seconds; native Pi 6 tests/77 assertions in 10.74 seconds;
 documentation rendering, ticket metadata, changed Ruby syntax and whitespace.
-The following preparation commit changes only approved delivery records;
-its full-gate candidate and results remain the controller's responsibility.
+The preparation commit changed only approved delivery records. The controller
+then validated the exact integrated candidate recorded below.
 
 The new Slice 7 integrated workflow check passed during implementation:
 
@@ -104,26 +104,53 @@ Prepared without running the full gate:
   resources and private scratch. Process/database/workspace fixtures remain
   owned by their checks. No additional fixture service needs to stay running.
 
-The frozen configuration and full-gate command are unchanged. The worker
-leaves primary `dev` clean and pushed for the controller to capture its exact
-candidate. T7.3 and the delivery set remain open until matching gate evidence
-is available.
+The frozen configuration and full-gate command remained unchanged. The
+controller captured the prepared candidate and completed its full gate.
+Temporary endpoint/process/database/workspace fixtures clean up through their
+existing owners; no owned test process remained for closure to stop.
 
 ## Exact Integrated Gate
 
-Candidate: pending controller capture after preparation.
-Gate evidence: pending controller execution.
-T7.3: pending exact matching gate evidence and documentation closure.
+Candidate: `2c42eb5f0f921aacf355244dddfb795d907ce019`.
+Outcome: passed through the external controller.
+Started: `2026-10-19T19:29:35.712226692Z`.
+Finished: `2026-10-19T19:31:40.073570173Z`.
+Elapsed: 124.36 seconds.
+T7.3: completed from retained evidence and documentation closure.
 
-The unchanged controller command is:
+The controller executed this exact unchanged command:
 
 ```sh
 (cd apps/web && RAILS_ENV=test bundle exec rails test) && (cd apps/web && RAILS_ENV=test REDWRIGHT_PI_ACCEPTANCE=1 bundle exec rails test test/integration/pi_harness_acceptance_test.rb) && bundle exec rake test && scripts/agent/tickets/check.sh && git diff --check
 ```
 
-Retain the controller's exact candidate, command, log and outcomes here during
-closure. Do not rerun the gate in the implementation worker, infer it from
-pre-merge checks, or mark the cycle delivered without its result.
+| Component | Result | Time |
+| --- | --- | --- |
+| Rails suite | 621 tests, 5,076 assertions; 0 failures/errors/skips. | 84.91 seconds |
+| Native Pi acceptance | 6 tests, 77 assertions; 0 failures/errors/skips. | 10.73 seconds |
+| Root Ruby suite | 551 tests, 2,902 assertions; 0 failures/errors/skips. | 24.83 seconds |
+| Ticket metadata | Passed. | Included in total |
+| `git diff --check` | Passed. | Included in total |
+
+Retained controller evidence record: `checks/2c42eb5f0f921aacf355244dddfb795d907ce019.json`.
+Retained log: `2c42eb5f0f921aacf355244dddfb795d907ce019.WRXEYSMI4DPOQPIXX3BHPLNLMG.log`.
+Log SHA-256: `e209b2eb9ed9cf4ce4038c5928d73751cb3dc7bf09ae3af2101650378b706d00`.
+The checkpoint's gate identity, command and log match that record, and the
+controller validation run records a successful result for the same candidate.
+The implementation worker consumed this evidence without rerunning the gate.
+
+## Documentation Closure
+
+Plan and tracker are Completed with 7/7 integrated slices, 21/21 completed tasks
+and no active slice or task. The final supporting ticket is solved. Slice
+reports are delivered; specification/model metadata and indexes identify the
+completed delivery. T7.3's task commit is recorded in Acta and its full hash is
+added by the documentation reference follow-up.
+
+Only configured closure paths differ from the tested candidate. The local
+tree has no separate delivery handoff requiring an update; this report and
+the tracker are the durable completion record. Primary `dev` is kept clean
+and pushed. No remaining owned test process required a stop action.
 
 ## Remaining Evidence Boundary
 

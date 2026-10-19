@@ -21,7 +21,8 @@ Templates:
 - `ops/templates/spec-draft-template.md`
 - `ops/templates/spec-quiz-template.md`
 
-## Current Approved Delivery
+## Completed Delivery
 
 - [Pi Harness](specs/2026-10-19-redwright-pi-harness-spec.md) and [model](specs/2026-10-19-redwright-pi-harness-spec-model.md).
 - [Delivery plan](../plans/2026-10-19-redwright-pi-harness-cycle-plan.md) and [tracker](../trackers/2026-10-19-redwright-pi-harness-cycle-tracker.md).
+- [Completed cycle report](../artifacts/2026-10-19-redwright-pi-harness-cycle-report.md): all seven slices and 21 tasks complete; unchanged full gate passed at `2c42eb5f0f921aacf355244dddfb795d907ce019`.

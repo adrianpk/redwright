@@ -27,6 +27,8 @@ These recent drafts are intentionally visible as selectable follow-up work:
   - selection_status: `closed`
   - promoted_to: [Pi Harness](../specs/2026-10-19-redwright-pi-harness-spec.md)
   - approved_plan: [seven-slice delivery](../../plans/2026-10-19-redwright-pi-harness-cycle-plan.md)
+  - completed_tracker: [completed delivery](../../trackers/2026-10-19-redwright-pi-harness-cycle-tracker.md)
+  - completed_report: [gate evidence and capability map](../../artifacts/2026-10-19-redwright-pi-harness-cycle-report.md)
 
 These recent drafts are not active selection candidates because they already moved through a spec and delivery cycle:
 

@@ -29,8 +29,8 @@ and connect the delivered boundaries in representative owned project journeys.
   Go validation, local Git and the existing reviewing transition.
 - The [cycle report](../../2026-10-19-redwright-pi-harness-cycle-report.md)
   maps PI-01 through PI-15 to focused evidence and explicit unsupported or
-  unverified boundaries. T7.3 remains open for controller gate evidence and
-  final documentation closure after integration.
+  unverified boundaries. T7.3 is complete using the controller's matching
+  integrated gate evidence and documentation closure.
 
 ## Implementation Notes
 
@@ -51,7 +51,8 @@ The reference documents the delivered registry/resource formats, settings
 semantics, containment boundary and limits. The cycle evidence map separates
 implemented Linux capabilities from unsupported macOS/inspection/OAuth behavior
 and unverified paid authentication. The external controller owns the unchanged
-full gate; this PR's readiness checks cannot close T7.3 or the delivery set.
+full gate. Its successful integrated result now closes T7.3 and the delivery
+set; pre-merge checks remain a separate evidence boundary.
 
 ## Files of Interest
 
@@ -83,14 +84,14 @@ pre-merge results. The required prefix is:
 
 Documentation rendering, ticket metadata, changed Ruby syntax and
 `git diff --check` follow that prefix. The full delivery-set gate, including
-root Ruby tests, remains with the controller after Slice 7 integration.
+root Ruby tests, passed through the controller at the candidate recorded below.
 
 ## Risks and Follow-ups
 
-T7.3 and delivery-set closure require the controller's exact integrated gate
-candidate and green evidence. The cycle report is prepared for that evidence
-and is not marked delivered. Unknown usage and provider authentication remain
-truthfully distinct from local readiness and owned loopback proof.
+None recorded within the approved delivery. Unsupported macOS containment,
+OAuth refresh and tool-using workers, plus unverified paid authentication,
+remain explicit in the cycle evidence map. Unknown usage remains distinct
+from local readiness and owned loopback proof.
 
 ## Integration
 
@@ -99,5 +100,9 @@ Canonical PR #16 was verified merged into `dev` at
 passed: Rails 621 tests/5,076 assertions (80.38 seconds), native Pi
 6 tests/77 assertions (10.74 seconds), documentation rendering, ticket
 metadata, changed Ruby syntax and whitespace. Acta records integration.
-All seven slice PRs are integrated. T7.3 remains open until the controller
-runs the unchanged full gate and its exact evidence supports final closure.
+All seven slice PRs are integrated. The unchanged full gate subsequently
+passed at `2c42eb5f0f921aacf355244dddfb795d907ce019`: Rails 621 tests/5,076
+assertions, native Pi 6/77 and root Ruby 551/2,902, with no failures, errors
+or skips. Ticket metadata and whitespace passed. The cycle report pins the
+exact controller command, evidence record and log digest. T7.3 is complete;
+Slice 7 of 7 and all 21 tasks are completed.
