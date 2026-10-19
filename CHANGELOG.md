@@ -8,43 +8,51 @@ entry per commit.
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-10-19
+
 ### Added
 
+- Choose prepared Codex or Pi profiles per project, with separate selections
+  for document authoring and ticket proposals. Pi 1.3.0 requires Linux x86_64,
+  Bubblewrap, and a prepared local profile. Existing Codex and direct-API
+  defaults remain available.
 - Generate specification drafts from project context, optional dumps, and quiz
-  answers through a local harness. Review and approve the same specification,
-  or write one directly. Start with New and choose generation or writing in
-  the creation modal.
-- Added Dumps so users can capture free-form project or use-case notes, curate
-  them, and reuse them as future ticket context.
-- Added an authenticated Codex-backed black-box proof milestone: RedWright can
-  run a ticket-like task in the proof container, validate the generated Go
-  change, and push the result branch to the proof remote.
+  answers through a local harness, or write one directly from the New modal.
+  Review and approve the same specification in place.
+- Write and curate Markdown dumps for a project or use case, edit them inline,
+  mark them Draft or Ready, and reuse them as agent context.
+- Settings provides portable common and stack protocol templates, including
+  Odin, Racket, and Gleam. Saved custom concerns and playbooks remain visible
+  alongside the supplied defaults.
+- Run the authenticated Codex proof workflow in Docker to implement and
+  validate a Go change, then push its result branch to the configured proof
+  remote.
 
 ### Changed
 
-- RedWright is now licensed under the Apache License, Version 2.0.
-- Navigation now follows Cases, Dumps, Quizzes, Specs, Board, and Protocol,
-  followed by Settings for administrators.
-- Specs replaces the document catalogue and follows the project's Markdown
-  files, including external edits. Outdated saves are rejected. Implementation
-  progress belongs to Board tickets; trackers remain internal.
+- Specs replaces the document catalog. Specifications and tickets follow the
+  project's Markdown files, including external edits and ticket workflow
+  state. Outdated web saves are rejected; Board tracks implementation progress.
 - Each use case represents one feature with one specification. Regenerate it
-  from later discovery and rebuild tickets before execution starts. Retained
-  work keeps its identity; obsolete work keeps its history. Execution protects
-  the contract, with linked corrective cases for later changes.
-- Tickets follow project files, including descriptions and workflow state.
-- Protocols now reads and edits `AGENTS.md` and Markdown files under `.agents/`
-  directly, including custom files and subdirectories. Changes from other
-  tools appear without synchronization, and outdated web saves are rejected.
-  The page shows the project's workspace path; setup templates remain a
-  separate catalog in Settings.
+  and rebuild tickets before execution starts, preserving retained work and
+  delivery history. Once execution starts, later contract changes use a linked
+  corrective case.
+- Protocol reads and edits `AGENTS.md` and `.agents/` files directly. Create,
+  rename, delete, and sync concerns and playbooks with their owning indexes;
+  custom files and subdirectories remain visible. Setup templates stay
+  separate from existing project instructions.
+- Project navigation groups Cases, Dumps, Quizzes, Specs, Board, Protocol, and
+  Harness, with Settings for administrators.
+- Specs and Dumps use inline Markdown editing, compact status controls, and
+  consistent save feedback. Destructive actions require confirmation.
+- RedWright is now licensed under the Apache License, Version 2.0.
 
 ### Fixed
 
-- Fixed `./scripts/run-dev.sh` so local provider credentials are loaded before
+- Long previews stay within their cards on desktop and mobile layouts.
+- New dumps use their project or use-case name instead of a timestamped title.
+- `./scripts/run-dev.sh` loads local provider credentials before
   the Telegram daemon starts.
-- Fixed the Codex proof runtime so authenticated Codex execution can run inside
-  Docker and validate Go proof repositories.
 
 ## [0.1.0-alpha.1] - 2026-05-09
 
