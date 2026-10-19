@@ -1,7 +1,7 @@
 ---
 id: TKT-20261019084124
 title: Manage dumps as editable Markdown documents
-status: in_progress
+status: reviewing
 kind: task
 severity: medium
 priority: normal
@@ -11,13 +11,13 @@ source: chat
 reported_at: 2026-10-19T08:41:24Z
 ready_at: 2026-10-19T08:41:24Z
 started_at: 2026-10-19T08:41:24Z
-reviewed_at:
+reviewed_at: 2026-10-19T09:04:11Z
 closed_at:
 resolution:
 owner:
 branch: feat/ticket-20261019084124-file-backed-dumps
-pr:
-commits: []
+pr: https://forge.adrianpk.com/adrianpk/redwrigh/pulls/9
+commits: [0c6f22aeefd0b1b6bbd16eb2f0d4ab1195870bcc]
 ---
 
 ## Context
@@ -77,5 +77,5 @@ several forms and the capture/curation states do not describe an editable docume
   3 cases, 2 quizzes, and valid foreign keys in the isolated test bed.
 
 ## Outcome
-Implementation complete; PR publication and maintainer acceptance pending. Keep the ticket and PR open for maintainer testing;
+Implementation complete in PR #9 against dev. Maintainer acceptance pending. Keep the ticket and PR open for maintainer testing;
 do not merge or mark the ticket solved before explicit acceptance.
