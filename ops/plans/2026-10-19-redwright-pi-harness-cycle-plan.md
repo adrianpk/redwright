@@ -14,8 +14,8 @@ Approved: maintainer, 2026-10-19; explicit approval of the seven-slice plan, dep
 - created: `2026-10-19`
 - goal: `Use prepared Pi or Codex profiles through Rails authoring and bounded ticket proposals while retaining host validation and workflow authority.`
 - scope: `feature`
-- active_slice: `Slice 5 - Selectable Pi authoring in the web app (reviewing)`
-- active_task: `none (awaiting canonical Slice 5 integration)`
+- active_slice: `Slice 6 - Pi ticket proposals under Rails authority (implementing)`
+- active_task: `T6.1`
 - merge_target: `dev`
 - observed_base: `8d63f6fbe6fb67e0bd7ef26bbfb474735ae43cf1`
 
@@ -296,12 +296,12 @@ Planned task commits:
 
 ### Slice 5: Selectable Pi authoring in the web app
 
-- status: `reviewing`
+- status: `delivered`
 - dependencies: Slice 4 integrated and closed
 - branch: `fix/slice-5-pi-pi-authoring-settings`
 - expected_pr_title: `feat(slice-5): selectable pi authoring in the web app`
 - report: `ops/artifacts/slices/pi-harness/slice-5-pi-authoring-settings.md`
-- ticket: [TKT-20261019165605](../tickets/reviewing/20261019165605-expose-prepared-profiles-and-wire-pi-into-rails-authoring.md)
+- ticket: [TKT-20261019165605](../tickets/solved/20261019165605-expose-prepared-profiles-and-wire-pi-into-rails-authoring.md)
 - objective: Users can inspect/change project harness defaults through a compact authenticated Rails page and use Pi for each existing authoring action.
 - acceptance_mapping: `PI-02, PI-03, PI-04, PI-08, PI-10, PI-15`
 
@@ -336,12 +336,12 @@ Planned task commits:
 
 ### Slice 6: Pi ticket proposals under Rails authority
 
-- status: `pending`
+- status: `implementing`
 - dependencies: Slice 5 integrated and closed
 - branch: `fix/slice-6-pi-pi-ticket-proposals`
 - expected_pr_title: `feat(slice-6): pi ticket proposals under rails authority`
 - report: `ops/artifacts/slices/pi-harness/slice-6-pi-ticket-proposals.md`
-- ticket: [TKT-20261019165606](../tickets/ready/20261019165606-use-pi-for-ticket-proposals-while-retaining-host-application-and-validation.md)
+- ticket: [TKT-20261019165606](../tickets/in_progress/20261019165606-use-pi-for-ticket-proposals-while-retaining-host-application-and-validation.md)
 - objective: The existing ticket model step can use a selected structured harness while Rails continues to own context, application, validation and Git.
 - acceptance_mapping: `PI-05, PI-07, PI-10, PI-11, PI-12, PI-13`
 

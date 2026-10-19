@@ -1,6 +1,6 @@
 # Slice 5: Selectable Pi Authoring in the Web App
 
-Status: reviewing
+Status: delivered
 Delivery set: pi-harness
 Plan: [Pi Harness plan](../../../plans/2026-10-19-redwright-pi-harness-cycle-plan.md)
 Tracker: [Pi Harness tracker](../../../trackers/2026-10-19-redwright-pi-harness-cycle-tracker.md)
@@ -140,3 +140,12 @@ The transport retains the supported native Linux containment boundary. The
 ticket-proposal consumer and final integrated/operator journey keep their
 approved later slices. Uncertain operations retain capacity until owned
 reconciliation; the page reports their state without releasing another call.
+
+## Integration
+
+Canonical PR #14 was verified merged into `dev` at
+`c54eaa3cca7da2673218c7cc9a070afea4cdce39`. Its seven ordered controller checks
+passed: Rails 608 tests/4,865 assertions (73.15 seconds), Sass, Chromium
+1 test/26 assertions, native Pi 5 tests/65 assertions, ticket metadata, changed
+Ruby syntax and whitespace. Acta records the controller-owned integration.
+Slice 5 of 7 completed.

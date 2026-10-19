@@ -1,7 +1,7 @@
 ---
 id: TKT-20261019165606
 title: Use Pi for ticket proposals while retaining host application and validation
-status: ready
+status: in_progress
 kind: task
 severity: unclassified
 priority: normal
@@ -10,12 +10,12 @@ tags: pi-harness, slice-delivery, rails
 source: chat
 reported_at: 2026-10-19T16:56:06Z
 ready_at: 2026-10-19T17:08:55Z
-started_at:
+started_at: 2026-10-19T19:00:47Z
 reviewed_at:
 closed_at:
 resolution:
 owner:
-branch:
+branch: fix/slice-6-pi-pi-ticket-proposals
 pr:
 commits: []
 ---

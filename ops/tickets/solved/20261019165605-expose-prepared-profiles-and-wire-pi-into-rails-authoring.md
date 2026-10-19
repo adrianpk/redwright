@@ -1,7 +1,7 @@
 ---
 id: TKT-20261019165605
 title: Expose prepared profiles and wire Pi into Rails authoring
-status: reviewing
+status: solved
 kind: task
 severity: unclassified
 priority: normal
@@ -12,8 +12,8 @@ reported_at: 2026-10-19T16:56:05Z
 ready_at: 2026-10-19T17:08:55Z
 started_at: 2026-10-19T18:38:14Z
 reviewed_at: 2026-10-19T18:51:31Z
-closed_at:
-resolution:
+closed_at: 2026-10-19T19:00:47Z
+resolution: fixed
 owner:
 branch: fix/slice-5-pi-pi-authoring-settings
 pr: https://forge.adrianpk.com/adrianpk/redwrigh/pulls/14
@@ -84,5 +84,6 @@ gate. These commands are planned, not reported as passed.
 
 Implemented in the dedicated Slice 5 worktree. The canonical report is
 [Slice 5](../../artifacts/slices/pi-harness/slice-5-pi-authoring-settings.md).
-Canonical PR [#14](https://forge.adrianpk.com/adrianpk/redwrigh/pulls/14) is open. Final exact-head
-controller validation follows this PR-reference commit before readiness.
+Canonical PR [#14](https://forge.adrianpk.com/adrianpk/redwrigh/pulls/14) merged
+into `dev` at `c54eaa3cca7da2673218c7cc9a070afea4cdce39` after seven ordered
+controller checks passed, including Rails 608 tests/4,865 assertions.
