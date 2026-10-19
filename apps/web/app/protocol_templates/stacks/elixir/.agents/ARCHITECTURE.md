@@ -1,44 +1,16 @@
 # Elixir Architecture
 
-This document describes Elixir repository structure and ownership boundaries.
+This document describes Elixir repository structure and process ownership.
 
-## Objective
+- Organize modules under `lib/` by domain capability; keep Mix configuration in
+  `mix.exs` and follow existing application or umbrella boundaries.
+- Use ordinary functions and immutable data for computation. Introduce a process
+  for state, concurrency, isolation, or lifecycle that actually needs one.
+- Let supervision trees express restart ownership. Keep GenServer callbacks
+  focused on process state and delegate reusable transformations to functions.
+- Separate startup configuration from runtime configuration and access each at
+  the appropriate lifecycle boundary.
+- Keep external adapters and process messages explicit. Never create atoms from
+  arbitrary external strings.
 
-Keep the Elixir codebase explicit, supervision-aware, and easy to reason about without replacing simple data transformations with unnecessary processes.
-
-## Baseline structure
-
-```text
-lib/          # application modules and supervision tree code
-config/       # Mix and runtime configuration
-test/         # ExUnit tests
-priv/         # runtime assets, migrations, seeds, or static data when used
-docs/         # user-facing and technical documentation
-.formatter.exs # formatting configuration
-mix.exs       # project, dependency, app, and task configuration
-.agents/      # collaboration and execution rules for this repository
-AGENTS.md     # top-level agent operating contract
-```
-
-## Boundary rules
-
-- Keep domain behavior in cohesive modules or contexts with explicit public APIs.
-- Prefer pure functions and immutable data transformations for business behavior.
-- Use supervised processes only for state, lifecycle, concurrency, or fault-tolerance needs that justify them.
-- Keep GenServer callbacks focused on process mechanics; delegate domain decisions to plain functions where practical.
-- Keep IO adapters, persistence, external services, and transport concerns separated from pure transformations.
-- Keep configuration access close to process startup or adapter boundaries; avoid scattering runtime config reads through core logic.
-- Tests should live under `test/` and mirror the module or behavior boundary being changed.
-
-## Supervision and runtime
-
-- Supervision trees should make ownership and restart behavior visible.
-- Process names, registries, and dynamic supervisors should be introduced only when runtime behavior requires them.
-- Long-running processes should expose clear initialization, state, and failure behavior.
-- Message formats between processes should be explicit and tested when they are part of the contract.
-
-## Change discipline
-
-- Structural changes must be explicit in commit scope.
-- Prefer extending existing modules and contexts before creating new architectural categories.
-- Do not introduce process state, umbrella apps, or broad supervision changes without clear need.
+Reference: [Library guidelines](https://hexdocs.pm/elixir/library-guidelines.html).

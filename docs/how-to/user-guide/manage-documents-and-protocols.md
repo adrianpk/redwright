@@ -116,6 +116,17 @@ separate from the selected project's Protocols page.
 Templates initialize new project files. Editing a template does not rewrite
 an existing project's files, add missing defaults, or restore removed files.
 
+Stack selection uses the project's stack identity and the language/runtime and
+framework captured during setup. Matching stack documents replace the common
+versions at the same paths, such as `.agents/ARCHITECTURE.md`; they do not appear
+in a separate stack folder. Odin and Racket each provide architecture,
+conventions, documentation, and validation baselines.
+
+Settings has no action to apply a template set to an existing project. The
+classic `Create Project` form currently creates a Ruby project and does not
+offer a stack selector; the conversational setup flow accepts language and
+framework choices. Existing protocol files take precedence during initialization.
+
 ## Verify
 
 - Generated and directly authored specifications appear under `Specs`.

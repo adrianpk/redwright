@@ -2,6 +2,7 @@ module ProjectProtocols
   class DefaultBehavioralProtocolSource
     PROTOCOL_FILES = [
       ["agents_root", "AGENTS.md", "AGENTS", "behavioral"],
+      ["architecture", ".agents/ARCHITECTURE.md", "Architecture", "behavioral"],
       ["conventions", ".agents/CONVENTIONS.md", "Conventions", "behavioral"],
       ["documenting", ".agents/DOCUMENTING.md", "Documenting", "behavioral"],
       ["invariants", ".agents/INVARIANTS.md", "Invariants", "behavioral"],

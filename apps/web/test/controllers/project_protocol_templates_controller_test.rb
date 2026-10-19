@@ -51,6 +51,12 @@ class ProjectProtocolTemplatesControllerTest < ActionDispatch::IntegrationTest
     assert_match "Common Protocol Templates", response.body
     assert_match "Playbooks", response.body
     assert_match "Agent Operating Contract", response.body
+    assert_select ".artifact-type-card:first-child h2", text: "AGENTS"
+    assert_select "a.protocol-collection-card[href=?]", common_playbooks_protocol_templates_path
+    assert_select ".protocol-collection-count", text: /\d+ docs/
+    get common_playbooks_protocol_templates_path
+    assert_response :success
+    assert_select ".artifact-type-card:first-child h2", text: "PLAYBOOKS"
   end
 
   test "stacks overview renders stack templates and create entry point" do
@@ -62,7 +68,30 @@ class ProjectProtocolTemplatesControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_match "Stack Protocol Templates", response.body
     assert_match "Rails Protocol Templates", response.body
+    assert_match "Odin Protocol Templates", response.body
+    assert_match "Racket Protocol Templates", response.body
     assert_match "New Stack Template", response.body
+  end
+
+  # Saved concerns remain visible even when they are absent from the shipped defaults.
+  test "common template includes saved concerns and playbooks" do
+    sign_in_as(create_admin_user!)
+    template = ProjectProtocols::TemplateCatalog.new.common_template
+    concern = template.documents.create!(key: "security", path: ".agents/SECURITY.md", title: "Security", layer: "behavioral", body: "# Security", position: 100)
+    playbook = template.documents.create!(key: "playbook_recovery", path: ".agents/playbooks/recovery.md", title: "Recovery", layer: "behavioral", body: "# Recovery", position: 101)
+
+    get common_protocol_templates_path
+
+    assert_response :success
+    assert_select "a[href=?] h2", edit_protocol_template_document_path(template, concern), text: "Security"
+    assert_select ".artifact-type-card h2", text: "Architecture"
+    assert_select ".protocol-card-preview span", text: "recovery.md"
+
+    get common_playbooks_protocol_templates_path
+
+    assert_response :success
+    assert_select ".artifact-type-card:first-child h2", text: "PLAYBOOKS"
+    assert_select "a[href=?] h2", edit_protocol_template_document_path(template, playbook), text: "Recovery"
   end
 
   test "create stack template set and show per-stack management screen" do

@@ -1,6 +1,6 @@
 module ProjectProtocols
   class TemplateRegistry
-    STACK_KEYS = %w[go ruby rails typescript elixir gleam zig rust angular].freeze
+    STACK_KEYS = %w[go ruby rails typescript elixir gleam zig rust angular odin racket].freeze
 
     def initialize(source: DefaultBehavioralProtocolSource.new, stack_source: StackProtocolSource.new, fallback_stack_source: LocalProtocolSource.new)
       @source = source

@@ -34,10 +34,43 @@ module ProjectProtocols
           ["linting", ".agents/LINTING.md", "Linting", 3]
         ]
       },
+      "gleam" => {
+        name: "Gleam Protocol Templates",
+        matchers: ["gleam"],
+        root: "gleam",
+        documents: [
+          ["architecture", ".agents/ARCHITECTURE.md", "Architecture", 0],
+          ["conventions", ".agents/CONVENTIONS.md", "Conventions", 1],
+          ["documenting", ".agents/DOCUMENTING.md", "Documenting", 2],
+          ["linting", ".agents/LINTING.md", "Linting", 3]
+        ]
+      },
       "ruby" => {
         name: "Ruby Protocol Templates",
         matchers: ["ruby"],
         root: "ruby",
+        documents: [
+          ["architecture", ".agents/ARCHITECTURE.md", "Architecture", 0],
+          ["conventions", ".agents/CONVENTIONS.md", "Conventions", 1],
+          ["documenting", ".agents/DOCUMENTING.md", "Documenting", 2],
+          ["linting", ".agents/LINTING.md", "Linting", 3]
+        ]
+      },
+      "odin" => {
+        name: "Odin Protocol Templates",
+        matchers: ["odin"],
+        root: "odin",
+        documents: [
+          ["architecture", ".agents/ARCHITECTURE.md", "Architecture", 0],
+          ["conventions", ".agents/CONVENTIONS.md", "Conventions", 1],
+          ["documenting", ".agents/DOCUMENTING.md", "Documenting", 2],
+          ["linting", ".agents/LINTING.md", "Linting", 3]
+        ]
+      },
+      "racket" => {
+        name: "Racket Protocol Templates",
+        matchers: ["racket"],
+        root: "racket",
         documents: [
           ["architecture", ".agents/ARCHITECTURE.md", "Architecture", 0],
           ["conventions", ".agents/CONVENTIONS.md", "Conventions", 1],

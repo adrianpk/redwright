@@ -8,13 +8,13 @@ class ProjectProtocolTemplatesController < ApplicationController
 
   def common
     @template = @catalog.common_template
-    @entries = ProjectProtocols::TemplateSetCatalog.new(template: @template).top_level_entries
+    load_entries
     render :show
   end
 
   def common_playbooks
     @template = @catalog.common_template
-    @playbook_entries = ProjectProtocols::TemplateSetCatalog.new(template: @template).playbook_entries
+    load_entries
   end
 
   def stacks
@@ -35,11 +35,12 @@ class ProjectProtocolTemplatesController < ApplicationController
   end
 
   def show
-    @entries = ProjectProtocols::TemplateSetCatalog.new(template: @template).top_level_entries
+    load_entries
   end
 
   def playbooks
-    @playbook_entries = ProjectProtocols::TemplateSetCatalog.new(template: @template).playbook_entries
+    load_entries
+    render :common_playbooks
   end
 
   def create_document
@@ -61,6 +62,13 @@ class ProjectProtocolTemplatesController < ApplicationController
   end
 
   private
+
+  def load_entries
+    entries = ProjectProtocols::TemplateSetCatalog.new(template: @template)
+    @entries = entries.top_level_entries
+    @playbook_entries = entries.playbook_entries
+    @playbooks_index = @entries.find(&:playbooks_index?)
+  end
 
   def set_catalog
     @catalog = ProjectProtocols::TemplateCatalog.new

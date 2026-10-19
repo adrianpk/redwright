@@ -54,7 +54,12 @@ module ProjectProtocols
       @entries ||= begin
         persisted = template.documents.index_by(&:key)
 
-        expected_definitions.map do |definition|
+        definitions = expected_definitions.index_by { |definition| definition.fetch("key") }
+        persisted.each_value do |document|
+          definitions[document.key] ||= document.attributes.slice("key", "path", "title", "layer", "position", "body")
+        end
+
+        definitions.values.map do |definition|
           document = persisted[definition.fetch("key")]
 
           Entry.new(
@@ -69,7 +74,7 @@ module ProjectProtocols
             playbooks_index: definition.fetch("key") == "playbooks_index",
             playbook: definition.fetch("path").start_with?(".agents/playbooks/")
           )
-        end
+        end.sort_by { |entry| [entry.path == "AGENTS.md" ? 0 : 1, entry.title.downcase] }
       end
     end
 

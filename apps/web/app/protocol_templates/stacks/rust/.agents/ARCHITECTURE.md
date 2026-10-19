@@ -2,45 +2,15 @@
 
 This document describes Rust repository structure and ownership boundaries.
 
-## Objective
+- Follow Cargo's crate layout. Keep reusable behavior in `src/lib.rs` and modules;
+  use `src/main.rs` or `src/bin/` for executable assembly when appropriate.
+- Introduce workspace crates for genuine package or dependency boundaries, rather
+  than mirroring every module with a crate.
+- Design APIs around ownership and borrowing. Use traits for useful shared
+  behavior or substitution without requiring a trait for every type.
+- Use enums to represent mutually exclusive states and exhaustive transitions.
+- Isolate unsafe code behind a safe API with documented invariants. Keep FFI
+  ownership, lifetimes, and cleanup explicit.
+- Choose async execution and shared ownership only when runtime requirements need them.
 
-Keep the Rust codebase explicit about ownership, error behavior, and module boundaries without over-abstracting before the design needs it.
-
-## Baseline structure
-
-```text
-Cargo.toml    # crate metadata, features, dependencies, and workspace config
-src/          # crate source code
-src/main.rs   # binary entrypoint when present
-src/lib.rs    # library root when present
-tests/        # integration tests
-examples/     # runnable examples when useful
-benches/      # benchmarks when configured
-docs/         # user-facing and technical documentation
-.agents/      # collaboration and execution rules for this repository
-AGENTS.md     # top-level agent operating contract
-```
-
-## Boundary rules
-
-- Organize modules around domain behavior and boundary adapters.
-- Keep binary entrypoints thin; delegate behavior to library modules.
-- Use traits at boundaries where substitution is useful, not as a default abstraction.
-- Keep ownership and lifetime decisions visible in public APIs.
-- Separate CLI, web, persistence, transport, and domain logic when the project has those concerns.
-- Keep feature flags explicit and documented when they affect public behavior.
-- Tests should mirror the crate or module boundary being changed.
-
-## Errors and ownership
-
-- Use `Result` for expected failures and preserve useful error context.
-- Avoid panics in library code unless the invariant is local and defensible.
-- Keep borrowing, cloning, and allocation choices intentional.
-- Prefer clear data ownership over lifetime cleverness when public APIs are involved.
-- Keep unsafe code out unless the project requires it and the invariant is documented.
-
-## Change discipline
-
-- Structural changes must be explicit in commit scope.
-- Do not introduce workspace splits, broad trait hierarchies, or global registries without clear need.
-- Prefer direct, readable Rust before abstraction-heavy designs.
+Reference: [The Rust Book](https://doc.rust-lang.org/book/).

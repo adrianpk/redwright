@@ -1,43 +1,13 @@
-# Zig Linting and Quality Gates
+# Zig Validation
 
-This repository uses focused quality gates for Zig application code.
+- Run `zig fmt --check` on changed Zig files using the supported compiler version.
+- Run `zig build test` when defined, or `zig test <file>` for focused module tests.
+  Build affected targets with the repository's own build steps.
+- Use `std.testing` assertions and its test allocator for allocation-sensitive
+  tests. Exercise cleanup after partial failure and allocation failure when relevant.
+- Check error variants, invalid inputs, and borrowed-memory lifetimes at boundaries.
+- Run the configured safety modes and target builds when arithmetic, undefined
+  behavior, or target assumptions change. Do not substitute a newer compiler
+  merely because a documented command fails on the pinned version.
 
-## Baseline checks
-
-- Formatting:
-  - `zig fmt --check .`
-- Test suite:
-  - `zig build test` when the build graph defines tests
-  - `zig test <file>` for focused file-level validation
-- Build:
-  - `zig build` for project-level build validation
-
-## Optional stricter checks
-
-If enabled by project setup:
-- sanitizer or safety-mode builds when the project defines them.
-- leak-checking tests with a test allocator.
-- target-specific build steps for supported deployment targets.
-- the project's configured coverage command.
-
-## Hook policy
-
-If git hooks are configured, pre-commit should run fast checks only:
-- formatting checks
-- focused tests where practical
-- lightweight build checks for changed code
-
-Full build and test gates should run before merge.
-
-## Rules
-
-- Do not skip tests for behavior changes.
-- Fix failing checks before declaring work complete.
-- For docs-only changes, validate the diff and whitespace instead of running unrelated application tests.
-- Keep stricter checks useful; avoid introducing rules that cause mechanical churn without improving maintainability.
-
-## Root-level gates
-
-- Repository-level quality tasks should run from the repository root unless the project documents a different working directory.
-- Prefer project-owned commands such as `zig build test`, `zig build`, `make test`, `make lint`, `make verify`, or CI-equivalent scripts when present.
-- Report the exact command and outcome when closing work.
+Reference: [Zig testing](https://ziglang.org/documentation/master/#Zig-Test).

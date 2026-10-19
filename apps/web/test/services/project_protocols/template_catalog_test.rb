@@ -9,6 +9,8 @@ module ProjectProtocols
 
       assert ProjectProtocolTemplate.exists?(template_kind: "common", key: "common")
       assert ProjectProtocolTemplate.exists?(template_kind: "stack", key: "rails")
+      assert ProjectProtocolTemplate.exists?(template_kind: "stack", key: "odin")
+      assert ProjectProtocolTemplate.exists?(template_kind: "stack", key: "racket")
       common = templates.find { |template| template.template_kind == "common" }
       assert_equal "Common Protocol Templates", common.name
       assert_equal "AGENTS.md", common.documents.first.path
@@ -123,6 +125,19 @@ module ProjectProtocols
       architecture = composition.documents.find { |document| document.fetch("key") == "architecture" }
       assert_match(/Customized from Rails admin/, architecture.fetch("body"))
       assert_equal "# Existing Copy", existing_project.protocol_files.find_path(".agents/ARCHITECTURE.md").body
+    end
+
+    # Every shipped stack must have its own defaults instead of the generic fallback.
+    test "all stack baselines provide four portable concerns" do
+      catalog = TemplateCatalog.new
+
+      catalog.stack_template_sets.each do |template|
+        assert_equal %w[architecture conventions documenting linting], template.documents.map(&:key), template.key
+        template.documents.each do |document|
+          assert_match(/\A# #{Regexp.escape(template.key)} /i, document.body, "#{template.key}: #{document.key}")
+          refute_match(%r{~/|/home/|RedWright}, document.body, template.key)
+        end
+      end
     end
 
     private

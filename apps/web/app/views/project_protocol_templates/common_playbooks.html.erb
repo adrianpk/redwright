@@ -1,7 +1,7 @@
 <main class="document-artifacts-index">
   <section class="documents-top-shell">
     <p class="document-artifact-breadcrumb">
-      <%= link_to "Common Protocol Templates", common_protocol_templates_path %>
+      <%= link_to @template.name, @template.common? ? common_protocol_templates_path : protocol_template_path(@template) %>
     </p>
     <div class="board-title-row">
       <h1>Playbooks</h1>
@@ -9,27 +9,8 @@
   </section>
 
   <section class="artifact-type-nav" aria-label="Common playbook template navigation">
-    <% @playbook_entries.each do |entry| %>
-      <% if entry.missing? %>
-        <div class="artifact-type-card">
-          <h2><%= entry.title %></h2>
-          <div class="artifact-list-card-body">
-            <%= button_to "Create", documents_protocol_template_path(@template, key: entry.key), method: :post, class: "ticket-action" %>
-          </div>
-        </div>
-      <% else %>
-        <%= link_to edit_protocol_template_document_path(@template, entry.document), class: "artifact-type-card" do %>
-          <h2><%= entry.title %></h2>
-          <% preview_lines = entry.body.to_s.lines.map(&:strip).reject(&:blank?).first(6) %>
-          <% if preview_lines.any? %>
-            <div class="protocol-card-preview" aria-hidden="true">
-              <% preview_lines.each do |line| %>
-                <span><%= line %></span>
-              <% end %>
-            </div>
-          <% end %>
-        <% end %>
-      <% end %>
+    <% [@playbooks_index, *@playbook_entries].compact.each do |entry| %>
+      <%= render "document_card", entry: entry %>
     <% end %>
   </section>
 </main>
