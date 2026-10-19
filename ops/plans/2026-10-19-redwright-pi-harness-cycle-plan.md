@@ -14,8 +14,8 @@ Approved: maintainer, 2026-10-19; explicit approval of the seven-slice plan, dep
 - created: `2026-10-19`
 - goal: `Use prepared Pi or Codex profiles through Rails authoring and bounded ticket proposals while retaining host validation and workflow authority.`
 - scope: `feature`
-- active_slice: `Slice 4 - Linux containment and real Pi proof (reviewing)`
-- active_task: `none (awaiting canonical Slice 4 integration)`
+- active_slice: `Slice 5 - Selectable Pi authoring in the web app (implementing)`
+- active_task: `T5.1 (in progress)`
 - merge_target: `dev`
 - observed_base: `8d63f6fbe6fb67e0bd7ef26bbfb474735ae43cf1`
 
@@ -255,12 +255,12 @@ Planned task commits:
 
 ### Slice 4: Linux containment and real Pi proof
 
-- status: `reviewing`
+- status: `delivered`
 - dependencies: Slice 3 integrated and closed
 - branch: `fix/slice-4-pi-pi-linux-containment`
 - expected_pr_title: `feat(slice-4): linux containment and real pi proof`
 - report: `ops/artifacts/slices/pi-harness/slice-4-pi-linux-containment.md`
-- ticket: [TKT-20261019165604](../tickets/reviewing/20261019165604-contain-pi-authoring-on-linux-and-prove-the-real-binary-boundary.md)
+- ticket: [TKT-20261019165604](../tickets/solved/20261019165604-contain-pi-authoring-on-linux-and-prove-the-real-binary-boundary.md)
 - objective: Prepared Pi profiles can run tool-free calls inside an explicitly verified Linux Bubblewrap policy with isolated selected resources.
 - acceptance_mapping: `PI-02, PI-06, PI-07, PI-08, PI-09, PI-11, PI-12, PI-14`
 
@@ -296,7 +296,7 @@ Planned task commits:
 
 ### Slice 5: Selectable Pi authoring in the web app
 
-- status: `pending`
+- status: `implementing`
 - dependencies: Slice 4 integrated and closed
 - branch: `fix/slice-5-pi-pi-authoring-settings`
 - expected_pr_title: `feat(slice-5): selectable pi authoring in the web app`

@@ -1,6 +1,6 @@
 # Slice 4: Linux Containment and Real Pi Proof
 
-Status: reviewing
+Status: delivered
 Delivery set: pi-harness
 Plan: [Pi Harness plan](../../../plans/2026-10-19-redwright-pi-harness-cycle-plan.md)
 Tracker: [Pi Harness tracker](../../../trackers/2026-10-19-redwright-pi-harness-cycle-tracker.md)
@@ -115,6 +115,11 @@ scripts/agent/tickets/check.sh
 git diff --name-only --diff-filter=ACMR origin/dev...HEAD -- '*.rb' | xargs -r -n 1 ruby -wc
 git diff --check
 ```
+
+Canonical PR #13 merged at `cdeb6dbbffcda5cff44fab6b95c4c07a802fb2b1`.
+Retained controller evidence passed all five commands above: 594 Rails tests,
+4,663 assertions in 65.84 seconds; real Pi acceptance 4 tests, 55 assertions in
+7.99 seconds. Both suites had zero failures, errors or skips.
 
 ## Risks and Follow-ups
 

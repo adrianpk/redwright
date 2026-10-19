@@ -8,13 +8,13 @@ Approved: maintainer, 2026-10-19; explicit approval of the seven-slice plan, dep
 - cycle_id: `2026-10-19-redwright-pi-harness`
 - delivery_set: `pi-harness`
 - status: `approved`
-- state: `reviewing`
+- state: `implementing`
 - approval: `maintainer approved, 2026-10-19`
 - execution_authority: `autonomous execution of this delivery set approved`
 - updated: `2026-10-19`
-- active_slice: `Slice 4 - Linux containment and real Pi proof (reviewing)`
-- active_task: `none (awaiting canonical Slice 4 integration)`
-- completed_slices: `3/7`
+- active_slice: `Slice 5 - Selectable Pi authoring in the web app (implementing)`
+- active_task: `T5.1 (in progress)`
+- completed_slices: `4/7`
 - completed_tasks: `12/21`
 - controller: `external Looper controller`
 - plan: [Pi Harness plan](../plans/2026-10-19-redwright-pi-harness-cycle-plan.md)
@@ -128,14 +128,14 @@ Validation:
 
 ### Slice 4: Linux containment and real Pi proof
 
-- status: `reviewing`
+- status: `delivered`
 - branch: `fix/slice-4-pi-pi-linux-containment`
 - expected_pr_title: `feat(slice-4): linux containment and real pi proof`
 - report: `ops/artifacts/slices/pi-harness/slice-4-pi-linux-containment.md`
-- ticket: [TKT-20261019165604](../tickets/reviewing/20261019165604-contain-pi-authoring-on-linux-and-prove-the-real-binary-boundary.md)
+- ticket: [TKT-20261019165604](../tickets/solved/20261019165604-contain-pi-authoring-on-linux-and-prove-the-real-binary-boundary.md)
 - merge_target: `dev`
 - PR: [#13](https://forge.adrianpk.com/adrianpk/redwrigh/pulls/13)
-- last_sync_commit: `5ff9b6268096f1bb81723c27c1bfb91b38dc8e81`
+- last_sync_commit: `cdeb6dbbffcda5cff44fab6b95c4c07a802fb2b1`
 
 Tasks:
 
@@ -153,14 +153,14 @@ Validation:
 
 - [x] Planned OS/resource suite passed: 11 tests, 98 assertions; no failures, errors or skips.
 - [x] Real Pi 1.3.0/Bubblewrap 0.12.0 loopback proof passed: 4 tests, 55 assertions; no failures, errors or skips.
-- [ ] Full Rails suite before canonical merge.
-- [ ] Changed Ruby syntax and `git diff --check`.
+- [x] Exact-head Rails suite passed: 594 tests, 4,663 assertions; real Pi acceptance passed: 4 tests, 55 assertions at `cdeb6dbbffcda5cff44fab6b95c4c07a802fb2b1`.
+- [x] Changed Ruby syntax, ticket metadata and `git diff --check` passed.
 - [x] Report complete and canonical PR #13 opened.
-- [ ] Canonical PR verified merged by the external controller.
+- [x] Canonical PR #13 verified merged by the external controller.
 
 ### Slice 5: Selectable Pi authoring in the web app
 
-- status: `pending`
+- status: `implementing`
 - branch: `fix/slice-5-pi-pi-authoring-settings`
 - expected_pr_title: `feat(slice-5): selectable pi authoring in the web app`
 - report: `ops/artifacts/slices/pi-harness/slice-5-pi-authoring-settings.md`
@@ -250,7 +250,7 @@ Validation:
 ## Approval / Blockers
 
 The maintainer approved the plan, dependency and Pi-only autonomous commit,
-push, PR and controller-merge authority on 2026-10-19. Slices 1 through 3 are delivered; Slice 4 is active; the external controller owns
+push, PR and controller-merge authority on 2026-10-19. Slices 1 through 4 are delivered; Slice 5 is active; the external controller owns
 validation evidence and all merge mutations.
 
 Before startup, prepare the independent clean execution checkout described in
@@ -293,3 +293,5 @@ Linux acceptance. No result here claims either was verified.
 - `2026-10-19T18:09:00Z` state=`implementing`: verified PR #12 merged at its validated head; closed Slice 3 and activated Slice 4.
 
 - `2026-10-19T18:24:02Z` state=`reviewing`: Slice 4 tasks implemented; OS/resource checks passed (11 tests, 98 assertions) and real Pi loopback proof passed (4 tests, 55 assertions). Canonical PR #13 is open; final clean-head controller validation follows the PR-reference commit.
+
+- `2026-10-19T18:28:08Z` state=`implementing`: verified PR #13 merged at its validated head; closed Slice 4 and activated Slice 5.

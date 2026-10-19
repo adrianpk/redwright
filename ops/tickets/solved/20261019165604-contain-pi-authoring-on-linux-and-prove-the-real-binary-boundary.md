@@ -1,7 +1,7 @@
 ---
 id: TKT-20261019165604
 title: Contain Pi authoring on Linux and prove the real binary boundary
-status: reviewing
+status: solved
 kind: task
 severity: unclassified
 priority: normal
@@ -12,8 +12,8 @@ reported_at: 2026-10-19T16:56:04Z
 ready_at: 2026-10-19T17:08:55Z
 started_at: 2026-10-19T18:12:42Z
 reviewed_at: 2026-10-19T18:22:51Z
-closed_at:
-resolution:
+closed_at: 2026-10-19T18:28:08Z
+resolution: fixed
 owner:
 branch: fix/slice-4-pi-pi-linux-containment
 pr: https://forge.adrianpk.com/adrianpk/redwrigh/pulls/13
@@ -83,7 +83,7 @@ gate. These commands are planned, not reported as passed.
 
 ## Outcome
 
-Implemented in the dedicated Slice 4 worktree. The canonical report is
-[Slice 4](../../artifacts/slices/pi-harness/slice-4-pi-linux-containment.md).
-Canonical PR [#13](https://forge.adrianpk.com/adrianpk/redwrigh/pulls/13) is open. Final exact-head
-controller validation follows this PR-reference commit before readiness.
+Canonical PR #13 merged at `cdeb6dbbffcda5cff44fab6b95c4c07a802fb2b1`.
+Retained controller evidence passed all five ordered checks: 594 Rails tests,
+4,663 assertions; real Pi acceptance 4 tests, 55 assertions; ticket metadata,
+changed Ruby syntax and whitespace. No failures, errors or skips.
