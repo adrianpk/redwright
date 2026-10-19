@@ -1,5 +1,6 @@
 require "test_helper"
 require "rbconfig"
+require "timeout"
 
 class HarnessesProcessSupervisorTest < ActiveSupport::TestCase
   test "pipes drain while large input is written" do
@@ -65,8 +66,16 @@ class HarnessesProcessSupervisorTest < ActiveSupport::TestCase
     assert_equal :timed_out, error.code
     child_pid = Integer(File.read(marker))
     # An orphan can briefly remain as a zombie until the host init reaps it.
-    stat = File.read("/proc/#{child_pid}/stat") if File.exist?("/proc/#{child_pid}/stat")
-    assert(stat.nil? || stat.split[2] == "Z")
+    stopped = Timeout.timeout(1) do
+      loop do
+        stat = File.exist?("/proc/#{child_pid}/stat") ? File.read("/proc/#{child_pid}/stat") : nil
+        break true if stat.nil? || stat.split[2] == "Z"
+        IO.select(nil, nil, nil, 0.005)
+      rescue Errno::ENOENT, Errno::ESRCH
+        break true
+      end
+    end
+    assert stopped
   end
 
   private

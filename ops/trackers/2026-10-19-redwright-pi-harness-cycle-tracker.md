@@ -13,9 +13,9 @@ Approved: maintainer, 2026-10-19; explicit approval of the seven-slice plan, dep
 - execution_authority: `autonomous execution of this delivery set approved`
 - updated: `2026-10-19`
 - active_slice: `Slice 3 - Bounded Pi RPC calls (implementing)`
-- active_task: `T3.2 (in progress)`
+- active_task: `T3.3 (in progress)`
 - completed_slices: `2/7`
-- completed_tasks: `7/21`
+- completed_tasks: `8/21`
 - controller: `external Looper controller`
 - plan: [Pi Harness plan](../plans/2026-10-19-redwright-pi-harness-cycle-plan.md)
 - spec: [Pi Harness specification](../specs/specs/2026-10-19-redwright-pi-harness-spec.md)
@@ -109,10 +109,13 @@ Validation:
 Tasks:
 
 - [x] `T3.1` Implement shared owned-process supervision with concurrent pipe draining, deadlines, stream ceilings, sanitized diagnostics and deterministic reaping.
-- [ ] `T3.2` Implement PiAdapter for Pi 1.3.0 RPC, exact model/provider setup, ephemeral tool-free sessions and final settlement validation.
+- [x] `T3.2` Implement PiAdapter for Pi 1.3.0 RPC, exact model/provider setup, ephemeral tool-free sessions and final settlement validation.
 - [ ] `T3.3` Exercise split/interleaved records, invalid UTF-8, early/late exits, provider failure, cancellation and encoded 2 MiB results through real pipe fixtures.
 
-Commits: none.
+Commits:
+
+- `T3.1`: `5029674d2dbb` - shared bounded process supervision and Codex transport extraction.
+- `T3.2`: pinned Pi RPC adapter task commit in branch history.
 
 Validation:
 

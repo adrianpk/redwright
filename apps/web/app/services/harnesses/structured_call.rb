@@ -8,16 +8,19 @@ module Harnesses
     MAX_OUTPUT_BYTES = 2 * 1024 * 1024
     SCHEMA_DIALECT = "https://json-schema.org/draft/2020-12/schema".freeze
 
-    def initialize(adapter: CodexAdapter.new)
+    def initialize(adapter: nil)
       @adapter = adapter
     end
 
     def call(request)
-      raise Error.new("Unsupported structured-call harness.", code: :unsupported_harness) unless request.harness == "codex"
+      unless %w[codex pi].include?(request.harness)
+        raise Error.new("Unsupported structured-call harness.", code: :unsupported_harness)
+      end
       validate_bounds!(request)
       validator = schema_validator(request.schema)
       check_deadline!(request)
-      result = @adapter.call(request)
+      adapter = @adapter || (request.harness == "codex" ? CodexAdapter.new : PiAdapter.new)
+      result = adapter.call(request)
       raise Error.new("The harness did not complete successfully.", code: :failed) unless result.outcome == :completed
       raise Error.new("The harness result is too large.", code: :output_too_large) if result.bytes.bytesize > request.max_output_bytes
       text = result.bytes.dup.force_encoding(Encoding::UTF_8)
@@ -37,6 +40,10 @@ module Harnesses
     end
 
     def validate_bounds!(request)
+      if (!request.binding.nil? && (!request.binding.is_a?(Hash) || CanonicalJson.dump(request.binding).bytesize > 16 * 1024)) ||
+          !request.resources.is_a?(Hash) || CanonicalJson.dump(request.resources).bytesize > 16 * 1024
+        raise Error.new("The retained harness selection is invalid or too large.", code: :invalid_binding)
+      end
       schema_bytes = JSON.generate(request.schema).bytesize
       raise Error.new("The output schema is too large.", code: :invalid_schema) if schema_bytes > MAX_SCHEMA_BYTES
       if request.prompt.bytesize + schema_bytes > MAX_REQUEST_BYTES

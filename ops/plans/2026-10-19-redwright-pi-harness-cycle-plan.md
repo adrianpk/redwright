@@ -15,7 +15,7 @@ Approved: maintainer, 2026-10-19; explicit approval of the seven-slice plan, dep
 - goal: `Use prepared Pi or Codex profiles through Rails authoring and bounded ticket proposals while retaining host validation and workflow authority.`
 - scope: `feature`
 - active_slice: `Slice 3 - Bounded Pi RPC calls (implementing)`
-- active_task: `T3.2 (in progress)`
+- active_task: `T3.3 (in progress)`
 - merge_target: `dev`
 - observed_base: `8d63f6fbe6fb67e0bd7ef26bbfb474735ae43cf1`
 
@@ -227,7 +227,7 @@ Planned task commits:
 Tasks:
 
 - [x] `T3.1` Implement shared owned-process supervision with concurrent pipe draining, deadlines, stream ceilings, sanitized diagnostics and deterministic reaping.
-- [ ] `T3.2` Implement PiAdapter for Pi 1.3.0 RPC, exact model/provider setup, ephemeral tool-free sessions and final settlement validation.
+- [x] `T3.2` Implement PiAdapter for Pi 1.3.0 RPC, exact model/provider setup, ephemeral tool-free sessions and final settlement validation.
 - [ ] `T3.3` Exercise split/interleaved records, invalid UTF-8, early/late exits, provider failure, cancellation and encoded 2 MiB results through real pipe fixtures.
 
 Acceptance:
