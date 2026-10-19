@@ -20,6 +20,7 @@
 
     <%# Includes all stylesheet files in app/assets/stylesheets %>
     <%= stylesheet_link_tag :app %>
+    <%= javascript_include_tag "delete_confirmation", defer: true %>
     <%= javascript_include_tag "application_flash", defer: true %>
     <%= javascript_include_tag "board_interactions", defer: true %>
     <%= javascript_include_tag "top_nav_autofold", defer: true %>

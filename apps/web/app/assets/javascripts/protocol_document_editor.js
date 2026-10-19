@@ -68,11 +68,7 @@
     var form = document.querySelector("[data-protocol-autosave-form]");
     if (form) installProtocolAutosave(form);
     document.querySelectorAll("form[data-protocol-delete]").forEach(function (deletion) {
-      deletion.addEventListener("submit", function (event) {
-        if (!window.confirm("Delete this document and its reference from AGENTS?")) {
-          event.preventDefault();
-          return;
-        }
+      deletion.addEventListener("submit", function () {
         if (form) form.dataset.submitting = "true";
       });
     });

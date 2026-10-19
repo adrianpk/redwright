@@ -250,6 +250,7 @@
       form.method = "post";
       form.action = url;
       form.hidden = true;
+      if (method === "DELETE") form.dataset.deleteConfirm = "Delete this ticket? This cannot be undone.";
       Object.entries({ ...body, _method: method, authenticity_token: tokenMeta?.content || "" }).forEach(([name, value]) => {
         const field = document.createElement("input");
         field.type = "hidden";
@@ -261,6 +262,7 @@
       form.requestSubmit();
       return;
     }
+    if (method === "DELETE" && !window.confirm("Delete this ticket? This cannot be undone.")) return;
     const headers = {
       "Content-Type": "application/json",
       "Accept": "text/vnd.turbo-stream.html"

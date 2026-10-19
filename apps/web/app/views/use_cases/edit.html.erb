@@ -4,6 +4,13 @@
       <header class="modal-header">
         <h1>Edit Use Case</h1>
         <div class="modal-header-actions">
+          <% unless @use_case.deletion_blocked? %>
+            <%= button_to "Delete",
+                          project_use_case_path(@project, @use_case_route_slug || @use_case),
+                          method: :delete,
+                          class: "ticket-action ticket-action-danger",
+                          form: { data: { turbo_confirm: "Delete this use case?" } } %>
+          <% end %>
           <button type="button" class="modal-icon-button modal-close" aria-label="Close modal">
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path d="M6 6l12 12M18 6L6 18" />
@@ -37,13 +44,6 @@
                  form_id: form_id,
                  render_actions: false %>
       <div class="use-case-editor-actions">
-        <% unless @use_case.deletion_blocked? %>
-          <%= button_to "Delete",
-                        project_use_case_path(@project, @use_case_route_slug || @use_case),
-                        method: :delete,
-                        class: "ticket-action ticket-action-danger",
-                        form: { data: { turbo_confirm: "Delete this use case?" } } %>
-        <% end %>
         <button type="submit" form="<%= form_id %>" class="ticket-action">Save</button>
       </div>
     </section>

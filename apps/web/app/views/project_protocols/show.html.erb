@@ -5,7 +5,10 @@
       <% unless @protocol_document.root? %>
         <%= button_to "Delete", project_protocol_path(@project, @protocol_document), method: :delete,
                       params: {protocol_document: {revision: @protocol_document.revision, agents_revision: @protocol_document.agents_revision}},
-                      class: "ticket-action ticket-action-danger", form: {data: {protocol_delete: true, turbo: false}} %>
+                      class: "ticket-action ticket-action-danger", form: {data: {
+                        protocol_delete: true, turbo: false,
+                        delete_confirm: "Delete this document and its reference from AGENTS? This cannot be undone."
+                      }} %>
       <% end %>
     </div>
   </header>
