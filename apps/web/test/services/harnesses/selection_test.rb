@@ -1,6 +1,100 @@
 require "test_helper"
+require_relative "../../support/harness_database_fixture"
 
 class HarnessesSelectionTest < ActiveSupport::TestCase
+  include HarnessDatabaseFixture
+
+  setup do
+    @project = create_project
+    @actor = User.create!(email_address: "operator@example.test", password: "password-123")
+    @profiles_path = File.join(@harness_fixture_root, "profiles.json")
+    profiles = %w[blue green].map { |name| {name: name, harness: "codex", executable_ref: "/bin/true",
+      requested_model: "#{name}-model", capabilities: {structured_output: true}} }
+    File.write(@profiles_path, JSON.generate(version: 1, profiles: profiles), perm: 0o600)
+    @now = Time.current
+    @store = Harnesses::BindingStore.new(directory: File.join(@harness_fixture_root, "bindings"))
+    @selection = Harnesses::Selection.new(project: @project, registry: Harnesses::ProfileRegistry.new(path: @profiles_path), store: @store, clock: -> { @now })
+  end
+
+  test "selection retries preserve one coherent revision" do
+    # An exact retry returns its original result even after a later independent change.
+    first = @selection.change!(actor: @actor, request_id: "first", expected_revision: 0, changes: {authoring_profile: "blue"})
+    assert_equal 1, first.fetch("revision")
+    second = @selection.change!(actor: @actor, request_id: "second", expected_revision: 1, changes: {ticket_proposal_profile: "green"})
+    assert_equal "blue", second.fetch("authoring_profile")
+    assert_equal "green", second.fetch("ticket_proposal_profile")
+    assert_equal first, @selection.change!(actor: @actor, request_id: "first", expected_revision: 0, changes: {authoring_profile: "blue"})
+    assert_equal 2, @selection.current.fetch("revision")
+    error = assert_raises(Harnesses::Error) do
+      @selection.change!(actor: @actor, request_id: "first", expected_revision: 0, changes: {authoring_profile: "green"})
+    end
+    assert_equal :conflict, error.code
+    error = assert_raises(Harnesses::Error) do
+      @selection.change!(actor: @actor, request_id: "stale", expected_revision: 0, changes: {authoring_profile: nil})
+    end
+    assert_equal :stale_revision, error.code
+    cleared = @selection.change!(actor: @actor, request_id: "clear", expected_revision: 2, changes: {authoring_profile: nil})
+    assert_nil cleared.fetch("authoring_profile")
+    assert_equal "green", cleared.fetch("ticket_proposal_profile")
+    assert_equal @actor.id, ProjectHarnessSetting.find_by!(project: @project).changed_by_id
+    projection = ProjectHarnessSetting.find_by!(project: @project).to_json
+    assert_not_includes projection, "receipts"
+    assert_not_includes projection, @harness_fixture_root
+  end
+
+  test "invalid selections do not publish changes" do
+    # Authentication, readiness and field allowlists precede the settings mutation.
+    cases = {
+      "unauthenticated" => [{actor: nil, changes: {authoring_profile: "blue"}}, :unauthorized],
+      "unknown profile" => [{changes: {authoring_profile: "missing"}}, :unknown_profile],
+      "executable input" => [{changes: {executable_ref: "/bin/true"}}, :invalid_request]
+    }
+    cases.each do |name, (overrides, code)|
+      args = {actor: @actor, request_id: name, expected_revision: 0, changes: {authoring_profile: "blue"}}.merge(overrides)
+      assert_equal code, assert_raises(Harnesses::Error, name) { @selection.change!(**args) }.code
+      assert_equal 0, @selection.current.fetch("revision"), name
+      assert_nil @selection.current.fetch("authoring_profile"), name
+    end
+  end
+
+  test "operations retain bindings across selection changes" do
+    # Existing logical operations never re-resolve defaults or private profile references.
+    @selection.change!(actor: @actor, request_id: "blue", expected_revision: 0, changes: {authoring_profile: "blue"})
+    args = {operation_key: "spec-one", purpose: "specification", role: "authoring", schema: {type: "object"}, policy_revision: "v1"}
+    first = @selection.admit!(**args)
+    original = first.binding_json
+    assert_equal "blue", first.binding.fetch("profile")
+    assert first.binding.frozen?
+    @selection.change!(actor: @actor, request_id: "green", expected_revision: 1, changes: {authoring_profile: "green"})
+    later = @selection.admit!(**args.merge(operation_key: "spec-two"))
+    assert_equal "green", later.binding.fetch("profile")
+    File.unlink(@profiles_path)
+    retained = @selection.admit!(**args)
+    assert_equal first.id, retained.id
+    assert_equal original, retained.binding_json
+    assert_equal :conflict, assert_raises(Harnesses::Error) { @selection.admit!(**args.merge(policy_revision: "v2")) }.code
+    assert_equal :conflict, assert_raises(Harnesses::Error) { @selection.admit!(**args.merge(workspace_revision: {base: "changed"})) }.code
+    assert_not_includes first.to_json, @harness_fixture_root
+    assert_not_includes first.to_json, "executable_ref"
+    assert_raises(ActiveRecord::ActiveRecordError) { first.update_column(:binding_json, "{}") }
+  end
+
+  test "legacy roles keep their distinct defaults" do
+    # Admission snapshots the existing executable overrides and preserves the direct API role.
+    previous = ENV["REDWRIGHT_SPEC_HARNESS"]
+    ENV["REDWRIGHT_SPEC_HARNESS"] = "/fixture/codex-compatible"
+    authoring = @selection.admit!(operation_key: "legacy-spec", purpose: "specification", role: "authoring", schema: {}, policy_revision: "v1")
+    ticket = @selection.admit!(operation_key: "legacy-ticket", purpose: "ticket_proposal", role: "ticket_proposal", schema: {}, policy_revision: "v1")
+    assert_equal "codex", authoring.binding.fetch("harness")
+    assert_equal "direct_api", ticket.binding.fetch("harness")
+    assert_equal "legacy_default", authoring.binding.fetch("selection_source")
+    assert_equal "/fixture/codex-compatible", @store.read(authoring.private_run_ref).fetch("executable_ref")
+    assert_equal({}, @store.read(ticket.private_run_ref))
+    assert_nil ProjectHarnessSetting.find_by(project: @project)
+  ensure
+    ENV["REDWRIGHT_SPEC_HARNESS"] = previous
+  end
+
   test "profiles expose semantic identity and private references separately" do
     # Resolution performs local checks without reading credential bytes or invoking a model.
     Dir.mktmpdir("harness-profiles-") do |root|
