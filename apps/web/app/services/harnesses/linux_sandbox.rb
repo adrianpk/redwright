@@ -90,7 +90,7 @@ module Harnesses
       scratch = Dir.mktmpdir("redwright-pi-", "/tmp")
       %w[home tmp config cache agent work].each { |name| Dir.mkdir(File.join(scratch, name), 0o700) }
       prepare_resources(request, scratch)
-      prefix = mount_command(layout, workspace, scratch)
+      prefix = mount_command(layout, scratch)
       context = Context.new(prefix: prefix.freeze, program: layout.fetch(:program), scratch: scratch, workspace: workspace)
       context.verify!(request)
       yield context
@@ -104,7 +104,7 @@ module Harnesses
       PiResources.prepare!(request, scratch) if request.harness == "pi"
     end
 
-    def mount_command(layout, workspace, scratch)
+    def mount_command(layout, scratch)
       command = [layout.fetch(:bwrap), "--unshare-user", "--unshare-pid", "--unshare-ipc", "--unshare-uts",
         "--new-session", "--die-with-parent", "--disable-userns", "--cap-drop", "ALL", "--clearenv"]
       BASE_ENV.each { |key, value| command += ["--setenv", key, value] }
@@ -123,7 +123,8 @@ module Harnesses
       end
       certificate = %w[/etc/ssl/cert.pem /etc/ssl/certs/ca-certificates.crt].find { |path| File.file?(path) }
       command += ["--ro-bind", File.realpath(certificate), "/etc/ssl/cert.pem"] if certificate
-      command + ["--ro-bind", workspace, "/workspace", "--bind", scratch, "/scratch",
+      # Tool-free calls receive their selected context on stdin; no host workspace or its sockets need exposure.
+      command + ["--dir", "/workspace", "--bind", scratch, "/scratch",
         "--symlink", "scratch/tmp", "/tmp", "--proc", "/proc", "--dev", "/dev",
         "--remount-ro", "/proc", "--remount-ro", "/dev", "--chdir", "/scratch/work", "--remount-ro", "/"]
     end

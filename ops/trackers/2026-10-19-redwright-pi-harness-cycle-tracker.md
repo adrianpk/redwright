@@ -8,14 +8,14 @@ Approved: maintainer, 2026-10-19; explicit approval of the seven-slice plan, dep
 - cycle_id: `2026-10-19-redwright-pi-harness`
 - delivery_set: `pi-harness`
 - status: `approved`
-- state: `implementing`
+- state: `reviewing`
 - approval: `maintainer approved, 2026-10-19`
 - execution_authority: `autonomous execution of this delivery set approved`
 - updated: `2026-10-19`
-- active_slice: `Slice 4 - Linux containment and real Pi proof (implementing)`
-- active_task: `T4.3 (in progress)`
+- active_slice: `Slice 4 - Linux containment and real Pi proof (reviewing)`
+- active_task: `none (awaiting canonical Slice 4 integration)`
 - completed_slices: `3/7`
-- completed_tasks: `11/21`
+- completed_tasks: `12/21`
 - controller: `external Looper controller`
 - plan: [Pi Harness plan](../plans/2026-10-19-redwright-pi-harness-cycle-plan.md)
 - spec: [Pi Harness specification](../specs/specs/2026-10-19-redwright-pi-harness-spec.md)
@@ -128,11 +128,11 @@ Validation:
 
 ### Slice 4: Linux containment and real Pi proof
 
-- status: `implementing`
+- status: `reviewing`
 - branch: `fix/slice-4-pi-pi-linux-containment`
 - expected_pr_title: `feat(slice-4): linux containment and real pi proof`
 - report: `ops/artifacts/slices/pi-harness/slice-4-pi-linux-containment.md`
-- ticket: [TKT-20261019165604](../tickets/in_progress/20261019165604-contain-pi-authoring-on-linux-and-prove-the-real-binary-boundary.md)
+- ticket: [TKT-20261019165604](../tickets/reviewing/20261019165604-contain-pi-authoring-on-linux-and-prove-the-real-binary-boundary.md)
 - merge_target: `dev`
 - PR: `pending`
 - last_sync_commit: `none`
@@ -141,17 +141,18 @@ Tasks:
 
 - [x] `T4.1` Implement LinuxSandbox command construction with read-only mount allowlists, private writable scratch, no inherited host IPC sockets/fds and explicit policy identity/readiness.
 - [x] `T4.2` Isolate the selected static credential/model configuration, disable discovery and unattended UI, and expose precise platform/version/resource failures.
-- [ ] `T4.3` Run the pinned real Pi 1.3.0 against an owned loopback endpoint, proving write denial, resource exclusion, cleanup and valid structured output.
+- [x] `T4.3` Run the pinned real Pi 1.3.0 against an owned loopback endpoint, proving write denial, resource exclusion, cleanup and valid structured output.
 
 Commits:
 
 - `T4.1`: `687c3c818285c0e6632ebd04f90b952c50634ff9` - explicit Linux namespaces, mounts, OS admission probe and cleanup.
-- `T4.2`: selected resource and readiness task commit in branch history.
+- `T4.2`: `96cb256e38eae1a6789b27610b85d37eb09c2f59` - isolated static resources, retained identities and local readiness.
+- `T4.3`: real native Pi proof task commit in branch history; report introduction.
 
 Validation:
 
-- [ ] Planned focused checks from the plan's corresponding slice.
-- [ ] Pinned real Pi/Bubblewrap loopback acceptance.
+- [x] Planned OS/resource suite passed: 11 tests, 98 assertions; no failures, errors or skips.
+- [x] Real Pi 1.3.0/Bubblewrap 0.12.0 loopback proof passed: 4 tests, 55 assertions; no failures, errors or skips.
 - [ ] Full Rails suite before canonical merge.
 - [ ] Changed Ruby syntax and `git diff --check`.
 - [ ] Report reviewed and canonical PR verified merged.

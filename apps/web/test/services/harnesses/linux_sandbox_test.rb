@@ -7,13 +7,14 @@ class HarnessesLinuxSandboxTest < ActiveSupport::TestCase
     outside = create_project(key: "outside")
     sentinel = File.join(outside.root_path, "sentinel")
     File.write(sentinel, "unchanged")
+    File.write(File.join(project.root_path, "host-only"), "unrelated workspace resource")
     request = sandbox_request(project.root_path)
     scratch = nil
     Harnesses::LinuxSandbox.new.with_context(request) do |context|
       scratch = context.scratch
       assert context.verified?
       assert_equal "pi-linux-bwrap/v1", context.policy_revision
-      script = 'set -eu; printf owned > /scratch/result; if (: > /workspace/forbidden) 2>/dev/null; then exit 7; fi; if (: > "$1") 2>/dev/null; then exit 8; fi; test ! -e /run/user; test ! -e /var/run/docker.sock; test ! -e /home; test -z "${UNRELATED_FIXTURE_SECRET:-}"; printf admitted'
+      script = 'set -eu; printf owned > /scratch/result; if (: > /workspace/forbidden) 2>/dev/null; then exit 7; fi; if (: > "$1") 2>/dev/null; then exit 8; fi; test ! -e /workspace/host-only; test ! -e /run/user; test ! -e /var/run/docker.sock; test ! -e /home; test -z "${UNRELATED_FIXTURE_SECRET:-}"; printf admitted'
       result = run_in(context, request, ["/bin/sh", "-c", script, "fixture", sentinel])
       assert result.status.success?
       assert_equal "admitted", result.stdout
@@ -27,6 +28,7 @@ class HarnessesLinuxSandboxTest < ActiveSupport::TestCase
       assert_not_includes mounts, "--ro-bind-try"
       assert_not_includes mounts, Dir.home
       assert_not_includes mounts, "/usr/lib"
+      assert_not_includes mounts, project.root_path
     end
     assert_not File.exist?(scratch)
   end

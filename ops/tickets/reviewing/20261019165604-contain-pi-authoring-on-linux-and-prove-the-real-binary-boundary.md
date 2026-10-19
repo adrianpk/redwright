@@ -1,7 +1,7 @@
 ---
 id: TKT-20261019165604
 title: Contain Pi authoring on Linux and prove the real binary boundary
-status: in_progress
+status: reviewing
 kind: task
 severity: unclassified
 priority: normal
@@ -11,7 +11,7 @@ source: chat
 reported_at: 2026-10-19T16:56:04Z
 ready_at: 2026-10-19T17:08:55Z
 started_at: 2026-10-19T18:12:42Z
-reviewed_at:
+reviewed_at: 2026-10-19T18:22:51Z
 closed_at:
 resolution:
 owner:
@@ -46,15 +46,20 @@ Prepared Pi profiles can run tool-free calls inside an explicitly verified Linux
 
 ## Actual
 
-Linux namespace construction, active write-denial admission and private scratch cleanup are implemented; focused OS tests passed (5 tests, 32 assertions). The maintainer approved this slice and its
-dependency/platform choices under the linked plan. Respect preceding slice
-dependencies; only this Pi delivery has autonomous commit/integration authority.
+All three tasks are implemented. The explicit Linux namespace/mount policy
+admits Pi only after an active OS write-denial probe. It excludes the host
+workspace and ambient resources, snapshots only the selected static credential
+and model, and verifies retained executable/model/policy identities. Focused
+OS/resource tests passed (11 tests, 98 assertions). Real Pi 1.3.0 and Bubblewrap
+0.12.0 passed owned loopback generation, poisoned discovery, provider/tool
+failure, cancellation, deadline and concurrent-call acceptance (4 tests,
+55 assertions). Original files and unrelated resources remain untouched.
 
 ## Tasks
 
 - [x] `T4.1` Implement LinuxSandbox command construction with read-only mount allowlists, private writable scratch, no inherited host IPC sockets/fds and explicit policy identity/readiness.
 - [x] `T4.2` Isolate the selected static credential/model configuration, disable discovery and unattended UI, and expose precise platform/version/resource failures.
-- [ ] `T4.3` Run the pinned real Pi 1.3.0 against an owned loopback endpoint, proving write denial, resource exclusion, cleanup and valid structured output.
+- [x] `T4.3` Run the pinned real Pi 1.3.0 against an owned loopback endpoint, proving write denial, resource exclusion, cleanup and valid structured output.
 
 ## Planned Commits
 
@@ -78,5 +83,7 @@ gate. These commands are planned, not reported as passed.
 
 ## Outcome
 
-Ready under the approved plan; implementation pending. Existing Settings/Setup changes,
-preview services, credentials and active databases remain outside this ticket.
+Implemented in the dedicated Slice 4 worktree. The canonical report is
+[Slice 4](../../artifacts/slices/pi-harness/slice-4-pi-linux-containment.md).
+Canonical PR references and final exact-head controller validation follow before
+readiness.
