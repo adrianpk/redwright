@@ -14,8 +14,7 @@ entry per commit.
 
 - Choose prepared Codex or Pi profiles per project, with separate selections
   for document authoring and ticket proposals. Pi 1.3.0 requires Linux x86_64,
-  Bubblewrap, and a prepared local profile. Existing Codex and direct-API
-  defaults remain available.
+  Bubblewrap, and a prepared local profile.
 - Generate specification drafts from project context, optional dumps, and quiz
   answers through a local harness, or write one directly from the New modal.
   Review and approve the same specification in place.
