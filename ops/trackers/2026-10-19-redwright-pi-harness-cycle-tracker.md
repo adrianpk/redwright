@@ -43,7 +43,7 @@ Approved: maintainer, 2026-10-19; explicit approval of the seven-slice plan, dep
 - report: `ops/artifacts/slices/pi-harness/slice-1-validated-codex.md`
 - ticket: [TKT-20261019165600](../tickets/reviewing/20261019165600-preserve-codex-authoring-through-validated-rails-calls.md)
 - merge_target: `dev`
-- PR: `pending`
+- PR: [#10](https://forge.adrianpk.com/adrianpk/redwrigh/pulls/10)
 - last_sync_commit: `none`
 
 Tasks:
@@ -54,14 +54,15 @@ Tasks:
 
 Commits:
 
-- `T1.1`: `6908a8c2d403` - host structured-call validation.
-- `T1.2`: `89dac88b963a` - shared Codex adapter and consumer routing.
+- `T1.1`: `6908a8c2d4032e92c3e2a28ee62ec20268632bf2` - host structured-call validation.
+- `T1.2`: `89dac88b963a8912da2e8dfbd2fc87294d6501ad` - shared Codex adapter and consumer routing.
+- `T1.3`: `1a4409c49d1298cd240f3753e4fceb9555c1a9eb` - real subprocess and artifact-preservation coverage; report introduction.
 
 Validation:
 
 - [x] Planned focused checks: 35 tests, 389 assertions; no failures, errors or skips.
 - [ ] Exact clean-HEAD full Rails suite recorded by the controller before integration.
-- [ ] Changed Ruby syntax and `git diff --check`.
+- [x] Changed Ruby syntax and `git diff --check` passed during task implementation.
 - [ ] Canonical PR prepared and verified merged by the external controller.
 
 ### Slice 2: Rails selection and retained operations
@@ -265,4 +266,4 @@ Linux acceptance. No result here claims either was verified.
 
 - `2026-10-19` state=`idle`: maintainer approved the complete contract and autonomous Pi-only integration.
 
-- `2026-10-19` state=`reviewing`: Slice 1 tasks implemented; focused validation passed (35 tests, 389 assertions). Canonical PR preparation and final controller validation are pending.
+- `2026-10-19` state=`reviewing`: Slice 1 tasks implemented; focused validation passed (35 tests, 389 assertions). Canonical PR #10 is open; final clean-HEAD controller validation follows the PR-reference commit.

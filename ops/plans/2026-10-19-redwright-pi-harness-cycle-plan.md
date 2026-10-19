@@ -139,6 +139,7 @@ supporting slice records; plan and tracker remain the execution authority.
 - expected_pr_title: `feat(slice-1): validated codex structured calls`
 - report: `ops/artifacts/slices/pi-harness/slice-1-validated-codex.md`
 - ticket: [TKT-20261019165600](../tickets/reviewing/20261019165600-preserve-codex-authoring-through-validated-rails-calls.md)
+- PR: [#10](https://forge.adrianpk.com/adrianpk/redwrigh/pulls/10)
 - objective: All existing authoring operations keep working through one Rails structured-call service with full host schema validation and unchanged domain publication.
 - acceptance_mapping: `PI-01, PI-03, PI-04, PI-05`
 

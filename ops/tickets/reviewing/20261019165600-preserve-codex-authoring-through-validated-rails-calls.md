@@ -10,14 +10,14 @@ tags: pi-harness, slice-delivery, rails
 source: chat
 reported_at: 2026-10-19T16:56:00Z
 ready_at: 2026-10-19T17:08:55Z
-started_at: 2026-10-19T17:17:00Z
-reviewed_at: 2026-10-19T17:20:00Z
+started_at: 2026-10-19T17:17:42Z
+reviewed_at: 2026-10-19T17:21:37Z
 closed_at:
 resolution:
 owner:
 branch: fix/slice-1-pi-validated-codex
-pr:
-commits: []
+pr: https://forge.adrianpk.com/adrianpk/redwrigh/pulls/10
+commits: [6908a8c2d4032e92c3e2a28ee62ec20268632bf2, 89dac88b963a8912da2e8dfbd2fc87294d6501ad, 1a4409c49d1298cd240f3753e4fceb9555c1a9eb]
 ---
 
 # Preserve Codex authoring through validated Rails calls
