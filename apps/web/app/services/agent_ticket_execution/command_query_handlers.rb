@@ -39,12 +39,13 @@ module AgentTicketExecution
 
     def self.default_llm_requester
       llm_context = default_llm_context
-      LlmRequester.new(
+      legacy = LlmRequester.new(
         request_engine: llm_context.fetch(:request_engine),
         model: llm_context.fetch(:model),
         provider: llm_context.fetch(:provider),
         trace_recorder: Redwright::LLM::TraceRecorder.new
       )
+      Harnesses::TicketRequester.new(legacy: legacy, trace_recorder: Redwright::LLM::TraceRecorder.new)
     end
 
     def self.default_llm_context

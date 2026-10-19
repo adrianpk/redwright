@@ -44,6 +44,11 @@ module AgentTicketExecution
     end
 
     def call(request:, ticket:, workspace:)
+      if llm_requester.respond_to?(:for_operation)
+        return with_operation(request: request, ticket: ticket, workspace: workspace) do |scoped|
+          scoped.call(request: request, ticket: ticket, workspace: workspace)
+        end
+      end
       feedback = nil
       validation_results = []
       application_results = []
@@ -78,6 +83,7 @@ module AgentTicketExecution
         record_previous_interaction(ticket, attempt_request, llm_result, application, context)
 
         unless application.ok?
+          llm_requester.correction! if llm_requester.respond_to?(:correction!)
           feedback = feedback_payload(stage: "application", result: application.to_h)
           next
         end
@@ -100,6 +106,7 @@ module AgentTicketExecution
         end
 
         feedback = feedback_payload(stage: "validation", result: validation_results)
+        llm_requester.correction! if llm_requester.respond_to?(:correction!)
       end
 
       blocked_result(
@@ -110,6 +117,17 @@ module AgentTicketExecution
         validation_results,
         application_results
       )
+    end
+
+    def with_operation(request:, ticket:, workspace:)
+      return yield self unless llm_requester.respond_to?(:for_operation)
+
+      session = llm_requester.for_operation(ticket: ticket, request: request, workspace: workspace)
+      scoped = dup
+      scoped.instance_variable_set(:@llm_requester, session)
+      session.run { yield scoped }
+    rescue Harnesses::Error => error
+      blocked_result(ticket, session&.operation&.reload&.attempts&.size || 0, error.code.to_s, error.message, [], [])
     end
 
     private

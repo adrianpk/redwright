@@ -6,7 +6,16 @@ module AgentTicketExecution
     end
 
     def call(request:, ticket:, workspace:, execution_context: nil)
-      result = validation_loop.call(request: request, ticket: ticket, workspace: workspace)
+      outcome = validation_loop.with_operation(request: request, ticket: ticket, workspace: workspace) do |scoped|
+        execute(scoped, request: request, ticket: ticket, workspace: workspace)
+      end
+      outcome.respond_to?(:to_execution) ? outcome.to_execution : outcome
+    end
+
+    private
+
+    def execute(loop, request:, ticket:, workspace:)
+      result = loop.call(request: request, ticket: ticket, workspace: workspace)
       execution = result.to_execution.merge(
         "acknowledgement" => {
           "status" => result.state,

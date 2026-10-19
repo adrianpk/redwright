@@ -38,6 +38,33 @@ module AgentTicketExecution
       SYSTEM_PROMPT
     end
 
+    def self.schema
+      text = {"type" => "string"}
+      {
+        "type" => "object", "required" => %w[status summary],
+        "properties" => {
+          "status" => {"type" => "string", "enum" => STATUSES},
+          "summary" => text.merge("minLength" => 1),
+          "blocking_reason" => {"type" => ["string", "null"]},
+          "files" => {"type" => "array", "maxItems" => 128, "items" => {
+            "type" => "object", "required" => ["path"], "properties" => {
+              "path" => text.merge("minLength" => 1, "maxLength" => 1024), "content" => text, "patch" => text
+            }, "oneOf" => [{"required" => ["content"]}, {"required" => ["patch"]}]
+          }},
+          "commands" => {"type" => "array", "maxItems" => 32, "items" => {
+            "type" => "object", "required" => ["command"], "properties" => {"command" => text.merge("minLength" => 1), "purpose" => text}
+          }},
+          "actions" => {"type" => "array", "maxItems" => 64, "items" => {
+            "type" => "object", "required" => %w[type args], "properties" => {
+              "type" => {"enum" => OutputApplier::ALLOWED_DIRECT_ACTION_TYPES}, "args" => {"type" => "object"}, "id" => text
+            }
+          }},
+          "affected_files" => {"type" => "array", "maxItems" => 128, "items" => text},
+          **%w[validation_expectations post_actions warnings].to_h { |name| [name, {"type" => "array", "maxItems" => 128}] }
+        }
+      }
+    end
+
     def validate(payload)
       return failure("invalid_payload", "response payload must be an object", payload) unless payload.is_a?(Hash)
 
