@@ -166,8 +166,8 @@ Validation:
 - report: `ops/artifacts/slices/pi-harness/slice-5-pi-authoring-settings.md`
 - ticket: [TKT-20261019165605](../tickets/reviewing/20261019165605-expose-prepared-profiles-and-wire-pi-into-rails-authoring.md)
 - merge_target: `dev`
-- PR: `pending`
-- last_sync_commit: `none`
+- PR: [#14](https://forge.adrianpk.com/adrianpk/redwrigh/pulls/14)
+- last_sync_commit: `324e68d8473c6fea88c1e7ed4a9999bc2f20b73c`
 
 Tasks:
 
@@ -179,7 +179,7 @@ Commits:
 
 - `T5.1`: `3c155dbfc4f2f680c877cf97f0e4238ec51fd1cf` - retained authoring admission, shared deadline, publication outcomes and legacy overrides.
 - `T5.2`: `bf117bec6d674fa02276c94a9c8bbf9edf7cc6c1` - authenticated Harness settings, safe readiness and active bindings.
-- `T5.3`: switching, authoring, native Pi and viewport proof task commit in branch history; report introduction.
+- `T5.3`: `324e68d8473c6fea88c1e7ed4a9999bc2f20b73c` - authenticated/process switching, all authoring boundaries, native Pi draft and viewport proof; report introduction.
 
 Validation:
 
@@ -188,7 +188,8 @@ Validation:
 - [x] Compiled Sass and Chromium 390/1280 viewport checks passed: 1 test, 26 assertions.
 - [ ] Full Rails suite before canonical merge.
 - [ ] Changed Ruby syntax and `git diff --check`.
-- [ ] Report reviewed and canonical PR verified merged.
+- [x] Report complete and canonical PR #14 opened.
+- [ ] Canonical PR verified merged by the external controller.
 
 ### Slice 6: Pi ticket proposals under Rails authority
 
@@ -301,3 +302,5 @@ Linux acceptance. No result here claims either was verified.
 - `2026-10-19T18:24:02Z` state=`reviewing`: Slice 4 tasks implemented; OS/resource checks passed (11 tests, 98 assertions) and real Pi loopback proof passed (4 tests, 55 assertions). Canonical PR #13 is open; final clean-head controller validation follows the PR-reference commit.
 
 - `2026-10-19T18:28:08Z` state=`implementing`: verified PR #13 merged at its validated head; closed Slice 4 and activated Slice 5.
+
+- `2026-10-19T18:52:47Z` state=`reviewing`: Slice 5 tasks implemented; focused checks passed (37 tests, 484 assertions), native Pi proof passed (5 tests, 65 assertions) and Chromium viewport proof passed (1 test, 26 assertions). Canonical PR #14 is open; final clean-head controller validation follows PR references.

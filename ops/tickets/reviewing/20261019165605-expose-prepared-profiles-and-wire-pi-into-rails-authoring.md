@@ -16,8 +16,8 @@ closed_at:
 resolution:
 owner:
 branch: fix/slice-5-pi-pi-authoring-settings
-pr:
-commits: []
+pr: https://forge.adrianpk.com/adrianpk/redwrigh/pulls/14
+commits: [3c155dbfc4f2f680c877cf97f0e4238ec51fd1cf, bf117bec6d674fa02276c94a9c8bbf9edf7cc6c1, 324e68d8473c6fea88c1e7ed4a9999bc2f20b73c]
 ---
 
 # Expose prepared profiles and wire Pi into Rails authoring
@@ -84,5 +84,5 @@ gate. These commands are planned, not reported as passed.
 
 Implemented in the dedicated Slice 5 worktree. The canonical report is
 [Slice 5](../../artifacts/slices/pi-harness/slice-5-pi-authoring-settings.md).
-Canonical PR references and final exact-head controller validation follow before
-readiness.
+Canonical PR [#14](https://forge.adrianpk.com/adrianpk/redwrigh/pulls/14) is open. Final exact-head
+controller validation follows this PR-reference commit before readiness.
