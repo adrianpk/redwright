@@ -24,7 +24,7 @@ module Specifications
 
     def dumps
       Dump.reconcile!(@project)
-      scope = @project.dumps.available.where(use_case_id: [nil, @use_case&.id].uniq).order(:created_at, :id)
+      scope = @project.dumps.where(use_case_id: [nil, @use_case&.id].uniq).order(:created_at, :id)
       bounded(scope).map do |dump|
         dump.attributes.slice("id", "title", "status", "relative_path").merge("body" => dump.body)
       end

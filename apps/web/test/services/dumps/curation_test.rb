@@ -10,7 +10,7 @@ class DumpCurationTest < ActiveSupport::TestCase
       #!/usr/bin/env ruby
       require "json"
       prompt = STDIN.read
-      raise "wrong task" unless prompt.include?("Polish the supplied dump Markdown")
+      raise "wrong task" unless prompt.include?("Curate the supplied dump Markdown")
       context = JSON.parse(prompt.split("Context:\n", 2).last)
       raise "missing document" unless context.fetch("dump").fetch("body") == "rouhg notes"
       File.write(ARGV[ARGV.index("--output-last-message") + 1], JSON.generate({title: context["dump"]["title"], body: "Rough notes."}))

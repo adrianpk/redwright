@@ -346,8 +346,8 @@ module AgentTicketExecution
         )
         database_dump.tag_with!("billing", "llm")
         active_dump = fixture.project.dumps.create!(
-          title: "Active LLM Draft Dump",
-          body: "Archived LLM context that should not be selected.", status: "archived"
+          title: "Empty LLM Draft Dump",
+          body: ""
         )
         active_dump.tag_with!("llm")
         fixture.ticket.update!(
@@ -380,7 +380,7 @@ module AgentTicketExecution
         assert_equal "dump_context_inventory", planning_dumps.metadata.fetch("selection_source")
         assert_equal "matched_ticket_topic:llm", planning_dumps.metadata.fetch("selected_dumps").first.fetch("selection_reason")
         assert_equal "no_topic_match", planning_dumps.metadata.fetch("omitted_dumps").find { |dump| dump.fetch("path") == "ops/conv/dump/2026-05-09-unrelated-deployment-dump.md" }.fetch("omission_reason")
-        assert_equal "empty_or_archived_dump", planning_dumps.metadata.fetch("omitted_dumps").find { |dump| dump.fetch("path") == active_dump.relative_path }.fetch("omission_reason")
+        assert_equal "empty_dump", planning_dumps.metadata.fetch("omitted_dumps").find { |dump| dump.fetch("path") == active_dump.relative_path }.fetch("omission_reason")
         assert_empty implementation_dumps.content.fetch("dumps")
         assert_equal "policy_excludes_dumps:implementation_default", implementation_dumps.metadata.fetch("omitted_dumps").first.fetch("omission_reason")
       end

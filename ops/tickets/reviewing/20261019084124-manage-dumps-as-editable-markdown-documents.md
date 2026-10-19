@@ -42,7 +42,10 @@ several forms and the capture/curation states do not describe an editable docume
   capture/curation state machine from dump persistence, APIs, and UI.
 - Keep an explicit Curate action that uses the wrapped harness to polish the
   same Markdown document while preserving its meaning and revision safety.
-- Expose one readable document status rather than several overlapping statuses.
+  Curating removes filler and repetition and organizes useful source material
+  for quiz/spec work while keeping unresolved decisions explicit.
+- Expose Draft/Ready through an inline sliding radio control beside the title.
+  Both states remain editable and usable as discovery context; there is no archive state.
 - Preserve legacy project-level dumps and existing case-linked dumps, including
   their captured notes and useful synthesized content, as editable documents.
 - Preserve Factory tickets, specs, associations, and other artifacts.
@@ -65,13 +68,17 @@ several forms and the capture/curation states do not describe an editable docume
 - Run the affected Rails suite, repository checks, and ticket validation.
 
 ## Verification
-- Full Rails suite: 519 tests, 3562 assertions, no failures or errors.
+- Full Rails suite: 519 tests, 3564 assertions, no failures or errors.
 - Full repository Ruby suite: 551 tests, 2902 assertions, no failures or errors.
 - Ruby syntax, JavaScript syntax, Sass build, whitespace, and ticket checks pass.
 - Browser: click-to-edit, complete replacement on blur, failed-save retry,
   external-write conflict, active navigation, and three viewport widths pass.
 - Actual configured harness: Curate saves the same file with a new revision
-  while preserving document status.
+  while preserving document status. A repeated-note sample is consolidated
+  without losing its access restriction, character-preservation requirement,
+  or undecided row limit.
+- Inline state control: click/keyboard changes persist; errors restore the saved
+  selection, and changing state during editing saves text and status together.
 - Original migrations create the index schema without a dump-entry table.
 - Example database preparation retains 3 dumps, 11 tickets, 6 documents,
   3 cases, 2 quizzes, and valid foreign keys in the isolated test bed.

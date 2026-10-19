@@ -31,7 +31,7 @@ module DumpContext
 
     def dumps_for(scoped_taggings)
       ids = scoped_taggings.pluck(:taggable_id)
-      scope = project.dumps.available.includes(:use_case, :tags)
+      scope = project.dumps.includes(:use_case, :tags)
       scope = scope.for_use_case(use_case.id) if use_case
       scope = scope.where(id: ids) if normalized_tags.any?
       scope.order(updated_at: :desc, created_at: :desc).limit(limit)

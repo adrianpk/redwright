@@ -25,7 +25,6 @@ module Dumps
     private
 
     def status_for(row)
-      return "archived" if %w[cancelled archived].include?(row["status"])
       row["status"] == "completed" ? "ready" : "draft"
     end
 

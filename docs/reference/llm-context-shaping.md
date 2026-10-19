@@ -127,7 +127,7 @@ Quiz generation supplies project and quiz context sections. Project setup prompt
 
 Dump context comes from the selected project's Markdown documents. The database
 indexes their metadata and paths; it does not supply a second body. Agent ticket
-execution selects non-empty, non-archived dumps allowed by the effective context
+execution selects non-empty dumps allowed by the effective context
 policy and matched to the ticket's case and topic. Omitted documents carry an
 explicit diagnostic reason. Quiz and spec generation also read the current file.
 

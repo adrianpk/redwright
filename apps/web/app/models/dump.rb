@@ -1,5 +1,5 @@
 class Dump < ApplicationRecord
-  STATUSES = %w[draft ready archived].freeze
+  STATUSES = %w[draft ready].freeze
 
   belongs_to :project
   belongs_to :use_case, optional: true
@@ -20,7 +20,6 @@ class Dump < ApplicationRecord
 
   scope :project_level, -> { where(use_case_id: nil) }
   scope :for_use_case, ->(id) { where(use_case_id: id) }
-  scope :available, -> { where.not(status: "archived") }
 
   def self.reconcile!(project)
     entries = Dumps::FileStore.new(project).entries

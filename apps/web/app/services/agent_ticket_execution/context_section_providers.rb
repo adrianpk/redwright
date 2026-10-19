@@ -944,7 +944,7 @@ module AgentTicketExecution
       end
 
       def available_dump?(dump)
-        dump["status"] != "archived" && dump["body"].present?
+        dump["body"].present?
       end
 
       def matched_use_case_scope?(dump)
@@ -989,7 +989,7 @@ module AgentTicketExecution
       def omission_reason(dump)
         return "policy_excludes_dumps:#{context_policy}" unless context_policy_allows_dumps?
         return "unmatched_use_case:#{dump.fetch("use_case_id")}" unless matched_use_case_scope?(dump)
-        return "empty_or_archived_dump" unless available_dump?(dump)
+        return "empty_dump" unless available_dump?(dump)
 
         "no_topic_match"
       end

@@ -24,18 +24,18 @@ module DumpContext
 
       assert_equal [dump], result.dumps.to_a
       assert_equal [dump.id], result.taggings.map(&:taggable_id)
-      dump.update!(status: "archived")
-      assert_empty RetrievalQuery.new(project: project, use_case: use_case, tags: ["billing"]).call.dumps
+      dump.update!(status: "draft")
+      assert_equal [dump.id], RetrievalQuery.new(project: project, use_case: use_case, tags: ["billing"]).call.dumps.pluck(:id)
     end
 
     test "retrieves available project dumps without tags" do
       project = create_project(key: "dump-context-project")
       curated = project.dumps.create!(title: "Project Dump", status: "ready", body: "Project context.")
-      project.dumps.create!(title: "Archived Dump", status: "archived")
+      draft = project.dumps.create!(title: "Draft Dump", body: "Still being elaborated.")
 
       result = RetrievalQuery.new(project: project).call
 
-      assert_equal [curated], result.dumps.to_a
+      assert_equal [curated.id, draft.id].sort, result.dumps.pluck(:id).sort
     end
   end
 end

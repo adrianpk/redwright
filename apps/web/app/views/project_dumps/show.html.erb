@@ -2,17 +2,27 @@
   <header class="document-artifacts-header">
     <div class="quiz-header-row">
       <h1><%= @dump.title %></h1>
-      <%= button_to "Curate", curate_project_dump_path(@project, @dump), method: :post,
-                    params: {revision: @dump.source_hash}, class: "ticket-action", form: {data: {dump_curate: true, turbo: false}} %>
-    </div>
-    <dl class="artifact-context-row artifact-metadata" aria-label="Dump metadata">
-      <% if @dump.use_case && @dump.use_case.name != @dump.title %>
-        <div class="artifact-context-chip"><dt>Case</dt><dd><%= @dump.use_case.name %></dd></div>
-      <% end %>
-      <div class="artifact-context-chip" data-dump-state data-state="<%= @dump.status %>">
-        <dt>Status</dt><dd data-dump-state-label><%= @dump.status.humanize %></dd>
+      <div class="quiz-action-group">
+        <fieldset class="dump-state-switch" data-dump-status-control data-state="<%= @dump.status %>">
+          <legend class="visually-hidden">Dump status</legend>
+          <span class="dump-state-slider" aria-hidden="true"></span>
+          <% Dump::STATUSES.each do |status| %>
+            <label>
+              <%= radio_button_tag :dump_status, status, @dump.status == status,
+                                   class: "visually-hidden", data: {dump_status_option: status} %>
+              <span><%= status.humanize %></span>
+            </label>
+          <% end %>
+        </fieldset>
+        <%= button_to "Curate", curate_project_dump_path(@project, @dump), method: :post,
+                      params: {revision: @dump.source_hash}, class: "ticket-action", form: {data: {dump_curate: true, turbo: false}} %>
       </div>
-    </dl>
+    </div>
+    <% if @dump.use_case && @dump.use_case.name != @dump.title %>
+      <dl class="artifact-context-row artifact-metadata" aria-label="Dump metadata">
+        <div class="artifact-context-chip"><dt>Case</dt><dd><%= @dump.use_case.name %></dd></div>
+      </dl>
+    <% end %>
   </header>
 
   <% if flash[:alert] %><p class="dump-document-error" role="alert"><%= flash[:alert] %></p><% end %>
@@ -24,16 +34,15 @@
     <%= form_with model: @dump, url: project_dump_path(@project, @dump), method: :patch,
                   class: "document-artifact-form dump-document-editor", data: {dump_editor: true, turbo: false}, html: {hidden: true} do |form| %>
       <%= form.hidden_field :revision, value: @dump.source_hash %>
+      <%= form.hidden_field :status %>
       <div class="document-artifact-field document-artifact-field-body-only">
         <%= form.text_area :body, rows: 20, aria: {label: "Dump Markdown"} %>
       </div>
       <div class="dump-document-toolbar">
-        <%= form.label :status %>
-        <%= form.select :status, Dump::STATUSES.map { |status| [status.humanize, status] } %>
         <button type="submit" class="ticket-action">Save</button>
       </div>
-      <p class="dump-document-error" data-dump-error role="alert" hidden></p>
     <% end %>
+    <p class="dump-document-error" data-dump-error role="alert" hidden></p>
     <p class="dump-document-feedback" data-dump-feedback role="status" aria-live="polite"></p>
   </section>
 </main>

@@ -8,7 +8,9 @@
       const body = form.querySelector('[name="dump[body]"]');
       const state = form.querySelector('[name="dump[status]"]');
       const revision = form.querySelector('[name="dump[revision]"]');
-      const error = form.querySelector('[data-dump-error]');
+      const error = root.querySelector('[data-dump-error]');
+      const statusControl = root.querySelector('[data-dump-status-control]');
+      const statusOptions = [...statusControl.querySelectorAll('[data-dump-status-option]')];
       const feedback = root.querySelector('[data-dump-feedback]');
       let savedBody = body.value;
       let savedState = state.value;
@@ -23,11 +25,11 @@
       };
       async function save() {
         if (pending) return pending;
-        if (!dirty()) { close(); return true; }
+        if (!dirty()) { error.hidden = true; close(); return true; }
         const values = new FormData(form);
         error.hidden = true;
         feedback.textContent = 'Saving…';
-        const controls = [...form.elements];
+        const controls = [...form.elements, ...statusOptions];
         controls.forEach((control) => { control.disabled = true; });
         pending = (async () => {
           try {
@@ -47,8 +49,8 @@
               placeholder.textContent = 'Click to write.';
               view.append(placeholder);
             }
-            root.querySelector('[data-dump-state]').dataset.state = result.status;
-            root.querySelector('[data-dump-state-label]').textContent = result.status_label;
+            statusControl.dataset.state = result.status;
+            statusOptions.forEach((option) => { option.checked = option.value === result.status; });
             close();
             feedback.textContent = 'Saved';
             return true;
@@ -79,19 +81,33 @@
         curateForm.submit();
       });
       form.addEventListener('submit', (event) => { event.preventDefault(); save(); });
-      form.addEventListener('focusout', () => {
-        setTimeout(() => { if (!form.hidden && !form.contains(document.activeElement) && !pending) save(); }, 0);
-      });
+      statusOptions.forEach((option) => option.addEventListener('change', async () => {
+        if (!option.checked || (pending && !(await pending))) return;
+        state.value = option.value;
+        statusControl.dataset.state = option.value;
+        if (!(await save())) {
+          state.value = savedState;
+          statusControl.dataset.state = savedState;
+          statusOptions.forEach((radio) => { radio.checked = radio.value === savedState; });
+        }
+      }));
+      const saveOnLeave = () => {
+        setTimeout(() => {
+          if (!form.hidden && !form.contains(document.activeElement) && !statusControl.contains(document.activeElement) && !pending) save();
+        }, 0);
+      };
+      form.addEventListener('focusout', saveOnLeave);
+      statusControl.addEventListener('focusout', saveOnLeave);
       // Complete the save before navigation; conflicts keep the editor and its text open.
       document.addEventListener('click', async (event) => {
         const link = event.target.closest('a[href]');
-        if (!link || form.hidden || !dirty() || link.target || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+        if (!link || !dirty() || link.target || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
         event.preventDefault();
         event.stopImmediatePropagation();
         if (await save()) window.location.assign(link.href);
       }, true);
       window.addEventListener('beforeunload', (event) => {
-        if (!form.hidden && dirty()) { event.preventDefault(); event.returnValue = ''; }
+        if (dirty()) { event.preventDefault(); event.returnValue = ''; }
       });
     });
   }

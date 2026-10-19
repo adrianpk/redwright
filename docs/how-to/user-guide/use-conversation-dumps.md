@@ -14,8 +14,8 @@ then uncover missing decisions, and a specification can use both sources.
 4. Leave the editor or click `Save`. The complete document replaces the previous
    content. Reading resumes only after a successful save.
 
-The header shows one document status: `Draft`, `Ready`, or `Archived`. Change it
-inside the editor. Ready documents remain editable. Status is stored in the
+Use the `Draft / Ready` sliding control beside the title to change status.
+Changes save immediately. Ready documents remain editable. Status is stored in the
 file's YAML frontmatter; the database indexes its metadata and path.
 
 There are no contribution cards, append history, or separate raw and curated
@@ -23,9 +23,11 @@ bodies. Legacy project-level dumps remain accessible.
 
 ## Curate the Text
 
-Click `Curate` to polish spelling, wording, and structure through the local
-wrapped harness. It preserves the document's language, meaning, decisions, and
-open questions, writes the same file, and leaves its status unchanged.
+Click `Curate` to correct the text, remove filler and repetition, and organize
+its ideas into clear source material for later quiz and specification work.
+The local wrapped harness preserves meaningful details, decisions, uncertainty,
+and open questions. It produces an editable dump, writes the same file, and
+leaves its status unchanged.
 `REDWRIGHT_DUMP_HARNESS` selects the executable; otherwise the configured
 specification harness or `codex` is used.
 
@@ -43,9 +45,8 @@ If the file changes while you edit or curate it, RedWright refuses to overwrite
 it. The editor keeps your text and displays the conflict. Copy your changes,
 reload the latest file, and reconcile them before saving again.
 
-Non-archived dumps can supply quiz/spec context. Ticket execution also applies
-its context policy, case scope, and topic selection. Archived dumps remain
-visible and editable but are excluded from discovery context.
+Both draft and ready dumps can supply quiz/spec context. Ticket execution also applies
+its context policy, case scope, and topic selection.
 
 ## Related Docs
 
