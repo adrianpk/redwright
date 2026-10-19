@@ -11,6 +11,13 @@ Use `selection_status` metadata to decide whether a draft should be considered f
 
 These recent drafts are intentionally visible as selectable follow-up work:
 
+- [Project Setup](2026-10-19-redwright-project-setup-draft.md)
+  - selection_status: `open`
+  - follow_up_kind: `project_setup`
+  - Covers New under ~/Projects with Git initialization, Add existing for legacy
+    folders, shared UX, stack templates, guided context, artifact use, and recovery.
+    Includes a data model.
+
 - `2026-05-09-redwright-agent-sandboxed-execution-backend-draft.md`
   - selection_status: `open`
   - follow_up_kind: `runtime_sandboxing`
