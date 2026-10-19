@@ -24,10 +24,9 @@ class ProjectHarnessSettingTest < ActiveSupport::TestCase
   test "retained operations protect project deletion" do
     # Technical operation provenance must survive until its references are released.
     project = create_project
-    binding = Harnesses::CanonicalJson.dump({schema_version: "harness-binding/v1"})
-    operation = project.harness_operations.create!(operation_key: "spec-one", purpose: "specification", role: "authoring",
-      selection_revision: 0, binding_json: binding, binding_digest: Digest::SHA256.hexdigest(binding),
-      contract_digest: "a" * 64, private_run_ref: SecureRandom.uuid)
+    store = Harnesses::BindingStore.new(directory: File.join(project.root_path, "private-bindings"))
+    operation = Harnesses::Selection.new(project: project, store: store).admit!(operation_key: "spec-one",
+      purpose: "specification", role: "authoring", schema: {}, policy_revision: "v1")
     assert_raises(ActiveRecord::RecordNotDestroyed) { project.destroy! }
     assert HarnessOperation.exists?(operation.id)
     assert_raises(ActiveRecord::StatementInvalid) { operation.update_columns(state: "approved") }

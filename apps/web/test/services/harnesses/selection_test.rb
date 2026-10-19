@@ -95,6 +95,61 @@ class HarnessesSelectionTest < ActiveSupport::TestCase
     ENV["REDWRIGHT_SPEC_HARNESS"] = previous
   end
 
+  test "separate processes serialize selection races" do
+    # Both writers start from revision zero; exactly one complete image can win.
+    results = harness_processes(2) do |index|
+      key = %w[blue green].fetch(index)
+      @selection.change!(actor: @actor, request_id: "race-#{index}", expected_revision: 0,
+        changes: {authoring_profile: key, ticket_proposal_profile: key})
+    end
+    assert_equal 1, results.count { |result| result["ok"] }
+    assert_equal ["stale_revision"], results.reject { |result| result["ok"] }.map { |result| result["code"] }
+    image = @selection.current
+    assert_equal 1, image.fetch("revision")
+    assert_equal image.fetch("authoring_profile"), image.fetch("ticket_proposal_profile")
+    assert_equal 1, ProjectHarnessSetting.where(project: @project).count
+  end
+
+  test "admission races retain a complete settings image" do
+    # A concurrent admission observes either the old image or the new image with its matching revision.
+    @selection.change!(actor: @actor, request_id: "initial", expected_revision: 0, changes: {authoring_profile: "blue"})
+    old = @selection.admit!(operation_key: "old", purpose: "specification", role: "authoring", schema: {}, policy_revision: "v1")
+    results = harness_processes(2) do |index|
+      if index.zero?
+        @selection.change!(actor: @actor, request_id: "switch", expected_revision: 1, changes: {authoring_profile: "green"})
+      else
+        record = @selection.admit!(operation_key: "racing", purpose: "specification", role: "authoring", schema: {}, policy_revision: "v1")
+        record.binding.slice("profile", "selection_revision")
+      end
+    end
+    assert results.all? { |result| result["ok"] }
+    assert_includes [{"profile" => "blue", "selection_revision" => 1}, {"profile" => "green", "selection_revision" => 2}], results.last.fetch("value")
+    latest = @selection.admit!(operation_key: "latest", purpose: "specification", role: "authoring", schema: {}, policy_revision: "v1")
+    assert_equal "green", latest.binding.fetch("profile")
+    assert_equal 2, latest.selection_revision
+    assert_equal "blue", old.reload.binding.fetch("profile")
+  end
+
+  test "receipt capacity and expiry prevent stale replay" do
+    # Expiration can free capacity, but it cannot restore an old request's revision authority.
+    first = @selection.change!(actor: @actor, request_id: "original", expected_revision: 0, changes: {authoring_profile: "blue"})
+    127.times do |index|
+      @selection.change!(actor: @actor, request_id: "fill-#{index}", expected_revision: index + 1, changes: {authoring_profile: "green"})
+    end
+    setting = ProjectHarnessSetting.find_by!(project: @project)
+    assert_equal 128, setting.receipts.size
+    assert_equal first, @selection.change!(actor: @actor, request_id: "original", expected_revision: 0, changes: {authoring_profile: "blue"})
+    assert_equal :capacity, assert_raises(Harnesses::Error) { @selection.change!(actor: @actor, request_id: "overflow", expected_revision: 128, changes: {authoring_profile: "blue"}) }.code
+    assert_equal 128, @selection.current.fetch("revision")
+    @now += 8.days
+    assert_equal :stale_revision, assert_raises(Harnesses::Error) { @selection.change!(actor: @actor, request_id: "original", expected_revision: 0, changes: {authoring_profile: "blue"}) }.code
+    fresh = @selection.change!(actor: @actor, request_id: "fresh", expected_revision: 128, changes: {authoring_profile: nil})
+    assert_equal 129, fresh.fetch("revision")
+    assert_equal 1, setting.reload.receipts.size
+    assert_nil fresh.fetch("authoring_profile")
+  end
+
+
   test "profiles expose semantic identity and private references separately" do
     # Resolution performs local checks without reading credential bytes or invoking a model.
     Dir.mktmpdir("harness-profiles-") do |root|

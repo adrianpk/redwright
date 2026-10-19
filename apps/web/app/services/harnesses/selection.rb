@@ -100,7 +100,7 @@ module Harnesses
     end
 
     def verify_binding!(operation)
-      unless operation.binding["schema_version"] == "harness-binding/v1" && Digest::SHA256.hexdigest(operation.binding_json) == operation.binding_digest
+      unless operation.binding_valid?
         raise Error.new("Unsupported or damaged retained harness binding.", code: :invalid_binding)
       end
       @store.read(operation.private_run_ref)

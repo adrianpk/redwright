@@ -30,8 +30,10 @@ module Harnesses
         unless stat.file? && stat.uid == Process.uid && (stat.mode & 0o077).zero? && stat.size <= 16 * 1024
           raise Error.new("The retained harness binding is unavailable.", code: :unavailable)
         end
-        value = JSON.parse(file.read(16 * 1024 + 1), freeze: true)
-        unless value.is_a?(Hash) && value["version"] == 1 && value["resources"].is_a?(Hash)
+        bytes = file.read(16 * 1024 + 1)
+        raise Error.new("The retained harness binding is too large.", code: :invalid_binding) if bytes.bytesize > 16 * 1024
+        value = JSON.parse(bytes, freeze: true)
+        unless value.is_a?(Hash) && value.keys.sort == %w[resources version] && value["version"] == 1 && value["resources"].is_a?(Hash)
           raise Error.new("Unsupported retained harness binding.", code: :invalid_binding)
         end
         value.fetch("resources")

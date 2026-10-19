@@ -4,6 +4,27 @@ require_relative "../../support/harness_database_fixture"
 class SpecificationsDatabaseRebuildTest < ActiveSupport::TestCase
   include HarnessDatabaseFixture
 
+  test "legacy preparation leaves the source schema unchanged" do
+    # Adoption creates the new tables only in the owned prepared database.
+    project = create_project(name: "Legacy factory fixture")
+    document = create_document(project: project, status: "approved")
+    original = document.source
+    ActiveRecord::Base.connection.drop_table(:harness_operations)
+    ActiveRecord::Base.connection.drop_table(:project_harness_settings)
+    output = File.join(@harness_fixture_root, "legacy-prepared.sqlite3")
+    Specifications::DatabaseRebuild.prepare!(output_path: output)
+    assert_not ActiveRecord::Base.connection.table_exists?(:harness_operations)
+    assert_not ActiveRecord::Base.connection.table_exists?(:project_harness_settings)
+    assert_equal original, document.source
+    target = SQLite3::Database.new(output)
+    assert_equal 0, target.get_first_value("SELECT count(*) FROM project_harness_settings")
+    assert_equal 0, target.get_first_value("SELECT count(*) FROM harness_operations")
+    assert_equal "Legacy factory fixture", target.get_first_value("SELECT name FROM projects WHERE id = ?", [project.id])
+    assert_equal document.relative_path, target.get_first_value("SELECT relative_path FROM documents WHERE id = ?", [document.id])
+  ensure
+    target&.close
+  end
+
   test "preparation preserves domain data and harness provenance" do
     # Both databases and every associated workspace file belong to this fixture.
     project = create_project(name: "Factory fixture")
@@ -14,10 +35,10 @@ class SpecificationsDatabaseRebuildTest < ActiveSupport::TestCase
     column = board.columns.create!(key: "backlog", title: "Ready", position: 0)
     ticket = board.tickets.create!(column: column, title: "Keep fixture work", use_case: spec.use_case)
     setting = ProjectHarnessSetting.create!(project: project, authoring_profile: "local", changed_by: user)
-    binding = Harnesses::CanonicalJson.dump({schema_version: "harness-binding/v1"})
-    operation = project.harness_operations.create!(operation_key: "retained", purpose: "specification", role: "authoring",
-      selection_revision: 0, binding_json: binding, binding_digest: Digest::SHA256.hexdigest(binding),
-      contract_digest: "a" * 64, private_run_ref: SecureRandom.uuid)
+    store = Harnesses::BindingStore.new(directory: File.join(@harness_fixture_root, "bindings"))
+    # The retained ticket role keeps the default direct API without resolving authoring profiles.
+    operation = Harnesses::Selection.new(project: project, store: store).admit!(operation_key: "retained",
+      purpose: "ticket_proposal", role: "ticket_proposal", schema: {}, policy_revision: "v1")
     rows = {"project_harness_settings" => setting.attributes, "harness_operations" => operation.attributes}
     files = [spec, dump, ticket].to_h { |record| [record.relative_path, File.binread(File.join(project.root_path, record.relative_path))] }
     output = File.join(@harness_fixture_root, "prepared.sqlite3")

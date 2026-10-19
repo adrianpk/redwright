@@ -8,14 +8,14 @@ Approved: maintainer, 2026-10-19; explicit approval of the seven-slice plan, dep
 - cycle_id: `2026-10-19-redwright-pi-harness`
 - delivery_set: `pi-harness`
 - status: `approved`
-- state: `implementing`
+- state: `reviewing`
 - approval: `maintainer approved, 2026-10-19`
 - execution_authority: `autonomous execution of this delivery set approved`
 - updated: `2026-10-19`
-- active_slice: `Slice 2 - Rails selection and retained operations (implementing)`
-- active_task: `T2.3 (in progress)`
+- active_slice: `Slice 2 - Rails selection and retained operations (reviewing)`
+- active_task: `T2.3 (implemented; PR preparation)`
 - completed_slices: `1/7`
-- completed_tasks: `5/21`
+- completed_tasks: `6/21`
 - controller: `external Looper controller`
 - plan: [Pi Harness plan](../plans/2026-10-19-redwright-pi-harness-cycle-plan.md)
 - spec: [Pi Harness specification](../specs/specs/2026-10-19-redwright-pi-harness-spec.md)
@@ -67,11 +67,11 @@ Validation:
 
 ### Slice 2: Rails selection and retained operations
 
-- status: `implementing`
+- status: `reviewing`
 - branch: `fix/slice-2-pi-rails-harness-selection`
 - expected_pr_title: `feat(slice-2): rails selection and retained operations`
 - report: `ops/artifacts/slices/pi-harness/slice-2-rails-harness-selection.md`
-- ticket: [TKT-20261019165601](../tickets/in_progress/20261019165601-persist-project-harness-selection-and-logical-operation-bindings.md)
+- ticket: [TKT-20261019165601](../tickets/reviewing/20261019165601-persist-project-harness-selection-and-logical-operation-bindings.md)
 - merge_target: `dev`
 - PR: `pending`
 - last_sync_commit: `none`
@@ -80,19 +80,19 @@ Tasks:
 
 - [x] `T2.1` Add ProjectHarnessSetting and HarnessOperation with original create-table migrations, constraints, data-preserving database preparation and private named-profile resolution.
 - [x] `T2.2` Implement one Rails selection/admission service with optimistic revisions, bounded idempotency receipts and immutable bindings across nested calls/retries.
-- [ ] `T2.3` Verify separate-process selection races, stale requests, private projections, operation capacity and legacy defaults on owned SQLite fixtures.
+- [x] `T2.3` Verify separate-process selection races, stale requests, private projections, operation capacity and legacy defaults on owned SQLite fixtures.
 
 Commits:
 
-- `T2.1`: `b3e172d4b129` - constrained persistence, private profiles and database preservation.
-- `T2.2`: retained selection and operation lifecycle task commit in branch history.
+- `T2.1`: `b3e172d4b129baf4d89bb3350ad5ef41854f2914` - constrained persistence, private profiles and database preservation.
+- `T2.2`: `a84be2f7b18aed217de4b16210a42ee69b41f97c` - retained selections, bindings and owned call lifecycle.
 
 Validation:
 
-- [ ] Planned focused checks from the plan's corresponding slice.
+- [x] Planned focused suite passed: 18 tests, 214 assertions; no failures, errors or skips.
 - [ ] Full Rails suite before canonical merge.
-- [ ] Changed Ruby syntax and `git diff --check`.
-- [ ] Report reviewed and canonical PR verified merged.
+- [x] Changed Ruby syntax and `git diff --check` passed during task implementation.
+- [ ] Canonical PR prepared and verified merged by the external controller.
 
 ### Slice 3: Bounded Pi RPC calls
 
@@ -239,7 +239,7 @@ Validation:
 ## Approval / Blockers
 
 The maintainer approved the plan, dependency and Pi-only autonomous commit,
-push, PR and controller-merge authority on 2026-10-19. Slice 1 is implemented in its dedicated worktree; the external controller owns
+push, PR and controller-merge authority on 2026-10-19. Slice 1 is delivered and Slice 2 is implemented in its dedicated worktree; the external controller owns
 validation evidence and all merge mutations.
 
 Before startup, prepare the independent clean execution checkout described in
@@ -272,3 +272,5 @@ Linux acceptance. No result here claims either was verified.
 - `2026-10-19` state=`reviewing`: Slice 1 tasks implemented; focused validation passed (35 tests, 389 assertions). Canonical PR #10 is open; final clean-HEAD controller validation follows the PR-reference commit.
 
 - `2026-10-19T17:27:34Z` state=`implementing`: verified PR #10 merged at its validated head; closed Slice 1 and activated Slice 2.
+
+- `2026-10-19T17:40:52Z` state=`reviewing`: Slice 2 tasks implemented; focused validation passed (18 tests, 214 assertions). Canonical PR preparation and final clean-head controller validation are pending.

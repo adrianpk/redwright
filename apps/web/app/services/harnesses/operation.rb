@@ -20,7 +20,7 @@ module Harnesses
         if HarnessOperation.where(state: %w[running uncertain]).count >= MAX_ACTIVE_CALLS
           raise Error.new("Two harness calls are already active. Retry when capacity is released.", code: :capacity)
         end
-        unless record.binding["schema_version"] == "harness-binding/v1" && Digest::SHA256.hexdigest(record.binding_json) == record.binding_digest
+        unless record.binding_valid?
           raise Error.new("Unsupported or damaged retained harness binding.", code: :invalid_binding)
         end
         resources = @store.read(record.private_run_ref)

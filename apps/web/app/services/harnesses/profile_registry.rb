@@ -90,7 +90,7 @@ module Harnesses
           raise Error.new("Prepared harness resources must be private regular files.", code: :invalid_profile)
         end
       end
-      values = row.slice(*PUBLIC_FIELDS)
+      values = {"requested_provider" => nil, "requested_model" => nil, "capabilities" => {}}.merge(row.slice(*PUBLIC_FIELDS))
       values["protocol_revision"] ||= "codex-exec/v1"
       stat = File.stat(program)
       values["executable_identity"] = CanonicalJson.digest([File.realpath(program), stat.dev, stat.ino, stat.size, stat.mtime.to_r.to_s])

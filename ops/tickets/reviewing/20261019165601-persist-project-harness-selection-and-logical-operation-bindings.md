@@ -1,7 +1,7 @@
 ---
 id: TKT-20261019165601
 title: Persist project harness selection and logical operation bindings
-status: in_progress
+status: reviewing
 kind: task
 severity: unclassified
 priority: normal
@@ -11,7 +11,7 @@ source: chat
 reported_at: 2026-10-19T16:56:01Z
 ready_at: 2026-10-19T17:08:55Z
 started_at: 2026-10-19T17:31:08Z
-reviewed_at:
+reviewed_at: 2026-10-19T17:40:52Z
 closed_at:
 resolution:
 owner:
@@ -46,15 +46,18 @@ One Active Record owner serializes each project's authoring/ticket-proposal defa
 
 ## Actual
 
-Persistence, bounded private profiles and data-preserving preparation are implemented. The maintainer approved this slice and its
-dependency/platform choices under the linked plan. Respect preceding slice
-dependencies; only this Pi delivery has autonomous commit/integration authority.
+All three tasks are implemented. Constrained Rails storage, private profile
+resolution, coherent revision-checked settings, bounded idempotent receipts and
+immutable operation bindings are delivered through host services. Owned call
+leases enforce shared two-call admission and retain uncertainty until the same
+owner reconciles it. Focused validation passed: 18 tests and 214 assertions,
+including separate-process races and legacy database preparation.
 
 ## Tasks
 
 - [x] `T2.1` Add ProjectHarnessSetting and HarnessOperation with original create-table migrations, constraints, data-preserving database preparation and private named-profile resolution.
 - [x] `T2.2` Implement one Rails selection/admission service with optimistic revisions, bounded idempotency receipts and immutable bindings across nested calls/retries.
-- [ ] `T2.3` Verify separate-process selection races, stale requests, private projections, operation capacity and legacy defaults on owned SQLite fixtures.
+- [x] `T2.3` Verify separate-process selection races, stale requests, private projections, operation capacity and legacy defaults on owned SQLite fixtures.
 
 ## Planned Commits
 
@@ -77,5 +80,5 @@ gate. These commands are planned, not reported as passed.
 
 ## Outcome
 
-Ready under the approved plan; implementation pending. Existing Settings/Setup changes,
+Implementation is ready for canonical PR preparation and exact-head controller validation. Existing Settings/Setup changes,
 preview services, credentials and active databases remain outside this ticket.
