@@ -16,8 +16,8 @@ closed_at:
 resolution:
 owner:
 branch: fix/slice-6-pi-pi-ticket-proposals
-pr:
-commits: [f9cc3037a8842883d391909f23f0ce0747a4a746, 24f5088c0a55648492bdfb70d4c59b31a70c7250]
+pr: https://forge.adrianpk.com/adrianpk/redwrigh/pulls/15
+commits: [f9cc3037a8842883d391909f23f0ce0747a4a746, 24f5088c0a55648492bdfb70d4c59b31a70c7250, 8d86851bca58ea506788926792c719fc6b834485]
 ---
 
 # Use Pi for ticket proposals while retaining host application and validation
@@ -83,5 +83,6 @@ gate. These commands are planned, not reported as passed.
 
 Implemented in the dedicated Slice 6 worktree. The canonical report is
 [Slice 6](../../artifacts/slices/pi-harness/slice-6-pi-ticket-proposals.md).
-Canonical PR references and final exact-head controller evidence follow the
-task commits before readiness. The controller owns integration into `dev`.
+Canonical PR [#15](https://forge.adrianpk.com/adrianpk/redwrigh/pulls/15) is open. Final exact-head
+controller validation follows this PR-reference commit before readiness.
+The controller owns integration into `dev`.

@@ -199,7 +199,7 @@ Validation:
 - report: `ops/artifacts/slices/pi-harness/slice-6-pi-ticket-proposals.md`
 - ticket: [TKT-20261019165606](../tickets/reviewing/20261019165606-use-pi-for-ticket-proposals-while-retaining-host-application-and-validation.md)
 - merge_target: `dev`
-- PR: `pending`
+- PR: [#15](https://forge.adrianpk.com/adrianpk/redwrigh/pulls/15)
 - last_sync_commit: `none`
 
 Tasks:
@@ -212,7 +212,7 @@ Commits:
 
 - `T6.1`: `f9cc3037a8842883d391909f23f0ce0747a4a746` - selected requester and preserved context/direct-provider boundary.
 - `T6.2`: `24f5088c0a55648492bdfb70d4c59b31a70c7250` - owned bases, effect receipts and retained correction lifecycle.
-- `T6.3`: report-introduction task commit - proposal rejection, host authority, uncertain replay and native Pi ticket proof.
+- `T6.3`: `8d86851bca58ea506788926792c719fc6b834485` - report introduction - proposal rejection, host authority, uncertain replay and native Pi ticket proof.
 
 Validation:
 
@@ -220,7 +220,7 @@ Validation:
 - [x] Native Pi acceptance passed: 6 tests, 77 assertions.
 - [ ] Full Rails suite before canonical merge.
 - [ ] Changed Ruby syntax and `git diff --check`.
-- [x] Canonical report complete.
+- [x] Canonical report complete and PR #15 opened.
 - [ ] Canonical PR verified merged by the external controller.
 
 ### Slice 7: Operator guidance and integrated acceptance

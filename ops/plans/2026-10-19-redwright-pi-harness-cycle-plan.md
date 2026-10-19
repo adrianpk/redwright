@@ -342,6 +342,7 @@ Planned task commits:
 - expected_pr_title: `feat(slice-6): pi ticket proposals under rails authority`
 - report: `ops/artifacts/slices/pi-harness/slice-6-pi-ticket-proposals.md`
 - ticket: [TKT-20261019165606](../tickets/reviewing/20261019165606-use-pi-for-ticket-proposals-while-retaining-host-application-and-validation.md)
+- PR: [#15](https://forge.adrianpk.com/adrianpk/redwrigh/pulls/15)
 - objective: The existing ticket model step can use a selected structured harness while Rails continues to own context, application, validation and Git.
 - acceptance_mapping: `PI-05, PI-07, PI-10, PI-11, PI-12, PI-13`
 
