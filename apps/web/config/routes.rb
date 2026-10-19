@@ -33,6 +33,9 @@ Rails.application.routes.draw do
       collection do
         get :playbooks
       end
+      member do
+        post :sync_references
+      end
     end
   end
   resources :protocol_templates, controller: "project_protocol_templates", only: [ :index, :show, :create ] do

@@ -8,13 +8,20 @@ module ProtocolReferenceHarnessFixture
       raise "wrong task" unless prompt.include?("Update references in the supplied AGENTS.md")
       context = JSON.parse(prompt.split("Context:\n", 2).last)
       body = context.fetch("agents_body")
-      old_path = context["old_path"] || context["path"]
-      body = body.lines.reject { |line| line.include?("`#{old_path}`") }.join
-      unless context.fetch("operation") == "delete"
-        description = context.fetch("description")
-        body = body.rstrip + "\n\n- `#{context.fetch('path')}`"
-        body += " — #{description}" unless description.empty?
-        body += "\n"
+      if context.fetch("operation") == "sync"
+        context.fetch("documents").each do |document|
+          description = document.fetch("body").lines.first.to_s.delete_prefix("# ").strip
+          body += "\n\n- `#{document.fetch('path')}` — #{description}\n"
+        end
+      else
+        old_path = context["old_path"] || context["path"]
+        body = body.lines.reject { |line| line.include?("`#{old_path}`") }.join
+        unless context.fetch("operation") == "delete"
+          description = context.fetch("description")
+          body = body.rstrip + "\n\n- `#{context.fetch('path')}`"
+          body += " — #{description}" unless description.empty?
+          body += "\n"
+        end
       end
       File.write(ARGV[ARGV.index("--output-last-message") + 1], JSON.generate({body: body}))
     RUBY

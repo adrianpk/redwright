@@ -2,7 +2,10 @@
   <header class="document-artifacts-header">
     <div class="quiz-header-row">
       <h1><%= @protocol_document.title %></h1>
-      <% unless @protocol_document.root? %>
+      <% if @protocol_document.root? %>
+        <%= button_tag "Sync", type: "button", class: "ticket-action",
+                       data: {protocol_sync: sync_references_project_protocol_path(@project, @protocol_document)} %>
+      <% else %>
         <%= button_to "Delete", project_protocol_path(@project, @protocol_document), method: :delete,
                       params: {protocol_document: {revision: @protocol_document.revision, agents_revision: @protocol_document.agents_revision}},
                       class: "ticket-action ticket-action-danger", form: {data: {

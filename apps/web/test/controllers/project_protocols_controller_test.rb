@@ -15,6 +15,47 @@ class ProjectProtocolsControllerTest < ActionDispatch::IntegrationTest
   test "requires authentication" do
     get project_protocols_path(@project)
     assert_redirected_to new_session_path
+    post sync_references_project_protocol_path(@project, @store.find_path("AGENTS.md")), as: :json
+    assert_redirected_to new_session_path
+  end
+
+  test "syncs references only from the AGENTS editor" do
+    # Use real project files and the subprocess fixture without depending on model availability.
+    sign_in_as(@admin)
+    previous = ENV["REDWRIGHT_PROTOCOL_HARNESS"]
+    ENV["REDWRIGHT_PROTOCOL_HARNESS"] = protocol_reference_harness(@store.root)
+    @store.create(".agents/nested/NOTES.md", "# Nested collaboration notes")
+    agents = @store.find_path("AGENTS.md")
+    get project_protocol_path(@project, agents)
+    assert_select "button[data-protocol-sync]", text: "Sync"
+    pending = agents.body + "\n\nKeep this pending edit.\n"
+
+    post sync_references_project_protocol_path(@project, agents), params: {
+      protocol_document: {body: pending, revision: agents.revision}
+    }, as: :json
+
+    assert_response :success
+    payload = response.parsed_body
+    assert payload.fetch("body").start_with?(pending)
+    assert_includes payload.fetch("body"), "`.agents/nested/NOTES.md`"
+    assert_includes payload.fetch("body"), "`.agents/CONVENTIONS.md`"
+    assert_equal @store.find_path("AGENTS.md").revision, payload.fetch("revision")
+    assert_equal payload.fetch("revision"), payload.fetch("agents_revision")
+    document = @store.find_path(".agents/CONVENTIONS.md")
+    get project_protocol_path(@project, document)
+    assert_select "button[data-protocol-sync]", count: 0
+    post sync_references_project_protocol_path(@project, document), params: {
+      protocol_document: {revision: document.revision}
+    }, as: :json
+    assert_response :unprocessable_entity
+    assert_equal "# Conventions", @store.snapshot(document.path).fetch(:body)
+    post sync_references_project_protocol_path(@project, agents), params: {
+      protocol_document: {revision: agents.revision}
+    }, as: :json
+    assert_response :conflict
+    assert_equal payload.fetch("body"), @store.snapshot("AGENTS.md").fetch(:body)
+  ensure
+    ENV["REDWRIGHT_PROTOCOL_HARNESS"] = previous
   end
 
   test "creates renames and deletes a concern through the web" do

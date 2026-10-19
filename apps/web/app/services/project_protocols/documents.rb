@@ -50,6 +50,35 @@ module ProjectProtocols
         expected: {document.path => current.fetch(:revision), "AGENTS.md" => agents&.fetch(:revision)})
     end
 
+    def sync_references(document, body: document.body, revision: nil)
+      raise Specifications::Error, "References can only be synced from AGENTS." unless document.root?
+      current = checked_document(document, revision)
+      body = body.to_s
+      missing = @store.documents.reject { |entry| entry.root? || body.include?(entry.path) }
+        .to_h do |entry|
+          source = @store.snapshot(entry.path)
+          raise Specifications::Error.new("Protocol files changed. Try syncing again.", code: :conflict) unless source
+          [entry.path, source]
+        end
+      updated = body
+      if missing.any?
+        documents = missing.map { |path, source| {path: path, body: source.fetch(:body)} }
+        updated = references("sync", current.merge(body: body), documents: documents)
+        unless updated.start_with?(body)
+          raise Specifications::Error, "Reference sync must preserve the current AGENTS content."
+        end
+        appended_paths = updated.delete_prefix(body).scan(/^\s*[-*+]\s+`(\.agents\/[^`\n]+\.md)`(?:\s|$)/).flatten
+        unless appended_paths.sort == missing.keys.sort
+          raise Specifications::Error, "The harness must append exactly one reference to each missing document."
+        end
+      end
+      unless updated == current.fetch(:body)
+        expected = missing.transform_values { |source| source.fetch(:revision) }.merge("AGENTS.md" => current.fetch(:revision))
+        @store.apply({"AGENTS.md" => updated}, expected: expected)
+      end
+      document.reload
+    end
+
     private
 
     def filename(name)

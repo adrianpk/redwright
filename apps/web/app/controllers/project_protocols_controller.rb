@@ -1,7 +1,7 @@
 class ProjectProtocolsController < ApplicationController
   before_action :set_project
   before_action :set_catalog
-  before_action :set_protocol_document, only: [ :show, :edit, :update, :destroy ]
+  before_action :set_protocol_document, only: [ :show, :edit, :update, :destroy, :sync_references ]
 
   def index
     @protocol_entries = @catalog.top_level_entries
@@ -57,6 +57,18 @@ class ProjectProtocolsController < ApplicationController
     redirect_path = @protocol_document.path.start_with?(".agents/playbooks/") ? playbooks_project_protocols_path(@project) : project_protocols_path(@project)
     document_service.delete(@protocol_document, **protocol_document_params.to_h.symbolize_keys.slice(:revision, :agents_revision))
     redirect_to redirect_path, notice: "Protocol deleted."
+  rescue Specifications::Error => error
+    render_document_error(error, :show)
+  end
+
+  def sync_references
+    attributes = protocol_document_params.slice(:body, :revision)
+    @protocol_document = document_service.sync_references(@protocol_document, **attributes.to_h.symbolize_keys)
+    render json: {
+      body: @protocol_document.body,
+      revision: @protocol_document.revision,
+      agents_revision: @protocol_document.agents_revision
+    }
   rescue Specifications::Error => error
     render_document_error(error, :show)
   end

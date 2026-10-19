@@ -51,20 +51,86 @@ module ProjectProtocols
 
     test "generation failures leave both files unchanged" do
       document = @service.create(name: "invariants", description: "Rules.", body: "Original")
+      @store.create(".agents/UNLISTED.md", "# Unlisted concern")
       root = @store.snapshot("AGENTS.md")
       failing = Documents.new(store: @store, harness: ReferenceHarness.new(program: "/bin/false"))
-      ["create", "rename", "delete"].each do |operation|
+      ["create", "rename", "delete", "sync"].each do |operation|
         assert_raises(Specifications::Error, operation) do
           case operation
           when "create" then failing.create(name: "new", body: "New")
           when "rename" then failing.update(document, name: "renamed", body: "Unsaved", revision: document.revision)
           when "delete" then failing.delete(document, revision: document.revision)
+          when "sync"
+            agents = @store.find_path("AGENTS.md")
+            failing.sync_references(agents, revision: agents.revision)
           end
         end
         assert_equal root, @store.snapshot("AGENTS.md")
         assert_equal "Original", @store.snapshot(document.path).fetch(:body)
         refute @store.root.join(".agents/NEW.md").exist?
         refute @store.root.join(".agents/RENAMED.md").exist?
+      end
+    end
+
+    test "sync appends missing concerns and remains idempotent" do
+      # Real files and a subprocess cover external additions, nested concerns, and pending edits.
+      @store.create(".agents/KNOWN.md", "# Known rules")
+      sources = {".agents/CUSTOM.md" => "# Custom collaboration rules\n", ".agents/nested/NOTES.md" => "# Nested notes\n"}
+      sources.each { |path, body| @store.create(path, body) }
+      @store.root.join("AGENTS.md").write("# Contract\n\nUse [known rules](.agents/KNOWN.md).\n\n")
+      agents = @store.find_path("AGENTS.md")
+      pending = agents.body + "Keep this pending edit.\n\n"
+
+      result = @service.sync_references(agents, body: pending, revision: agents.revision)
+
+      assert result.body.start_with?(pending)
+      assert_equal 1, result.body.scan(".agents/KNOWN.md").size
+      sources.each do |path, body|
+        assert_equal body, @store.root.join(path).read
+        assert_equal 1, result.body.scan("`#{path}`").size
+      end
+      assert_includes result.body, "`.agents/CUSTOM.md` — Custom collaboration rules"
+      snapshot = @store.snapshot("AGENTS.md")
+      no_harness = Documents.new(store: @store, harness: ReferenceHarness.new(program: "/bin/false"))
+      repeated = no_harness.sync_references(result, revision: result.revision)
+      assert_equal snapshot, @store.snapshot("AGENTS.md")
+      assert_equal result.body, repeated.body
+    end
+
+    test "sync rejects rewrites missing references and duplicates" do
+      # Invalid model responses must never replace the user's entrypoint.
+      @store.create(".agents/NEW.md", "# New concern")
+      agents = @store.find_path("AGENTS.md")
+      original = @store.snapshot("AGENTS.md")
+      reference = "\n- `.agents/NEW.md` — New concern.\n"
+      {"rewrite" => reference, "missing" => agents.body, "duplicate" => agents.body + reference * 2}.each do |name, output|
+        harness = Object.new
+        harness.define_singleton_method(:generate) { |**| {"body" => output} }
+        service = Documents.new(store: @store, harness: harness)
+        assert_raises(Specifications::Error, name) { service.sync_references(agents, revision: agents.revision) }
+        assert_equal original, @store.snapshot("AGENTS.md"), name
+      end
+    end
+
+    test "sync protects external changes during generation" do
+      # Either a changed entrypoint or changed source invalidates the generated references.
+      @store.create(".agents/NEW.md", "# New concern")
+      ["AGENTS.md", ".agents/NEW.md"].each do |changed_path|
+        agents = @store.find_path("AGENTS.md")
+        original = @store.snapshot("AGENTS.md")
+        root = @store.root
+        harness = Object.new
+        harness.define_singleton_method(:generate) do |context:, **|
+          root.join(changed_path).write("External edit")
+          {"body" => context.fetch("agents_body") + "\n- `.agents/NEW.md` — New concern.\n"}
+        end
+        service = Documents.new(store: @store, harness: harness)
+
+        error = assert_raises(Specifications::Error) { service.sync_references(agents, revision: agents.revision) }
+
+        assert_equal :conflict, error.code
+        assert_equal "External edit", root.join(changed_path).read
+        assert_equal original, @store.snapshot("AGENTS.md") unless changed_path == "AGENTS.md"
       end
     end
 
@@ -101,6 +167,7 @@ module ProjectProtocols
       agents = @store.find_path("AGENTS.md")
       assert_raises(Specifications::Error) { @service.update(agents, name: "renamed", revision: agents.revision) }
       assert_raises(Specifications::Error) { @service.delete(agents, revision: agents.revision) }
+      assert_raises(Specifications::Error) { @service.sync_references(document, revision: document.revision) }
       assert_equal root, @store.snapshot("AGENTS.md")
       assert_equal "Original", @store.snapshot(document.path).fetch(:body)
     end
