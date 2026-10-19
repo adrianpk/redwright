@@ -23,6 +23,11 @@ These recent drafts are intentionally visible as selectable follow-up work:
 
 ## Closed Recent Drafts
 
+- Pi Harness
+  - selection_status: `closed`
+  - promoted_to: [Pi Harness](../specs/2026-10-19-redwright-pi-harness-spec.md)
+  - approved_plan: [seven-slice delivery](../../plans/2026-10-19-redwright-pi-harness-cycle-plan.md)
+
 These recent drafts are not active selection candidates because they already moved through a spec and delivery cycle:
 
 - `2026-05-09-redwright-agent-ticket-llm-context-shaping-draft.md`

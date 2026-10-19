@@ -20,3 +20,8 @@ Templates:
 
 - `ops/templates/spec-draft-template.md`
 - `ops/templates/spec-quiz-template.md`
+
+## Current Approved Delivery
+
+- [Pi Harness](specs/2026-10-19-redwright-pi-harness-spec.md) and [model](specs/2026-10-19-redwright-pi-harness-spec-model.md).
+- [Delivery plan](../plans/2026-10-19-redwright-pi-harness-cycle-plan.md) and [tracker](../trackers/2026-10-19-redwright-pi-harness-cycle-tracker.md).

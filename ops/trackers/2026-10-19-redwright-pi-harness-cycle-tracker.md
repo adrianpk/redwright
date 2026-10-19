@@ -1,0 +1,263 @@
+# Cycle Tracker: RedWright Pi Harness
+
+Status: Approved
+Approved: maintainer, 2026-10-19; explicit approval of the seven-slice plan, dependency/platform decisions and autonomous Pi-only commits, PRs and controller-owned Rebase + Fast-forward merges into dev.
+
+## Metadata
+
+- cycle_id: `2026-10-19-redwright-pi-harness`
+- delivery_set: `pi-harness`
+- status: `approved`
+- state: `idle`
+- approval: `maintainer approved, 2026-10-19`
+- execution_authority: `autonomous execution of this delivery set approved`
+- updated: `2026-10-19`
+- active_slice: `Slice 1 - Validated Codex structured calls (planned)`
+- active_task: `T1.1 (planned)`
+- completed_slices: `0/7`
+- completed_tasks: `0/21`
+- controller: `not started`
+- plan: [Pi Harness plan](../plans/2026-10-19-redwright-pi-harness-cycle-plan.md)
+- spec: [Pi Harness specification](../specs/specs/2026-10-19-redwright-pi-harness-spec.md)
+- model: [Pi Harness model](../specs/specs/2026-10-19-redwright-pi-harness-spec-model.md)
+
+## Canonical Slice Map
+
+| Slice | Name | Branch | Expected PR title | Report |
+| --- | --- | --- | --- | --- |
+| Slice 1 | Validated Codex structured calls | `fix/slice-1-pi-validated-codex` | `feat(slice-1): validated codex structured calls` | `ops/artifacts/slices/pi-harness/slice-1-validated-codex.md` |
+| Slice 2 | Rails selection and retained operations | `fix/slice-2-pi-rails-harness-selection` | `feat(slice-2): rails selection and retained operations` | `ops/artifacts/slices/pi-harness/slice-2-rails-harness-selection.md` |
+| Slice 3 | Bounded Pi RPC calls | `fix/slice-3-pi-pi-rpc` | `feat(slice-3): bounded pi rpc calls` | `ops/artifacts/slices/pi-harness/slice-3-pi-rpc.md` |
+| Slice 4 | Linux containment and real Pi proof | `fix/slice-4-pi-pi-linux-containment` | `feat(slice-4): linux containment and real pi proof` | `ops/artifacts/slices/pi-harness/slice-4-pi-linux-containment.md` |
+| Slice 5 | Selectable Pi authoring in the web app | `fix/slice-5-pi-pi-authoring-settings` | `feat(slice-5): selectable pi authoring in the web app` | `ops/artifacts/slices/pi-harness/slice-5-pi-authoring-settings.md` |
+| Slice 6 | Pi ticket proposals under Rails authority | `fix/slice-6-pi-pi-ticket-proposals` | `feat(slice-6): pi ticket proposals under rails authority` | `ops/artifacts/slices/pi-harness/slice-6-pi-ticket-proposals.md` |
+| Slice 7 | Operator guidance and integrated acceptance | `fix/slice-7-pi-pi-harness-acceptance` | `feat(slice-7): operator guidance and integrated acceptance` | `ops/artifacts/slices/pi-harness/slice-7-pi-harness-acceptance.md` |
+
+## Slice Progress
+
+### Slice 1: Validated Codex structured calls
+
+- status: `pending`
+- branch: `fix/slice-1-pi-validated-codex`
+- expected_pr_title: `feat(slice-1): validated codex structured calls`
+- report: `ops/artifacts/slices/pi-harness/slice-1-validated-codex.md`
+- ticket: [TKT-20261019165600](../tickets/ready/20261019165600-preserve-codex-authoring-through-validated-rails-calls.md)
+- merge_target: `dev`
+- PR: `pending`
+- last_sync_commit: `none`
+
+Tasks:
+
+- [ ] `T1.1` Introduce Harnesses request/result values, StructuredCall and host JSON-Schema validation; add the approved json_schemer 2.5.0 to the Rails bundle.
+- [ ] `T1.2` Extract a CodexAdapter and route Specifications, Slicing, Dumps and protocol references through it without changing their prompts, defaults, deadlines or file authority.
+- [ ] `T1.3` Cover real subprocess success/failure, nested schema rejection and preservation of existing artifacts/statuses.
+
+Commits: none.
+
+Validation:
+
+- [ ] Planned focused checks from the plan's corresponding slice.
+- [ ] Full Rails suite before canonical merge.
+- [ ] Changed Ruby syntax and `git diff --check`.
+- [ ] Report reviewed and canonical PR verified merged.
+
+### Slice 2: Rails selection and retained operations
+
+- status: `pending`
+- branch: `fix/slice-2-pi-rails-harness-selection`
+- expected_pr_title: `feat(slice-2): rails selection and retained operations`
+- report: `ops/artifacts/slices/pi-harness/slice-2-rails-harness-selection.md`
+- ticket: [TKT-20261019165601](../tickets/ready/20261019165601-persist-project-harness-selection-and-logical-operation-bindings.md)
+- merge_target: `dev`
+- PR: `pending`
+- last_sync_commit: `none`
+
+Tasks:
+
+- [ ] `T2.1` Add ProjectHarnessSetting and HarnessOperation with original create-table migrations, constraints, data-preserving database preparation and private named-profile resolution.
+- [ ] `T2.2` Implement one Rails selection/admission service with optimistic revisions, bounded idempotency receipts and immutable bindings across nested calls/retries.
+- [ ] `T2.3` Verify separate-process selection races, stale requests, private projections, operation capacity and legacy defaults on owned SQLite fixtures.
+
+Commits: none.
+
+Validation:
+
+- [ ] Planned focused checks from the plan's corresponding slice.
+- [ ] Full Rails suite before canonical merge.
+- [ ] Changed Ruby syntax and `git diff --check`.
+- [ ] Report reviewed and canonical PR verified merged.
+
+### Slice 3: Bounded Pi RPC calls
+
+- status: `pending`
+- branch: `fix/slice-3-pi-pi-rpc`
+- expected_pr_title: `feat(slice-3): bounded pi rpc calls`
+- report: `ops/artifacts/slices/pi-harness/slice-3-pi-rpc.md`
+- ticket: [TKT-20261019165603](../tickets/ready/20261019165603-add-a-bounded-pi-rpc-adapter-for-structured-generation.md)
+- merge_target: `dev`
+- PR: `pending`
+- last_sync_commit: `none`
+
+Tasks:
+
+- [ ] `T3.1` Implement shared owned-process supervision with concurrent pipe draining, deadlines, stream ceilings, sanitized diagnostics and deterministic reaping.
+- [ ] `T3.2` Implement PiAdapter for Pi 1.3.0 RPC, exact model/provider setup, ephemeral tool-free sessions and final settlement validation.
+- [ ] `T3.3` Exercise split/interleaved records, invalid UTF-8, early/late exits, provider failure, cancellation and encoded 2 MiB results through real pipe fixtures.
+
+Commits: none.
+
+Validation:
+
+- [ ] Planned focused checks from the plan's corresponding slice.
+- [ ] Full Rails suite before canonical merge.
+- [ ] Changed Ruby syntax and `git diff --check`.
+- [ ] Report reviewed and canonical PR verified merged.
+
+### Slice 4: Linux containment and real Pi proof
+
+- status: `pending`
+- branch: `fix/slice-4-pi-pi-linux-containment`
+- expected_pr_title: `feat(slice-4): linux containment and real pi proof`
+- report: `ops/artifacts/slices/pi-harness/slice-4-pi-linux-containment.md`
+- ticket: [TKT-20261019165604](../tickets/ready/20261019165604-contain-pi-authoring-on-linux-and-prove-the-real-binary-boundary.md)
+- merge_target: `dev`
+- PR: `pending`
+- last_sync_commit: `none`
+
+Tasks:
+
+- [ ] `T4.1` Implement LinuxSandbox command construction with read-only mount allowlists, private writable scratch, no inherited host IPC sockets/fds and explicit policy identity/readiness.
+- [ ] `T4.2` Isolate the selected static credential/model configuration, disable discovery and unattended UI, and expose precise platform/version/resource failures.
+- [ ] `T4.3` Run the pinned real Pi 1.3.0 against an owned loopback endpoint, proving write denial, resource exclusion, cleanup and valid structured output.
+
+Commits: none.
+
+Validation:
+
+- [ ] Planned focused checks from the plan's corresponding slice.
+- [ ] Pinned real Pi/Bubblewrap loopback acceptance.
+- [ ] Full Rails suite before canonical merge.
+- [ ] Changed Ruby syntax and `git diff --check`.
+- [ ] Report reviewed and canonical PR verified merged.
+
+### Slice 5: Selectable Pi authoring in the web app
+
+- status: `pending`
+- branch: `fix/slice-5-pi-pi-authoring-settings`
+- expected_pr_title: `feat(slice-5): selectable pi authoring in the web app`
+- report: `ops/artifacts/slices/pi-harness/slice-5-pi-authoring-settings.md`
+- ticket: [TKT-20261019165605](../tickets/ready/20261019165605-expose-prepared-profiles-and-wire-pi-into-rails-authoring.md)
+- merge_target: `dev`
+- PR: `pending`
+- last_sync_commit: `none`
+
+Tasks:
+
+- [ ] `T5.1` Inject one retained authoring operation into Specs, slicing, Dumps and protocol references; preserve current revisions, semantic checks and atomic publication.
+- [ ] `T5.2` Add a project-scoped Harness settings resource with compact controls for prepared profiles, clear-to-default, active bindings and local readiness.
+- [ ] `T5.3` Verify authenticated and stale/conflicting changes, independent process visibility, responsive rendering and all four authoring consumer boundaries.
+
+Commits: none.
+
+Validation:
+
+- [ ] Planned focused checks from the plan's corresponding slice.
+- [ ] Full Rails suite before canonical merge.
+- [ ] Changed Ruby syntax and `git diff --check`.
+- [ ] Report reviewed and canonical PR verified merged.
+
+### Slice 6: Pi ticket proposals under Rails authority
+
+- status: `pending`
+- branch: `fix/slice-6-pi-pi-ticket-proposals`
+- expected_pr_title: `feat(slice-6): pi ticket proposals under rails authority`
+- report: `ops/artifacts/slices/pi-harness/slice-6-pi-ticket-proposals.md`
+- ticket: [TKT-20261019165606](../tickets/ready/20261019165606-use-pi-for-ticket-proposals-while-retaining-host-application-and-validation.md)
+- merge_target: `dev`
+- PR: `pending`
+- last_sync_commit: `none`
+
+Tasks:
+
+- [ ] `T6.1` Add an injected harness requester to the existing ticket model boundary, preserving the current direct-API default, context shaping and separate role selection.
+- [ ] `T6.2` Retain the logical correction-loop binding and per-attempt base/schema/policy evidence; reconcile uncertain application/finalization before retrying effects.
+- [ ] `T6.3` Verify valid/invalid proposals, changed-base conflicts, correction attempts, uncertain replay and failure of host validation without false ticket completion.
+
+Commits: none.
+
+Validation:
+
+- [ ] Planned focused checks from the plan's corresponding slice.
+- [ ] Full Rails suite before canonical merge.
+- [ ] Changed Ruby syntax and `git diff --check`.
+- [ ] Report reviewed and canonical PR verified merged.
+
+### Slice 7: Operator guidance and integrated acceptance
+
+- status: `pending`
+- branch: `fix/slice-7-pi-pi-harness-acceptance`
+- expected_pr_title: `feat(slice-7): operator guidance and integrated acceptance`
+- report: `ops/artifacts/slices/pi-harness/slice-7-pi-harness-acceptance.md`
+- ticket: [TKT-20261019165607](../tickets/ready/20261019165607-document-and-validate-the-integrated-pi-harness-workflow.md)
+- merge_target: `dev`
+- PR: `pending`
+- last_sync_commit: `none`
+
+Tasks:
+
+- [ ] `T7.1` Update the existing User Guide/configuration reference with static-profile setup, effective selections, Linux containment, limits and truthful capability/usage evidence.
+- [ ] `T7.2` Exercise a representative configured-project journey, cross-process switching/recovery, Codex-only compatibility and ticket validation using owned fixtures.
+- [ ] `T7.3` Run the unchanged delivery-set gate on the exact integrated candidate and close the cycle report/tracker only with matching green evidence.
+
+Commits: none.
+
+Validation:
+
+- [ ] Planned focused checks from the plan's corresponding slice.
+- [ ] Pinned real Pi/Bubblewrap loopback acceptance.
+- [ ] Full Rails suite before canonical merge.
+- [ ] Changed Ruby syntax and `git diff --check`.
+- [ ] Report reviewed and canonical PR verified merged.
+
+## Delivery Gate and Closure
+
+- [ ] All 7 slice integrations and all 21 task/commit mappings verified.
+- [ ] Full Rails suite on the exact integrated candidate.
+- [ ] Required real Pi 1.3.0/Bubblewrap loopback acceptance.
+- [ ] Root `bundle exec rake test`.
+- [ ] Ticket metadata and whitespace checks.
+- [ ] PI-01 through PI-15 evidence mapping and operator guidance.
+- [ ] Cycle report records actual checks, candidate and evidence boundaries.
+
+## Approval / Blockers
+
+The maintainer approved the plan, dependency and Pi-only autonomous commit,
+push, PR and controller-merge authority on 2026-10-19. Execution has not yet
+started. Publish these artifacts before configuring the controller.
+
+Before startup, prepare the independent clean execution checkout described in
+the plan and publish only the approved Pi artifacts. Preserve the existing
+Settings/Setup files, preview service and their withheld commit authority.
+
+A paid provider smoke test and macOS Pi containment are not part of the initial
+Linux acceptance. No result here claims either was verified.
+
+## Planning Validation
+
+- Passed: 12 document bodies rendered; only Kramdown's expected diagnostics for
+  GitHub task markers were present. Ticket frontmatter was validated separately.
+- Passed: 64 existing local links, 7 identical canonical slice rows, 21 matching
+  tasks across plan/tracker/tickets and 7 unique open ticket identities.
+- Passed: repository ticket metadata checks, whitespace/fence checks and
+  private-path scan.
+- The canonical table header was checked against the installed Looper source.
+  No controller configuration was registered or started; approval is now recorded;
+  committed artifacts remain a prerequisite for controller validation.
+- Application and live-model tests were not run for this planning-only change.
+
+## Event Log
+
+- `2026-10-19` state=`planning`: user requested Pi harness slicing for subsequent autonomous delivery.
+- `2026-10-19` state=`planning`: prepared 7 ordered slices and 21 tasks; all implementation remains pending.
+
+- `2026-10-19` state=`idle`: maintainer approved the complete contract and autonomous Pi-only integration.
