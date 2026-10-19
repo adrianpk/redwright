@@ -1,7 +1,7 @@
 ---
 id: TKT-20261019165600
 title: Preserve Codex authoring through validated Rails calls
-status: ready
+status: in_progress
 kind: task
 severity: unclassified
 priority: normal
@@ -10,12 +10,12 @@ tags: pi-harness, slice-delivery, rails
 source: chat
 reported_at: 2026-10-19T16:56:00Z
 ready_at: 2026-10-19T17:08:55Z
-started_at:
+started_at: 2026-10-19T17:17:00Z
 reviewed_at:
 closed_at:
 resolution:
 owner:
-branch:
+branch: fix/slice-1-pi-validated-codex
 pr:
 commits: []
 ---
@@ -46,14 +46,14 @@ All existing authoring operations keep working through one Rails structured-call
 
 ## Actual
 
-Implementation has not started. The maintainer approved this slice and its
-dependency/platform choices under the linked plan. Respect preceding slice
-dependencies; only this Pi delivery has autonomous commit/integration authority.
+Host schema validation and the shared Codex adapter are implemented. The four
+existing authoring consumers passed their focused subprocess regressions.
+Additional failure and artifact-preservation coverage is in progress.
 
 ## Tasks
 
-- [ ] `T1.1` Introduce Harnesses request/result values, StructuredCall and host JSON-Schema validation; add the approved json_schemer 2.5.0 to the Rails bundle.
-- [ ] `T1.2` Extract a CodexAdapter and route Specifications, Slicing, Dumps and protocol references through it without changing their prompts, defaults, deadlines or file authority.
+- [x] `T1.1` Introduce Harnesses request/result values, StructuredCall and host JSON-Schema validation; add the approved json_schemer 2.5.0 to the Rails bundle.
+- [x] `T1.2` Extract a CodexAdapter and route Specifications, Slicing, Dumps and protocol references through it without changing their prompts, defaults, deadlines or file authority.
 - [ ] `T1.3` Cover real subprocess success/failure, nested schema rejection and preservation of existing artifacts/statuses.
 
 ## Planned Commits
@@ -77,5 +77,5 @@ gate. These commands are planned, not reported as passed.
 
 ## Outcome
 
-Ready under the approved plan; implementation pending. Existing Settings/Setup changes,
+Implementation is in progress under the approved plan. Existing Settings/Setup changes,
 preview services, credentials and active databases remain outside this ticket.

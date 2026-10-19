@@ -8,7 +8,7 @@ module Harnesses
     MAX_OUTPUT_BYTES = 2 * 1024 * 1024
     SCHEMA_DIALECT = "https://json-schema.org/draft/2020-12/schema".freeze
 
-    def initialize(adapter:)
+    def initialize(adapter: CodexAdapter.new)
       @adapter = adapter
     end
 

@@ -8,15 +8,15 @@ Approved: maintainer, 2026-10-19; explicit approval of the seven-slice plan, dep
 - cycle_id: `2026-10-19-redwright-pi-harness`
 - delivery_set: `pi-harness`
 - status: `approved`
-- state: `idle`
+- state: `implementing`
 - approval: `maintainer approved, 2026-10-19`
 - execution_authority: `autonomous execution of this delivery set approved`
 - updated: `2026-10-19`
-- active_slice: `Slice 1 - Validated Codex structured calls (planned)`
-- active_task: `T1.1 (planned)`
+- active_slice: `Slice 1 - Validated Codex structured calls (implementing)`
+- active_task: `T1.3 (in progress)`
 - completed_slices: `0/7`
-- completed_tasks: `0/21`
-- controller: `not started`
+- completed_tasks: `2/21`
+- controller: `external Looper controller`
 - plan: [Pi Harness plan](../plans/2026-10-19-redwright-pi-harness-cycle-plan.md)
 - spec: [Pi Harness specification](../specs/specs/2026-10-19-redwright-pi-harness-spec.md)
 - model: [Pi Harness model](../specs/specs/2026-10-19-redwright-pi-harness-spec-model.md)
@@ -37,26 +37,29 @@ Approved: maintainer, 2026-10-19; explicit approval of the seven-slice plan, dep
 
 ### Slice 1: Validated Codex structured calls
 
-- status: `pending`
+- status: `implementing`
 - branch: `fix/slice-1-pi-validated-codex`
 - expected_pr_title: `feat(slice-1): validated codex structured calls`
 - report: `ops/artifacts/slices/pi-harness/slice-1-validated-codex.md`
-- ticket: [TKT-20261019165600](../tickets/ready/20261019165600-preserve-codex-authoring-through-validated-rails-calls.md)
+- ticket: [TKT-20261019165600](../tickets/in_progress/20261019165600-preserve-codex-authoring-through-validated-rails-calls.md)
 - merge_target: `dev`
 - PR: `pending`
 - last_sync_commit: `none`
 
 Tasks:
 
-- [ ] `T1.1` Introduce Harnesses request/result values, StructuredCall and host JSON-Schema validation; add the approved json_schemer 2.5.0 to the Rails bundle.
-- [ ] `T1.2` Extract a CodexAdapter and route Specifications, Slicing, Dumps and protocol references through it without changing their prompts, defaults, deadlines or file authority.
+- [x] `T1.1` Introduce Harnesses request/result values, StructuredCall and host JSON-Schema validation; add the approved json_schemer 2.5.0 to the Rails bundle.
+- [x] `T1.2` Extract a CodexAdapter and route Specifications, Slicing, Dumps and protocol references through it without changing their prompts, defaults, deadlines or file authority.
 - [ ] `T1.3` Cover real subprocess success/failure, nested schema rejection and preservation of existing artifacts/statuses.
 
-Commits: none.
+Commits:
+
+- `T1.1`: `6908a8c2d403` - host structured-call validation.
+- `T1.2`: adapter extraction task commit in branch history.
 
 Validation:
 
-- [ ] Planned focused checks from the plan's corresponding slice.
+- [x] Planned focused checks: 28 tests, 281 assertions; no failures, errors or skips.
 - [ ] Full Rails suite before canonical merge.
 - [ ] Changed Ruby syntax and `git diff --check`.
 - [ ] Report reviewed and canonical PR verified merged.

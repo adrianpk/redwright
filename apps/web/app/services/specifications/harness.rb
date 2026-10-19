@@ -1,6 +1,4 @@
 require "json"
-require "tmpdir"
-require "timeout"
 
 module Specifications
   class Harness
@@ -18,32 +16,21 @@ module Specifications
     end
 
     def generate(context:, workspace:)
-      Dir.mktmpdir("redwright-spec-generation-") do |directory|
-        schema = File.join(directory, "schema.json")
-        prompt = File.join(directory, "prompt.txt")
-        output = File.join(directory, "result.json")
-        File.write(schema, JSON.generate(@schema))
-        File.write(prompt, instructions + "\nContext:\n" + JSON.generate(context))
-        command = [@program, "exec", "--sandbox", "read-only", "--ephemeral", "--skip-git-repo-check", "--color", "never",
-          "-c", 'approval_policy="never"', "--output-schema", schema, "--output-last-message", output, "-"]
-        pid = Process.spawn(*command, in: prompt, out: File::NULL, err: File::NULL, chdir: workspace, pgroup: true)
-        begin
-          _, status = Timeout.timeout(@timeout) { Process.wait2(pid) }
-        rescue Timeout::Error
-          Process.kill("KILL", -pid) rescue Errno::ESRCH
-          Process.wait(pid) rescue Errno::ECHILD
-          raise Error, "#{@artifact_name.capitalize} generation timed out. Try again."
-        end
-        raise Error, "#{@artifact_name.capitalize} generation failed. Check the local harness session and try again." unless status.success? && File.file?(output)
-        raise Error, "Generated #{@artifact_name} is too large." if File.size(output) > MAX_OUTPUT_BYTES
-        value = JSON.parse(File.read(output))
-        validate_output!(value)
-        value
+      request = Harnesses::Request.new(instructions: instructions, context: context, workspace: workspace,
+        schema: @schema, purpose: @artifact_name, program: @program, timeout: @timeout, max_output_bytes: MAX_OUTPUT_BYTES)
+      result = Harnesses::StructuredCall.new.call(request)
+      validate_output!(result.value)
+      result.value
+    rescue Harnesses::Error => error
+      message = case error.code
+      when :timed_out then "#{@artifact_name.capitalize} generation timed out. Try again."
+      when :unavailable then "The #{@artifact_name} harness is unavailable. Configure the local harness before generating."
+      when :output_too_large then "Generated #{@artifact_name} is too large."
+      when :invalid_output then "The harness returned invalid #{@artifact_name} output."
+      when :failed then "#{@artifact_name.capitalize} generation failed. Check the local harness session and try again."
+      else error.message
       end
-    rescue Errno::ENOENT, Errno::EACCES
-      raise Error, "The #{@artifact_name} harness is unavailable. Configure the local harness before generating."
-    rescue JSON::ParserError
-      raise Error, "The harness returned invalid #{@artifact_name} output."
+      raise Error, message
     end
 
     private
