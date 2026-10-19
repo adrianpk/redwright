@@ -8,14 +8,14 @@ Approved: maintainer, 2026-10-19; explicit approval of the seven-slice plan, dep
 - cycle_id: `2026-10-19-redwright-pi-harness`
 - delivery_set: `pi-harness`
 - status: `approved`
-- state: `implementing`
+- state: `reviewing`
 - approval: `maintainer approved, 2026-10-19`
 - execution_authority: `autonomous execution of this delivery set approved`
 - updated: `2026-10-19`
-- active_slice: `Slice 7 - Operator guidance and integrated acceptance (implementing)`
-- active_task: `T7.2`
+- active_slice: `Slice 7 - Operator guidance and integrated acceptance (reviewing)`
+- active_task: `T7.3 (awaiting controller integration, gate evidence and closure)`
 - completed_slices: `6/7`
-- completed_tasks: `19/21`
+- completed_tasks: `20/21`
 - controller: `external Looper controller`
 - plan: [Pi Harness plan](../plans/2026-10-19-redwright-pi-harness-cycle-plan.md)
 - spec: [Pi Harness specification](../specs/specs/2026-10-19-redwright-pi-harness-spec.md)
@@ -225,11 +225,11 @@ Validation:
 
 ### Slice 7: Operator guidance and integrated acceptance
 
-- status: `implementing`
+- status: `reviewing`
 - branch: `fix/slice-7-pi-pi-harness-acceptance`
 - expected_pr_title: `feat(slice-7): operator guidance and integrated acceptance`
 - report: `ops/artifacts/slices/pi-harness/slice-7-pi-harness-acceptance.md`
-- ticket: [TKT-20261019165607](../tickets/in_progress/20261019165607-document-and-validate-the-integrated-pi-harness-workflow.md)
+- ticket: [TKT-20261019165607](../tickets/reviewing/20261019165607-document-and-validate-the-integrated-pi-harness-workflow.md)
 - merge_target: `dev`
 - PR: `pending`
 - last_sync_commit: `none`
@@ -237,18 +237,24 @@ Validation:
 Tasks:
 
 - [x] `T7.1` Update the existing User Guide/configuration reference with static-profile setup, effective selections, Linux containment, limits and truthful capability/usage evidence.
-- [ ] `T7.2` Exercise a representative configured-project journey, cross-process switching/recovery, Codex-only compatibility and ticket validation using owned fixtures.
+- [x] `T7.2` Exercise a representative configured-project journey, cross-process switching/recovery, Codex-only compatibility and ticket validation using owned fixtures.
 - [ ] `T7.3` Run the unchanged delivery-set gate on the exact integrated candidate and close the cycle report/tracker only with matching green evidence.
 
-Commits: none.
+Commits:
+
+- `T7.1`: `a3cc089d6905f1e9118076829b762d7ea7df56b1` - operator guidance and configuration reference.
+- `T7.2`: report-introduction task commit - integrated switching/recovery and feature-to-ticket evidence.
+- `T7.3`: pending controller gate evidence and final closure commit.
 
 Validation:
 
-- [ ] Planned focused checks from the plan's corresponding slice.
+- [x] Integrated workflow passed: 2 tests, 63 assertions; no failures, errors or skips.
+- [x] Six Markdown files rendered; JSON examples, fences and 57 local links passed.
 - [ ] Pinned real Pi/Bubblewrap loopback acceptance.
 - [ ] Full Rails suite before canonical merge.
 - [ ] Changed Ruby syntax and `git diff --check`.
-- [ ] Report reviewed and canonical PR verified merged.
+- [x] Canonical report and PI-01 through PI-15 evidence map prepared.
+- [ ] Canonical PR verified merged by the external controller.
 
 ## Delivery Gate and Closure
 
@@ -316,3 +322,5 @@ Linux acceptance. No result here claims either was verified.
 - `2026-10-19` state=`reviewing`: Slice 6 tasks implemented; focused ticket/operation checks (75 tests, 700 assertions) and native Pi acceptance (6 tests, 77 assertions) passed. Prepare the canonical PR and exact-head controller evidence.
 
 - `2026-10-19T19:15:52Z` state=`implementing`: verified PR #15 merged at `ae01006350d550fca8ad92dd79ab58e895d76ef8`; closed Slice 6 with five successful controller checks and activated Slice 7 / T7.1. T7.3 remains pending controller gate evidence and closure.
+
+- `2026-10-19T19:21:03Z` state=`reviewing`: T7.1 and T7.2 delivered for canonical PR preparation. Integrated workflow passed (2 tests, 63 assertions); guidance checks passed. T7.3 remains pending controller integration, unchanged full-gate evidence and closure.

@@ -14,8 +14,8 @@ Approved: maintainer, 2026-10-19; explicit approval of the seven-slice plan, dep
 - created: `2026-10-19`
 - goal: `Use prepared Pi or Codex profiles through Rails authoring and bounded ticket proposals while retaining host validation and workflow authority.`
 - scope: `feature`
-- active_slice: `Slice 7 - Operator guidance and integrated acceptance (implementing)`
-- active_task: `T7.2`
+- active_slice: `Slice 7 - Operator guidance and integrated acceptance (reviewing)`
+- active_task: `T7.3 (awaiting controller integration, gate evidence and closure)`
 - merge_target: `dev`
 - observed_base: `8d63f6fbe6fb67e0bd7ef26bbfb474735ae43cf1`
 
@@ -377,19 +377,19 @@ Planned task commits:
 
 ### Slice 7: Operator guidance and integrated acceptance
 
-- status: `implementing`
+- status: `reviewing`
 - dependencies: Slice 6 integrated and closed
 - branch: `fix/slice-7-pi-pi-harness-acceptance`
 - expected_pr_title: `feat(slice-7): operator guidance and integrated acceptance`
 - report: `ops/artifacts/slices/pi-harness/slice-7-pi-harness-acceptance.md`
-- ticket: [TKT-20261019165607](../tickets/in_progress/20261019165607-document-and-validate-the-integrated-pi-harness-workflow.md)
+- ticket: [TKT-20261019165607](../tickets/reviewing/20261019165607-document-and-validate-the-integrated-pi-harness-workflow.md)
 - objective: An operator can configure prepared Pi profiles, switch a project, understand failures and verify the integrated behavior with recorded evidence.
 - acceptance_mapping: `PI-01 through PI-15`
 
 Tasks:
 
 - [x] `T7.1` Update the existing User Guide/configuration reference with static-profile setup, effective selections, Linux containment, limits and truthful capability/usage evidence.
-- [ ] `T7.2` Exercise a representative configured-project journey, cross-process switching/recovery, Codex-only compatibility and ticket validation using owned fixtures.
+- [x] `T7.2` Exercise a representative configured-project journey, cross-process switching/recovery, Codex-only compatibility and ticket validation using owned fixtures.
 - [ ] `T7.3` Run the unchanged delivery-set gate on the exact integrated candidate and close the cycle report/tracker only with matching green evidence.
 
 Acceptance:
