@@ -14,8 +14,8 @@ Approved: maintainer, 2026-10-19; explicit approval of the seven-slice plan, dep
 - created: `2026-10-19`
 - goal: `Use prepared Pi or Codex profiles through Rails authoring and bounded ticket proposals while retaining host validation and workflow authority.`
 - scope: `feature`
-- active_slice: `Slice 1 - Validated Codex structured calls (reviewing)`
-- active_task: `T1.3 (implemented; PR preparation)`
+- active_slice: `Slice 2 - Rails selection and retained operations (implementing)`
+- active_task: `T2.1 (in progress)`
 - merge_target: `dev`
 - observed_base: `8d63f6fbe6fb67e0bd7ef26bbfb474735ae43cf1`
 
@@ -133,12 +133,12 @@ supporting slice records; plan and tracker remain the execution authority.
 
 ### Slice 1: Validated Codex structured calls
 
-- status: `reviewing`
+- status: `delivered`
 - dependencies: approved and committed delivery artifacts; clean execution checkout
 - branch: `fix/slice-1-pi-validated-codex`
 - expected_pr_title: `feat(slice-1): validated codex structured calls`
 - report: `ops/artifacts/slices/pi-harness/slice-1-validated-codex.md`
-- ticket: [TKT-20261019165600](../tickets/reviewing/20261019165600-preserve-codex-authoring-through-validated-rails-calls.md)
+- ticket: [TKT-20261019165600](../tickets/solved/20261019165600-preserve-codex-authoring-through-validated-rails-calls.md)
 - PR: [#10](https://forge.adrianpk.com/adrianpk/redwrigh/pulls/10)
 - objective: All existing authoring operations keep working through one Rails structured-call service with full host schema validation and unchanged domain publication.
 - acceptance_mapping: `PI-01, PI-03, PI-04, PI-05`
@@ -174,7 +174,7 @@ Planned task commits:
 
 ### Slice 2: Rails selection and retained operations
 
-- status: `pending`
+- status: `implementing`
 - dependencies: Slice 1 integrated and closed
 - branch: `fix/slice-2-pi-rails-harness-selection`
 - expected_pr_title: `feat(slice-2): rails selection and retained operations`

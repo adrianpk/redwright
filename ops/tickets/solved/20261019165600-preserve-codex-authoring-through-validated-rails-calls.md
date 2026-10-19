@@ -1,7 +1,7 @@
 ---
 id: TKT-20261019165600
 title: Preserve Codex authoring through validated Rails calls
-status: reviewing
+status: solved
 kind: task
 severity: unclassified
 priority: normal
@@ -12,8 +12,8 @@ reported_at: 2026-10-19T16:56:00Z
 ready_at: 2026-10-19T17:08:55Z
 started_at: 2026-10-19T17:17:42Z
 reviewed_at: 2026-10-19T17:21:37Z
-closed_at:
-resolution:
+closed_at: 2026-10-19T17:27:34Z
+resolution: fixed
 owner:
 branch: fix/slice-1-pi-validated-codex
 pr: https://forge.adrianpk.com/adrianpk/redwrigh/pulls/10
@@ -78,5 +78,7 @@ gate. These commands are planned, not reported as passed.
 
 ## Outcome
 
-Implementation is ready for canonical PR preparation and controller validation. Existing Settings/Setup changes,
+Delivered through canonical PR #10 at `09de3682a9c7ab76d40fae3f0cec37ddcfd53d3e`.
+Controller validation passed: 549 Rails tests and 4,043 assertions, plus ticket,
+Ruby syntax and whitespace checks. Existing Settings/Setup changes,
 preview services, credentials and active databases remain outside this ticket.

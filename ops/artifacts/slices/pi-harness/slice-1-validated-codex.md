@@ -1,6 +1,6 @@
 # Slice 1: Validated Codex Structured Calls
 
-Status: reviewing
+Status: delivered
 Delivery set: pi-harness
 Plan: [Pi Harness plan](../../../plans/2026-10-19-redwright-pi-harness-cycle-plan.md)
 Tracker: [Pi Harness tracker](../../../trackers/2026-10-19-redwright-pi-harness-cycle-tracker.md)
@@ -78,6 +78,11 @@ scripts/agent/tickets/check.sh
 git diff --name-only --diff-filter=ACMR origin/dev...HEAD -- '*.rb' | xargs -r -n 1 ruby -wc
 git diff --check
 ```
+
+Canonical PR #10 merged at `09de3682a9c7ab76d40fae3f0cec37ddcfd53d3e`.
+The retained controller evidence for that exact commit passed all four commands
+above: 549 Rails tests, 4,043 assertions, zero failures, errors or skips;
+the Rails suite took 48.36 seconds.
 
 ## Risks and Follow-ups
 
