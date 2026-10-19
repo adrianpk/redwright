@@ -33,15 +33,13 @@ Much of the system already works, but it's still a work in progress. The TUI is 
 
 ## Start Here
 
-- User guide: [RedWright User Guide](docs/how-to/user-guide/index.md)
-- Technical reference: [Runtime Capabilities](docs/reference/runtime-capabilities.md)
+- [RedWright User Guide](docs/how-to/user-guide/index.md)
+- [Runtime Capabilities](docs/reference/runtime-capabilities.md)
 
-## Repositories
+## Repos
 
-Official repository: https://forge.adrianpk.com/adrianpk/redwrigh
-
-Public mirrors:
-- https://codeberg.org/adrianpk/redwright
+- Official: https://forge.adrianpk.com/adrianpk/redwrigh
+- Public mirror: https://codeberg.org/adrianpk/redwright
 
 ## License
 
