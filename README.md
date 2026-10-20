@@ -39,7 +39,8 @@ Much of the system already works, but it's still a work in progress. The TUI is 
 ## Repos
 
 - Official: https://forge.adrianpk.com/adrianpk/redwrigh
-- Public mirror: https://codeberg.org/adrianpk/redwright
+- Codeberg: https://codeberg.org/adrianpk/redwright
+- GitHub: https://github.com/adrianpk/redwright
 
 ## License
 
